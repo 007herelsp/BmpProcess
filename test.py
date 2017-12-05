@@ -84,7 +84,7 @@ erosion = cv2.erode(img,kernel,1)
 #cv2.imshow("img", img)
 #blur = cv2.GaussianBlur(img,(3,3),0)
 img2 = cv2.imread('ct.bmp') #直接读为灰度图像
-canny = cv2.Canny(img2,30,90,1)
+canny = cv2.Canny(img2,30,90,3)
 #canny = cv2.medianBlur(canny,3)
 canny = cv2.GaussianBlur(canny,(3,3),0)
  
@@ -174,7 +174,7 @@ print (len(contours))
 ic = 0
 
 
-lines = cv2.HoughLinesP(gray,1,np.pi/180,60,30,  10)
+lines = cv2.HoughLinesP(b,1,np.pi/180,20, maxLineGap=20)
 #lines = cv2.HoughLines(canny,1,np.pi/180,160)
 lines1 = lines[:,0,:]#
 for x1,y1,x2,y2 in lines1[:]: 
