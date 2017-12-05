@@ -30,7 +30,7 @@ canny = cv2.Canny(blur,30,90,0)
 cv2.imshow("canny",canny); 
 blur = cv2.GaussianBlur(canny,(3,3),0)
 cv2.imshow("blur2",blur);
-
+result = cv2.GaussianBlur(result,(3,3),0)
 
 contours, hierarchy = cv2.findContours(result,cv2.RETR_CCOMP,cv2.CHAIN_APPROX_SIMPLE)  
 print (len(contours))
