@@ -11,10 +11,11 @@ def gamma_trans(img, gamma):
 	return cv2.LUT(img, gamma_table)
   
 img = cv2.imread("Target14.bmp")  
+
 #cv2.imshow("img", img)
-
-
-
+#image = cv2.pyrMeanShiftFiltering(img, 25, 10)
+#cv2.imshow("image", image)
+#img = image
 emptyImage = np.zeros(img.shape, np.uint8)  
   
 emptyImage2 = img.copy()  
@@ -25,7 +26,7 @@ ret, threshold = cv2.threshold(emptyImage3,0,255, cv2.THRESH_BINARY+cv2.THRESH_O
 #cv2.imshow("threshold", threshold)
 emptyImage3 = gamma_trans(emptyImage3, 0.5)
 ret, thr1 = cv2.threshold(emptyImage3,0,255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
-#cv2.imshow("thr1", thr1)
+cv2.imshow("thr1", thr1)
 
 (B,G,R) = cv2.split(img)
 cv2.imwrite("colorB.bmp",B);
@@ -41,8 +42,12 @@ R1 = cv2.equalizeHist(R)
 img2 = cv2.merge( [B1, G1, R1])   
 ####cv2.imwrite("img2.bmp",img2);
 #img = gamma_trans(cv2.cvtColor(img,cv2.COLOR_BGR2GRAY), 0.1)
-img = cv2.equalizeHist(cv2.cvtColor(img,cv2.COLOR_BGR2GRAY))
+gray = cv2.equalizeHist(cv2.cvtColor(img,cv2.COLOR_BGR2GRAY))
+
+
 #blur = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)  
+
+
 # Otsu's thresholding after Gaussian filtering
 blur = cv2.GaussianBlur(img,(3,3),0)
 blur = img
@@ -55,10 +60,10 @@ cv2.imshow("erosion",erosion)
 
 #cv2.imshow("img", img)
 #blur = cv2.GaussianBlur(img,(3,3),0)
-canny = cv2.Canny(blur,30,90,10)
+canny = cv2.Canny(blur,30,90,0)
 #canny = cv2.medianBlur(canny,3)
 canny = cv2.GaussianBlur(canny,(3,3),0)
-
+ 
 #中值滤波
 blurred = np.hstack([cv2.medianBlur(img,3),
                      cv2.medianBlur(img,5),
@@ -74,15 +79,20 @@ blurred = np.hstack([cv2.bilateralFilter(img,5,21,21),
 cv2.imshow("Bilateral",blurred)
 
 #cv2.imshow("canny", canny)
-ret3,th3 = cv2.threshold(R,0,255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
-cv2.imwrite("BR.bmp",th3);
+ret3,b = cv2.threshold(R,0,255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+cv2.imwrite("BR.bmp",b);
 #cv2.imshow("R", th3)
-ret3,th3 = cv2.threshold(G,0,255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
-cv2.imwrite("BG.bmp",th3);
+ret3,g = cv2.threshold(G,0,255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+cv2.imwrite("BG.bmp",g);
 #cv2.imshow("G", th3)
-ret3,th3 = cv2.threshold(B,0,255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
-cv2.imwrite("BB.bmp",th3);
+ret3,r = cv2.threshold(B,0,255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+cv2.imwrite("BB.bmp",r);
 #cv2.imshow("B", th3)
+
+
+bgr = np.hstack([b,g,r
+                     ])
+cv2.imshow("bgr",bgr)
  
 #ret3,th3 = cv2.threshold(blur,0,255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
 #canny = thr1 
@@ -129,17 +139,22 @@ dst3=cv2.morphologyEx(canny,cv2.MORPH_OPEN,kernel)
 dst4=cv2.morphologyEx(canny,cv2.MORPH_CLOSE,kernel)
 #cv2.imshow("morphologyEx_Close", dst4) 
 
-contours, hierarchy = cv2.findContours(canny,cv2.RETR_CCOMP,cv2.CHAIN_APPROX_SIMPLE)  
+blur = cv2.GaussianBlur(img,(3,3),0)
+gray_lap = cv2.Laplacian(img,cv2.CV_16S,ksize = 3)  
+dst = cv2.convertScaleAbs(gray_lap)  
+dst = cv2.GaussianBlur(dst,(3,3),0)
+cv2.imshow('laplacian',dst)
+contours, hierarchy = cv2.findContours(b,cv2.RETR_CCOMP,cv2.CHAIN_APPROX_SIMPLE)  
 print (len(contours))
 ic = 0
 
 
-#lines = cv2.HoughLinesP(canny,1,np.pi/180,  200)
+lines = cv2.HoughLinesP(gray,1,np.pi/180,60,30,  10)
 #lines = cv2.HoughLines(canny,1,np.pi/180,160)
-#lines1 = lines[:,0,:]#
-#for x1,y1,x2,y2 in lines1[:]: 
-#    cv2.line(emptyImage,(x1,y1),(x2,y2),(255,0,0),1)
-#cv2.imshow("emptyImage", emptyImage) 
+lines1 = lines[:,0,:]#
+for x1,y1,x2,y2 in lines1[:]: 
+    cv2.line(emptyImage,(x1,y1),(x2,y2),(255,0,0),1)
+cv2.imshow("emptyImage", emptyImage) 
 
 
 for element in contours:
@@ -158,7 +173,7 @@ for element in contours:
 
 	lc = len(cnt)
 	area = cv2.contourArea(cnt)
-	if area < 10 or area >100000000000 :
+	if area < 200   :
 		continue
 	if lc== 4 :
 		rect = cv2.minAreaRect(cnt)
@@ -184,14 +199,14 @@ for element in contours:
   
      
     #cvRectangle(dst, pt1, pt2, CV_RGB(255,0,0), 1, CV_AA, 0);   
-	#cv2.rectangle(img,(x,y),(x+w,y+h),(0,0,255),2)
+		cv2.rectangle(emptyImage,(x,y),(x+w,y+h),(0,0,255),2)
 		cv2.drawContours(emptyImage,[box],0,(255,255,255),2)
 		#cv2.drawContours(emptyImage,element,-1,(0,255,0),2)
 		#cv2.rectangle(emptyImage,(x,y),(x+w,y+h),(0,255,0),2)
 	#rect = cv2.minAreaRect(element)
 	#box = cv2.cv.BoxPoints(rect)
 	#box = np.int0(box)
-	ic = ic +1
+		ic = ic +1
 	#cv2.drawContours(emptyImage, [box], 0, (0, 0, 255), 2)
 	#cv2.imwrite('contours.png', img)
 	#cv2.drawContours(img, element, 0,(255,0,0),  2); 
