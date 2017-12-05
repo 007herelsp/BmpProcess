@@ -1,5 +1,6 @@
 # coding=UTF-8
 import cv2  
+import cv2.cv as cv
 import numpy as np  
   
 #
@@ -9,8 +10,20 @@ def gamma_trans(img, gamma):
 	gamma_table = np.round(np.array(gamma_table)).astype(np.uint8)
 
 	return cv2.LUT(img, gamma_table)
+
+
   
 img = cv2.imread("Target14.bmp")  
+#cv2.imshow("img", img)
+
+image = cv.LoadImage("Target14.bmp")
+new = cv.CreateImage(cv.GetSize(image), image.depth, 1) 
+for i in range(image.height):
+		for j in range(image.width):
+			new[i,j] = max(image[i,j][0], image[i,j][1], image[i,j][2])
+cv.ShowImage('a_window', new)
+cv.SaveImage("t.bmp", new)
+img3 = cv2.imread("t.bmp")
 
 #cv2.imshow("img", img)
 #image = cv2.pyrMeanShiftFiltering(img, 25, 10)
@@ -21,46 +34,57 @@ emptyImage = np.zeros(img.shape, np.uint8)
 emptyImage2 = img.copy()  
   
 emptyImage3=cv2.cvtColor(img,cv2.COLOR_BGR2GRAY) 
+cv2.imwrite("imgg.bmp",emptyImage3);
 #cv2.imshow("emptyImage3", emptyImage3)
 ret, threshold = cv2.threshold(emptyImage3,0,255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
 #cv2.imshow("threshold", threshold)
 emptyImage3 = gamma_trans(emptyImage3, 0.5)
 ret, thr1 = cv2.threshold(emptyImage3,0,255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
-cv2.imshow("thr1", thr1)
+#cv2.imshow("thr1", emptyImage3)
 
 (B,G,R) = cv2.split(img)
 cv2.imwrite("colorB.bmp",B);
 cv2.imwrite("colorG.bmp",G);
 cv2.imwrite("colorR.bmp",R);
  
-
+bgrequalizeHist1 = np.hstack([B,
+                     G,
+                     R
+                     ])
+#cv2.imshow("equalizeHist1",bgrequalizeHist1)
 
 
 B1 = cv2.equalizeHist(B)
 G1 = cv2.equalizeHist(G)
 R1 = cv2.equalizeHist(R)
 img2 = cv2.merge( [B1, G1, R1])   
-####cv2.imwrite("img2.bmp",img2);
+
+bgrequalizeHist = np.hstack([B1,
+                     G1,
+                     R1
+                     ])
+#cv2.imshow("equalizeHist",bgrequalizeHist)
+#cv2.imwrite("img2.bmp",img2);
 #img = gamma_trans(cv2.cvtColor(img,cv2.COLOR_BGR2GRAY), 0.1)
-gray = cv2.equalizeHist(cv2.cvtColor(img,cv2.COLOR_BGR2GRAY))
 
-
-#blur = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)  
-
-
+blur = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)  
+#cv2.imshow("COLOR_BGR2HSV", img)
+img = cv2.equalizeHist(cv2.cvtColor(img,cv2.COLOR_BGR2GRAY))
+imgAdapt = cv2.adaptiveThreshold(img,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY,11,2) 
+cv2.imshow("imgAdapt",imgAdapt) 
 # Otsu's thresholding after Gaussian filtering
 blur = cv2.GaussianBlur(img,(3,3),0)
-blur = img
 img2 = cv2.imread('Target14.bmp',0) #直接读为灰度图像
 
 kernel = np.ones((5,5),np.uint8)
 erosion = cv2.erode(img,kernel,1)
  
-cv2.imshow("erosion",erosion)
+#cv2.imshow("erosion",erosion)
 
 #cv2.imshow("img", img)
 #blur = cv2.GaussianBlur(img,(3,3),0)
-canny = cv2.Canny(blur,30,90,0)
+img2 = cv2.imread('ct.bmp') #直接读为灰度图像
+canny = cv2.Canny(img2,30,90,1)
 #canny = cv2.medianBlur(canny,3)
 canny = cv2.GaussianBlur(canny,(3,3),0)
  
@@ -69,14 +93,14 @@ blurred = np.hstack([cv2.medianBlur(img,3),
                      cv2.medianBlur(img,5),
                      cv2.medianBlur(img,7)
                      ])
-cv2.imshow("Median",blurred)
+#cv2.imshow("Median",blurred)
 
 #双边滤波
 blurred = np.hstack([cv2.bilateralFilter(img,5,21,21),
                      cv2.bilateralFilter(img,7, 31, 31),
                      cv2.bilateralFilter(img,9, 41, 41)
                      ])
-cv2.imshow("Bilateral",blurred)
+#cv2.imshow("Bilateral",blurred)
 
 #cv2.imshow("canny", canny)
 ret3,b = cv2.threshold(R,0,255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
@@ -109,7 +133,8 @@ cv2.imshow("canny", canny)
 #blur = cv2.GaussianBlur(canny,(3,3),0)
 #cv2.imshow("blur", blur)
 kernel=np.ones((5,5),np.uint8)
-
+dst3=cv2.morphologyEx(imgAdapt,cv2.MORPH_CLOSE,kernel)
+cv2.imshow("morphologyEx_Open", dst3)
 ##
 element = cv2.getStructuringElement(cv2.MORPH_RECT,(3, 3))    
 dilate = cv2.dilate(img, element)    

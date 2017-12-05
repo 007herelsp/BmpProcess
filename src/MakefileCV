@@ -1,0 +1,8 @@
+CC = g++
+# 可执行文件
+TARGET = test
+DLIBS = -lopencv_core -lopencv_imgproc -lopencv_highgui
+all:
+	$(CC) -c -o c_canny.o c_canny.cpp
+	$(CC) -c -o tcanny.o tcanny.cpp
+	$(CC) -o test tcanny.o c_canny.o $(DLIBS)
