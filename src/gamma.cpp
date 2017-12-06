@@ -1,4 +1,4 @@
-#include <opencv2/highgui/highgui.hpp>
+#include "opencv2/highgui/highgui.hpp"
 #include <opencv2/imgproc/imgproc.hpp>
 
 using namespace cv;
@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
     convertScaleAbs(imageGamma, imageGamma);
     imshow("befor", image);
     imshow("after", imageGamma);
-    imwrite("imageGamma.bmp", imageGamma);
+    imwrite("gamma.bmp", imageGamma);
     waitKey();
     return 0;
 }
