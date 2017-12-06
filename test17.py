@@ -8,24 +8,29 @@ from matplotlib import pyplot as plt
 
 #根据一阶锐化算子，求x，y的梯度，显示锐化图像
 #读取图片
-filename = 'Target14.bmp'
+filename = 'build/imageGamma.bmp'
 img = cv2.imread(filename)
 emptyImage = np.zeros(img.shape, np.uint8)  
 (B,G,R) = cv2.split(img)
+#gray = cv2.GaussianBlur(img,(9,9),0)
 gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-canny = cv2.Canny(gray,10,90,1)
+gray =G
+canny = cv2.Canny(gray,50,150,3)
 cv2.imshow("canny", canny)
-g1 = cv2.GaussianBlur(R,(3,3),0)
+cv2.imwrite("canny.bmp",canny);
+ 
+g1 = cv2.GaussianBlur(gray,(3,3),0)
 g2 = cv2.GaussianBlur(g1,(3,3),0)
+
 #GaussianBlur(img,img_G0,Size(3,3),0);    
 #GaussianBlur(img_G0,img_G1,Size(3,3),0);    
 img_DoG = g1 - g2;    
 cv2.normalize(img_DoG,img_DoG,255,0,cv2.NORM_MINMAX)
-
+img_DoG = cv2.GaussianBlur(img_DoG,(3,3),0)
 cv2.imshow("dog", img_DoG)
 
  
-contours, hierarchy = cv2.findContours(img_DoG,cv2.RETR_CCOMP,cv2.CHAIN_APPROX_SIMPLE)  
+contours, hierarchy = cv2.findContours(canny,cv2.RETR_CCOMP,cv2.CHAIN_APPROX_SIMPLE)  
 print (len(contours))
 ic = 0
 

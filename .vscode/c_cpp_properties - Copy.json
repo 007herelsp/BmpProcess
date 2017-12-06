@@ -46,12 +46,12 @@
             "name": "Win32",
             "includePath": [
                 "${workspaceRoot}",
-                "C:/Qt/Qt5.9.1/Tools/mingw530_32/i686-w64-mingw32/include/*", 
-                "C:/Qt/Qt5.9.1/Tools/mingw530_32/i686-w64-mingw32/include/c++/*",
-                "D:/opencv_mingw/install/include/*",
-                "DC:/cygwin/usr/include/*", 
-                "DC:/cygwin/lib/gcc/i686-pc-cygwin/6.4.0/include/c++/*",
-                "DC:/cygwin/lib/gcc/i686-pc-cygwin/6.4.0/include/*"
+                "dC:/Qt/Qt5.9.1/Tools/mingw530_32/i686-w64-mingw32/include/*", 
+                "dC:/Qt/Qt5.9.1/Tools/mingw530_32/i686-w64-mingw32/include/c++/*",
+                "dD:/opencv_mingw/install/include/*",
+                "C:/cygwin/usr/include/*", 
+                "C:/cygwin/lib/gcc/i686-pc-cygwin/6.4.0/include/c++/*",
+                "C:/cygwin/lib/gcc/i686-pc-cygwin/6.4.0/include/*"
             ],
             "defines": [
                 "_DEBUG",

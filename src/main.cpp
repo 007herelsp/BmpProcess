@@ -9,6 +9,9 @@
 #include <math.h>
 #include <assert.h>
 
+#include <opencv2/highgui/highgui.hpp>
+#include "opencv/cv.h"
+
 int otsu3(unsigned char *data, int width, int height)
 {
     //histogram
@@ -295,6 +298,10 @@ int main(int argc, char **argv)
         return -2;
     }
 
+    IplImage *src = cvLoadImage(argv[1], 1); //2222222
+    cvNamedWindow("hsv");
+    cvShowImage("gray", src);
+
     dest_fd = open(argv[2], O_RDWR | O_CREAT | O_TRUNC, 0777);
     if (dest_fd < 0)
     {
@@ -358,16 +365,16 @@ int main(int argc, char **argv)
     {
         write_bmp_8("ct.bmp", ptrgb, header.ImageWidth, header.ImageHight, size);
 
-
         VOS_FREE(ptrgb);
     }
 
-    std::vector<Line> lines = find_horizontal_line(buffer, &header,10);
- 
-printf("lines:%d\n", lines.size());
-      for (auto it = lines.begin(); it != lines.end(); it ++) {
+    std::vector<Line> lines = find_horizontal_line(buffer, &header, 10);
+
+    printf("lines:%d\n", lines.size());
+    for (auto it = lines.begin(); it != lines.end(); it++)
+    {
         Line l = *it;
-        printf("%d,%d,%d,%d\n", l.x0,l.y0,l.x1,l.y1);
+        printf("%d,%d,%d,%d\n", l.x0, l.y0, l.x1, l.y1);
     }
     return 0;
 
@@ -515,5 +522,6 @@ printf("lines:%d\n", lines.size());
 
     writeBmp8("D:\\opensrc\\bmp_process\\build\\8_b.bmp", &header, bitmap, bitmaplen);
 
+    cvWaitKey(0);
     return 0;
 }

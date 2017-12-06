@@ -1,6 +1,6 @@
 {
     "version": "0.1.0",
-    "command": "mingw32-make",
+    "command": "make",
     //"args": ["-g","-Wwrite-strings", "${file}","-o","${file}.exe"],    // 编译命令参数
     "args": [ "-f", "${workspaceRoot}/src/Makefile", "all"], 
     "problemMatcher": {
