@@ -7,8 +7,15 @@ INCLUDE_PATH=-I$(TOP_PATH)/3rd/opencv/mingw/include/
 LIB_PATH=-L$(TOP_PATH)/3rd/opencv/mingw/x86/mingw/lib
 .PHONY: bb  
 #mingw32-g++不能写注释
-all:contours
+all: cvLaplace
+cvLaplace:
+	g++   -g  -o  $(OUTDIR)cvLaplace  $(SRCDIR)cvLaplace.cpp   $(DLIBS) $(INCLUDE_PATH) $(LIB_PATH)
 
+soble:
+	g++   -g  -o  $(OUTDIR)soble  $(SRCDIR)soble.cpp   $(DLIBS) $(INCLUDE_PATH) $(LIB_PATH)
+
+bilateralFilter:
+	g++   -g  -o  $(OUTDIR)bilateralFilter  $(SRCDIR)bilateralFilter.cpp   $(DLIBS) $(INCLUDE_PATH) $(LIB_PATH)
 contours:
 	g++ -g  -o  $(OUTDIR)contours  $(SRCDIR)contours.cpp   $(DLIBS) $(INCLUDE_PATH) $(LIB_PATH)
 
@@ -38,6 +45,7 @@ all1:
 	g++  -std=c++11   -g -c -o $(OUTDIR)main.o $(SRCDIR)main.cpp $(INCLUDE_PATH)
 	g++ -o  $(OUTDIR)main $(OUTDIR)process.o $(OUTDIR)main.o   $(DLIBS) $(LIB_PATH)
 	g++   -g -c -o $(OUTDIR)process.o $(SRCDIR)process.cpp
+HoughChange:
 	g++   -g  -o  $(OUTDIR)HoughChange  $(SRCDIR)HoughChange.cpp   $(DLIBS) $(INCLUDE_PATH) $(LIB_PATH)
 	g++ -g  -o  $(OUTDIR)test  $(SRCDIR)test.cpp   $(DLIBS) $(INCLUDE_PATH) $(LIB_PATH)
 morphology:

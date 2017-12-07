@@ -63,6 +63,7 @@ CvSeq *findSquares4(IplImage *img, CvMemStorage *storage)
     IplImage *gray = cvCreateImage(sz, 8, 1);
     IplImage *pyr = cvCreateImage(cvSize(sz.width / 2, sz.height / 2), 8, 3);
     IplImage *tgray;
+    IplImage *dl;
     CvSeq *result;
     double s, t;
     // 创建一个空序列用于存储轮廓角点
@@ -80,6 +81,7 @@ CvSeq *findSquares4(IplImage *img, CvMemStorage *storage)
     cvSmooth(timg, timg, CV_GAUSSIAN, 5, 5, 0, 0); //5x5
     // cvSmooth(timg,timg,CV_GAUSSIAN,5,5,0,0);//5x5
     tgray = cvCreateImage(sz, 8, 1);
+    dl = cvCreateImage(sz, 8, 1);
     CvScalar cs, hs; //声明像素变量
     CvScalar cs2;    //声明像素变量
     // 红绿蓝3色分别尝试提取
@@ -87,8 +89,9 @@ CvSeq *findSquares4(IplImage *img, CvMemStorage *storage)
     {
         // 提取 the c-th color plane
         cvSetImageCOI(timg, c + 1);
-        cvCopy(timg, tgray, 0);
-
+        cvCopy(timg, dl, 0);
+  cvSmooth(dl, tgray, CV_BILATERAL, 3, 3, 0, 0); //双边滤波
+    cvShowImage("tgray", tgray);
         // 尝试各种阈值提取得到的（N=11）
         for (l = 0; l < 256; l++)
         {
@@ -96,9 +99,10 @@ CvSeq *findSquares4(IplImage *img, CvMemStorage *storage)
             // Canny helps to catch squares with gradient shading
             if (l == 0)
             {
+              
                 cvCanny(tgray, gray, 0, 50, 5);
                 //使用任意结构元素膨胀图像
-                cvDilate(gray, gray, 0, 4);
+               cvDilate(gray, gray, 0, 2);
                 char name[20] = {0};
                 sprintf(name, "canny%d.bmp", l);
                 cvSaveImage(name, gray);

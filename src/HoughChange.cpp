@@ -156,14 +156,14 @@ int main(int argc, char **args)
 		set<int>::iterator ite;
 		CvScalar cs, hs; //声明像素变量
 		CvScalar cs2;	//声明像素变量
-		// printf("count = %d\n", sets.size());
-		// for (int i = 0; i < src->height; i++)
-		// {
-		// 	for (int j = 0; j < src->width; j++)
-		// 	{
-		// 		cs = cvGet2D(src, i, j); //获取像素
-		// 		rgb = 0;
-		// 		rgb = (int)cs.val[0] << 24 | (int)cs.val[1] << 16 | (int)cs.val[2];
+						 // printf("count = %d\n", sets.size());
+						 // for (int i = 0; i < src->height; i++)
+						 // {
+						 // 	for (int j = 0; j < src->width; j++)
+						 // 	{
+						 // 		cs = cvGet2D(src, i, j); //获取像素
+						 // 		rgb = 0;
+						 // 		rgb = (int)cs.val[0] << 24 | (int)cs.val[1] << 16 | (int)cs.val[2];
 
 		// 		ite = sets.find(rgb);
 		// 		if (ite == sets.end())
@@ -176,6 +176,7 @@ int main(int argc, char **args)
 		// printf("count = %d\n", sets.size());
 
 		IplImage *dst = cvCreateImage(cvGetSize(src), 8, 1);
+		IplImage *dl = cvCreateImage(cvGetSize(src), 8, 1);
 		IplImage *dst_color = cvCreateImage(cvGetSize(src), 8, 3);
 		CvMemStorage *storage = cvCreateMemStorage();
 		CvSeq *lines = 0;
@@ -218,7 +219,7 @@ int main(int argc, char **args)
 		// 创建一个空序列用于存储轮廓角点
 		CvSeq *squares = cvCreateSeq(0, sizeof(CvSeq), sizeof(CvPoint), storage);
 
-		for (int qq = 0; qq < 1; qq++)
+		for (int qq = 0; qq < 255; qq++)
 		{
 			if (104 == qq)
 			{
@@ -247,21 +248,22 @@ int main(int argc, char **args)
 			// 	}
 			// }
 			//IplImage *out = cvCreateImage(cvSize(cvGetSize(dst).width, cvGetSize(dst).height), IPL_DEPTH_8U, 1);
-		 
+
+					cvSmooth(gray, dl, CV_BILATERAL, 1, 150, 240, 480); //双边滤波
+		cvShowImage("CV_BILATERAL", dl);
 			//cvSmooth(gray, out, CV_GAUSSIAN, 3, 3, 0, 0);
-			cvCanny(gray, dst, 50, 150, 3);
+			cvCanny(dl, dst, 50, 150, 3);
 			//cvSmooth(gray, dst, CV_GAUSSIAN, 3, 3, 0, 0);
-			cvShowImage("out", dst);
+			//cvShowImage("out", dst);
 			cvSaveImage("canny.bmp", dst);
 			//cvCvtColor(dst, dst_color, CV_GRAY2RGB);
 
 			lines = cvHoughLines2(dst, storage, CV_HOUGH_PROBABILISTIC, 1, CV_PI / 360, 60, 100, 10);
-			for (int i = 0;i<lines->total;i++)
+			for (int i = 0; i < lines->total; i++)
 			{
 				CvPoint *line = (CvPoint *)cvGetSeqElem(lines, i);
 				cvLine(dst_color, line[0], line[1], CV_RGB(255, 0, 0), 1, CV_AA);
 			}
-
 
 			// 找到所有轮廓并且存储在序列中
 			cvFindContours(dst, storage, &contours, sizeof(CvContour),
@@ -296,7 +298,7 @@ int main(int argc, char **args)
 
 					// if 余弦值 足够小，可以认定角度为90度直角
 					//cos0.1=83度，能较好的趋近直角
-					//if (s < 0.1)
+					if (s < 0.1)
 					{
 						char name[30];
 						sprintf(name, "img%d.bmp", qq);

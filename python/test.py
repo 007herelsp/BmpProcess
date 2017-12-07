@@ -2,7 +2,13 @@
 import cv2  
 import cv2.cv as cv
 import numpy as np  
-  
+
+import sys
+import argparse
+parser = argparse.ArgumentParser(description='manual to this script')
+parser.add_argument('--file', type=str, default = None)
+args = parser.parse_args()
+file =  args.file  
 #
 def gamma_trans(img, gamma):
 
@@ -13,34 +19,13 @@ def gamma_trans(img, gamma):
 
 
   
-img = cv2.imread("Target14.bmp")  
-#cv2.imshow("img", img)
-
-image = cv.LoadImage("Target14.bmp")
-new = cv.CreateImage(cv.GetSize(image), image.depth, 1) 
-for i in range(image.height):
-		for j in range(image.width):
-			new[i,j] = max(image[i,j][0], image[i,j][1], image[i,j][2])
-cv.ShowImage('a_window', new)
-cv.SaveImage("t.bmp", new)
-img3 = cv2.imread("t.bmp")
-
-#cv2.imshow("img", img)
-#image = cv2.pyrMeanShiftFiltering(img, 25, 10)
-#cv2.imshow("image", image)
-#img = image
+img = cv2.imread(file)  
+ 
 emptyImage = np.zeros(img.shape, np.uint8)  
   
 emptyImage2 = img.copy()  
   
 emptyImage3=cv2.cvtColor(img,cv2.COLOR_BGR2GRAY) 
-cv2.imwrite("imgg.bmp",emptyImage3);
-#cv2.imshow("emptyImage3", emptyImage3)
-ret, threshold = cv2.threshold(emptyImage3,0,255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
-#cv2.imshow("threshold", threshold)
-emptyImage3 = gamma_trans(emptyImage3, 0.5)
-ret, thr1 = cv2.threshold(emptyImage3,0,255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
-#cv2.imshow("thr1", emptyImage3)
 
 (B,G,R) = cv2.split(img)
 cv2.imwrite("colorB.bmp",B);
@@ -51,9 +36,6 @@ bgrequalizeHist1 = np.hstack([B,
                      G,
                      R
                      ])
-#cv2.imshow("equalizeHist1",bgrequalizeHist1)
-
-
 B1 = cv2.equalizeHist(B)
 G1 = cv2.equalizeHist(G)
 R1 = cv2.equalizeHist(R)
@@ -63,27 +45,14 @@ bgrequalizeHist = np.hstack([B1,
                      G1,
                      R1
                      ])
-#cv2.imshow("equalizeHist",bgrequalizeHist)
-#cv2.imwrite("img2.bmp",img2);
-#img = gamma_trans(cv2.cvtColor(img,cv2.COLOR_BGR2GRAY), 0.1)
-
 blur = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)  
-#cv2.imshow("COLOR_BGR2HSV", img)
-img = cv2.equalizeHist(cv2.cvtColor(img,cv2.COLOR_BGR2GRAY))
-imgAdapt = cv2.adaptiveThreshold(img,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY,11,2) 
-cv2.imshow("imgAdapt",imgAdapt) 
-# Otsu's thresholding after Gaussian filtering
 blur = cv2.GaussianBlur(img,(3,3),0)
-img2 = cv2.imread('Target14.bmp',0) #直接读为灰度图像
 
 kernel = np.ones((5,5),np.uint8)
 erosion = cv2.erode(img,kernel,1)
  
 #cv2.imshow("erosion",erosion)
 
-#cv2.imshow("img", img)
-#blur = cv2.GaussianBlur(img,(3,3),0)
-img2 = cv2.imread('ct.bmp') #直接读为灰度图像
 canny = cv2.Canny(img2,30,90,3)
 #canny = cv2.medianBlur(canny,3)
 canny = cv2.GaussianBlur(canny,(3,3),0)
@@ -133,8 +102,6 @@ cv2.imshow("canny", canny)
 #blur = cv2.GaussianBlur(canny,(3,3),0)
 #cv2.imshow("blur", blur)
 kernel=np.ones((5,5),np.uint8)
-dst3=cv2.morphologyEx(imgAdapt,cv2.MORPH_CLOSE,kernel)
-cv2.imshow("morphologyEx_Open", dst3)
 ##
 element = cv2.getStructuringElement(cv2.MORPH_RECT,(3, 3))    
 dilate = cv2.dilate(img, element)    
@@ -165,10 +132,17 @@ dst4=cv2.morphologyEx(canny,cv2.MORPH_CLOSE,kernel)
 #cv2.imshow("morphologyEx_Close", dst4) 
 
 blur = cv2.GaussianBlur(img,(3,3),0)
-gray_lap = cv2.Laplacian(img,cv2.CV_16S,ksize = 3)  
+gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+cv2.imshow("Gray", gray)
+
+gray_lap = cv2.Laplacian(gray,cv2.CV_64F,ksize = 3)  
+
+gray_lap = np.uint8(np.absolute(gray_lap))
+
 dst = cv2.convertScaleAbs(gray_lap)  
 dst = cv2.GaussianBlur(dst,(3,3),0)
 cv2.imshow('laplacian',dst)
+b = gray_lap;
 contours, hierarchy = cv2.findContours(b,cv2.RETR_CCOMP,cv2.CHAIN_APPROX_SIMPLE)  
 print (len(contours))
 ic = 0
