@@ -218,7 +218,7 @@ int main(int argc, char **args)
 		// 创建一个空序列用于存储轮廓角点
 		CvSeq *squares = cvCreateSeq(0, sizeof(CvSeq), sizeof(CvPoint), storage);
 
-		for (int qq = 0; qq < 256; qq++)
+		for (int qq = 0; qq < 1; qq++)
 		{
 			if (104 == qq)
 			{
@@ -229,29 +229,25 @@ int main(int argc, char **args)
 				//	continue;
 			}
 
-			for (int i = 0; i < gray->height; i++)
-			{
-				for (int j = 0; j < gray->width; j++)
-				{
-					hs = cvGet2D(hsv, i, j);
-					cs = cvGet2D(gray, i, j); //获取像素
-					if (cs.val[0] != qq)
-					{
-						cs.val[0] = 0;
-					}
-					else
-					{
-						cs.val[0] = 255;
-					}
-					cvSet2D(gray2, i, j, cs); //将改变的像素保存到图片中
-				}
-			}
+			// for (int i = 0; i < gray->height; i++)
+			// {
+			// 	for (int j = 0; j < gray->width; j++)
+			// 	{
+			// 		hs = cvGet2D(hsv, i, j);
+			// 		cs = cvGet2D(gray, i, j); //获取像素
+			// 		if (cs.val[0] != qq)
+			// 		{
+			// 			cs.val[0] = 0;
+			// 		}
+			// 		else
+			// 		{
+			// 			cs.val[0] = 255;
+			// 		}
+			// 		cvSet2D(gray2, i, j, cs); //将改变的像素保存到图片中
+			// 	}
+			// }
 			//IplImage *out = cvCreateImage(cvSize(cvGetSize(dst).width, cvGetSize(dst).height), IPL_DEPTH_8U, 1);
-			
-			char name1[30];
-			sprintf(name1, "img_g%d.bmp", qq);
-			cvSaveImage(name1, gray2);
-			continue;
+		 
 			//cvSmooth(gray, out, CV_GAUSSIAN, 3, 3, 0, 0);
 			cvCanny(gray, dst, 50, 150, 3);
 			//cvSmooth(gray, dst, CV_GAUSSIAN, 3, 3, 0, 0);
@@ -259,12 +255,12 @@ int main(int argc, char **args)
 			cvSaveImage("canny.bmp", dst);
 			//cvCvtColor(dst, dst_color, CV_GRAY2RGB);
 
-			/*lines = cvHoughLines2(dst, storage, CV_HOUGH_PROBABILISTIC, 1, CV_PI / 90, 50, 30, 3);
+			lines = cvHoughLines2(dst, storage, CV_HOUGH_PROBABILISTIC, 1, CV_PI / 360, 60, 100, 10);
 			for (int i = 0;i<lines->total;i++)
 			{
 				CvPoint *line = (CvPoint *)cvGetSeqElem(lines, i);
 				cvLine(dst_color, line[0], line[1], CV_RGB(255, 0, 0), 1, CV_AA);
-			}*/
+			}
 
 
 			// 找到所有轮廓并且存储在序列中
@@ -318,10 +314,8 @@ int main(int argc, char **args)
 		}
 		drawSquares(src, squares);
 
-		cvNamedWindow("原图");
-		cvNamedWindow("Hough变换图");
-		cvShowImage("原图", src);
-		cvShowImage("Hough变换图", dst_color);
+		cvShowImage("befor", src);
+		cvShowImage("Hough after", dst_color);
 		cvWaitKey(0);
 		cvReleaseImage(&src);
 		cvReleaseImage(&dst);

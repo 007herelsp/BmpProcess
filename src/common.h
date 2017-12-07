@@ -47,19 +47,6 @@ typedef struct stBGRHdr
     U8 R;
 } BGRHDR, *pBGRHDR;
 
-typedef struct stPoint
-{
-    U32 x;
-    U32 y;
-} Point, *lpPoint;
-
-typedef struct stLine
-{
-    U32 x0;
-    U32 y0;
-    U32 x1;
-    U32 y1;
-} Line, *lpLine;
 
 #pragma pack()
 #endif /*__COMMON_H__*/
