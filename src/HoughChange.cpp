@@ -96,6 +96,7 @@ return 1;
 #include "opencv/cv.h"
 #include <iostream>
 #include <math.h>
+#include <set>
 using namespace cv;
 using namespace std;
 //angle函数用来返回（两个向量之间找到角度的余弦值）
@@ -115,8 +116,9 @@ void drawSquares(IplImage *img, CvSeq *squares)
 	IplImage *cpy = cvCloneImage(img);
 	int i;
 	cvStartReadSeq(squares, &reader, 0);
-
+	printf("total = %d\n", squares->total);
 	// read 4 sequence elements at a time (all vertices of a square)
+
 	for (i = 0; i < squares->total; i += 4)
 	{
 		CvPoint pt[4], *rect = pt;
@@ -129,7 +131,7 @@ void drawSquares(IplImage *img, CvSeq *squares)
 		CV_READ_SEQ_ELEM(pt[3], reader);
 
 		// draw the square as a closed polyline
-		cvPolyLine(cpy, &rect, &count, 1, 1, CV_RGB(255, 255, 255), 2, CV_AA, 0);
+		cvPolyLine(cpy, &rect, &count, 1, 1, CV_RGB(0, 0, 255), 2, CV_AA, 0);
 	}
 
 	cvShowImage("xx", cpy);
@@ -149,14 +151,42 @@ int main(int argc, char **args)
 	IplImage *src = cvLoadImage(args[1], 1); //2222222
 	if (src)
 	{
+		set<int> sets;
+		int rgb;
+		set<int>::iterator ite;
+		CvScalar cs, hs; //声明像素变量
+		CvScalar cs2;	//声明像素变量
+		// printf("count = %d\n", sets.size());
+		// for (int i = 0; i < src->height; i++)
+		// {
+		// 	for (int j = 0; j < src->width; j++)
+		// 	{
+		// 		cs = cvGet2D(src, i, j); //获取像素
+		// 		rgb = 0;
+		// 		rgb = (int)cs.val[0] << 24 | (int)cs.val[1] << 16 | (int)cs.val[2];
+
+		// 		ite = sets.find(rgb);
+		// 		if (ite == sets.end())
+		// 		{
+		// 			sets.insert(rgb);
+		// 		}
+		// 	}
+		// }
+
+		// printf("count = %d\n", sets.size());
+
 		IplImage *dst = cvCreateImage(cvGetSize(src), 8, 1);
 		IplImage *dst_color = cvCreateImage(cvGetSize(src), 8, 3);
 		CvMemStorage *storage = cvCreateMemStorage();
 		CvSeq *lines = 0;
 		IplImage *gray = cvCreateImage(cvGetSize(src), 8, 1);
 		int d = 0;
-		CvScalar cs, hs; //声明像素变量
-		CvScalar cs2;	//声明像素变量
+
+		IplImage *gray2 = cvCreateImage(cvGetSize(src), 8, 1);
+		IplImage *hsv = cvCreateImage(cvGetSize(src), 8, 3);
+		cvCvtColor(src, gray, CV_RGB2GRAY);
+		cvCvtColor(src, hsv, CV_BGR2HSV);
+
 		// for (int i = 0; i < src->height; i++)
 		// {
 		// 	for (int j = 0; j < src->width; j++)
@@ -170,10 +200,6 @@ int main(int argc, char **args)
 		// 	}
 		// }
 
-		IplImage *gray2 = cvCreateImage(cvGetSize(src), 8, 1);
-		IplImage *hsv = cvCreateImage(cvGetSize(src), 8, 3);
-		cvCvtColor(src, gray, CV_RGB2GRAY);
-		cvCvtColor(src, hsv, CV_BGR2HSV);
 		cvNamedWindow("gray");
 		cvShowImage("gray", gray);
 		cvNamedWindow("hsv");
@@ -192,7 +218,7 @@ int main(int argc, char **args)
 		// 创建一个空序列用于存储轮廓角点
 		CvSeq *squares = cvCreateSeq(0, sizeof(CvSeq), sizeof(CvPoint), storage);
 
-		for (int qq = 0; qq < 1; qq++)
+		for (int qq = 0; qq < 256; qq++)
 		{
 			if (104 == qq)
 			{
@@ -203,29 +229,34 @@ int main(int argc, char **args)
 				//	continue;
 			}
 
-			// for (int i = 0; i < gray->height; i++)
-			// {
-			// 	for (int j = 0; j < gray->width; j++)
-			// 	{
-			// 		hs = cvGet2D(hsv, i, j);
-			// 		cs = cvGet2D(gray, i, j); //获取像素
-			// 		if (cs.val[0] != qq)
-			// 		{
-			// 			cs.val[0] = 0;
-			// 		}
-			// 		else
-			// 		{
-			// 			cs.val[0] = 255;
-			// 		}
-			// 		cvSet2D(gray2, i, j, cs); //将改变的像素保存到图片中
-			// 	}
-			// }
-			IplImage *out = cvCreateImage(cvSize(cvGetSize(dst).width, cvGetSize(dst).height), IPL_DEPTH_8U, 1);
-
+			for (int i = 0; i < gray->height; i++)
+			{
+				for (int j = 0; j < gray->width; j++)
+				{
+					hs = cvGet2D(hsv, i, j);
+					cs = cvGet2D(gray, i, j); //获取像素
+					if (cs.val[0] != qq)
+					{
+						cs.val[0] = 0;
+					}
+					else
+					{
+						cs.val[0] = 255;
+					}
+					cvSet2D(gray2, i, j, cs); //将改变的像素保存到图片中
+				}
+			}
+			//IplImage *out = cvCreateImage(cvSize(cvGetSize(dst).width, cvGetSize(dst).height), IPL_DEPTH_8U, 1);
+			
+			char name1[30];
+			sprintf(name1, "img_g%d.bmp", qq);
+			cvSaveImage(name1, gray2);
+			continue;
 			//cvSmooth(gray, out, CV_GAUSSIAN, 3, 3, 0, 0);
 			cvCanny(gray, dst, 50, 150, 3);
 			//cvSmooth(gray, dst, CV_GAUSSIAN, 3, 3, 0, 0);
 			cvShowImage("out", dst);
+			cvSaveImage("canny.bmp", dst);
 			//cvCvtColor(dst, dst_color, CV_GRAY2RGB);
 
 			/*lines = cvHoughLines2(dst, storage, CV_HOUGH_PROBABILISTIC, 1, CV_PI / 90, 50, 30, 3);
@@ -234,6 +265,7 @@ int main(int argc, char **args)
 				CvPoint *line = (CvPoint *)cvGetSeqElem(lines, i);
 				cvLine(dst_color, line[0], line[1], CV_RGB(255, 0, 0), 1, CV_AA);
 			}*/
+
 
 			// 找到所有轮廓并且存储在序列中
 			cvFindContours(dst, storage, &contours, sizeof(CvContour),
