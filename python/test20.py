@@ -25,7 +25,7 @@ def bint(img, val):
 				#new[i,j] = max(image[i,j][0], image[i,j][1], image[i,j][2])
 
   
-img = cv2.imread("Target15.bmp")  
+img = cv2.imread("../images/Target15.bmp")  
 #cv2.imshow("img", img)
 
  
