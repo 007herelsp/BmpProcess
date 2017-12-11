@@ -11,7 +11,7 @@ SRCS = $(wildcard *.cpp src/*.cpp)
 OBJS = $(patsubst %.cpp, $(OUT_DIR)/%.o, $(notdir ${SRCS}))  
 
 SRC_DIR = ./src/
-TARGET = contours  
+TARGET = main  
  
 .PHONY: all install clean  
 BIN_TARGET = ${OUT_DIR}/${TARGET}

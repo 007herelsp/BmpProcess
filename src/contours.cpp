@@ -1,43 +1,3 @@
-/*M///////////////////////////////////////////////////////////////////////////////////////
-//
-//  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.
-//
-//  By downloading, copying, installing or using the software you agree to this license.
-//  If you do not agree to this license, do not download, install,
-//  copy or use the software.
-//
-//
-//                        Intel License Agreement
-//                For Open Source Computer Vision Library
-//
-// Copyright (C) 2000, Intel Corporation, all rights reserved.
-// Third party copyrights are property of their respective owners.
-//
-// Redistribution and use in source and binary forms, with or without modification,
-// are permitted provided that the following conditions are met:
-//
-//   * Redistribution's of source code must retain the above copyright notice,
-//     this list of conditions and the following disclaimer.
-//
-//   * Redistribution's in binary form must reproduce the above copyright notice,
-//     this list of conditions and the following disclaimer in the documentation
-//     and/or other materials provided with the distribution.
-//
-//   * The name of Intel Corporation may not be used to endorse or promote products
-//     derived from this software without specific prior written permission.
-//
-// This software is provided by the copyright holders and contributors "as is" and
-// any express or implied warranties, including, but not limited to, the implied
-// warranties of merchantability and fitness for a particular purpose are disclaimed.
-// In no event shall the Intel Corporation or contributors be liable for any direct,
-// indirect, incidental, special, exemplary, or consequential damages
-// (including, but not limited to, procurement of substitute goods or services;
-// loss of use, data, or profits; or business interruption) however caused
-// and on any theory of liability, whether in contract, strict liability,
-// or tort (including negligence or otherwise) arising in any way out of
-// the use of this software, even if advised of the possibility of such damage.
-//
-//M*/
 #include "imgproc.precomp.hpp"
 
 /* initializes 8-element array for fast access to 3x3 neighborhood of a pixel */
@@ -306,142 +266,135 @@ cvStartFindContours( void* _img, CvMemStorage* storage,
     return scanner;
 }
 
-/*
-   Final stage of contour processing.
-   Three variants possible:
-      1. Contour, which was retrieved using border following, is added to
-         the contour tree. It is the case when the icvSubstituteContour function
-         was not called after retrieving the contour.
 
-      2. New contour, assigned by icvSubstituteContour function, is added to the
-         tree. The retrieved contour itself is removed from the storage.
-         Here two cases are possible:
-            2a. If one deals with plane variant of algorithm
-                (hierarchical structure is not reconstructed),
-                the contour is removed completely.
-            2b. In hierarchical case, the header of the contour is not removed.
-                It's marked as "link to contour" and h_next pointer of it is set to
-                new, substituting contour.
+CV_IMPL CvContourScanner
+cvStartFindContours_v1( void* _img, CvMemStorage* storage,
+                     int  header_size, int mode,
+                     int  method, CvPoint offset )
+{
+    if( !storage )
+        CV_Error( CV_StsNullPtr, "" );
 
-      3. The similar to 2, but when NULL pointer was assigned by
-         icvSubstituteContour function. In this case, the function removes
-         retrieved contour completely if plane case and
-         leaves header if hierarchical (but doesn't mark header as "link").
-      ------------------------------------------------------------------------
-      The 1st variant can be used to retrieve and store all the contours from the image
-      (with optional conversion from chains to contours using some approximation from
-      restricted set of methods). Some characteristics of contour can be computed in the
-      same pass.
+    CvMat stub, *mat = cvGetMat( _img, &stub );
 
-      The usage scheme can look like:
+    if( CV_MAT_TYPE(mat->type) == CV_32SC1 && mode == CV_RETR_CCOMP )
+        mode = CV_RETR_FLOODFILL;
 
-      icvContourScanner scanner;
-      CvMemStorage*  contour_storage;
-      CvSeq*  first_contour;
-      CvStatus  result;
+    if( !((CV_IS_MASK_ARR( mat ) && mode < CV_RETR_FLOODFILL) ||
+          (CV_MAT_TYPE(mat->type) == CV_32SC1 && mode == CV_RETR_FLOODFILL)) )
+        CV_Error( CV_StsUnsupportedFormat, "[Start]FindContours support only 8uC1 and 32sC1 images" );
 
-      ...
+    CvSize size = cvSize( mat->width, mat->height );
+    int step = mat->step;
+    uchar* img = (uchar*)(mat->data.ptr);
 
-      icvCreateMemStorage( &contour_storage, block_size/0 );
+    if( method < 0 || method > CV_CHAIN_APPROX_TC89_KCOS )
+        CV_Error( CV_StsOutOfRange, "" );
 
-      ...
+    if( header_size < (int) (method == CV_CHAIN_CODE ? sizeof( CvChain ) : sizeof( CvContour )))
+        CV_Error( CV_StsBadSize, "" );
 
-      cvStartFindContours
-              ( img, contour_storage,
-                header_size, approx_method,
-                [external_only,]
-                &scanner );
+    CvContourScanner scanner = (CvContourScanner)cvAlloc( sizeof( *scanner ));
+    memset( scanner, 0, sizeof(*scanner) );
 
-      for(;;)
-      {
-          [CvSeq* contour;]
-          result = icvFindNextContour( &scanner, &contour/0 );
+    scanner->storage1 = scanner->storage2 = storage;
+    scanner->img0 = (schar *) img;
+    scanner->img = (schar *) (img + step);
+    scanner->img_step = step;
+    scanner->img_size.width = size.width - 1;   /* exclude rightest column */
+    scanner->img_size.height = size.height - 1; /* exclude bottomost row */
+    scanner->mode = mode;
+    scanner->offset = offset;
+    scanner->pt.x = scanner->pt.y = 1;
+    scanner->lnbd.x = 0;
+    scanner->lnbd.y = 1;
+    scanner->nbd = 2;
+    scanner->mode = (int) mode;
+    scanner->frame_info.contour = &(scanner->frame);
+    scanner->frame_info.is_hole = 1;
+    scanner->frame_info.next = 0;
+    scanner->frame_info.parent = 0;
+    scanner->frame_info.rect = cvRect( 0, 0, size.width, size.height );
+    scanner->l_cinfo = 0;
+    scanner->subst_flag = 0;
 
-          if( result != CV_OK ) break;
+    scanner->frame.flags = CV_SEQ_FLAG_HOLE;
 
-          // calculate some characteristics
-          ...
-      }
+    scanner->approx_method2 = scanner->approx_method1 = method;
 
-      if( result < 0 ) goto error_processing;
+    if( method == CV_CHAIN_APPROX_TC89_L1 || method == CV_CHAIN_APPROX_TC89_KCOS )
+        scanner->approx_method1 = CV_CHAIN_CODE;
 
-      cvEndFindContours( &scanner, &first_contour );
-      ...
+    if( scanner->approx_method1 == CV_CHAIN_CODE )
+    {
+        scanner->seq_type1 = CV_SEQ_CHAIN_CONTOUR;
+        scanner->header_size1 = scanner->approx_method1 == scanner->approx_method2 ?
+            header_size : sizeof( CvChain );
+        scanner->elem_size1 = sizeof( char );
+    }
+    else
+    {
+        scanner->seq_type1 = CV_SEQ_POLYGON;
+        scanner->header_size1 = scanner->approx_method1 == scanner->approx_method2 ?
+            header_size : sizeof( CvContour );
+        scanner->elem_size1 = sizeof( CvPoint );
+    }
 
-      -----------------------------------------------------------------
+    scanner->header_size2 = header_size;
 
-      Second variant is more complex and can be used when someone wants store not
-      the retrieved contours but transformed ones. (e.g. approximated with some
-      non-default algorithm ).
+    if( scanner->approx_method2 == CV_CHAIN_CODE )
+    {
+        scanner->seq_type2 = scanner->seq_type1;
+        scanner->elem_size2 = scanner->elem_size1;
+    }
+    else
+    {
+        scanner->seq_type2 = CV_SEQ_POLYGON;
+        scanner->elem_size2 = sizeof( CvPoint );
+    }
 
-      The scheme can be the as following:
+    scanner->seq_type1 = scanner->approx_method1 == CV_CHAIN_CODE ?
+        CV_SEQ_CHAIN_CONTOUR : CV_SEQ_POLYGON;
 
-      icvContourScanner scanner;
-      CvMemStorage*  contour_storage;
-      CvMemStorage*  temp_storage;
-      CvSeq*  first_contour;
-      CvStatus  result;
+    scanner->seq_type2 = scanner->approx_method2 == CV_CHAIN_CODE ?
+        CV_SEQ_CHAIN_CONTOUR : CV_SEQ_POLYGON;
 
-      ...
+    cvSaveMemStoragePos( storage, &(scanner->initial_pos) );
 
-      icvCreateMemStorage( &contour_storage, block_size/0 );
-      icvCreateMemStorage( &temp_storage, block_size/0 );
+    if( method > CV_CHAIN_APPROX_SIMPLE )
+    {
+        scanner->storage1 = cvCreateChildMemStorage( scanner->storage2 );
+    }
 
-      ...
+    if( mode > CV_RETR_LIST )
+    {
+        scanner->cinfo_storage = cvCreateChildMemStorage( scanner->storage2 );
+        scanner->cinfo_set = cvCreateSet( 0, sizeof( CvSet ), sizeof( _CvContourInfo ),
+                                          scanner->cinfo_storage );
+    }
 
-      icvStartFindContours8uC1R
-              ( <img_params>, temp_storage,
-                header_size, approx_method,
-                [retrival_mode],
-                &scanner );
+    CV_Assert(step >= 0);
+    CV_Assert(size.height >= 1);
 
-      for(;;)
-      {
-          CvSeq* temp_contour;
-          CvSeq* new_contour;
-          result = icvFindNextContour( scanner, &temp_contour );
+    /* make zero borders */
+    int esz = CV_ELEM_SIZE(mat->type);
+    memset( img, 0, size.width*esz );
+    memset( img + static_cast<size_t>(step) * (size.height - 1), 0, size.width*esz );
 
-          if( result != CV_OK ) break;
+    img += step;
+    for( int y = 1; y < size.height - 1; y++, img += step )
+    {
+        for( int k = 0; k < esz; k++ )
+            img[k] = img[(size.width - 1)*esz + k] = (schar)0;
+    }
 
-          <approximation_function>( temp_contour, contour_storage,
-                                    &new_contour, <parameters...> );
+    /* converts all pixels to 0 or 1 */
+    if( CV_MAT_TYPE(mat->type) != CV_32S )
+        cvThreshold( mat, mat, 0, 1, CV_THRESH_BINARY );
 
-          icvSubstituteContour( scanner, new_contour );
-          ...
-      }
-
-      if( result < 0 ) goto error_processing;
-
-      cvEndFindContours( &scanner, &first_contour );
-      ...
-
-      ----------------------------------------------------------------------------
-      Third method to retrieve contours may be applied if contours are irrelevant
-      themselves but some characteristics of them are used only.
-      The usage is similar to second except slightly different internal loop
-
-      for(;;)
-      {
-          CvSeq* temp_contour;
-          result = icvFindNextContour( &scanner, &temp_contour );
-
-          if( result != CV_OK ) break;
-
-          // calculate some characteristics of temp_contour
-
-          icvSubstituteContour( scanner, 0 );
-          ...
-      }
-
-      new_storage variable is not needed here.
-
-      Note, that the second and the third methods can interleave. I.e. it is possible to
-      retain contours that satisfy with some criteria and reject others.
-      In hierarchic case the resulting tree is the part of original tree with
-      some nodes absent. But in the resulting tree the contour1 is a child
-      (may be indirect) of contour2 iff in the original tree the contour1
-      is a child (may be indirect) of contour2.
-*/
+    return scanner;
+}
+					 
 static void
 icvEndProcessContour( CvContourScanner scanner )
 {
@@ -1705,6 +1658,56 @@ cvFindContours( void*  img,  CvMemStorage*  storage,
     return count;
 }
 
+
+CV_IMPL int
+cvFindContours_1( void*  img,  CvMemStorage*  storage,
+                CvSeq**  firstContour, int  cntHeaderSize,
+                int  mode,
+                int  method, CvPoint offset )
+{
+    CvContourScanner scanner = 0;
+    CvSeq *contour = 0;
+    int count = -1;
+
+    if( !firstContour )
+        CV_Error( CV_StsNullPtr, "NULL double CvSeq pointer" );
+
+    *firstContour = 0;
+
+    if( method == CV_LINK_RUNS )
+    {
+        if( offset.x != 0 || offset.y != 0 )
+            CV_Error( CV_StsOutOfRange,
+            "Nonzero offset is not supported in CV_LINK_RUNS yet" );
+
+        count = icvFindContoursInInterval( img, storage, firstContour, cntHeaderSize );
+    }
+    else
+    {
+        try
+        {
+            scanner = cvStartFindContours( img, storage, cntHeaderSize, mode, method, offset );
+
+            do
+            {
+                count++;
+                contour = cvFindNextContour( scanner );
+            }
+            while( contour != 0 );
+        }
+        catch(...)
+        {
+            if( scanner )
+                cvEndFindContours(&scanner);
+            throw;
+        }
+
+        *firstContour = cvEndFindContours( &scanner );
+    }
+
+    return count;
+}
+
 void cv::findContours( InputOutputArray _image, OutputArrayOfArrays _contours,
                    OutputArray _hierarchy, int mode, int method, Point offset )
 {
@@ -2061,7 +2064,7 @@ double cv::pointPolygonTest( InputArray _contour,
 
 /* End of file. */
 
-int main()
+int main1()
 {
     printf("hello\n");
 

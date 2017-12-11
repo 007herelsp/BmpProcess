@@ -1,6 +1,6 @@
-TOP_PATH:=./
+TOP_PATH:=../
 OUTDIR=$(TOP_PATH)/build/
-SRCDIR=$(TOP_PATH)/src/
+SRCDIR=$(TOP_PATH)/src_local/
 
 DLIBS = -lopencv_core2413 -lopencv_imgproc2413 -lopencv_highgui2413
 INCLUDE_PATH=-I$(TOP_PATH)/3rd/opencv/mingw/include/ 
@@ -9,7 +9,9 @@ INCLUDE_PATH_LOCAL=-I$(TOP_PATH)/include
 LIB_PATH=-L$(TOP_PATH)/3rd/opencv/mingw/x86/mingw/lib
 .PHONY: bb  
 #mingw32-g++不能写注释
-all: BlobAnalysisSuzuki
+all: rotate
+rotate:
+	g++   -g  -o  $(OUTDIR)rotate  $(SRCDIR)rotate.cpp   $(DLIBS) $(INCLUDE_PATH) $(LIB_PATH)
 BlobAnalysisSuzuki:
 	g++   -g  -o  $(OUTDIR)BlobAnalysisSuzuki  $(SRCDIR)BlobAnalysisSuzuki.cpp   $(DLIBS) $(INCLUDE_PATH) $(LIB_PATH)
 cvLaplace:
