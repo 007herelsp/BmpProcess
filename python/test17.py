@@ -6,16 +6,32 @@ import matplotlib
 import math
 from matplotlib import pyplot as plt  
 
+kernel=np.uint8(np.zeros((5,5)))  
+for x in range(5):  
+    kernel[x,2]=1;  
+    kernel[2,x]=1;
+
 #根据一阶锐化算子，求x，y的梯度，显示锐化图像
 #读取图片
-filename = 'build/imageGamma.bmp'
+filename = '../images/Target17.bmp'
 img = cv2.imread(filename)
+img = cv2.bilateralFilter(img,9,75,75)
+cv2.imshow("bilateralFilter", img)
 emptyImage = np.zeros(img.shape, np.uint8)  
 (B,G,R) = cv2.split(img)
 #gray = cv2.GaussianBlur(img,(9,9),0)
 gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
 gray =G
-canny = cv2.Canny(gray,50,150,3)
+canny = cv2.Canny(img,0.1,3,3)
+eroded=cv2.erode(img,kernel); 
+dilate = cv2.dilate(img,kernel) 
+ 
+
+
+y = dilate - eroded
+ 
+cv2.normalize(y,y,255,0,cv2.NORM_MINMAX)
+cv2.imshow("diff", y)
 cv2.imshow("canny", canny)
 cv2.imwrite("canny.bmp",canny);
  
@@ -26,16 +42,25 @@ g2 = cv2.GaussianBlur(g1,(3,3),0)
 #GaussianBlur(img_G0,img_G1,Size(3,3),0);    
 img_DoG = g1 - g2;    
 cv2.normalize(img_DoG,img_DoG,255,0,cv2.NORM_MINMAX)
-img_DoG = cv2.GaussianBlur(img_DoG,(3,3),0)
-cv2.imshow("dog", img_DoG)
+#img_DoG = cv2.GaussianBlur(img_DoG,(3,3),0)
+eroded=cv2.erode(img_DoG,kernel); 
+dilate = cv2.dilate(img_DoG,kernel) 
 
- 
+d = dilate - eroded
+cv2.imshow("dog1", img_DoG)
+img = cv2.imread(filename,0)
+
+gray_lap = cv2.Laplacian(img,cv2.CV_16S,ksize = 3)    
+dst = cv2.convertScaleAbs(gray_lap)
+#lap = np.uint8(np.absolute(dst))##对lap去绝对值 
+cv2.imshow("dst", dst) 
+canny = dst
 contours, hierarchy = cv2.findContours(canny,cv2.RETR_CCOMP,cv2.CHAIN_APPROX_SIMPLE)  
 print (len(contours))
 ic = 0
 
 
-lines = cv2.HoughLinesP(img_DoG,1,np.pi/180,30,minLineLength=40,maxLineGap=30)
+lines = cv2.HoughLinesP(canny,1,np.pi/180,30,minLineLength=40,maxLineGap=30)
 #lines = cv2.HoughLines(canny,1,np.pi/180,160)
 lines1 = lines[:,0,:]#
 for x1,y1,x2,y2 in lines1[:]: 
@@ -69,7 +94,8 @@ for element in contours:
 		#	continue
 		
 		print x,y,w,h
-	 
+	 	cv2.imroi( img, rect );
+		cv2.imshow("tem image",img)
  
 		box = cv2.cv.BoxPoints(rect)
 		box = np.int0(box)
