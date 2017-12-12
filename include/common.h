@@ -59,6 +59,8 @@ typedef struct stBGRHdr
 #    define CV_DEFAULT(val)
 #  endif
 #endif
+ 
+
 
 #pragma pack()
 #endif /*__COMMON_H__*/

@@ -661,16 +661,16 @@ cvGetRectSubPix(const void *srcarr, void *dstarr, CvPoint2D32f center)
                     p0 = cvt(ptr[0]) * a1 + cvt(ptr[3]) * a;                                                    \
                     p1 = cvt(ptr[src_step]) * a1 + cvt(ptr[src_step + 3]) * a;                                  \
                     val = cast_macro(p0 + b * (p1 - p0));                                                       \
-                    dst[x * 3] = val != 0 ? val : dst[x * 3];                                                   \
+                    dst[x * 3] = val;                                                                           \
                     p0 = cvt(ptr[1]) * a1 + cvt(ptr[4]) * a;                                                    \
                     p1 = cvt(ptr[src_step + 1]) * a1 + cvt(ptr[src_step + 4]) * a;                              \
                     val = cast_macro(p0 + b * (p1 - p0));                                                       \
-                    dst[x * 3 + 1] = val != 0 ? val : dst[x * 3 + 1];                                           \
+                    dst[x * 3 + 1] = val;                                                                       \
                                                                                                                 \
                     p0 = cvt(ptr[2]) * a1 + cvt(ptr[5]) * a;                                                    \
                     p1 = cvt(ptr[src_step + 2]) * a1 + cvt(ptr[src_step + 5]) * a;                              \
                     val = cast_macro(p0 + b * (p1 - p0));                                                       \
-                    dst[x * 3 + 2] = val != 0 ? val : dst[x * 3 + 2];                                           \
+                    dst[x * 3 + 2] = val;                                                                       \
                 }                                                                                               \
             }                                                                                                   \
             else                                                                                                \
@@ -697,17 +697,17 @@ cvGetRectSubPix(const void *srcarr, void *dstarr, CvPoint2D32f center)
                         p0 = cvt(ptr0[0]) * a1 + cvt(ptr0[3]) * a;                                              \
                         p1 = cvt(ptr1[0]) * a1 + cvt(ptr1[3]) * a;                                              \
                         val = cast_macro(p0 + b * (p1 - p0));                                                   \
-                        dst[x * 3] = val != 0 ? val : dst[x * 3];                                               \
+                        dst[x * 3] = val;                                                                       \
                                                                                                                 \
                         p0 = cvt(ptr0[1]) * a1 + cvt(ptr0[4]) * a;                                              \
                         p1 = cvt(ptr1[1]) * a1 + cvt(ptr1[4]) * a;                                              \
                         val = cast_macro(p0 + b * (p1 - p0));                                                   \
-                        dst[x * 3 + 1] = val != 0 ? val : dst[x * 3 + 1];                                       \
+                        dst[x * 3 + 1] = val;                                                                   \
                                                                                                                 \
                         p0 = cvt(ptr0[2]) * a1 + cvt(ptr0[5]) * a;                                              \
                         p1 = cvt(ptr1[2]) * a1 + cvt(ptr1[5]) * a;                                              \
                         val = cast_macro(p0 + b * (p1 - p0));                                                   \
-                        dst[x * 3 + 2] = val != 0 ? val : dst[x * 3 + 2];                                       \
+                        dst[x * 3 + 2] = val;                                                                   \
                     }                                                                                           \
                     else                                                                                        \
                     {                                                                                           \
@@ -721,7 +721,7 @@ cvGetRectSubPix(const void *srcarr, void *dstarr, CvPoint2D32f center)
                         val = cast_macro(cvt(ptr0[1]) * b1 + cvt(ptr1[1]) * b);                                 \
                         dst[x * 3 + 1] = val != 0 ? val : dst[x * 3 + 1];                                       \
                         val = cast_macro(cvt(ptr0[2]) * b1 + cvt(ptr1[2]) * b);                                 \
-                        dst[x * 3 + 2] = val != 0 ? val : dst[x * 3 + 2];                                       \
+                        dst[x * 3 + 2] = val;                                                                   \
                     }                                                                                           \
                 }                                                                                               \
             }                                                                                                   \

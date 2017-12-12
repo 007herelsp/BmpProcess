@@ -1,3 +1,4 @@
+#include "opencv2/core/core.hpp"
 #include "opencv2/core/types_c.h"
 #include "opencv2/core/core_c.h"
 #include "opencv2/imgproc/imgproc_c.h"
@@ -7,12 +8,17 @@
 #include "process.h"
 
 #include <stdio.h>
+#include "common.h"
+
 #include <math.h>
 #include <string.h>
 #include <iostream>
 #include <string>
 #include <stdio.h>
 #include <malloc.h>
+
+#include <set>
+using namespace std;
 
 #define cvShowImage(x, y)
 
@@ -81,6 +87,46 @@ IplImage *rotateImage2(IplImage *img, IplImage *img_rotate, int degree)
     IplImage *temp = cvCreateImage(cvSize(tempLength, tempLength), img->depth, img->nChannels);
     cvZero(temp);
     //将原图复制到临时图像tmp中心
+    //cvSetImageROI(img_rotate, cvRect(tempX, tempY, width, height));
+    // cvCopy(img, temp, NULL);
+
+    //旋转数组map
+    // [ m0  m1  m2 ] ===>  [ A11  A12   b1 ]
+    // [ m3  m4  m5 ] ===>  [ A21  A22   b2 ]
+    float m[6];
+    int w = img->width;
+    int h = img->height;
+    m[0] = b;
+    m[1] = a;
+    m[3] = -m[1];
+    m[4] = m[0];
+    // 将旋转中心移至图像中间
+    m[2] = w * 0.5f;
+    m[5] = h * 0.5f;
+    CvMat M = cvMat(2, 3, CV_32F, m);
+    cvGetQuadrangleSubPix(img, img_rotate, &M);
+    cvReleaseImage(&temp);
+    cvResetImageROI(img_rotate);
+    return img_rotate;
+}
+
+IplImage *rotateImage3(IplImage *img, IplImage *img_rotate, float degree)
+{
+    double angle = degree * CV_PI / 180.;
+    double a = sin(angle), b = cos(angle);
+    int width = img->width, height = img->height;
+    //旋转后的新图尺寸
+    int width_rotate = int(height * fabs(a) + width * fabs(b));
+    int height_rotate = int(width * fabs(a) + height * fabs(b));
+    //IplImage *img_rotate = cvCreateImage(cvSize(width_rotate, height_rotate), img->depth, img->nChannels);
+    //cvZero(img_rotate);
+    //保证原图可以任意角度旋转的最小尺寸
+    int tempLength = sqrt((double)width * width + (double)height * height) + 10;
+    int tempX = (tempLength + 1) / 2 - width / 2;
+    int tempY = (tempLength + 1) / 2 - height / 2;
+    IplImage *temp = cvCreateImage(cvSize(tempLength, tempLength), img->depth, img->nChannels);
+    cvZero(temp);
+    //将原图复制到临时图像tmp中心
     cvSetImageROI(temp, cvRect(tempX, tempY, width, height));
     cvCopy(img, temp, NULL);
     cvResetImageROI(temp);
@@ -125,6 +171,21 @@ IplImage *protc(IplImage *imgin, IplImage *imgin2, float theta)
     return imgin2;
 }
 
+struct SymCmp
+{
+    bool operator()(const CvBox2D &x, const CvBox2D &y) const
+    {
+        if (x.center.x == y.center.x)
+        {
+            return x.center.y < y.center.y;
+        }
+        else
+        {
+            return x.center.x < y.center.x;
+        }
+    }
+};
+
 void DrawBox(CvBox2D box, IplImage *img)
 {
     CvPoint2D32f point[4];
@@ -149,8 +210,258 @@ void DrawBox(CvBox2D box, IplImage *img)
     printf("ok\n");
 }
 
-int main(int argc, char **args)
+set<CvBox2D, SymCmp> SearchProcess(IplImage *lpSrcImg)
 {
+    CvMemStorage *storage = cvCreateMemStorage();
+    CvSeq *contours = NULL;
+    CvSeq *result = NULL;
+    double s, t;
+    double dContourArea;
+    CvBox2D End_Rage2D;
+    CvPoint2D32f rectpoint[4];
+    int index = 0;
+    set<CvBox2D, SymCmp> lstRes;
+    // 创建一个空序列用于存储轮廓角点
+    CvSeq *squares = cvCreateSeq(0, sizeof(CvSeq), sizeof(CvPoint), storage);
+    cvFindContours(lpSrcImg, storage, &contours, sizeof(CvContour),
+                   CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE, cvPoint(0, 0));
+
+    // 遍历找到的每个轮廓contours
+    while (contours)
+    {
+        //用指定精度逼近多边形曲线
+        result = cvApproxPoly(contours, sizeof(CvContour), storage,
+                              CV_POLY_APPROX_DP, cvContourPerimeter(contours) * 0.01, 0);
+        if (NULL != result)
+        {
+            if (result->total == 4)
+            {
+                dContourArea = fabs(cvContourArea(result, CV_WHOLE_SEQ));
+                if (dContourArea >= 500 && dContourArea <= 1000000 && cvCheckContourConvexity(result))
+                {
+                    End_Rage2D = cvMinAreaRect2(contours);
+                    s = 0;
+                    for (index = 0; index < 5; index++)
+                    {
+                        // find minimum angle between joint edges (maximum of cosine)
+                        if (index >= 2)
+                        {
+                            t = fabs(angle(
+                                (CvPoint *)cvGetSeqElem(result, index),
+                                (CvPoint *)cvGetSeqElem(result, index - 2),
+                                (CvPoint *)cvGetSeqElem(result, index - 1)));
+                            s = s > t ? s : t;
+                        }
+                    }
+
+                    // if 余弦值 足够小，可以认定角度为90度直角
+                    //cos0.1=83度，能较好的趋近直角
+                    if (s < 0.1)
+                    {
+                        // for (i = 0; i < 4; i++)
+                        // {
+                        //     cvSeqPush(squares, (CvPoint *)cvGetSeqElem(result, i));
+                        // }
+                        lstRes.insert(End_Rage2D);
+                    }
+                }
+            }
+        }
+        // 继续查找下一个轮廓
+        contours = contours->h_next;
+    }
+    return std::move(lstRes);
+}
+
+IplImage *protc2(IplImage *imgin, IplImage *imgin2, float theta);
+int process(IplImage *lpImg, IplImage *lpTargetImg, int argc, char *argv[])
+{
+    set<CvBox2D, SymCmp> lstRes = SearchProcess(lpImg);
+
+    set<CvBox2D, SymCmp>::iterator it;
+    CvBox2D box;
+    for (it = lstRes.begin(); it != lstRes.end(); it++)
+    {
+        box = *it;
+    }
+    it = lstRes.begin();
+    for (int i = 0; i < argc && it != lstRes.end(); i++)
+    {
+        printf("%s\n", argv[i]);
+        IplImage *lpSrcImg = cvLoadImage(argv[i], 1);
+        if (lpSrcImg != NULL)
+        {
+            box = *it;
+            it++;
+
+            IplImage *temp = cvCreateImage(cvSize((int)box.size.width, (int)box.size.height), lpSrcImg->depth, lpSrcImg->nChannels);
+
+            cvResize(lpSrcImg, temp, CV_INTER_AREA);
+            temp = lpSrcImg;
+            CvPoint2D32f srcTri[4], dstTri[4];
+            CvMat *warp_mat = cvCreateMat(3, 3, CV_32FC1);
+            cvBoxPoints(box, dstTri); //计算二维盒子顶点
+
+            //rotateImage2(temp, lpTargetImg, box.angle);
+            //rotateImage3(lpSrcImg, lpTargetImg, box.angle);
+
+            //计算矩阵仿射变换
+            if (box.size.width > box.size.height)
+            {
+                srcTri[1].x = 0;
+                srcTri[1].y = 0;
+                srcTri[2].x = temp->width - 1; //缩小一个像素
+                srcTri[2].y = 0;
+                srcTri[3].x = temp->width - 1;
+                srcTri[3].y = temp->height - 1;
+                srcTri[0].x = 0; //bot right
+                srcTri[0].y = temp->height - 1;
+            }
+            else
+            {
+                srcTri[2].x = 0;
+                srcTri[2].y = 0;
+                srcTri[3].x = temp->width - 1; //缩小一个像素
+                srcTri[3].y = 0;
+                srcTri[0].x = temp->width - 1;
+                srcTri[0].y = temp->height - 1;
+                srcTri[1].x = 0; //bot right
+                srcTri[1].y = temp->height - 1;
+            }
+            //改变目标图像大小
+            // dstTri[0].x =893;// temp->width * 0.05;
+            // dstTri[0].y =598;// temp->height * 0.33;
+            // dstTri[1].x =893;// temp->width * 0.9;
+            // dstTri[1].y =477;// temp->height * 0.25;
+            // dstTri[2].x =1107;// temp->width * 0.2;
+            // dstTri[2].y =477; temp->height * 0.7;
+            // dstTri[3].x =1107;// temp->width * 0.8;
+            // dstTri[3].y =598;// temp->height * 0.9;
+
+            cvGetPerspectiveTransform(srcTri, dstTri, warp_mat); //由三对点计算仿射变换
+            cvWarpPerspective(temp, lpTargetImg, warp_mat);      //对图像做仿射变换
+        }
+    }
+
+    return lstRes.size();
+}
+
+IplImage *protc2(IplImage *imgin, IplImage *imgin2, float theta)
+{
+
+    int oldWidth = imgin->width;
+    int oldHeight = imgin->height;
+
+    // 源图四个角的坐标（以图像中心为坐标系原点）
+    float fSrcX1, fSrcY1, fSrcX2, fSrcY2, fSrcX3, fSrcY3, fSrcX4, fSrcY4;
+    fSrcX1 = (float)(-(oldWidth - 1) / 2);
+    fSrcY1 = (float)((oldHeight - 1) / 2);
+    fSrcX2 = (float)((oldWidth - 1) / 2);
+    fSrcY2 = (float)((oldHeight - 1) / 2);
+    fSrcX3 = (float)(-(oldWidth - 1) / 2);
+    fSrcY3 = (float)(-(oldHeight - 1) / 2);
+    fSrcX4 = (float)((oldWidth - 1) / 2);
+    fSrcY4 = (float)(-(oldHeight - 1) / 2);
+
+    // 旋转后四个角的坐标（以图像中心为坐标系原点）
+    float fDstX1, fDstY1, fDstX2, fDstY2, fDstX3, fDstY3, fDstX4, fDstY4;
+    fDstX1 = cos(theta) * fSrcX1 + sin(theta) * fSrcY1;
+    fDstY1 = -sin(theta) * fSrcX1 + cos(theta) * fSrcY1;
+    fDstX2 = cos(theta) * fSrcX2 + sin(theta) * fSrcY2;
+    fDstY2 = -sin(theta) * fSrcX2 + cos(theta) * fSrcY2;
+    fDstX3 = cos(theta) * fSrcX3 + sin(theta) * fSrcY3;
+    fDstY3 = -sin(theta) * fSrcX3 + cos(theta) * fSrcY3;
+    fDstX4 = cos(theta) * fSrcX4 + sin(theta) * fSrcY4;
+    fDstY4 = -sin(theta) * fSrcX4 + cos(theta) * fSrcY4;
+
+    int newWidth = (max(fabs(fDstX4 - fDstX1), fabs(fDstX3 - fDstX2)) + 0.5);
+    int newHeight = (max(fabs(fDstY4 - fDstY1), fabs(fDstY3 - fDstY2)) + 0.5);
+
+    //imgOut.create(newHeight, newWidth, imgIn.type());
+
+    float dx = -0.5 * newWidth * cos(theta) - 0.5 * newHeight * sin(theta) + 0.5 * oldWidth;
+    float dy = 0.5 * newWidth * sin(theta) - 0.5 * newHeight * cos(theta) + 0.5 * oldHeight;
+
+    int x, y;
+    for (int i = 0; i < newHeight; i++)
+    {
+        for (int j = 0; j < newWidth; j++)
+        {
+            x = float(j) * cos(theta) + float(i) * sin(theta) + dx;
+            y = float(-j) * sin(theta) + float(i) * cos(theta) + dy;
+
+            if ((x < 0) || (x >= oldWidth) || (y < 0) || (y >= oldHeight))
+            {
+                // if (imgIn.channels() == 3)
+                // {
+                //     imgOut.at<cv::Vec3b>(i, j) = cv::Vec3b(0, 0, 0);
+                // }
+                // else if (imgIn.channels() == 1)
+                // {
+                //     imgOut.at<uchar>(i, j) = 0;
+                // }
+            }
+            else
+            {
+                // if (imgIn.channels() == 3)
+                // {
+                //     imgOut.at<cv::Vec3b>(i, j) = imgIn.at<cv::Vec3b>(y, x);
+                // }
+                // else if (imgIn.channels() == 1)
+                // {
+                //     imgOut.at<uchar>(i, j) = imgIn.at<uchar>(y, x);
+                // }
+                imgin2->imageData[(i * imgin2->widthStep + 3 * j) + 0] = imgin->imageData[(y * imgin->widthStep + 3 * x) + 0];
+                imgin2->imageData[(i * imgin2->widthStep + 3 * j) + 1] = imgin->imageData[(y * imgin->widthStep + 3 * x) + 1];
+                imgin2->imageData[(i * imgin2->widthStep + 3 * j) + 2] = imgin->imageData[(y * imgin->widthStep + 3 * x) + 2];
+            }
+        }
+    }
+
+    return imgin2;
+}
+
+int main(int argc, char *args[])
+{
+    if (3 > argc)
+    {
+        return ERR_1;
+    }
+    const char *OutputPath = (const char *)args[1];
+    const char *TargetPicPath = (const char *)args[2];
+
+    IplImage *lpTargetImg = cvLoadImage(TargetPicPath, 1);
+    if (NULL == lpTargetImg)
+    {
+        return ERR_1;
+    }
+
+    IplImage *lpCannyImg = cvCreateImage(cvGetSize(lpTargetImg), 8, 1);
+    IplImage *lpDilateImg = cvCreateImage(cvGetSize(lpTargetImg), 8, 1);
+    if (NULL != lpCannyImg && NULL != lpDilateImg)
+    {
+        cvCanny(lpTargetImg, lpCannyImg, 0.5, 20, 3);
+        cvDilate(lpCannyImg, lpDilateImg, 0, 1);
+    }
+    //查找目标区域
+    IplImage *lpOutImg = cvCloneImage(lpTargetImg);
+    int iCunt = 0;
+    if (NULL != lpOutImg)
+    {
+        iCunt = process(lpDilateImg, lpOutImg, argc - 3, &args[3]);
+
+        cvSaveImage(OutputPath, lpOutImg);
+    }
+
+    //输出个数
+    printf("%d\n", iCunt);
+    //释放资源
+    cvReleaseImage(&lpOutImg);
+    cvReleaseImage(&lpTargetImg);
+    cvReleaseImage(&lpDilateImg);
+    cvReleaseImage(&lpCannyImg);
+
+    return 0;
 
 //////////
 #if 0
@@ -340,7 +651,7 @@ int main(int argc, char **args)
                 // 继续查找下一个轮廓
                 contours = contours->h_next;
             }
-            cvSaveImage("tttt.bmp",tttt);
+            cvSaveImage("tttt.bmp", tttt);
         }
         drawSquares(src, squares);
 

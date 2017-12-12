@@ -9,7 +9,7 @@ INCLUDE_PATH_LOCAL=-I$(TOP_PATH)/include
 LIB_PATH=-L$(TOP_PATH)/3rd/opencv/mingw/x86/mingw/lib
 .PHONY: bb  
 #mingw32-g++不能写注释
-all: rotate
+all: cvLaplace
 rotate:
 	g++   -g  -o  $(OUTDIR)rotate  $(SRCDIR)rotate.cpp   $(DLIBS) $(INCLUDE_PATH) $(LIB_PATH)
 BlobAnalysisSuzuki:

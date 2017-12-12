@@ -16,7 +16,7 @@
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 
 #define ERR_OK 0
-#define ERR_1 1
+#define ERR_1 -1
 #define IVAILDFD -1
 
 #ifndef VOS_CLOSE

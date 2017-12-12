@@ -28,12 +28,15 @@ void drawSquares(IplImage *img, CvSeq *squares)
 	cvStartReadSeq(squares, &reader, 0);
 	printf("total = %d\n", squares->total);
 	// read 4 sequence elements at a time (all vertices of a square)
-
+	double avg_px = 0, avg_py = 0;
+	int x, y;
 	for (i = 0; i < squares->total; i += 4)
 	{
 		CvPoint pt[4], *rect = pt;
 		int count = 4;
-
+		avg_px = 0;
+		avg_py = 0;
+		CvPoint p;
 		// read 4 vertices
 		CV_READ_SEQ_ELEM(pt[0], reader);
 		CV_READ_SEQ_ELEM(pt[1], reader);
@@ -43,10 +46,18 @@ void drawSquares(IplImage *img, CvSeq *squares)
 		for (int k = 0; k < 4; k++)
 		{
 			printf("[%d]->P[%d]:[%d,%d]\n", i, k, pt[k].x, pt[k].y);
-		}
 
+			avg_px += pt[k].x;
+			avg_py += pt[k].y;
+		}
+		p.x = avg_px / 4 + 100;
+		p.y = avg_py / 4 + 100;
+
+		printf("[x:%d,y:%d]\n", x, y);
 		// draw the square as a closed polyline
 		cvPolyLine(cpy, &rect, &count, 1, 1, CV_RGB(0, 0, 255), 2, CV_AA, 0);
+
+		cvCircle(cpy, p, 2, cvScalar(0, 0, 255), 1, 8, 0);
 	}
 
 	cvShowImage("xx", cpy);
@@ -77,7 +88,7 @@ int main(int argc, char **args)
 		CvSeq *lines = 0;
 		IplImage *gray = cvCreateImage(cvGetSize(src), 8, 1);
 		int d = 0;
-
+		IplImage *cpy = cvCloneImage(src);
 		IplImage *gray2 = cvCreateImage(cvGetSize(src), 8, 1);
 		IplImage *hsv = cvCreateImage(cvGetSize(src), 8, 3);
 		cvCvtColor(src, gray, CV_RGB2GRAY);
@@ -129,7 +140,7 @@ int main(int argc, char **args)
 			timg = frame;
 			IplImage *panel[3]; //三个通道
 			cvCvtColor(frame, dst, CV_RGB2GRAY);
-			cvCanny(dl, dst, 0.5, 20, 3);
+			cvCanny(frame, dst, 0.5, 20, 3);
 			//cvSmooth(gray, dst, CV_GAUSSIAN, 3, 3, 0, 0);
 			cvShowImage("cvCanny", dst);
 			cvSaveImage("canny.bmp", dst);
@@ -154,7 +165,13 @@ int main(int argc, char **args)
 			ColorImage->origin = 0;									 //0--正面对摄像头；1--倒过来对摄像头
 			cvShowImage("Laplace", ColorImage);
 			//cvCvtColor(ColorImage, dst, CV_RGB2GRAY);
+			IplImage *laplace3 = cvCreateImage(cvGetSize(frame), IPL_DEPTH_16S, 3);
+			IplImage *sobel8u = cvCreateImage(cvGetSize(frame), IPL_DEPTH_8U, 3);
+			cvLaplace(frame, laplace3, 9);
+
+			cvConvertScaleAbs(laplace3, sobel8u, 1, 0);
 			cvDilate(dst, dst, 0, 1);
+			cvShowImage("sobel8u", sobel8u);
 			cvShowImage("dst", dst);
 			//dst = ColorImage;
 
@@ -194,14 +211,23 @@ int main(int argc, char **args)
 					// 	cvLine(cpy, cvPointFrom32f(rectpoint[j]), cvPointFrom32f(rectpoint[(j + 1) % 4]), Scalar(125), 2);
 					// }
 					CvPoint tmp;
-
+					double avg_px = 0, avg_py = 0;
+					CvPoint p;
 					for (int k = 0; k < 4; k++)
 					{
 						tmp = cvPointFrom32f(rectpoint[k]);
-			printf("dd P[%d]:[%d,%d]\n",  k, tmp.x, tmp.y);
+						printf("dd P[%d]:[%d,%d]\n", k, tmp.x, tmp.y);
+						cvLine(cpy, cvPointFrom32f(rectpoint[k]), cvPointFrom32f(rectpoint[(k + 1) % 4]), cvScalar(255), 1);
+						avg_px += tmp.x;
+						avg_py += tmp.y;
 					}
-					printf("angle:%f\n", (float)End_Rage2D.angle);
 
+					p.x = avg_px / 4;
+					p.y = avg_py / 4;
+					printf("angle:%f\n", (float)End_Rage2D.angle);
+					cvCircle(cpy, p, 2, cvScalar(0, 0, 255), 1, 8, 0);
+					// contours = contours->h_next;
+					// continue;
 					s = 0;
 					int i = 0;
 					for (i = 0; i < 5; i++)
@@ -239,6 +265,7 @@ int main(int argc, char **args)
 
 		cvShowImage("befor", src);
 		cvShowImage("Hough after", dst_color);
+		cvShowImage("cpy", cpy);
 		cvWaitKey(0);
 		cvReleaseImage(&src);
 		cvReleaseImage(&dst);
