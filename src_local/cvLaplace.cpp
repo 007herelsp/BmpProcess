@@ -57,6 +57,12 @@ void drawSquares(IplImage *img, CvSeq *squares)
 		// draw the square as a closed polyline
 		cvPolyLine(cpy, &rect, &count, 1, 1, CV_RGB(0, 0, 255), 2, CV_AA, 0);
 
+		for (int i = 0; i < 4; i++)
+		{
+			//CvPoint *line = (CvPoint *)cvGetSeqElem(lines, i);
+			cvLine(cpy, pt[i], pt[(1 + 1) % 4], CV_RGB(0, 0, 255), 1 + i * 4, CV_AA);
+		}
+
 		cvCircle(cpy, p, 2, cvScalar(0, 0, 255), 1, 8, 0);
 	}
 
