@@ -59,10 +59,7 @@ thresh_8u( const Mat& _src, Mat& _dst, uchar thresh, uchar maxval, int type )
         roi.height = 1;
     }
 
-#ifdef HAVE_TEGRA_OPTIMIZATION
-    if (tegra::thresh_8u(_src, _dst, roi.width, roi.height, thresh, maxval, type))
-        return;
-#endif
+
 
     switch( type )
     {
@@ -277,10 +274,7 @@ thresh_16s( const Mat& _src, Mat& _dst, short thresh, short maxval, int type )
         roi.height = 1;
     }
 
-#ifdef HAVE_TEGRA_OPTIMIZATION
-    if (tegra::thresh_16s(_src, _dst, roi.width, roi.height, thresh, maxval, type))
-        return;
-#endif
+
 
     switch( type )
     {
@@ -449,10 +443,7 @@ thresh_32f( const Mat& _src, Mat& _dst, float thresh, float maxval, int type )
         roi.height = 1;
     }
 
-#ifdef HAVE_TEGRA_OPTIMIZATION
-    if (tegra::thresh_32f(_src, _dst, roi.width, roi.height, thresh, maxval, type))
-        return;
-#endif
+
 
     switch( type )
     {

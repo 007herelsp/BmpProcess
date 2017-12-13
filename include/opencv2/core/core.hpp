@@ -122,7 +122,7 @@ CV_EXPORTS WString toUtf16(const string& str);
 #endif
 
 CV_EXPORTS string format( const char* fmt, ... );
-CV_EXPORTS string tempfile( const char* suffix CV_DEFAULT(0));
+
 
 // matrix decomposition types
 enum { DECOMP_LU=0, DECOMP_SVD=1, DECOMP_EIG=2, DECOMP_CHOLESKY=3, DECOMP_QR=4, DECOMP_NORMAL=16 };
@@ -2412,60 +2412,6 @@ CV_EXPORTS void calcCovarMatrix( const Mat* samples, int nsamples, Mat& covar, M
 CV_EXPORTS_W void calcCovarMatrix( InputArray samples, OutputArray covar,
                                    OutputArray mean, int flags, int ctype=CV_64F);
 
-/*!
-    Principal Component Analysis
-
-    The class PCA is used to compute the special basis for a set of vectors.
-    The basis will consist of eigenvectors of the covariance matrix computed
-    from the input set of vectors. After PCA is performed, vectors can be transformed from
-    the original high-dimensional space to the subspace formed by a few most
-    prominent eigenvectors (called the principal components),
-    corresponding to the largest eigenvalues of the covariation matrix.
-    Thus the dimensionality of the vector and the correlation between the coordinates is reduced.
-
-    The following sample is the function that takes two matrices. The first one stores the set
-    of vectors (a row per vector) that is used to compute PCA, the second one stores another
-    "test" set of vectors (a row per vector) that are first compressed with PCA,
-    then reconstructed back and then the reconstruction error norm is computed and printed for each vector.
-
-    \code
-    using namespace cv;
-
-    PCA compressPCA(const Mat& pcaset, int maxComponents,
-                    const Mat& testset, Mat& compressed)
-    {
-        PCA pca(pcaset, // pass the data
-                Mat(), // we do not have a pre-computed mean vector,
-                       // so let the PCA engine to compute it
-                CV_PCA_DATA_AS_ROW, // indicate that the vectors
-                                    // are stored as matrix rows
-                                    // (use CV_PCA_DATA_AS_COL if the vectors are
-                                    // the matrix columns)
-                maxComponents // specify, how many principal components to retain
-                );
-        // if there is no test data, just return the computed basis, ready-to-use
-        if( !testset.data )
-            return pca;
-        CV_Assert( testset.cols == pcaset.cols );
-
-        compressed.create(testset.rows, maxComponents, testset.type());
-
-        Mat reconstructed;
-        for( int i = 0; i < testset.rows; i++ )
-        {
-            Mat vec = testset.row(i), coeffs = compressed.row(i), reconstructed;
-            // compress the vector, the result will be stored
-            // in the i-th row of the output matrix
-            pca.project(vec, coeffs);
-            // and then reconstruct it
-            pca.backProject(coeffs, reconstructed);
-            // and measure the error
-            printf("%d. diff = %g\n", i, norm(vec, reconstructed, NORM_L2));
-        }
-        return pca;
-    }
-    \endcode
-*/
 class CV_EXPORTS PCA
 {
 public:

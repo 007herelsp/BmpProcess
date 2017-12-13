@@ -1150,12 +1150,7 @@ CV_EXPORTS_W void findContours( InputOutputArray image, OutputArrayOfArrays cont
 CV_EXPORTS void findContours( InputOutputArray image, OutputArrayOfArrays contours,
                               int mode, int method, Point offset=Point());
 
-//! draws contours in the image
-CV_EXPORTS_W void drawContours( InputOutputArray image, InputArrayOfArrays contours,
-                              int contourIdx, const Scalar& color,
-                              int thickness=1, int lineType=8,
-                              InputArray hierarchy=noArray(),
-                              int maxLevel=INT_MAX, Point offset=Point() );
+
 
 //! approximates contour or a curve using Douglas-Peucker algorithm
 CV_EXPORTS_W void approxPolyDP( InputArray curve,
@@ -1185,9 +1180,7 @@ CV_EXPORTS_W void convexityDefects( InputArray contour, InputArray convexhull, O
 //! returns true if the contour is convex. Does not support contours with self-intersection
 CV_EXPORTS_W bool isContourConvex( InputArray contour );
 
-//! finds intersection of two convex polygons
-CV_EXPORTS_W float intersectConvexConvex( InputArray _p1, InputArray _p2,
-                                          OutputArray _p12, bool handleNested=true );
+
 
 //! fits ellipse to the set of 2D points
 CV_EXPORTS_W RotatedRect fitEllipse( InputArray points );

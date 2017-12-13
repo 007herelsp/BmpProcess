@@ -81,10 +81,7 @@ static void FastAtan2_32f(const float *Y, const float *X, float *angle, int len,
     int i = 0;
     float scale = angleInDegrees ? 1 : (float)(CV_PI/180);
 
-#ifdef HAVE_TEGRA_OPTIMIZATION
-    if (tegra::FastAtan2_32f(Y, X, angle, len, scale))
-        return;
-#endif
+
 
 #if CV_SSE2
     if( USE_SSE2 )

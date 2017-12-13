@@ -378,9 +378,7 @@ CVAPI(double)  cvContourArea( const CvArr* contour,
 CVAPI(CvBox2D)  cvMinAreaRect2( const CvArr* points,
                                 CvMemStorage* storage CV_DEFAULT(NULL));
 
-/* Finds minimum enclosing circle for a set of points */
-CVAPI(int)  cvMinEnclosingCircle( const CvArr* points,
-                                  CvPoint2D32f* center, float* radius );
+
 
 /* Compares two contours by matching their moments */
 CVAPI(double)  cvMatchShapes( const void* object1, const void* object2,
@@ -400,8 +398,6 @@ CVAPI(int)  cvCheckContourConvexity( const CvArr* contour );
 CVAPI(CvSeq*)  cvConvexityDefects( const CvArr* contour, const CvArr* convexhull,
                                    CvMemStorage* storage CV_DEFAULT(NULL));
 
-/* Fits ellipse into a set of 2d points */
-CVAPI(CvBox2D) cvFitEllipse2( const CvArr* points );
 
 /* Finds minimum rectangle containing two given rectangles */
 CVAPI(CvRect)  cvMaxRect( const CvRect* rect1, const CvRect* rect2 );
@@ -415,12 +411,7 @@ CVAPI(CvSeq*) cvPointSeqFromMat( int seq_kind, const CvArr* mat,
                                  CvContour* contour_header,
                                  CvSeqBlock* block );
 
-/* Checks whether the point is inside polygon, outside, on an edge (at a vertex).
-   Returns positive, negative or zero value, correspondingly.
-   Optionally, measures a signed distance between
-   the point and the nearest polygon edge (measure_dist=1) */
-CVAPI(double) cvPointPolygonTest( const CvArr* contour,
-                                  CvPoint2D32f pt, int measure_dist );
+
 
 /****************************************************************************************\
 *                                  Histogram functions                                   *

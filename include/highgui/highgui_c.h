@@ -211,7 +211,6 @@ enum
   unless CV_LOAD_IMAGE_ANYDEPTH is specified images are converted to 8bit
 */
 CVAPI(IplImage*) cvLoadImage( const char* filename, int iscolor CV_DEFAULT(CV_LOAD_IMAGE_COLOR));
-CVAPI(CvMat*) cvLoadImageM( const char* filename, int iscolor CV_DEFAULT(CV_LOAD_IMAGE_COLOR));
 
 enum
 {

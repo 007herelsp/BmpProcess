@@ -3830,8 +3830,8 @@ SparseMat::operator CvSparseMat*() const
     for( i = 0; i < N; i++, ++from )
     {
         const Node* n = from.node();
-        uchar* to = cvPtrND(m, n->idx, 0, -2, 0);
-        copyElem(from.ptr, to, esz);
+        //uchar* to = cvPtrND(m, n->idx, 0, -2, 0);
+        //copyElem(from.ptr, to, esz);
     }
     return m;
 }

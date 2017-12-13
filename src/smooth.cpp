@@ -727,10 +727,7 @@ void cv::boxFilter( InputArray _src, OutputArray _dst, int ddepth,
         if( src.cols == 1 )
             ksize.width = 1;
     }
-#ifdef HAVE_TEGRA_OPTIMIZATION
-    if ( tegra::box(src, dst, ksize, anchor, normalize, borderType) )
-        return;
-#endif
+
 
     Ptr<FilterEngine> f = createBoxFilter( src.type(), dst.type(),
                         ksize, anchor, normalize, borderType );
@@ -853,10 +850,7 @@ void cv::GaussianBlur( InputArray _src, OutputArray _dst, Size ksize,
         return;
     }
 
-#ifdef HAVE_TEGRA_OPTIMIZATION
-    if(sigma1 == 0 && sigma2 == 0 && tegra::gaussian(src, dst, ksize, borderType))
-        return;
-#endif
+
 
 #if defined HAVE_IPP && (IPP_VERSION_MAJOR >= 7)
     if(src.type() == CV_32FC1 && sigma1 == sigma2 && ksize.width == ksize.height && sigma1 != 0.0 )
@@ -1666,10 +1660,7 @@ void cv::medianBlur( InputArray _src0, OutputArray _dst, int ksize )
 
     CV_Assert( ksize % 2 == 1 );
 
-#ifdef HAVE_TEGRA_OPTIMIZATION
-    if (tegra::medianBlur(src0, dst, ksize))
-        return;
-#endif
+
 
     bool useSortNet = ksize == 3 || (ksize == 5
 #if !CV_SSE2

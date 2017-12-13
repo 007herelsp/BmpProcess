@@ -173,27 +173,6 @@ CVAPI(CvMat*) cvCloneMat( const CvMat* mat );
 CVAPI(CvMat*) cvGetSubRect( const CvArr* arr, CvMat* submat, CvRect rect );
 #define cvGetSubArr cvGetSubRect
 
-/* Selects row span of the input array: arr(start_row:delta_row:end_row,:)
-    (end_row is not included into the span). */
-CVAPI(CvMat*) cvGetRows( const CvArr* arr, CvMat* submat,
-                        int start_row, int end_row,
-                        int delta_row CV_DEFAULT(1));
-
-CV_INLINE  CvMat*  cvGetRow( const CvArr* arr, CvMat* submat, int row )
-{
-    return cvGetRows( arr, submat, row, row + 1, 1 );
-}
-
-
-/* Selects column span of the input array: arr(:,start_col:end_col)
-   (end_col is not included into the span) */
-CVAPI(CvMat*) cvGetCols( const CvArr* arr, CvMat* submat,
-                        int start_col, int end_col );
-
-CV_INLINE  CvMat*  cvGetCol( const CvArr* arr, CvMat* submat, int col )
-{
-    return cvGetCols( arr, submat, col, col + 1 );
-}
 
 /* Select a diagonal of the input array.
    (diag = 0 means the main diagonal, >0 means a diagonal above the main one,
@@ -266,71 +245,12 @@ CV_INLINE CvSparseNode* cvGetNextSparseNode( CvSparseMatIterator* mat_iterator )
 
 #define CV_MAX_ARR 10
 
-typedef struct CvNArrayIterator
-{
-    int count; /* number of arrays */
-    int dims; /* number of dimensions to iterate */
-    CvSize size; /* maximal common linear size: { width = size, height = 1 } */
-    uchar* ptr[CV_MAX_ARR]; /* pointers to the array slices */
-    int stack[CV_MAX_DIM]; /* for internal use */
-    CvMatND* hdr[CV_MAX_ARR]; /* pointers to the headers of the
-                                 matrices that are processed */
-}
-CvNArrayIterator;
-
 #define CV_NO_DEPTH_CHECK     1
 #define CV_NO_CN_CHECK        2
 #define CV_NO_SIZE_CHECK      4
 
-/* initializes iterator that traverses through several arrays simulteneously
-   (the function together with cvNextArraySlice is used for
-    N-ari element-wise operations) */
-CVAPI(int) cvInitNArrayIterator( int count, CvArr** arrs,
-                                 const CvArr* mask, CvMatND* stubs,
-                                 CvNArrayIterator* array_iterator,
-                                 int flags CV_DEFAULT(0) );
-
-/* returns zero value if iteration is finished, non-zero (slice length) otherwise */
-CVAPI(int) cvNextNArraySlice( CvNArrayIterator* array_iterator );
 
 
-/* Returns type of array elements:
-   CV_8UC1 ... CV_64FC4 ... */
-CVAPI(int) cvGetElemType( const CvArr* arr );
-
-/* Retrieves number of an array dimensions and
-   optionally sizes of the dimensions */
-CVAPI(int) cvGetDims( const CvArr* arr, int* sizes CV_DEFAULT(NULL) );
-
-
-/* Retrieves size of a particular array dimension.
-   For 2d arrays cvGetDimSize(arr,0) returns number of rows (image height)
-   and cvGetDimSize(arr,1) returns number of columns (image width) */
-CVAPI(int) cvGetDimSize( const CvArr* arr, int index );
-
-
-/* ptr = &arr(idx0,idx1,...). All indexes are zero-based,
-   the major dimensions go first (e.g. (y,x) for 2D, (z,y,x) for 3D */
-CVAPI(uchar*) cvPtr1D( const CvArr* arr, int idx0, int* type CV_DEFAULT(NULL));
-CVAPI(uchar*) cvPtr2D( const CvArr* arr, int idx0, int idx1, int* type CV_DEFAULT(NULL) );
-CVAPI(uchar*) cvPtr3D( const CvArr* arr, int idx0, int idx1, int idx2,
-                      int* type CV_DEFAULT(NULL));
-
-/* For CvMat or IplImage number of indices should be 2
-   (row index (y) goes first, column index (x) goes next).
-   For CvMatND or CvSparseMat number of infices should match number of <dims> and
-   indices order should match the array dimension order. */
-CVAPI(uchar*) cvPtrND( const CvArr* arr, const int* idx, int* type CV_DEFAULT(NULL),
-                      int create_node CV_DEFAULT(1),
-                      unsigned* precalc_hashval CV_DEFAULT(NULL));
-
-
-
-
-
-/* clears element of ND dense array,
-   in case of sparse arrays it deletes the specified node */
-CVAPI(void) cvClearND( CvArr* arr, const int* idx );
 
 /* Converts CvArr (IplImage or CvMat,...) to CvMat.
    If the last parameter is non-zero, function can
@@ -345,26 +265,9 @@ CVAPI(CvMat*) cvGetMat( const CvArr* arr, CvMat* header,
 CVAPI(IplImage*) cvGetImage( const CvArr* arr, IplImage* image_header );
 
 
-/* Changes a shape of multi-dimensional array.
-   new_cn == 0 means that number of channels remains unchanged.
-   new_dims == 0 means that number and sizes of dimensions remain the same
-   (unless they need to be changed to set the new number of channels)
-   if new_dims == 1, there is no need to specify new dimension sizes
-   The resultant configuration should be achievable w/o data copying.
-   If the resultant array is sparse, CvSparseMat header should be passed
-   to the function else if the result is 1 or 2 dimensional,
-   CvMat header should be passed to the function
-   else CvMatND header should be passed */
-CVAPI(CvArr*) cvReshapeMatND( const CvArr* arr,
-                             int sizeof_header, CvArr* header,
-                             int new_cn, int new_dims, int* new_sizes );
 
-#define cvReshapeND( arr, header, new_cn, new_dims, new_sizes )   \
-      cvReshapeMatND( (arr), sizeof(*(header)), (header),         \
-                      (new_cn), (new_dims), (new_sizes))
 
-CVAPI(CvMat*) cvReshape( const CvArr* arr, CvMat* header,
-                        int new_cn, int new_rows CV_DEFAULT(0) );
+
 
 /* Repeats source 2d array several times in both horizontal and
    vertical direction to fill destination array */
@@ -381,12 +284,6 @@ CVAPI(void)  cvReleaseData( CvArr* arr );
    must be joint (w/o gaps) */
 CVAPI(void)  cvSetData( CvArr* arr, void* data, int step );
 
-/* Retrieves raw data of CvMat, IplImage or CvMatND.
-   In the latter case the function raises an error if
-   the array can not be represented as a matrix */
-CVAPI(void) cvGetRawData( const CvArr* arr, uchar** data,
-                         int* step CV_DEFAULT(NULL),
-                         CvSize* roi_size CV_DEFAULT(NULL));
 
 /* Returns width and height of array in elements */
 CVAPI(CvSize) cvGetSize( const CvArr* arr );
@@ -1495,9 +1392,6 @@ typedef IplImage* (CV_STDCALL* Cv_iplCloneImage)(const IplImage*);
 
 /********************************** High-level functions ********************************/
 
-/* opens existing or creates new file storage */
-CVAPI(CvFileStorage*)  cvOpenFileStorage( const char* filename, CvMemStorage* memstorage,
-                                          int flags, const char* encoding CV_DEFAULT(NULL) );
 
 /* closes file storage and deallocates buffers */
 CVAPI(void) cvReleaseFileStorage( CvFileStorage** fs );
@@ -1648,15 +1542,7 @@ CVAPI(CvTypeInfo*) cvTypeOf( const void* struct_ptr );
 CVAPI(void) cvRelease( void** struct_ptr );
 CVAPI(void*) cvClone( const void* struct_ptr );
 
-/* simple API for reading/writing data */
-CVAPI(void) cvSave( const char* filename, const void* struct_ptr,
-                    const char* name CV_DEFAULT(NULL),
-                    const char* comment CV_DEFAULT(NULL),
-                    CvAttrList attributes CV_DEFAULT(cvAttrList()));
-CVAPI(void*) cvLoad( const char* filename,
-                     CvMemStorage* memstorage CV_DEFAULT(NULL),
-                     const char* name CV_DEFAULT(NULL),
-                     const char** real_name CV_DEFAULT(NULL) );
+
 
 /*********************************** Measuring Execution Time ***************************/
 
