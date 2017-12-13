@@ -280,22 +280,54 @@ typedef struct stBox
     bool isRect;
 } Box;
 
+#define MAX_P 40.0
+
+bool isEqu(float x1, float x2)
+{
+    return (abs(x1 - x2) <= MAX_P);
+}
+
 struct SymBoxCmp
 {
     bool operator()(const Box &x, const Box &y) const
     {
+        if (abs(x.box.center.x - y.box.center.x) <= MAX_P && abs(x.box.center.y - y.box.center.y) <= MAX_P)
+        {
+            if (abs(x.box.size.width - y.box.size.width) <= MAX_P && abs(x.box.size.height - y.box.size.height) <= MAX_P)
+            {
+                return false;
+            }
+        }
+
+        bool ret = false;
         if (x.box.center.x == y.box.center.x)
         {
-            return x.box.center.y < y.box.center.y;
+            ret = x.box.center.y < y.box.center.y;
         }
         else
         {
-            return x.box.center.x < y.box.center.x;
+            ret = x.box.center.x < y.box.center.x;
         }
+        return ret;
     }
 };
 
-set<Box, SymBoxCmp> SearchProcess_v2(IplImage *lpSrcImg)
+struct SymUBoxCmp
+{
+    bool operator()(const Box &x, const Box &y) const
+    {
+        if (abs(x.box.center.x - y.box.center.x) <= MAX_P && abs(x.box.center.y - y.box.center.y) <= MAX_P)
+        {
+            if (abs(x.box.size.width - y.box.size.width) <= MAX_P && abs(x.box.size.height - y.box.size.height) <= MAX_P)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+};
+
+set<Box, SymUBoxCmp> SearchProcess_v2(IplImage *lpSrcImg)
 {
     CvMemStorage *storage = cvCreateMemStorage();
     CvSeq *contours = NULL;
@@ -305,12 +337,13 @@ set<Box, SymBoxCmp> SearchProcess_v2(IplImage *lpSrcImg)
     CvBox2D End_Rage2D;
     CvPoint2D32f rectpoint[4];
     int index = 0;
-    set<Box, SymBoxCmp> lstRes;
+    set<Box, SymUBoxCmp> lstRes;
     // 创建一个空序列用于存储轮廓角点
     CvSeq *squares = cvCreateSeq(0, sizeof(CvSeq), sizeof(CvPoint), storage);
     cvFindContours(lpSrcImg, storage, &contours, sizeof(CvContour),
                    CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE, cvPoint(0, 0));
-
+    int iCount = 0;
+    cvSaveImage("c.bmp", lpSrcImg);
     // 遍历找到的每个轮廓contours
     while (contours)
     {
@@ -354,20 +387,31 @@ set<Box, SymBoxCmp> SearchProcess_v2(IplImage *lpSrcImg)
                     if (s < 0.1)
                     {
                         box.isRect = true;
-                        //  lstRes.insert(box);
                     }
                     else
                     {
                         box.isRect = false;
                     }
-
+                    printf("centerInfo:[%f,%f]:[%f,%f]\n", End_Rage2D.center.x, End_Rage2D.center.y, End_Rage2D.size.width, End_Rage2D.size.height);
                     lstRes.insert(box);
+                    iCount++;
+
+                    // if (abs(x.box.center.x - y.box.center.x) <= MAX_P && abs(x.box.center.y - y.box.center.y) <= MAX_P)
+                    // {
+                    //     //if(abs(x.box.size.width - y.box.size.width)  <= MAX_P && abs(x.box.size.height - y.box.size.height)<= MAX_P )
+                    //     {
+                    //         return false;
+                    //     }
+                    // }
                 }
             }
         }
         // 继续查找下一个轮廓
         contours = contours->h_next;
     }
+
+    cvReleaseMemStorage(&storage);
+
     return std::move(lstRes);
 }
 
@@ -444,15 +488,21 @@ int process(IplImage *lpImg, IplImage *lpTargetImg, int argc, char *argv[])
 
 int process_v2(IplImage *lpImg, IplImage *lpTargetImg, int argc, char *argv[])
 {
-    set<Box, SymBoxCmp> lstRes = SearchProcess_v2(lpImg);
-
+    set<Box, SymBoxCmp> lstRes;
+    set<Box, SymUBoxCmp> setURes = SearchProcess_v2(lpImg);
+    set<Box, SymUBoxCmp>::iterator itu;
+    int iCount = 0;
+    for (itu = setURes.begin(); itu != setURes.end(); itu++)
+    {
+        if ((*itu).isRect)
+        {
+            iCount++;
+        }
+        lstRes.insert(*itu);
+    }
     set<Box, SymBoxCmp>::iterator it;
 
     Box box;
-    for (it = lstRes.begin(); it != lstRes.end(); it++)
-    {
-        box = *it;
-    }
     it = lstRes.begin();
     for (int i = 0; i < argc && it != lstRes.end(); i++)
     {
@@ -466,17 +516,67 @@ int process_v2(IplImage *lpImg, IplImage *lpTargetImg, int argc, char *argv[])
             IplImage *temp = lpSrcImg;
             CvPoint2D32f srcTri[4], dstTri[4];
             CvMat *warp_mat = cvCreateMat(3, 3, CV_32FC1);
-            if (box.isRect)
+
+            //排序
+            CvPoint pt;
+            for (int j = 0; j < 4; j++) /* 气泡法要排序n次*/
             {
-                cvBoxPoints(box.box, dstTri); //计算二维盒子顶点
-            }
-            //else
-            {
-                for (int i = 0; i < 4; i++)
+                for (int i = 0; i < 4 - j; i++) /* 值比较大的元素沉下去后，只把剩下的元素中的最大值再沉下去就可以啦 */
                 {
-                    dstTri[i].x = box.pt[i].x;
-                    dstTri[i].y = box.pt[i].y;
+                    if (box.pt[i].x > box.pt[i + 1].x) /* 把值比较大的元素沉到底 */
+                    {
+                        pt = box.pt[i];
+                        box.pt[i] = box.pt[i + 1];
+                        box.pt[i + 1] = pt;
+                    }
                 }
+            }
+            printf("after centerInfo:[%f,%f]:[%f,%f]\n", box.box.center.x, box.box.center.y, box.box.size.width, box.box.size.height);
+            CvPoint p[4];
+            //找p0点
+            if (box.pt[0].y > box.pt[1].y)
+            {
+                p[0] = box.pt[0];
+                p[1] = box.pt[1];
+            }
+            else
+            {
+                p[0] = box.pt[1];
+                p[1] = box.pt[0];
+            }
+
+            if (box.pt[2].y > box.pt[3].y)
+            {
+                p[2] = box.pt[3];
+                p[3] = box.pt[2];
+            }
+            else
+            {
+                p[2] = box.pt[2];
+                p[3] = box.pt[3];
+            }
+            int diff = +5;
+            p[0].x -= diff;
+            p[0].y += diff;
+
+            p[1].x -= diff;
+            p[1].y -= diff;
+
+            p[2].x += diff;
+            p[2].y -= diff;
+            p[3].x += diff;
+            p[3].y += diff;
+            for (int i = 0; i < 4; i++)
+            {
+                dstTri[i].x = p[i].x;
+                dstTri[i].y = p[i].y;
+            }
+
+            for (int i = 0; i < 4; i++)
+            {
+                CvPoint pt = cvPointFrom32f(dstTri[i]);
+
+                cvCircle(lpTargetImg, pt, 4 + 4 * i, cvScalar(0, 0, 255), 1, 8, 0);
             }
             //计算矩阵仿射变换
             if (box.box.size.width > box.box.size.height)
@@ -510,22 +610,13 @@ int process_v2(IplImage *lpImg, IplImage *lpTargetImg, int argc, char *argv[])
                 // srcTri[1].x = 0; //bot right
                 // srcTri[1].y = temp->height - 1;
             }
-            //改变目标图像大小
-            // dstTri[0].x =893;// temp->width * 0.05;
-            // dstTri[0].y =598;// temp->height * 0.33;
-            // dstTri[1].x =893;// temp->width * 0.9;
-            // dstTri[1].y =477;// temp->height * 0.25;
-            // dstTri[2].x =1107;// temp->width * 0.2;
-            // dstTri[2].y =477; temp->height * 0.7;
-            // dstTri[3].x =1107;// temp->width * 0.8;
-            // dstTri[3].y =598;// temp->height * 0.9;
 
             cvGetPerspectiveTransform(dstTri, srcTri, warp_mat);                                     //由三对点计算仿射变换
             cvWarpPerspective(temp, lpTargetImg, warp_mat, CV_INTER_LINEAR | (CV_WARP_INVERSE_MAP)); //对图像做仿射变换
         }
     }
 
-    return lstRes.size();
+    return iCount;
 }
 
 int main(int argc, char *args[])
@@ -542,13 +633,18 @@ int main(int argc, char *args[])
     {
         return ERR_1;
     }
-
+    IplImage *gray = cvCreateImage(cvGetSize(lpTargetImg), 8, 1);
+    cvCvtColor(lpTargetImg, gray, CV_RGB2GRAY);
     IplImage *lpCannyImg = cvCreateImage(cvGetSize(lpTargetImg), 8, 1);
     IplImage *lpDilateImg = cvCreateImage(cvGetSize(lpTargetImg), 8, 1);
+    cvSmooth(gray, gray, CV_GAUSSIAN, 3, 3, 0, 0); //高斯滤波
     if (NULL != lpCannyImg && NULL != lpDilateImg)
     {
         cvCanny(lpTargetImg, lpCannyImg, 0.5, 20, 3);
+        cvSaveImage("canny1.bmp", lpCannyImg);
         cvDilate(lpCannyImg, lpDilateImg, 0, 1);
+        cvErode(lpDilateImg, lpDilateImg, 0, 1);
+        cvSaveImage("lpDilateImg.bmp", lpDilateImg);
     }
     //查找目标区域
     IplImage *lpOutImg = cvCloneImage(lpTargetImg);

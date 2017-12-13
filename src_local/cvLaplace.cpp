@@ -60,10 +60,13 @@ void drawSquares(IplImage *img, CvSeq *squares)
 		for (int i = 0; i < 4; i++)
 		{
 			//CvPoint *line = (CvPoint *)cvGetSeqElem(lines, i);
-			cvLine(cpy, pt[i], pt[(1 + 1) % 4], CV_RGB(0, 0, 255), 1 + i * 4, CV_AA);
+			//cvLine(cpy, pt[i], pt[(1 + 1) % 4], CV_RGB(0, 0, 255), 1 + i * 4, CV_AA);
+
+			cvCircle(cpy, pt[i], 2+2*i, cvScalar(0, 0, 255), 1, 8, 0);
+			printf("point:[x:%d,y:%d]\n", pt[i].x, pt[i].y);
 		}
 
-		cvCircle(cpy, p, 2, cvScalar(0, 0, 255), 1, 8, 0);
+		//cvCircle(cpy, p, 2, cvScalar(0, 0, 255), 1, 8, 0);
 	}
 
 	cvShowImage("xx", cpy);
