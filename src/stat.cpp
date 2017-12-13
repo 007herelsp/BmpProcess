@@ -46,15 +46,7 @@
 namespace cv
 {
 
-template<typename T> static inline Scalar rawToScalar(const T& v)
-{
-    Scalar s;
-    typedef typename DataType<T>::channel_type T1;
-    int i, n = DataType<T>::channels;
-    for( i = 0; i < n; i++ )
-        s.val[i] = ((T1*)&v)[i];
-    return s;
-}
+
 
 /****************************************************************************************\
 *                                        sum                                             *

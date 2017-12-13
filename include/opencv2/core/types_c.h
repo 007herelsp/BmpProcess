@@ -1904,26 +1904,7 @@ typedef struct CvTypeInfo
 CvTypeInfo;
 
 
-/**** System data types ******/
 
-typedef struct CvPluginFuncInfo
-{
-    void** func_addr;
-    void* default_func_addr;
-    const char* func_names;
-    int search_modules;
-    int loaded_from;
-}
-CvPluginFuncInfo;
-
-typedef struct CvModuleInfo
-{
-    struct CvModuleInfo* next;
-    const char* name;
-    const char* version;
-    CvPluginFuncInfo* func_tab;
-}
-CvModuleInfo;
 
 #endif /*__OPENCV_CORE_TYPES_H__*/
 

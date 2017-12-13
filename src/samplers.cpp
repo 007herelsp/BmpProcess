@@ -6,36 +6,7 @@
 *                                   line samplers                                      *
 \**************************************************************************************/
 
-CV_IMPL int
-cvSampleLine(const void *img, CvPoint pt1, CvPoint pt2,
-             void *_buffer, int connectivity)
-{
-    int count = -1;
 
-    int i, coi = 0, pix_size;
-    CvMat stub, *mat = cvGetMat(img, &stub, &coi);
-    CvLineIterator iterator;
-    uchar *buffer = (uchar *)_buffer;
-
-    if (coi != 0)
-        CV_Error(CV_BadCOI, "");
-
-    if (!buffer)
-        CV_Error(CV_StsNullPtr, "");
-
-    count = cvInitLineIterator(mat, pt1, pt2, &iterator, connectivity);
-
-    pix_size = CV_ELEM_SIZE(mat->type);
-    for (i = 0; i < count; i++)
-    {
-        for (int j = 0; j < pix_size; j++)
-            buffer[j] = iterator.ptr[j];
-        buffer += pix_size;
-        CV_NEXT_LINE_POINT(iterator);
-    }
-
-    return count;
-}
 
 static const void *
 icvAdjustRect(const void *srcptr, int src_step, int pix_size,
@@ -539,8 +510,8 @@ cvGetRectSubPix(const void *srcarr, void *dstarr, CvPoint2D32f center)
     if (!func)
         CV_Error(CV_StsUnsupportedFormat, "");
 
-    IPPI_CALL(func(src->data.ptr, src_step, src_size,
-                   dst->data.ptr, dst_step, dst_size, center));
+    func(src->data.ptr, src_step, src_size,
+                   dst->data.ptr, dst_step, dst_size, center);
 }
 
 #define ICV_32F8U(x) ((uchar)cvRound(x))
@@ -939,8 +910,8 @@ cvGetQuadrangleSubPix(const void *srcarr, void *dstarr, const CvMat *mat)
     if (!func)
         CV_Error(CV_StsUnsupportedFormat, "");
 
-    IPPI_CALL(func(src->data.ptr, src->step, src_size,
-                   dst->data.ptr, dst->step, dst_size, m));
+   func(src->data.ptr, src->step, src_size,
+                   dst->data.ptr, dst->step, dst_size, m);
 }
 
 void cv::getRectSubPix(InputArray _image, Size patchSize, Point2f center,

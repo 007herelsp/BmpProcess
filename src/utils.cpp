@@ -47,7 +47,6 @@ CV_IMPL CvSeq* cvPointSeqFromMat( int seq_kind, const CvArr* arr,
     CV_Assert( arr != 0 && contour_header != 0 && block != 0 );
 
     int eltype;
-    CvMat hdr;
     CvMat* mat = (CvMat*)arr;
 
     if( !CV_IS_MAT( mat ))
@@ -258,25 +257,8 @@ void cv::copyMakeBorder( InputArray _src, OutputArray _dst, int top, int bottom,
 }
 
 
-double cv::PSNR(InputArray _src1, InputArray _src2)
-{
-    Mat src1 = _src1.getMat(), src2 = _src2.getMat();
-    CV_Assert( src1.depth() == CV_8U );
-    double diff = std::sqrt(norm(src1, src2, NORM_L2SQR)/(src1.total()*src1.channels()));
-    return 20*log10(255./(diff+DBL_EPSILON));
-}
 
 
-CV_IMPL void
-cvCopyMakeBorder( const CvArr* srcarr, CvArr* dstarr, CvPoint offset,
-                  int borderType, CvScalar value )
-{
-    cv::Mat src = cv::cvarrToMat(srcarr), dst = cv::cvarrToMat(dstarr);
-    int left = offset.x, right = dst.cols - src.cols - left;
-    int top = offset.y, bottom = dst.rows - src.rows - top;
 
-    CV_Assert( dst.type() == src.type() );
-    cv::copyMakeBorder( src, dst, top, bottom, left, right, borderType, value );
-}
 
 /* End of file. */

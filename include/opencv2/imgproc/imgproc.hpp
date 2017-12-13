@@ -633,14 +633,13 @@ CV_EXPORTS_W void accumulateProduct( InputArray src1, InputArray src2,
 CV_EXPORTS_W void accumulateWeighted( InputArray src, InputOutputArray dst,
                                       double alpha, InputArray mask=noArray() );
 
-//! computes PSNR image/video quality metric
-CV_EXPORTS_W double PSNR(InputArray src1, InputArray src2);
+
 
 CV_EXPORTS_W Point2d phaseCorrelate(InputArray src1, InputArray src2,
                                   InputArray window = noArray());
 CV_EXPORTS_W Point2d phaseCorrelateRes(InputArray src1, InputArray src2,
                                     InputArray window, CV_OUT double* response = 0);
-CV_EXPORTS_W void createHanningWindow(OutputArray dst, Size winSize, int type);
+
 
 //! type of the threshold operation
 enum { THRESH_BINARY=CV_THRESH_BINARY, THRESH_BINARY_INV=CV_THRESH_BINARY_INV,

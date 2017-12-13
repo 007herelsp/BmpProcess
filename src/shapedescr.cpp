@@ -1,43 +1,4 @@
-/*M///////////////////////////////////////////////////////////////////////////////////////
-//
-//  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.
-//
-//  By downloading, copying, installing or using the software you agree to this license.
-//  If you do not agree to this license, do not download, install,
-//  copy or use the software.
-//
-//
-//                        Intel License Agreement
-//                For Open Source Computer Vision Library
-//
-// Copyright (C) 2000, Intel Corporation, all rights reserved.
-// Third party copyrights are property of their respective owners.
-//
-// Redistribution and use in source and binary forms, with or without modification,
-// are permitted provided that the following conditions are met:
-//
-//   * Redistribution's of source code must retain the above copyright notice,
-//     this list of conditions and the following disclaimer.
-//
-//   * Redistribution's in binary form must reproduce the above copyright notice,
-//     this list of conditions and the following disclaimer in the documentation
-//     and/or other materials provided with the distribution.
-//
-//   * The name of Intel Corporation may not be used to endorse or promote products
-//     derived from this software without specific prior written permission.
-//
-// This software is provided by the copyright holders and contributors "as is" and
-// any express or implied warranties, including, but not limited to, the implied
-// warranties of merchantability and fitness for a particular purpose are disclaimed.
-// In no event shall the Intel Corporation or contributors be liable for any direct,
-// indirect, incidental, special, exemplary, or consequential damages
-// (including, but not limited to, procurement of substitute goods or services;
-// loss of use, data, or profits; or business interruption) however caused
-// and on any theory of liability, whether in contract, strict liability,
-// or tort (including negligence or otherwise) arising in any way out of
-// the use of this software, even if advised of the possibility of such damage.
-//
-//M*/
+
 #include "imgproc.precomp.hpp"
 
 /* calculates length of a curve (e.g. contour perimeter) */
@@ -128,37 +89,6 @@ cvArcLength( const void *array, CvSlice slice, int is_closed )
 }
 
 
-static CvStatus
-icvFindCircle( CvPoint2D32f pt0, CvPoint2D32f pt1,
-               CvPoint2D32f pt2, CvPoint2D32f * center, float *radius )
-{
-    double x1 = (pt0.x + pt1.x) * 0.5;
-    double dy1 = pt0.x - pt1.x;
-    double x2 = (pt1.x + pt2.x) * 0.5;
-    double dy2 = pt1.x - pt2.x;
-    double y1 = (pt0.y + pt1.y) * 0.5;
-    double dx1 = pt1.y - pt0.y;
-    double y2 = (pt1.y + pt2.y) * 0.5;
-    double dx2 = pt2.y - pt1.y;
-    double t = 0;
-
-    CvStatus result = CV_OK;
-
-    if( icvIntersectLines( x1, dx1, y1, dy1, x2, dx2, y2, dy2, &t ) >= 0 )
-    {
-        center->x = (float) (x2 + dx2 * t);
-        center->y = (float) (y2 + dy2 * t);
-        *radius = (float) icvDistanceL2_32f( *center, pt0 );
-    }
-    else
-    {
-        center->x = center->y = 0.f;
-        radius = 0;
-        result = CV_NOTDEFINED_ERR;
-    }
-
-    return result;
-}
 
 
 CV_INLINE double icvIsPtInCircle( CvPoint2D32f pt, CvPoint2D32f center, float radius )
@@ -168,108 +98,6 @@ CV_INLINE double icvIsPtInCircle( CvPoint2D32f pt, CvPoint2D32f center, float ra
     return (double)radius*radius - dx*dx - dy*dy;
 }
 
-
-static int
-icvFindEnslosingCicle4pts_32f( CvPoint2D32f * pts, CvPoint2D32f * _center, float *_radius )
-{
-    int shuffles[4][4] = { {0, 1, 2, 3}, {0, 1, 3, 2}, {2, 3, 0, 1}, {2, 3, 1, 0} };
-
-    int idxs[4] = { 0, 1, 2, 3 };
-    int i, j, k = 1, mi = 0;
-    float max_dist = 0;
-    CvPoint2D32f center;
-    CvPoint2D32f min_center;
-    float radius, min_radius = FLT_MAX;
-    CvPoint2D32f res_pts[4];
-
-    center = min_center = pts[0];
-    radius = 1.f;
-
-    for( i = 0; i < 4; i++ )
-        for( j = i + 1; j < 4; j++ )
-        {
-            float dist = icvDistanceL2_32f( pts[i], pts[j] );
-
-            if( max_dist < dist )
-            {
-                max_dist = dist;
-                idxs[0] = i;
-                idxs[1] = j;
-            }
-        }
-
-    if( max_dist == 0 )
-        goto function_exit;
-
-    k = 2;
-    for( i = 0; i < 4; i++ )
-    {
-        for( j = 0; j < k; j++ )
-            if( i == idxs[j] )
-                break;
-        if( j == k )
-            idxs[k++] = i;
-    }
-
-    center = cvPoint2D32f( (pts[idxs[0]].x + pts[idxs[1]].x)*0.5f,
-                           (pts[idxs[0]].y + pts[idxs[1]].y)*0.5f );
-    radius = (float)(icvDistanceL2_32f( pts[idxs[0]], center )*1.03);
-    if( radius < 1.f )
-        radius = 1.f;
-
-    if( icvIsPtInCircle( pts[idxs[2]], center, radius ) >= 0 &&
-        icvIsPtInCircle( pts[idxs[3]], center, radius ) >= 0 )
-    {
-        k = 2; //rand()%2+2;
-    }
-    else
-    {
-        mi = -1;
-        for( i = 0; i < 4; i++ )
-        {
-            if( icvFindCircle( pts[shuffles[i][0]], pts[shuffles[i][1]],
-                               pts[shuffles[i][2]], &center, &radius ) >= 0 )
-            {
-                radius *= 1.03f;
-                if( radius < 2.f )
-                    radius = 2.f;
-
-                if( icvIsPtInCircle( pts[shuffles[i][3]], center, radius ) >= 0 &&
-                    min_radius > radius )
-                {
-                    min_radius = radius;
-                    min_center = center;
-                    mi = i;
-                }
-            }
-        }
-        assert( mi >= 0 );
-        if( mi < 0 )
-            mi = 0;
-        k = 3;
-        center = min_center;
-        radius = min_radius;
-        for( i = 0; i < 4; i++ )
-            idxs[i] = shuffles[mi][i];
-    }
-
-  function_exit:
-
-    *_center = center;
-    *_radius = radius;
-
-    /* reorder output points */
-    for( i = 0; i < 4; i++ )
-        res_pts[i] = pts[idxs[i]];
-
-    for( i = 0; i < 4; i++ )
-    {
-        pts[i] = res_pts[i];
-        assert( icvIsPtInCircle( pts[i], center, radius ) >= 0 );
-    }
-
-    return k;
-}
 
 
 
@@ -568,14 +396,14 @@ cvContourArea( const void *array, CvSlice slice, int oriented )
 
     if( cvSliceLength( slice, contour ) == contour->total )
     {
-        IPPI_CALL( icvContourArea( contour, &area ));
+        CV_Assert((icvContourArea( contour, &area )) >= 0);
     }
     else
     {
         if( CV_SEQ_ELTYPE( contour ) != CV_32SC2 )
             CV_Error( CV_StsUnsupportedFormat,
             "Only curves with integer coordinates are supported in case of contour slice" );
-        IPPI_CALL( icvContourSecArea( contour, slice, &area ));
+          CV_Assert( icvContourSecArea( contour, slice, &area ) >= 0);
     }
 
     return oriented ? area : fabs(area);

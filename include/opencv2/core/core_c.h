@@ -1354,16 +1354,12 @@ CVAPI(int) cvKMeans2( const CvArr* samples, int cluster_count, CvArr* labels,
 *                                    System functions                                    *
 \****************************************************************************************/
 
-/* Add the function pointers table with associated information to the IPP primitives list */
-CVAPI(int)  cvRegisterModule( const CvModuleInfo* module_info );
+
 
 /* Loads optimized functions from IPP, MKL etc. or switches back to pure C code */
 CVAPI(int)  cvUseOptimized( int on_off );
 
-/* Retrieves information about the registered modules and loaded optimized plugins */
-CVAPI(void)  cvGetModuleInfo( const char* module_name,
-                              const char** version,
-                              const char** loaded_addon_plugins );
+
 
 typedef void* (CV_CDECL *CvAllocFunc)(size_t size, void* userdata);
 typedef int (CV_CDECL *CvFreeFunc)(void* pptr, void* userdata);
@@ -1715,16 +1711,7 @@ static char cvFuncName[] = Name
 #ifdef __cplusplus
 }
 
-// classes for automatic module/RTTI data registration/unregistration
-struct CV_EXPORTS CvModule
-{
-    CvModule( CvModuleInfo* _info );
-    ~CvModule();
-    CvModuleInfo* info;
 
-    static CvModuleInfo* first;
-    static CvModuleInfo* last;
-};
 
 struct CV_EXPORTS CvType
 {

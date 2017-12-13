@@ -1,7 +1,6 @@
  
 
 #include "imgproc.precomp.hpp"
-#include "imgwarp_avx.hpp"
 #include "imgwarp_avx2.hpp"
 #include <iostream>
 #include <vector>
@@ -13,65 +12,6 @@ static IppStatus sts = ippInit();
 namespace cv
 {
 
-#if defined (HAVE_IPP) && (IPP_VERSION_MAJOR >= 7)
-    typedef IppStatus (CV_STDCALL* ippiSetFunc)(const void*, void *, int, IppiSize);
-    typedef IppStatus (CV_STDCALL* ippiWarpPerspectiveBackFunc)(const void*, IppiSize, int, IppiRect, void *, int, IppiRect, double [3][3], int);
-    typedef IppStatus (CV_STDCALL* ippiWarpAffineBackFunc)(const void*, IppiSize, int, IppiRect, void *, int, IppiRect, double [2][3], int);
-    typedef IppStatus (CV_STDCALL* ippiResizeSqrPixelFunc)(const void*, IppiSize, int, IppiRect, void*, int, IppiRect, double, double, double, double, int, Ipp8u *);
-
-    template <int channels, typename Type>
-    bool IPPSetSimple(cv::Scalar value, void *dataPointer, int step, IppiSize &size, ippiSetFunc func)
-    {
-        Type values[channels];
-        for( int i = 0; i < channels; i++ )
-            values[i] = (Type)value[i];
-        return func(values, dataPointer, step, size) >= 0;
-    }
-
-    static bool IPPSet(const cv::Scalar &value, void *dataPointer, int step, IppiSize &size, int channels, int depth)
-    {
-        if( channels == 1 )
-        {
-            switch( depth )
-            {
-            case CV_8U:
-                return ippiSet_8u_C1R((Ipp8u)value[0], (Ipp8u *)dataPointer, step, size) >= 0;
-            case CV_16U:
-                return ippiSet_16u_C1R((Ipp16u)value[0], (Ipp16u *)dataPointer, step, size) >= 0;
-            case CV_32F:
-                return ippiSet_32f_C1R((Ipp32f)value[0], (Ipp32f *)dataPointer, step, size) >= 0;
-            }
-        }
-        else
-        {
-            if( channels == 3 )
-            {
-                switch( depth )
-                {
-                case CV_8U:
-                    return IPPSetSimple<3, Ipp8u>(value, dataPointer, step, size, (ippiSetFunc)ippiSet_8u_C3R);
-                case CV_16U:
-                    return IPPSetSimple<3, Ipp16u>(value, dataPointer, step, size, (ippiSetFunc)ippiSet_16u_C3R);
-                case CV_32F:
-                    return IPPSetSimple<3, Ipp32f>(value, dataPointer, step, size, (ippiSetFunc)ippiSet_32f_C3R);
-                }
-            }
-            else if( channels == 4 )
-            {
-                switch( depth )
-                {
-                case CV_8U:
-                    return IPPSetSimple<4, Ipp8u>(value, dataPointer, step, size, (ippiSetFunc)ippiSet_8u_C4R);
-                case CV_16U:
-                    return IPPSetSimple<4, Ipp16u>(value, dataPointer, step, size, (ippiSetFunc)ippiSet_16u_C4R);
-                case CV_32F:
-                    return IPPSetSimple<4, Ipp32f>(value, dataPointer, step, size, (ippiSetFunc)ippiSet_32f_C4R);
-                }
-            }
-        }
-        return false;
-    }
-#endif
 
 /************** interpolation formulas and tables ***************/
 
@@ -3794,54 +3734,10 @@ void cv::warpPerspective( InputArray _src, OutputArray _dst, InputArray _M0,
 
     if( !(flags & WARP_INVERSE_MAP) )
          invert(matM, matM);
-/*
-#if defined (HAVE_IPP) && (IPP_VERSION_MAJOR >= 7)
-    int depth = src.depth();
-    int channels = src.channels();
-    if( ( depth == CV_8U || depth == CV_16U || depth == CV_32F ) &&
-        ( channels == 1 || channels == 3 || channels == 4 ) &&
-        ( borderType == cv::BORDER_TRANSPARENT || borderType == cv::BORDER_CONSTANT ) )
-    {
-        int type = src.type();
-        ippiWarpPerspectiveBackFunc ippFunc =
-            type == CV_8UC1 ? (ippiWarpPerspectiveBackFunc)ippiWarpPerspectiveBack_8u_C1R :
-            type == CV_8UC3 ? (ippiWarpPerspectiveBackFunc)ippiWarpPerspectiveBack_8u_C3R :
-            type == CV_8UC4 ? (ippiWarpPerspectiveBackFunc)ippiWarpPerspectiveBack_8u_C4R :
-            type == CV_16UC1 ? (ippiWarpPerspectiveBackFunc)ippiWarpPerspectiveBack_16u_C1R :
-            type == CV_16UC3 ? (ippiWarpPerspectiveBackFunc)ippiWarpPerspectiveBack_16u_C3R :
-            type == CV_16UC4 ? (ippiWarpPerspectiveBackFunc)ippiWarpPerspectiveBack_16u_C4R :
-            type == CV_32FC1 ? (ippiWarpPerspectiveBackFunc)ippiWarpPerspectiveBack_32f_C1R :
-            type == CV_32FC3 ? (ippiWarpPerspectiveBackFunc)ippiWarpPerspectiveBack_32f_C3R :
-            type == CV_32FC4 ? (ippiWarpPerspectiveBackFunc)ippiWarpPerspectiveBack_32f_C4R :
-            0;
-        int mode =
-            flags == INTER_LINEAR ? IPPI_INTER_LINEAR :
-            flags == INTER_NEAREST ? IPPI_INTER_NN :
-            flags == INTER_CUBIC ? IPPI_INTER_CUBIC :
-            0;
-        if( mode && ippFunc )
-        {
-            double coeffs[3][3];
-            for( int i = 0; i < 3; i++ )
-            {
-                for( int j = 0; j < 3; j++ )
-                {
-                    coeffs[i][j] = matM.at<double>(i, j);
-                }
-            }
-            bool ok;
-            Range range(0, dst.rows);
-            IPPwarpPerspectiveInvoker invoker(src, dst, coeffs, mode, borderType, borderValue, ippFunc, &ok);
-            parallel_for_(range, invoker, dst.total()/(double)(1<<16));
-            if( ok )
-                return;
-        }
-    }
-#endif
-*/
+
     Range range(0, dst.rows);
     warpPerspectiveInvoker invoker(src, dst, M, interpolation, borderType, borderValue);
-    parallel_for_(range, invoker, dst.total()/(double)(1<<16));
+   parallel_for_(range, invoker, dst.total()/(double)(1<<16));
 }
 
 

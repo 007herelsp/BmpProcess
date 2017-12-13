@@ -51,18 +51,6 @@
 namespace cv
 {
 
-#if ARITHM_USE_IPP
-struct IPPArithmInitializer
-{
-    IPPArithmInitializer(void)
-    {
-        ippStaticInit();
-    }
-};
-
-IPPArithmInitializer ippArithmInitializer;
-#endif
-
 struct NOP {};
 
 template<typename T, class Op, class Op8>
