@@ -324,30 +324,9 @@ CVAPI(uchar*) cvPtrND( const CvArr* arr, const int* idx, int* type CV_DEFAULT(NU
                       int create_node CV_DEFAULT(1),
                       unsigned* precalc_hashval CV_DEFAULT(NULL));
 
-/* value = arr(idx0,idx1,...) */
-CVAPI(CvScalar) cvGet1D( const CvArr* arr, int idx0 );
-CVAPI(CvScalar) cvGet2D( const CvArr* arr, int idx0, int idx1 );
-CVAPI(CvScalar) cvGet3D( const CvArr* arr, int idx0, int idx1, int idx2 );
-CVAPI(CvScalar) cvGetND( const CvArr* arr, const int* idx );
 
-/* for 1-channel arrays */
-CVAPI(double) cvGetReal1D( const CvArr* arr, int idx0 );
-CVAPI(double) cvGetReal2D( const CvArr* arr, int idx0, int idx1 );
-CVAPI(double) cvGetReal3D( const CvArr* arr, int idx0, int idx1, int idx2 );
-CVAPI(double) cvGetRealND( const CvArr* arr, const int* idx );
 
-/* arr(idx0,idx1,...) = value */
-CVAPI(void) cvSet1D( CvArr* arr, int idx0, CvScalar value );
-CVAPI(void) cvSet2D( CvArr* arr, int idx0, int idx1, CvScalar value );
-CVAPI(void) cvSet3D( CvArr* arr, int idx0, int idx1, int idx2, CvScalar value );
-CVAPI(void) cvSetND( CvArr* arr, const int* idx, CvScalar value );
 
-/* for 1-channel arrays */
-CVAPI(void) cvSetReal1D( CvArr* arr, int idx0, double value );
-CVAPI(void) cvSetReal2D( CvArr* arr, int idx0, int idx1, double value );
-CVAPI(void) cvSetReal3D( CvArr* arr, int idx0,
-                        int idx1, int idx2, double value );
-CVAPI(void) cvSetRealND( CvArr* arr, const int* idx, double value );
 
 /* clears element of ND dense array,
    in case of sparse arrays it deletes the specified node */
@@ -1507,16 +1486,8 @@ typedef void (CV_STDCALL* Cv_iplDeallocate)(IplImage*,int);
 typedef IplROI* (CV_STDCALL* Cv_iplCreateROI)(int,int,int,int,int);
 typedef IplImage* (CV_STDCALL* Cv_iplCloneImage)(const IplImage*);
 
-/* Makes OpenCV use IPL functions for IplImage allocation/deallocation */
-CVAPI(void) cvSetIPLAllocators( Cv_iplCreateImageHeader create_header,
-                               Cv_iplAllocateImageData allocate_data,
-                               Cv_iplDeallocate deallocate,
-                               Cv_iplCreateROI create_roi,
-                               Cv_iplCloneImage clone_image );
 
-#define CV_TURN_ON_IPL_COMPATIBILITY()                                  \
-    cvSetIPLAllocators( iplCreateImageHeader, iplAllocateImage,         \
-                        iplDeallocate, iplCreateROI, iplCloneImage )
+
 
 /****************************************************************************************\
 *                                    Data Persistence                                    *

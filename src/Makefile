@@ -31,6 +31,6 @@ install:
 
 
 clean:
-	rm -f *.o $(TARGET)  
+	rm -f $(OUT_DIR)/*.o $(TARGET)  
 
  
