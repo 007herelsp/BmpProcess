@@ -89,9 +89,6 @@ typedef Mat MatND;
 
 
 
-namespace gpu {
-    class GpuMat;
-}
 
 class CV_EXPORTS MatExpr;
 class CV_EXPORTS MatOp_Base;
@@ -1358,10 +1355,6 @@ public:
     template<typename _Tp, int m, int n> _InputArray(const Matx<_Tp, m, n>& matx);
     _InputArray(const Scalar& s);
     _InputArray(const double& val);
-
-    _InputArray(const gpu::GpuMat& d_mat);
-
-
     virtual Mat getMat(int i=-1) const;
     virtual void getMatVector(vector<Mat>& mv) const;
 
@@ -1416,8 +1409,6 @@ public:
     template<typename _Tp> _OutputArray(Mat_<_Tp>& m);
     template<typename _Tp, int m, int n> _OutputArray(Matx<_Tp, m, n>& matx);
     template<typename _Tp> _OutputArray(_Tp* vec, int n);
-    _OutputArray(gpu::GpuMat& d_mat);
-
 
     _OutputArray(const Mat& m);
     template<typename _Tp> _OutputArray(const vector<_Tp>& vec);
@@ -1427,14 +1418,13 @@ public:
     template<typename _Tp> _OutputArray(const Mat_<_Tp>& m);
     template<typename _Tp, int m, int n> _OutputArray(const Matx<_Tp, m, n>& matx);
     template<typename _Tp> _OutputArray(const _Tp* vec, int n);
-    _OutputArray(const gpu::GpuMat& d_mat);
 
 
     virtual bool fixedSize() const;
     virtual bool fixedType() const;
     virtual bool needed() const;
     virtual Mat& getMatRef(int i=-1) const;
-    /*virtual*/ gpu::GpuMat& getGpuMatRef() const;
+
 
     virtual void create(Size sz, int type, int i=-1, bool allowTransposed=false, int fixedDepthMask=0) const;
     virtual void create(int rows, int cols, int type, int i=-1, bool allowTransposed=false, int fixedDepthMask=0) const;
@@ -1524,8 +1514,7 @@ public:
     //! builds matrix from comma initializer
     template<typename _Tp> explicit Mat(const MatCommaInitializer_<_Tp>& commaInitializer);
 
-    //! download data from GpuMat
-    explicit Mat(const gpu::GpuMat& m);
+
 
     //! destructor - calls release()
     ~Mat();
@@ -2055,8 +2044,7 @@ CV_EXPORTS_W void bitwise_not(InputArray src, OutputArray dst,
 //! computes element-wise absolute difference of two arrays (dst = abs(src1 - src2))
 CV_EXPORTS_W void absdiff(InputArray src1, InputArray src2, OutputArray dst);
 //! set mask elements for those array elements which are within the element-specific bounding box (dst = lowerb <= src && src < upperb)
-CV_EXPORTS_W void inRange(InputArray src, InputArray lowerb,
-                          InputArray upperb, OutputArray dst);
+
 //! compares elements of two arrays (dst = src1 \<cmpop\> src2)
 CV_EXPORTS_W void compare(InputArray src1, InputArray src2, OutputArray dst, int cmpop);
 //! computes per-element minimum of two arrays (dst = min(src1, src2))
@@ -2141,10 +2129,8 @@ enum
 CV_EXPORTS_W void sort(InputArray src, OutputArray dst, int flags);
 //! sorts independently each matrix row or each matrix column
 CV_EXPORTS_W void sortIdx(InputArray src, OutputArray dst, int flags);
-//! finds real roots of a cubic polynomial
-CV_EXPORTS_W int solveCubic(InputArray coeffs, OutputArray roots);
-//! finds real and complex roots of a polynomial
-CV_EXPORTS_W double solvePoly(InputArray coeffs, OutputArray roots, int maxIters=300);
+
+
 //! finds eigenvalues of a symmetric matrix
 CV_EXPORTS bool eigen(InputArray src, OutputArray eigenvalues, int lowindex=-1,
                       int highindex=-1);

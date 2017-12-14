@@ -1,44 +1,4 @@
-/*M///////////////////////////////////////////////////////////////////////////////////////
-//
-//  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.
-//
-//  By downloading, copying, installing or using the software you agree to this license.
-//  If you do not agree to this license, do not download, install,
-//  copy or use the software.
-//
-//
-//                           License Agreement
-//                For Open Source Computer Vision Library
-//
-// Copyright (C) 2000-2008, Intel Corporation, all rights reserved.
-// Copyright (C) 2009, Willow Garage Inc., all rights reserved.
-// Third party copyrights are property of their respective owners.
-//
-// Redistribution and use in source and binary forms, with or without modification,
-// are permitted provided that the following conditions are met:
-//
-//   * Redistribution's of source code must retain the above copyright notice,
-//     this list of conditions and the following disclaimer.
-//
-//   * Redistribution's in binary form must reproduce the above copyright notice,
-//     this list of conditions and the following disclaimer in the documentation
-//     and/or other materials provided with the distribution.
-//
-//   * The name of the copyright holders may not be used to endorse or promote products
-//     derived from this software without specific prior written permission.
-//
-// This software is provided by the copyright holders and contributors "as is" and
-// any express or implied warranties, including, but not limited to, the implied
-// warranties of merchantability and fitness for a particular purpose are disclaimed.
-// In no event shall the Intel Corporation or contributors be liable for any direct,
-// indirect, incidental, special, exemplary, or consequential damages
-// (including, but not limited to, procurement of substitute goods or services;
-// loss of use, data, or profits; or business interruption) however caused
-// and on any theory of liability, whether in contract, strict liability,
-// or tort (including negligence or otherwise) arising in any way out of
-// the use of this software, even if advised of the possibility of such damage.
-//
-//M*/
+
 
 #include "core.precomp.hpp"
 
@@ -932,7 +892,6 @@ _InputArray::_InputArray(const vector<Mat>& vec) : flags(STD_VECTOR_MAT), obj((v
 _InputArray::_InputArray(const double& val) : flags(FIXED_TYPE + FIXED_SIZE + MATX + CV_64F), obj((void*)&val), sz(Size(1,1)) {}
 _InputArray::_InputArray(const MatExpr& expr) : flags(FIXED_TYPE + FIXED_SIZE + EXPR), obj((void*)&expr) {}
 
-_InputArray::_InputArray(const gpu::GpuMat& d_mat) : flags(GPU_MAT), obj((void*)&d_mat) {}
 
 Mat _InputArray::getMat(int i) const
 {
@@ -1265,12 +1224,8 @@ _OutputArray::~_OutputArray() {}
 #endif
 _OutputArray::_OutputArray(Mat& m) : _InputArray(m) {}
 _OutputArray::_OutputArray(vector<Mat>& vec) : _InputArray(vec) {}
-_OutputArray::_OutputArray(gpu::GpuMat& d_mat) : _InputArray(d_mat) {}
-
-
 _OutputArray::_OutputArray(const Mat& m) : _InputArray(m) {flags |= FIXED_SIZE|FIXED_TYPE;}
 _OutputArray::_OutputArray(const vector<Mat>& vec) : _InputArray(vec) {flags |= FIXED_SIZE;}
-_OutputArray::_OutputArray(const gpu::GpuMat& d_mat) : _InputArray(d_mat) {flags |= FIXED_SIZE|FIXED_TYPE;}
 
 
 bool _OutputArray::fixedSize() const
@@ -1610,12 +1565,7 @@ Mat& _OutputArray::getMatRef(int i) const
     }
 }
 
-gpu::GpuMat& _OutputArray::getGpuMatRef() const
-{
-    int k = kind();
-    CV_Assert( k == GPU_MAT );
-    return *(gpu::GpuMat*)obj;
-}
+
 
 
 
@@ -2409,13 +2359,6 @@ void cv::sortIdx( InputArray _src, OutputArray _dst, int flags )
 namespace cv
 {
 
-static void generateRandomCenter(const vector<Vec2f>& box, float* center, RNG& rng)
-{
-    size_t j, dims = box.size();
-    float margin = 1.f/dims;
-    for( j = 0; j < dims; j++ )
-        center[j] = ((float)rng*(1.f+margin*2.f)-margin)*(box[j][1] - box[j][0]) + box[j][0];
-}
 
 class KMeansPPDistanceComputer : public ParallelLoopBody
 {
@@ -2455,70 +2398,6 @@ private:
     const size_t stepci;
 };
 
-/*
-k-means center initialization using the following algorithm:
-Arthur & Vassilvitskii (2007) k-means++: The Advantages of Careful Seeding
-*/
-static void generateCentersPP(const Mat& _data, Mat& _out_centers,
-                              int K, RNG& rng, int trials)
-{
-    int i, j, k, dims = _data.cols, N = _data.rows;
-    const float* data = _data.ptr<float>(0);
-    size_t step = _data.step/sizeof(data[0]);
-    vector<int> _centers(K);
-    int* centers = &_centers[0];
-    vector<float> _dist(N*3);
-    float* dist = &_dist[0], *tdist = dist + N, *tdist2 = tdist + N;
-    double sum0 = 0;
-
-    centers[0] = (unsigned)rng % N;
-
-    for( i = 0; i < N; i++ )
-    {
-        dist[i] = normL2Sqr_(data + step*i, data + step*centers[0], dims);
-        sum0 += dist[i];
-    }
-
-    for( k = 1; k < K; k++ )
-    {
-        double bestSum = DBL_MAX;
-        int bestCenter = -1;
-
-        for( j = 0; j < trials; j++ )
-        {
-            double p = (double)rng*sum0, s = 0;
-            for( i = 0; i < N-1; i++ )
-                if( (p -= dist[i]) <= 0 )
-                    break;
-            int ci = i;
-
-            parallel_for_(Range(0, N),
-                         KMeansPPDistanceComputer(tdist2, data, dist, dims, step, step*ci));
-            for( i = 0; i < N; i++ )
-            {
-                s += tdist2[i];
-            }
-
-            if( s < bestSum )
-            {
-                bestSum = s;
-                bestCenter = ci;
-                std::swap(tdist, tdist2);
-            }
-        }
-        centers[k] = bestCenter;
-        sum0 = bestSum;
-        std::swap(dist, tdist);
-    }
-
-    for( k = 0; k < K; k++ )
-    {
-        const float* src = data + step*centers[k];
-        float* dst = _out_centers.ptr<float>(k);
-        for( j = 0; j < dims; j++ )
-            dst[j] = src[j];
-    }
-}
 
 class KMeansDistanceComputer : public ParallelLoopBody
 {

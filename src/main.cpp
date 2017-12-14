@@ -337,13 +337,13 @@ set<Box, SymUBoxCmp> SearchProcess_v2(IplImage *lpSrcImg)
                     s = 0;
                     Box box;
                     box.box = End_Rage2D;
-                    for (index = 0; index < 5; index++)
+                    for (index = 2; index < 5; index++)
                     {
                         // find minimum angle between joint edges (maximum of cosine)
                         if (index >= 2)
                         {
                             t = fabs(angle(
-                                (CvPoint *)cvGetSeqElem(result, index),
+                                (CvPoint *)cvGetSeqElem(result, index%4),
                                 (CvPoint *)cvGetSeqElem(result, index - 2),
                                 (CvPoint *)cvGetSeqElem(result, index - 1)));
                             s = s > t ? s : t;

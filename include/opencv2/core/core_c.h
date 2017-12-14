@@ -463,49 +463,22 @@ CVAPI(void) cvMax( const CvArr* src1, const CvArr* src2, CvArr* dst );
 /* dst(idx) = min(src(idx),value) */
 CVAPI(void) cvMinS( const CvArr* src, double value, CvArr* dst );
 
-/* dst(idx) = max(src(idx),value) */
-CVAPI(void) cvMaxS( const CvArr* src, double value, CvArr* dst );
 
-/* dst(x,y,c) = abs(src1(x,y,c) - src2(x,y,c)) */
-CVAPI(void) cvAbsDiff( const CvArr* src1, const CvArr* src2, CvArr* dst );
 
-/* dst(x,y,c) = abs(src(x,y,c) - value(c)) */
-CVAPI(void) cvAbsDiffS( const CvArr* src, CvArr* dst, CvScalar value );
-#define cvAbs( src, dst ) cvAbsDiffS( (src), (dst), cvScalarAll(0))
 
 /****************************************************************************************\
 *                                Math operations                                         *
 \****************************************************************************************/
 
-/* Does cartesian->polar coordinates conversion.
-   Either of output components (magnitude or angle) is optional */
-CVAPI(void)  cvCartToPolar( const CvArr* x, const CvArr* y,
-                            CvArr* magnitude, CvArr* angle CV_DEFAULT(NULL),
-                            int angle_in_degrees CV_DEFAULT(0));
 
-/* Does polar->cartesian coordinates conversion.
-   Either of output components (magnitude or angle) is optional.
-   If magnitude is missing it is assumed to be all 1's */
-CVAPI(void)  cvPolarToCart( const CvArr* magnitude, const CvArr* angle,
-                            CvArr* x, CvArr* y,
-                            int angle_in_degrees CV_DEFAULT(0));
 
 /* Does powering: dst(idx) = src(idx)^power */
 CVAPI(void)  cvPow( const CvArr* src, CvArr* dst, double power );
 
-/* Does exponention: dst(idx) = exp(src(idx)).
-   Overflow is not handled yet. Underflow is handled.
-   Maximal relative error is ~7e-6 for single-precision input */
-CVAPI(void)  cvExp( const CvArr* src, CvArr* dst );
 
-/* Calculates natural logarithms: dst(idx) = log(abs(src(idx))).
-   Logarithm of 0 gives large negative number(~-700)
-   Maximal relative error is ~3e-7 for single-precision output
-*/
-CVAPI(void)  cvLog( const CvArr* src, CvArr* dst );
 
-/* Fast arctangent calculation */
-CVAPI(float) cvFastArctan( float y, float x );
+
+
 
 /* Fast cubic root calculation */
 CVAPI(float)  cvCbrt( float value );
