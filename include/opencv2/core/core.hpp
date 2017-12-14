@@ -87,18 +87,7 @@ class Mat;
 class SparseMat;
 typedef Mat MatND;
 
-namespace ogl {
-    class Buffer;
-    class Texture2D;
-    class Arrays;
-}
 
-// < Deprecated
-class GlBuffer;
-class GlTexture;
-class GlArrays;
-class GlCamera;
-// >
 
 namespace gpu {
     class GpuMat;
@@ -1369,23 +1358,14 @@ public:
     template<typename _Tp, int m, int n> _InputArray(const Matx<_Tp, m, n>& matx);
     _InputArray(const Scalar& s);
     _InputArray(const double& val);
-    // < Deprecated
-    _InputArray(const GlBuffer& buf);
-    _InputArray(const GlTexture& tex);
-    // >
+
     _InputArray(const gpu::GpuMat& d_mat);
-    _InputArray(const ogl::Buffer& buf);
-    _InputArray(const ogl::Texture2D& tex);
+
 
     virtual Mat getMat(int i=-1) const;
     virtual void getMatVector(vector<Mat>& mv) const;
-    // < Deprecated
-    virtual GlBuffer getGlBuffer() const;
-    virtual GlTexture getGlTexture() const;
-    // >
-    virtual gpu::GpuMat getGpuMat() const;
-    /*virtual*/ ogl::Buffer getOGlBuffer() const;
-    /*virtual*/ ogl::Texture2D getOGlTexture2D() const;
+
+
 
     virtual int kind() const;
     virtual Size size(int i=-1) const;
@@ -1437,8 +1417,7 @@ public:
     template<typename _Tp, int m, int n> _OutputArray(Matx<_Tp, m, n>& matx);
     template<typename _Tp> _OutputArray(_Tp* vec, int n);
     _OutputArray(gpu::GpuMat& d_mat);
-    _OutputArray(ogl::Buffer& buf);
-    _OutputArray(ogl::Texture2D& tex);
+
 
     _OutputArray(const Mat& m);
     template<typename _Tp> _OutputArray(const vector<_Tp>& vec);
@@ -1449,16 +1428,14 @@ public:
     template<typename _Tp, int m, int n> _OutputArray(const Matx<_Tp, m, n>& matx);
     template<typename _Tp> _OutputArray(const _Tp* vec, int n);
     _OutputArray(const gpu::GpuMat& d_mat);
-    _OutputArray(const ogl::Buffer& buf);
-    _OutputArray(const ogl::Texture2D& tex);
+
 
     virtual bool fixedSize() const;
     virtual bool fixedType() const;
     virtual bool needed() const;
     virtual Mat& getMatRef(int i=-1) const;
     /*virtual*/ gpu::GpuMat& getGpuMatRef() const;
-    /*virtual*/ ogl::Buffer& getOGlBufferRef() const;
-    /*virtual*/ ogl::Texture2D& getOGlTexture2DRef() const;
+
     virtual void create(Size sz, int type, int i=-1, bool allowTransposed=false, int fixedDepthMask=0) const;
     virtual void create(int rows, int cols, int type, int i=-1, bool allowTransposed=false, int fixedDepthMask=0) const;
     virtual void create(int dims, const int* size, int type, int i=-1, bool allowTransposed=false, int fixedDepthMask=0) const;
@@ -1499,216 +1476,7 @@ public:
     virtual void deallocate(int* refcount, uchar* datastart, uchar* data) = 0;
 };
 
-/*!
-   The n-dimensional matrix class.
 
-   The class represents an n-dimensional dense numerical array that can act as
-   a matrix, image, optical flow map, 3-focal tensor etc.
-   It is very similar to CvMat and CvMatND types from earlier versions of OpenCV,
-   and similarly to those types, the matrix can be multi-channel. It also fully supports ROI mechanism.
-
-   There are many different ways to create cv::Mat object. Here are the some popular ones:
-   <ul>
-   <li> using cv::Mat::create(nrows, ncols, type) method or
-     the similar constructor cv::Mat::Mat(nrows, ncols, type[, fill_value]) constructor.
-     A new matrix of the specified size and specifed type will be allocated.
-     "type" has the same meaning as in cvCreateMat function,
-     e.g. CV_8UC1 means 8-bit single-channel matrix, CV_32FC2 means 2-channel (i.e. complex)
-     floating-point matrix etc:
-
-     \code
-     // make 7x7 complex matrix filled with 1+3j.
-     cv::Mat M(7,7,CV_32FC2,Scalar(1,3));
-     // and now turn M to 100x60 15-channel 8-bit matrix.
-     // The old content will be deallocated
-     M.create(100,60,CV_8UC(15));
-     \endcode
-
-     As noted in the introduction of this chapter, Mat::create()
-     will only allocate a new matrix when the current matrix dimensionality
-     or type are different from the specified.
-
-   <li> by using a copy constructor or assignment operator, where on the right side it can
-     be a matrix or expression, see below. Again, as noted in the introduction,
-     matrix assignment is O(1) operation because it only copies the header
-     and increases the reference counter. cv::Mat::clone() method can be used to get a full
-     (a.k.a. deep) copy of the matrix when you need it.
-
-   <li> by constructing a header for a part of another matrix. It can be a single row, single column,
-     several rows, several columns, rectangular region in the matrix (called a minor in algebra) or
-     a diagonal. Such operations are also O(1), because the new header will reference the same data.
-     You can actually modify a part of the matrix using this feature, e.g.
-
-     \code
-     // add 5-th row, multiplied by 3 to the 3rd row
-     M.row(3) = M.row(3) + M.row(5)*3;
-
-     // now copy 7-th column to the 1-st column
-     // M.col(1) = M.col(7); // this will not work
-     Mat M1 = M.col(1);
-     M.col(7).copyTo(M1);
-
-     // create new 320x240 image
-     cv::Mat img(Size(320,240),CV_8UC3);
-     // select a roi
-     cv::Mat roi(img, Rect(10,10,100,100));
-     // fill the ROI with (0,255,0) (which is green in RGB space);
-     // the original 320x240 image will be modified
-     roi = Scalar(0,255,0);
-     \endcode
-
-     Thanks to the additional cv::Mat::datastart and cv::Mat::dataend members, it is possible to
-     compute the relative sub-matrix position in the main "container" matrix using cv::Mat::locateROI():
-
-     \code
-     Mat A = Mat::eye(10, 10, CV_32S);
-     // extracts A columns, 1 (inclusive) to 3 (exclusive).
-     Mat B = A(Range::all(), Range(1, 3));
-     // extracts B rows, 5 (inclusive) to 9 (exclusive).
-     // that is, C ~ A(Range(5, 9), Range(1, 3))
-     Mat C = B(Range(5, 9), Range::all());
-     Size size; Point ofs;
-     C.locateROI(size, ofs);
-     // size will be (width=10,height=10) and the ofs will be (x=1, y=5)
-     \endcode
-
-     As in the case of whole matrices, if you need a deep copy, use cv::Mat::clone() method
-     of the extracted sub-matrices.
-
-   <li> by making a header for user-allocated-data. It can be useful for
-      <ol>
-      <li> processing "foreign" data using OpenCV (e.g. when you implement
-         a DirectShow filter or a processing module for gstreamer etc.), e.g.
-
-         \code
-         void process_video_frame(const unsigned char* pixels,
-                                  int width, int height, int step)
-         {
-            cv::Mat img(height, width, CV_8UC3, pixels, step);
-            cv::GaussianBlur(img, img, cv::Size(7,7), 1.5, 1.5);
-         }
-         \endcode
-
-      <li> for quick initialization of small matrices and/or super-fast element access
-
-         \code
-         double m[3][3] = {{a, b, c}, {d, e, f}, {g, h, i}};
-         cv::Mat M = cv::Mat(3, 3, CV_64F, m).inv();
-         \endcode
-      </ol>
-
-       partial yet very common cases of this "user-allocated data" case are conversions
-       from CvMat and IplImage to cv::Mat. For this purpose there are special constructors
-       taking pointers to CvMat or IplImage and the optional
-       flag indicating whether to copy the data or not.
-
-       Backward conversion from cv::Mat to CvMat or IplImage is provided via cast operators
-       cv::Mat::operator CvMat() an cv::Mat::operator IplImage().
-       The operators do not copy the data.
-
-
-       \code
-       IplImage* img = cvLoadImage("greatwave.jpg", 1);
-       Mat mtx(img); // convert IplImage* -> cv::Mat
-       CvMat oldmat = mtx; // convert cv::Mat -> CvMat
-       CV_Assert(oldmat.cols == img->width && oldmat.rows == img->height &&
-           oldmat.data.ptr == (uchar*)img->imageData && oldmat.step == img->widthStep);
-       \endcode
-
-   <li> by using MATLAB-style matrix initializers, cv::Mat::zeros(), cv::Mat::ones(), cv::Mat::eye(), e.g.:
-
-   \code
-   // create a double-precision identity martix and add it to M.
-   M += Mat::eye(M.rows, M.cols, CV_64F);
-   \endcode
-
-   <li> by using comma-separated initializer:
-
-   \code
-   // create 3x3 double-precision identity matrix
-   Mat M = (Mat_<double>(3,3) << 1, 0, 0, 0, 1, 0, 0, 0, 1);
-   \endcode
-
-   here we first call constructor of cv::Mat_ class (that we describe further) with the proper matrix,
-   and then we just put "<<" operator followed by comma-separated values that can be constants,
-   variables, expressions etc. Also, note the extra parentheses that are needed to avoid compiler errors.
-
-   </ul>
-
-   Once matrix is created, it will be automatically managed by using reference-counting mechanism
-   (unless the matrix header is built on top of user-allocated data,
-   in which case you should handle the data by yourself).
-   The matrix data will be deallocated when no one points to it;
-   if you want to release the data pointed by a matrix header before the matrix destructor is called,
-   use cv::Mat::release().
-
-   The next important thing to learn about the matrix class is element access. Here is how the matrix is stored.
-   The elements are stored in row-major order (row by row). The cv::Mat::data member points to the first element of the first row,
-   cv::Mat::rows contains the number of matrix rows and cv::Mat::cols - the number of matrix columns. There is yet another member,
-   cv::Mat::step that is used to actually compute address of a matrix element. cv::Mat::step is needed because the matrix can be
-   a part of another matrix or because there can some padding space in the end of each row for a proper alignment.
-
-   Given these parameters, address of the matrix element M_{ij} is computed as following:
-
-   addr(M_{ij})=M.data + M.step*i + j*M.elemSize()
-
-   if you know the matrix element type, e.g. it is float, then you can use cv::Mat::at() method:
-
-   addr(M_{ij})=&M.at<float>(i,j)
-
-   (where & is used to convert the reference returned by cv::Mat::at() to a pointer).
-   if you need to process a whole row of matrix, the most efficient way is to get
-   the pointer to the row first, and then just use plain C operator []:
-
-   \code
-   // compute sum of positive matrix elements
-   // (assuming that M is double-precision matrix)
-   double sum=0;
-   for(int i = 0; i < M.rows; i++)
-   {
-       const double* Mi = M.ptr<double>(i);
-       for(int j = 0; j < M.cols; j++)
-           sum += std::max(Mi[j], 0.);
-   }
-   \endcode
-
-   Some operations, like the above one, do not actually depend on the matrix shape,
-   they just process elements of a matrix one by one (or elements from multiple matrices
-   that are sitting in the same place, e.g. matrix addition). Such operations are called
-   element-wise and it makes sense to check whether all the input/output matrices are continuous,
-   i.e. have no gaps in the end of each row, and if yes, process them as a single long row:
-
-   \code
-   // compute sum of positive matrix elements, optimized variant
-   double sum=0;
-   int cols = M.cols, rows = M.rows;
-   if(M.isContinuous())
-   {
-       cols *= rows;
-       rows = 1;
-   }
-   for(int i = 0; i < rows; i++)
-   {
-       const double* Mi = M.ptr<double>(i);
-       for(int j = 0; j < cols; j++)
-           sum += std::max(Mi[j], 0.);
-   }
-   \endcode
-   in the case of continuous matrix the outer loop body will be executed just once,
-   so the overhead will be smaller, which will be especially noticeable in the case of small matrices.
-
-   Finally, there are STL-style iterators that are smart enough to skip gaps between successive rows:
-   \code
-   // compute sum of positive matrix elements, iterator-based variant
-   double sum=0;
-   MatConstIterator_<double> it = M.begin<double>(), it_end = M.end<double>();
-   for(; it != it_end; ++it)
-       sum += std::max(*it, 0.);
-   \endcode
-
-   The matrix iterators are random-access iterators, so they can be passed
-   to any STL algorithm, including std::sort().
-*/
 class CV_EXPORTS Mat
 {
 public:
@@ -2323,16 +2091,8 @@ CV_EXPORTS void log(const float* src, float* dst, int n);
 CV_EXPORTS void fastAtan2(const float* y, const float* x, float* dst, int n, bool angleInDegrees);
 CV_EXPORTS void magnitude(const float* x, const float* y, float* dst, int n);
 
-//! converts polar coordinates to Cartesian
-CV_EXPORTS_W void polarToCart(InputArray magnitude, InputArray angle,
-                              OutputArray x, OutputArray y, bool angleInDegrees=false);
-//! converts Cartesian coordinates to polar
-CV_EXPORTS_W void cartToPolar(InputArray x, InputArray y,
-                              OutputArray magnitude, OutputArray angle,
-                              bool angleInDegrees=false);
-//! computes angle (angle(i)) of each (x(i), y(i)) vector
-CV_EXPORTS_W void phase(InputArray x, InputArray y, OutputArray angle,
-                        bool angleInDegrees=false);
+
+
 //! computes magnitude (magnitude(i)) of each (x(i), y(i)) vector
 CV_EXPORTS_W void magnitude(InputArray x, InputArray y, OutputArray magnitude);
 //! checks that each matrix element is within the specified range.

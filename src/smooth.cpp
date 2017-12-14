@@ -619,125 +619,8 @@ struct ColumnSum<int, ushort> : public BaseColumnFilter
 };
 }
 
-cv::Ptr<cv::BaseRowFilter> cv::getRowSumFilter(int srcType, int sumType, int ksize, int anchor)
-{
-    int sdepth = CV_MAT_DEPTH(srcType), ddepth = CV_MAT_DEPTH(sumType);
-    CV_Assert(CV_MAT_CN(sumType) == CV_MAT_CN(srcType));
 
-    if (anchor < 0)
-        anchor = ksize / 2;
 
-    if (sdepth == CV_8U && ddepth == CV_32S)
-        return Ptr<BaseRowFilter>(new RowSum<uchar, int>(ksize, anchor));
-    if (sdepth == CV_8U && ddepth == CV_64F)
-        return Ptr<BaseRowFilter>(new RowSum<uchar, double>(ksize, anchor));
-    if (sdepth == CV_16U && ddepth == CV_32S)
-        return Ptr<BaseRowFilter>(new RowSum<ushort, int>(ksize, anchor));
-    if (sdepth == CV_16U && ddepth == CV_64F)
-        return Ptr<BaseRowFilter>(new RowSum<ushort, double>(ksize, anchor));
-    if (sdepth == CV_16S && ddepth == CV_32S)
-        return Ptr<BaseRowFilter>(new RowSum<short, int>(ksize, anchor));
-    if (sdepth == CV_32S && ddepth == CV_32S)
-        return Ptr<BaseRowFilter>(new RowSum<int, int>(ksize, anchor));
-    if (sdepth == CV_16S && ddepth == CV_64F)
-        return Ptr<BaseRowFilter>(new RowSum<short, double>(ksize, anchor));
-    if (sdepth == CV_32F && ddepth == CV_64F)
-        return Ptr<BaseRowFilter>(new RowSum<float, double>(ksize, anchor));
-    if (sdepth == CV_64F && ddepth == CV_64F)
-        return Ptr<BaseRowFilter>(new RowSum<double, double>(ksize, anchor));
-
-    CV_Error_(CV_StsNotImplemented,
-              ("Unsupported combination of source format (=%d), and buffer format (=%d)",
-               srcType, sumType));
-
-    return Ptr<BaseRowFilter>(0);
-}
-
-cv::Ptr<cv::BaseColumnFilter> cv::getColumnSumFilter(int sumType, int dstType, int ksize,
-                                                     int anchor, double scale)
-{
-    int sdepth = CV_MAT_DEPTH(sumType), ddepth = CV_MAT_DEPTH(dstType);
-    CV_Assert(CV_MAT_CN(sumType) == CV_MAT_CN(dstType));
-
-    if (anchor < 0)
-        anchor = ksize / 2;
-
-    if (ddepth == CV_8U && sdepth == CV_32S)
-        return Ptr<BaseColumnFilter>(new ColumnSum<int, uchar>(ksize, anchor, scale));
-    if (ddepth == CV_8U && sdepth == CV_64F)
-        return Ptr<BaseColumnFilter>(new ColumnSum<double, uchar>(ksize, anchor, scale));
-    if (ddepth == CV_16U && sdepth == CV_32S)
-        return Ptr<BaseColumnFilter>(new ColumnSum<int, ushort>(ksize, anchor, scale));
-    if (ddepth == CV_16U && sdepth == CV_64F)
-        return Ptr<BaseColumnFilter>(new ColumnSum<double, ushort>(ksize, anchor, scale));
-    if (ddepth == CV_16S && sdepth == CV_32S)
-        return Ptr<BaseColumnFilter>(new ColumnSum<int, short>(ksize, anchor, scale));
-    if (ddepth == CV_16S && sdepth == CV_64F)
-        return Ptr<BaseColumnFilter>(new ColumnSum<double, short>(ksize, anchor, scale));
-    if (ddepth == CV_32S && sdepth == CV_32S)
-        return Ptr<BaseColumnFilter>(new ColumnSum<int, int>(ksize, anchor, scale));
-    if (ddepth == CV_32F && sdepth == CV_32S)
-        return Ptr<BaseColumnFilter>(new ColumnSum<int, float>(ksize, anchor, scale));
-    if (ddepth == CV_32F && sdepth == CV_64F)
-        return Ptr<BaseColumnFilter>(new ColumnSum<double, float>(ksize, anchor, scale));
-    if (ddepth == CV_64F && sdepth == CV_32S)
-        return Ptr<BaseColumnFilter>(new ColumnSum<int, double>(ksize, anchor, scale));
-    if (ddepth == CV_64F && sdepth == CV_64F)
-        return Ptr<BaseColumnFilter>(new ColumnSum<double, double>(ksize, anchor, scale));
-
-    CV_Error_(CV_StsNotImplemented,
-              ("Unsupported combination of sum format (=%d), and destination format (=%d)",
-               sumType, dstType));
-
-    return Ptr<BaseColumnFilter>(0);
-}
-
-cv::Ptr<cv::FilterEngine> cv::createBoxFilter(int srcType, int dstType, Size ksize,
-                                              Point anchor, bool normalize, int borderType)
-{
-    int sdepth = CV_MAT_DEPTH(srcType);
-    int cn = CV_MAT_CN(srcType), sumType = CV_64F;
-    if (sdepth <= CV_32S && (!normalize ||
-                             ksize.width * ksize.height <= (sdepth == CV_8U ? (1 << 23) : sdepth == CV_16U ? (1 << 15) : (1 << 16))))
-        sumType = CV_32S;
-    sumType = CV_MAKETYPE(sumType, cn);
-
-    Ptr<BaseRowFilter> rowFilter = getRowSumFilter(srcType, sumType, ksize.width, anchor.x);
-    Ptr<BaseColumnFilter> columnFilter = getColumnSumFilter(sumType,
-                                                            dstType, ksize.height, anchor.y, normalize ? 1. / (ksize.width * ksize.height) : 1);
-
-    return Ptr<FilterEngine>(new FilterEngine(Ptr<BaseFilter>(0), rowFilter, columnFilter,
-                                              srcType, dstType, sumType, borderType));
-}
-
-void cv::boxFilter(InputArray _src, OutputArray _dst, int ddepth,
-                   Size ksize, Point anchor,
-                   bool normalize, int borderType)
-{
-    Mat src = _src.getMat();
-    int sdepth = src.depth(), cn = src.channels();
-    if (ddepth < 0)
-        ddepth = sdepth;
-    _dst.create(src.size(), CV_MAKETYPE(ddepth, cn));
-    Mat dst = _dst.getMat();
-    if (borderType != BORDER_CONSTANT && normalize && (borderType & BORDER_ISOLATED) != 0)
-    {
-        if (src.rows == 1)
-            ksize.height = 1;
-        if (src.cols == 1)
-            ksize.width = 1;
-    }
-
-    Ptr<FilterEngine> f = createBoxFilter(src.type(), dst.type(),
-                                          ksize, anchor, normalize, borderType);
-    f->apply(src, dst);
-}
-
-void cv::blur(InputArray src, OutputArray dst,
-              Size ksize, Point anchor, int borderType)
-{
-    boxFilter(src, dst, -1, ksize, anchor, true, borderType);
-}
 
 /****************************************************************************************\
                                      Gaussian Blur
@@ -845,21 +728,6 @@ void cv::GaussianBlur(InputArray _src, OutputArray _dst, Size ksize,
         return;
     }
 
-#if defined HAVE_IPP && (IPP_VERSION_MAJOR >= 7)
-    if (src.type() == CV_32FC1 && sigma1 == sigma2 && ksize.width == ksize.height && sigma1 != 0.0)
-    {
-        IppiSize roi = {src.cols, src.rows};
-        int bufSize = 0;
-        ippiFilterGaussGetBufferSize_32f_C1R(roi, ksize.width, &bufSize);
-        AutoBuffer<uchar> buf(bufSize + 128);
-        if (ippiFilterGaussBorder_32f_C1R((const Ipp32f *)src.data, (int)src.step,
-                                          (Ipp32f *)dst.data, (int)dst.step,
-                                          roi, ksize.width, (Ipp32f)sigma1,
-                                          (IppiBorderType)borderType, 0.0,
-                                          alignPtr(&buf[0], 32)) >= 0)
-            return;
-    }
-#endif
 
     Ptr<FilterEngine> f = createGaussianFilter(src.type(), ksize, sigma1, sigma2, borderType);
     f->apply(src, dst);

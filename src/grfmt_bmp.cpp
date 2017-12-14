@@ -180,108 +180,7 @@ bool  BmpDecoder::readData( Mat& img )
 
         switch( m_bpp )
         {
-        /************************* 1 BPP ************************/
-        case 1:
-            for( y = 0; y < m_height; y++, data += step )
-            {
-                m_strm.getBytes( src, src_pitch );
-                FillColorRow1( color ? data : bgr, src, m_width, m_palette );
-                if( !color )
-                    icvCvt_BGR2Gray_8u_C3C1R( bgr, 0, data, 0, cvSize(m_width,1) );
-            }
-            result = true;
-            break;
-
-        /************************* 4 BPP ************************/
-        case 4:
-            if( m_rle_code == BMP_RGB )
-            {
-                for( y = 0; y < m_height; y++, data += step )
-                {
-                    m_strm.getBytes( src, src_pitch );
-                    if( color )
-                        FillColorRow4( data, src, m_width, m_palette );
-                    else
-                        FillGrayRow4( data, src, m_width, gray_palette );
-                }
-                result = true;
-            }
-            else if( m_rle_code == BMP_RLE4 ) // rle4 compression
-            {
-                uchar* line_end = data + width3;
-                y = 0;
-
-                for(;;)
-                {
-                    int code = m_strm.getWord();
-                    int len = code & 255;
-                    code >>= 8;
-                    if( len != 0 ) // encoded mode
-                    {
-                        PaletteEntry clr[2];
-                        uchar gray_clr[2];
-                        int t = 0;
-
-                        clr[0] = m_palette[code >> 4];
-                        clr[1] = m_palette[code & 15];
-                        gray_clr[0] = gray_palette[code >> 4];
-                        gray_clr[1] = gray_palette[code & 15];
-
-                        uchar* end = data + len*nch;
-                        if( end > line_end ) goto decode_rle4_bad;
-                        do
-                        {
-                            if( color )
-                                WRITE_PIX( data, clr[t] );
-                            else
-                                *data = gray_clr[t];
-                            t ^= 1;
-                        }
-                        while( (data += nch) < end );
-                    }
-                    else if( code > 2 ) // absolute mode
-                    {
-                        if( data + code*nch > line_end ) goto decode_rle4_bad;
-                        int sz = (((code + 1)>>1) + 1) & (~1);
-                        CV_Assert((size_t)sz < _src.getSize());
-                        m_strm.getBytes(src, sz);
-                        if( color )
-                            data = FillColorRow4( data, src, code, m_palette );
-                        else
-                            data = FillGrayRow4( data, src, code, gray_palette );
-                    }
-                    else
-                    {
-                        int x_shift3 = (int)(line_end - data);
-                        int y_shift = m_height - y;
-
-                        if( code == 2 )
-                        {
-                            x_shift3 = m_strm.getByte()*nch;
-                            y_shift = m_strm.getByte();
-                        }
-
-                        len = x_shift3 + ((y_shift * width3) & ((code == 0) - 1));
-
-                        if( color )
-                            data = FillUniColor( data, line_end, step, width3,
-                                                 y, m_height, x_shift3,
-                                                 m_palette[0] );
-                        else
-                            data = FillUniGray( data, line_end, step, width3,
-                                                y, m_height, x_shift3,
-                                                gray_palette[0] );
-
-                        if( y >= m_height )
-                            break;
-                    }
-                }
-
-                result = true;
-decode_rle4_bad: ;
-            }
-            break;
-
+     
         /************************* 8 BPP ************************/
         case 8:
             if( m_rle_code == BMP_RGB )
@@ -387,18 +286,7 @@ decode_rle4_bad: ;
 decode_rle8_bad: ;
             }
             break;
-        /************************* 15 BPP ************************/
-        case 15:
-            for( y = 0; y < m_height; y++, data += step )
-            {
-                m_strm.getBytes( src, src_pitch );
-                if( !color )
-                    icvCvt_BGR5552Gray_8u_C2C1R( src, 0, data, 0, cvSize(m_width,1) );
-                else
-                    icvCvt_BGR5552BGR_8u_C2C3R( src, 0, data, 0, cvSize(m_width,1) );
-            }
-            result = true;
-            break;
+       
         /************************* 16 BPP ************************/
         case 16:
             for( y = 0; y < m_height; y++, data += step )

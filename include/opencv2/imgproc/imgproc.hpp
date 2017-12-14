@@ -331,18 +331,9 @@ CV_EXPORTS_W void getDerivKernels( OutputArray kx, OutputArray ky,
 CV_EXPORTS Ptr<FilterEngine> createDerivFilter( int srcType, int dstType,
                                         int dx, int dy, int ksize,
                                         int borderType=BORDER_DEFAULT );
-//! returns horizontal 1D box filter
-CV_EXPORTS Ptr<BaseRowFilter> getRowSumFilter(int srcType, int sumType,
-                                              int ksize, int anchor=-1);
-//! returns vertical 1D box filter
-CV_EXPORTS Ptr<BaseColumnFilter> getColumnSumFilter( int sumType, int dstType,
-                                                     int ksize, int anchor=-1,
-                                                     double scale=1);
-//! returns box filter engine
-CV_EXPORTS Ptr<FilterEngine> createBoxFilter( int srcType, int dstType, Size ksize,
-                                              Point anchor=Point(-1,-1),
-                                              bool normalize=true,
-                                              int borderType=BORDER_DEFAULT);
+
+
+
 
 //! returns the Gabor kernel with the specified parameters
 CV_EXPORTS_W Mat getGaborKernel( Size ksize, double sigma, double theta, double lambd,

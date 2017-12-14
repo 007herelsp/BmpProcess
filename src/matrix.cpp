@@ -41,9 +41,6 @@
 //M*/
 
 #include "core.precomp.hpp"
-#include "opencv2/core/gpumat.hpp"
-#include "opencv2/core/opengl_interop.hpp"
-#include "opencv2/core/opengl_interop_deprecated.hpp"
 
 /****************************************************************************************\
 *                           [scaled] Identity matrix initialization                      *
@@ -929,20 +926,13 @@ void scalarToRawData(const Scalar& s, void* _buf, int type, int unroll_to)
 \*************************************************************************************************/
 
 _InputArray::_InputArray() : flags(0), obj(0) {}
-#ifdef OPENCV_CAN_BREAK_BINARY_COMPATIBILITY
-_InputArray::~_InputArray() {}
-#endif
+
 _InputArray::_InputArray(const Mat& m) : flags(MAT), obj((void*)&m) {}
 _InputArray::_InputArray(const vector<Mat>& vec) : flags(STD_VECTOR_MAT), obj((void*)&vec) {}
 _InputArray::_InputArray(const double& val) : flags(FIXED_TYPE + FIXED_SIZE + MATX + CV_64F), obj((void*)&val), sz(Size(1,1)) {}
 _InputArray::_InputArray(const MatExpr& expr) : flags(FIXED_TYPE + FIXED_SIZE + EXPR), obj((void*)&expr) {}
-// < Deprecated
-_InputArray::_InputArray(const GlBuffer&) : flags(0), obj(0) {}
-_InputArray::_InputArray(const GlTexture&) : flags(0), obj(0) {}
-// >
+
 _InputArray::_InputArray(const gpu::GpuMat& d_mat) : flags(GPU_MAT), obj((void*)&d_mat) {}
-_InputArray::_InputArray(const ogl::Buffer& buf) : flags(OPENGL_BUFFER), obj((void*)&buf) {}
-_InputArray::_InputArray(const ogl::Texture2D& tex) : flags(OPENGL_TEXTURE), obj((void*)&tex) {}
 
 Mat _InputArray::getMat(int i) const
 {
@@ -1092,47 +1082,11 @@ void _InputArray::getMatVector(vector<Mat>& mv) const
     }
 }
 
-GlBuffer _InputArray::getGlBuffer() const
-{
-    CV_Error(CV_StsNotImplemented, "This function in deprecated, do not use it");
-    return GlBuffer(GlBuffer::ARRAY_BUFFER);
-}
 
-GlTexture _InputArray::getGlTexture() const
-{
-    CV_Error(CV_StsNotImplemented, "This function in deprecated, do not use it");
-    return GlTexture();
-}
 
-gpu::GpuMat _InputArray::getGpuMat() const
-{
-    int k = kind();
 
-    CV_Assert(k == GPU_MAT);
 
-    const gpu::GpuMat* d_mat = (const gpu::GpuMat*)obj;
-    return *d_mat;
-}
 
-ogl::Buffer _InputArray::getOGlBuffer() const
-{
-    int k = kind();
-
-    CV_Assert(k == OPENGL_BUFFER);
-
-    const ogl::Buffer* gl_buf = (const ogl::Buffer*)obj;
-    return *gl_buf;
-}
-
-ogl::Texture2D _InputArray::getOGlTexture2D() const
-{
-    int k = kind();
-
-    CV_Assert(k == OPENGL_TEXTURE);
-
-    const ogl::Texture2D* gl_tex = (const ogl::Texture2D*)obj;
-    return *gl_tex;
-}
 
 int _InputArray::kind() const
 {
@@ -1195,32 +1149,7 @@ Size _InputArray::size(int i) const
         return vv[i].size();
     }
 
-    if( k == OPENGL_BUFFER )
-    {
-        CV_Assert( i < 0 );
-        const ogl::Buffer* buf = (const ogl::Buffer*)obj;
-        return buf->size();
-    }
-
-    if( k == OPENGL_TEXTURE )
-    {
-        CV_Assert( i < 0 );
-        const ogl::Texture2D* tex = (const ogl::Texture2D*)obj;
-        return tex->size();
-    }
-
-    if( k == OCL_MAT )
-    {
-        CV_Error(CV_StsNotImplemented, "This method is not implemented for oclMat yet");
-    }
-
-    CV_Assert( k == GPU_MAT );
-    //if( k == GPU_MAT )
-    {
-        CV_Assert( i < 0 );
-        const gpu::GpuMat* d_mat = (const gpu::GpuMat*)obj;
-        return d_mat->size();
-    }
+ CV_Error(CV_StsNotImplemented, "This method is not implemented for oclMat yet");
 }
 
 size_t _InputArray::total(int i) const
@@ -1270,12 +1199,10 @@ int _InputArray::type(int i) const
         return vv[i >= 0 ? i : 0].type();
     }
 
-    if( k == OPENGL_BUFFER )
-        return ((const ogl::Buffer*)obj)->type();
+
 
     CV_Assert( k == GPU_MAT );
-    //if( k == GPU_MAT )
-        return ((const gpu::GpuMat*)obj)->type();
+    return k;
 }
 
 int _InputArray::depth(int i) const
@@ -1322,20 +1249,13 @@ bool _InputArray::empty() const
         return vv.empty();
     }
 
-    if( k == OPENGL_BUFFER )
-        return ((const ogl::Buffer*)obj)->empty();
 
-    if( k == OPENGL_TEXTURE )
-        return ((const ogl::Texture2D*)obj)->empty();
 
     if( k == OCL_MAT )
     {
         CV_Error(CV_StsNotImplemented, "This method is not implemented for oclMat yet");
     }
-
-    CV_Assert( k == GPU_MAT );
-    //if( k == GPU_MAT )
-        return ((const gpu::GpuMat*)obj)->empty();
+ CV_Error(CV_StsNotImplemented, "This method is not implemented for oclMat yet");
 }
 
 
@@ -1346,14 +1266,11 @@ _OutputArray::~_OutputArray() {}
 _OutputArray::_OutputArray(Mat& m) : _InputArray(m) {}
 _OutputArray::_OutputArray(vector<Mat>& vec) : _InputArray(vec) {}
 _OutputArray::_OutputArray(gpu::GpuMat& d_mat) : _InputArray(d_mat) {}
-_OutputArray::_OutputArray(ogl::Buffer& buf) : _InputArray(buf) {}
-_OutputArray::_OutputArray(ogl::Texture2D& tex) : _InputArray(tex) {}
+
 
 _OutputArray::_OutputArray(const Mat& m) : _InputArray(m) {flags |= FIXED_SIZE|FIXED_TYPE;}
 _OutputArray::_OutputArray(const vector<Mat>& vec) : _InputArray(vec) {flags |= FIXED_SIZE;}
 _OutputArray::_OutputArray(const gpu::GpuMat& d_mat) : _InputArray(d_mat) {flags |= FIXED_SIZE|FIXED_TYPE;}
-_OutputArray::_OutputArray(const ogl::Buffer& buf) : _InputArray(buf) {flags |= FIXED_SIZE|FIXED_TYPE;}
-_OutputArray::_OutputArray(const ogl::Texture2D& tex) : _InputArray(tex) {flags |= FIXED_SIZE|FIXED_TYPE;}
 
 
 bool _OutputArray::fixedSize() const
@@ -1378,16 +1295,10 @@ void _OutputArray::create(Size _sz, int mtype, int i, bool allowTransposed, int 
     }
     if( k == GPU_MAT && i < 0 && !allowTransposed && fixedDepthMask == 0 )
     {
-        CV_Assert(!fixedSize() || ((gpu::GpuMat*)obj)->size() == _sz);
-        CV_Assert(!fixedType() || ((gpu::GpuMat*)obj)->type() == mtype);
-        ((gpu::GpuMat*)obj)->create(_sz, mtype);
-        return;
+         CV_Error(CV_StsNotImplemented, "This method is not implemented for oclMat yet");
     }
     if( k == OPENGL_BUFFER && i < 0 && !allowTransposed && fixedDepthMask == 0 )
     {
-        CV_Assert(!fixedSize() || ((ogl::Buffer*)obj)->size() == _sz);
-        CV_Assert(!fixedType() || ((ogl::Buffer*)obj)->type() == mtype);
-        ((ogl::Buffer*)obj)->create(_sz, mtype);
         return;
     }
     int sizes[] = {_sz.height, _sz.width};
@@ -1404,18 +1315,12 @@ void _OutputArray::create(int rows, int cols, int mtype, int i, bool allowTransp
         ((Mat*)obj)->create(rows, cols, mtype);
         return;
     }
-    if( k == GPU_MAT && i < 0 && !allowTransposed && fixedDepthMask == 0 )
-    {
-        CV_Assert(!fixedSize() || ((gpu::GpuMat*)obj)->size() == Size(cols, rows));
-        CV_Assert(!fixedType() || ((gpu::GpuMat*)obj)->type() == mtype);
-        ((gpu::GpuMat*)obj)->create(rows, cols, mtype);
-        return;
-    }
+
     if( k == OPENGL_BUFFER && i < 0 && !allowTransposed && fixedDepthMask == 0 )
     {
-        CV_Assert(!fixedSize() || ((ogl::Buffer*)obj)->size() == Size(cols, rows));
-        CV_Assert(!fixedType() || ((ogl::Buffer*)obj)->type() == mtype);
-        ((ogl::Buffer*)obj)->create(rows, cols, mtype);
+      //  CV_Assert(!fixedSize() || ((ogl::Buffer*)obj)->size() == Size(cols, rows));
+      //  CV_Assert(!fixedType() || ((ogl::Buffer*)obj)->type() == mtype);
+//        ((ogl::Buffer*)obj)->create(rows, cols, mtype);
         return;
     }
     int sizes[] = {rows, cols};
@@ -1636,21 +1541,9 @@ void _OutputArray::release() const
         return;
     }
 
-    if( k == GPU_MAT )
-    {
-        ((gpu::GpuMat*)obj)->release();
-        return;
-    }
-
-    if( k == OPENGL_BUFFER )
-    {
-        ((ogl::Buffer*)obj)->release();
-        return;
-    }
-
     if( k == OPENGL_TEXTURE )
     {
-        ((ogl::Texture2D*)obj)->release();
+        //((ogl::Texture2D*)obj)->release();
         return;
     }
 
@@ -1724,19 +1617,7 @@ gpu::GpuMat& _OutputArray::getGpuMatRef() const
     return *(gpu::GpuMat*)obj;
 }
 
-ogl::Buffer& _OutputArray::getOGlBufferRef() const
-{
-    int k = kind();
-    CV_Assert( k == OPENGL_BUFFER );
-    return *(ogl::Buffer*)obj;
-}
 
-ogl::Texture2D& _OutputArray::getOGlTexture2DRef() const
-{
-    int k = kind();
-    CV_Assert( k == OPENGL_TEXTURE );
-    return *(ogl::Texture2D*)obj;
-}
 
 static _OutputArray _none;
 OutputArray noArray() { return _none; }
@@ -2695,247 +2576,6 @@ private:
 
 }
 
-double cv::kmeans( InputArray _data, int K,
-                   InputOutputArray _bestLabels,
-                   TermCriteria criteria, int attempts,
-                   int flags, OutputArray _centers )
-{
-    const int SPP_TRIALS = 3;
-    Mat data0 = _data.getMat();
-    bool isrow = data0.rows == 1 && data0.channels() > 1;
-    int N = !isrow ? data0.rows : data0.cols;
-    int dims = (!isrow ? data0.cols : 1)*data0.channels();
-    int type = data0.depth();
-
-    attempts = std::max(attempts, 1);
-    CV_Assert( data0.dims <= 2 && type == CV_32F && K > 0 );
-    CV_Assert( N >= K );
-
-    Mat data(N, dims, CV_32F, data0.data, isrow ? dims * sizeof(float) : static_cast<size_t>(data0.step));
-
-    _bestLabels.create(N, 1, CV_32S, -1, true);
-
-    Mat _labels, best_labels = _bestLabels.getMat();
-    if( flags & CV_KMEANS_USE_INITIAL_LABELS )
-    {
-        CV_Assert( (best_labels.cols == 1 || best_labels.rows == 1) &&
-                  best_labels.cols*best_labels.rows == N &&
-                  best_labels.type() == CV_32S &&
-                  best_labels.isContinuous());
-        best_labels.copyTo(_labels);
-    }
-    else
-    {
-        if( !((best_labels.cols == 1 || best_labels.rows == 1) &&
-             best_labels.cols*best_labels.rows == N &&
-            best_labels.type() == CV_32S &&
-            best_labels.isContinuous()))
-            best_labels.create(N, 1, CV_32S);
-        _labels.create(best_labels.size(), best_labels.type());
-    }
-    int* labels = _labels.ptr<int>();
-
-    Mat centers(K, dims, type), old_centers(K, dims, type), temp(1, dims, type);
-    vector<int> counters(K);
-    vector<Vec2f> _box(dims);
-    Vec2f* box = &_box[0];
-    double best_compactness = DBL_MAX, compactness = 0;
-    RNG& rng = theRNG();
-    int a, iter, i, j, k;
-
-    if( criteria.type & TermCriteria::EPS )
-        criteria.epsilon = std::max(criteria.epsilon, 0.);
-    else
-        criteria.epsilon = FLT_EPSILON;
-    criteria.epsilon *= criteria.epsilon;
-
-    if( criteria.type & TermCriteria::COUNT )
-        criteria.maxCount = std::min(std::max(criteria.maxCount, 2), 100);
-    else
-        criteria.maxCount = 100;
-
-    if( K == 1 )
-    {
-        attempts = 1;
-        criteria.maxCount = 2;
-    }
-
-    const float* sample = data.ptr<float>(0);
-    for( j = 0; j < dims; j++ )
-        box[j] = Vec2f(sample[j], sample[j]);
-
-    for( i = 1; i < N; i++ )
-    {
-        sample = data.ptr<float>(i);
-        for( j = 0; j < dims; j++ )
-        {
-            float v = sample[j];
-            box[j][0] = std::min(box[j][0], v);
-            box[j][1] = std::max(box[j][1], v);
-        }
-    }
-
-    for( a = 0; a < attempts; a++ )
-    {
-        double max_center_shift = DBL_MAX;
-        for( iter = 0;; )
-        {
-            swap(centers, old_centers);
-
-            if( iter == 0 && (a > 0 || !(flags & KMEANS_USE_INITIAL_LABELS)) )
-            {
-                if( flags & KMEANS_PP_CENTERS )
-                    generateCentersPP(data, centers, K, rng, SPP_TRIALS);
-                else
-                {
-                    for( k = 0; k < K; k++ )
-                        generateRandomCenter(_box, centers.ptr<float>(k), rng);
-                }
-            }
-            else
-            {
-                if( iter == 0 && a == 0 && (flags & KMEANS_USE_INITIAL_LABELS) )
-                {
-                    for( i = 0; i < N; i++ )
-                        CV_Assert( (unsigned)labels[i] < (unsigned)K );
-                }
-
-                // compute centers
-                centers = Scalar(0);
-                for( k = 0; k < K; k++ )
-                    counters[k] = 0;
-
-                for( i = 0; i < N; i++ )
-                {
-                    sample = data.ptr<float>(i);
-                    k = labels[i];
-                    float* center = centers.ptr<float>(k);
-                    j=0;
-                    #if CV_ENABLE_UNROLLED
-                    for(; j <= dims - 4; j += 4 )
-                    {
-                        float t0 = center[j] + sample[j];
-                        float t1 = center[j+1] + sample[j+1];
-
-                        center[j] = t0;
-                        center[j+1] = t1;
-
-                        t0 = center[j+2] + sample[j+2];
-                        t1 = center[j+3] + sample[j+3];
-
-                        center[j+2] = t0;
-                        center[j+3] = t1;
-                    }
-                    #endif
-                    for( ; j < dims; j++ )
-                        center[j] += sample[j];
-                    counters[k]++;
-                }
-
-                if( iter > 0 )
-                    max_center_shift = 0;
-
-                for( k = 0; k < K; k++ )
-                {
-                    if( counters[k] != 0 )
-                        continue;
-
-                    // if some cluster appeared to be empty then:
-                    //   1. find the biggest cluster
-                    //   2. find the farthest from the center point in the biggest cluster
-                    //   3. exclude the farthest point from the biggest cluster and form a new 1-point cluster.
-                    int max_k = 0;
-                    for( int k1 = 1; k1 < K; k1++ )
-                    {
-                        if( counters[max_k] < counters[k1] )
-                            max_k = k1;
-                    }
-
-                    double max_dist = 0;
-                    int farthest_i = -1;
-                    float* new_center = centers.ptr<float>(k);
-                    float* old_center = centers.ptr<float>(max_k);
-                    float* _old_center = temp.ptr<float>(); // normalized
-                    float scale = 1.f/counters[max_k];
-                    for( j = 0; j < dims; j++ )
-                        _old_center[j] = old_center[j]*scale;
-
-                    for( i = 0; i < N; i++ )
-                    {
-                        if( labels[i] != max_k )
-                            continue;
-                        sample = data.ptr<float>(i);
-                        double dist = normL2Sqr_(sample, _old_center, dims);
-
-                        if( max_dist <= dist )
-                        {
-                            max_dist = dist;
-                            farthest_i = i;
-                        }
-                    }
-
-                    counters[max_k]--;
-                    counters[k]++;
-                    labels[farthest_i] = k;
-                    sample = data.ptr<float>(farthest_i);
-
-                    for( j = 0; j < dims; j++ )
-                    {
-                        old_center[j] -= sample[j];
-                        new_center[j] += sample[j];
-                    }
-                }
-
-                for( k = 0; k < K; k++ )
-                {
-                    float* center = centers.ptr<float>(k);
-                    CV_Assert( counters[k] != 0 );
-
-                    float scale = 1.f/counters[k];
-                    for( j = 0; j < dims; j++ )
-                        center[j] *= scale;
-
-                    if( iter > 0 )
-                    {
-                        double dist = 0;
-                        const float* old_center = old_centers.ptr<float>(k);
-                        for( j = 0; j < dims; j++ )
-                        {
-                            double t = center[j] - old_center[j];
-                            dist += t*t;
-                        }
-                        max_center_shift = std::max(max_center_shift, dist);
-                    }
-                }
-            }
-
-            if( ++iter == MAX(criteria.maxCount, 2) || max_center_shift <= criteria.epsilon )
-                break;
-
-            // assign labels
-            Mat dists(1, N, CV_64F);
-            double* dist = dists.ptr<double>(0);
-            parallel_for_(Range(0, N),
-                         KMeansDistanceComputer(dist, labels, data, centers));
-            compactness = 0;
-            for( i = 0; i < N; i++ )
-            {
-                compactness += dist[i];
-            }
-        }
-
-        if( compactness < best_compactness )
-        {
-            best_compactness = compactness;
-            if( _centers.needed() )
-                centers.copyTo(_centers);
-            _labels.copyTo(best_labels);
-        }
-    }
-
-    return best_compactness;
-}
-
 
 CV_IMPL void cvSetIdentity( CvArr* arr, CvScalar value )
 {
@@ -3083,34 +2723,6 @@ cvSort( const CvArr* _src, CvArr* _dst, CvArr* _idx, int flags )
 }
 
 
-CV_IMPL int
-cvKMeans2( const CvArr* _samples, int cluster_count, CvArr* _labels,
-           CvTermCriteria termcrit, int attempts, CvRNG*,
-           int flags, CvArr* _centers, double* _compactness )
-{
-    cv::Mat data = cv::cvarrToMat(_samples), labels = cv::cvarrToMat(_labels), centers;
-    if( _centers )
-    {
-        centers = cv::cvarrToMat(_centers);
-
-        centers = centers.reshape(1);
-        data = data.reshape(1);
-
-        CV_Assert( !centers.empty() );
-        CV_Assert( centers.rows == cluster_count );
-        CV_Assert( centers.cols == data.cols );
-        CV_Assert( centers.depth() == data.depth() );
-    }
-    CV_Assert( labels.isContinuous() && labels.type() == CV_32S &&
-        (labels.cols == 1 || labels.rows == 1) &&
-        labels.cols + labels.rows - 1 == data.rows );
-
-    double compactness = cv::kmeans(data, cluster_count, labels, termcrit, attempts,
-                                    flags, _centers ? cv::_OutputArray(centers) : cv::_OutputArray() );
-    if( _compactness )
-        *_compactness = compactness;
-    return 1;
-}
 
 ///////////////////////////// n-dimensional matrices ////////////////////////////
 

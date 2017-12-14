@@ -182,15 +182,7 @@ CVAPI(void)  cvRemap( const CvArr* src, CvArr* dst,
 CVAPI(void)  cvConvertMaps( const CvArr* mapx, const CvArr* mapy,
                             CvArr* mapxy, CvArr* mapalpha );
 
-/* Performs forward or inverse log-polar image transform */
-CVAPI(void)  cvLogPolar( const CvArr* src, CvArr* dst,
-                         CvPoint2D32f center, double M,
-                         int flags CV_DEFAULT(CV_INTER_LINEAR+CV_WARP_FILL_OUTLIERS));
 
-/* Performs forward or inverse linear-polar image transform */
-CVAPI(void)  cvLinearPolar( const CvArr* src, CvArr* dst,
-                         CvPoint2D32f center, double maxRadius,
-                         int flags CV_DEFAULT(CV_INTER_LINEAR+CV_WARP_FILL_OUTLIERS));
 
 /* Transforms the input image to compensate lens distortion */
 CVAPI(void) cvUndistort2( const CvArr* src, CvArr* dst,
@@ -276,21 +268,6 @@ CVAPI(void)  cvGetRectSubPix( const CvArr* src, CvArr* dst, CvPoint2D32f center 
 CVAPI(void)  cvGetQuadrangleSubPix( const CvArr* src, CvArr* dst,
                                     const CvMat* map_matrix );
 
-/* Measures similarity between template and overlapped windows in the source image
-   and fills the resultant image with the measurements */
-CVAPI(void)  cvMatchTemplate( const CvArr* image, const CvArr* templ,
-                              CvArr* result, int method );
-
-/* Computes earth mover distance between
-   two weighted point sets (called signatures) */
-CVAPI(float)  cvCalcEMD2( const CvArr* signature1,
-                          const CvArr* signature2,
-                          int distance_type,
-                          CvDistanceFunction distance_func CV_DEFAULT(NULL),
-                          const CvArr* cost_matrix CV_DEFAULT(NULL),
-                          CvArr* flow CV_DEFAULT(NULL),
-                          float* lower_bound CV_DEFAULT(NULL),
-                          void* userdata CV_DEFAULT(NULL));
 
 /****************************************************************************************\
 *                              Contours retrieving                                       *
@@ -334,13 +311,6 @@ CVAPI(CvSeq*) cvApproxChains( CvSeq* src_seq, CvMemStorage* storage,
                             int  minimal_perimeter CV_DEFAULT(0),
                             int  recursive CV_DEFAULT(0));
 
-/* Initializes Freeman chain reader.
-   The reader is used to iteratively get coordinates of all the chain points.
-   If the Freeman codes should be read as is, a simple sequence reader should be used */
-CVAPI(void) cvStartReadChainPoints( CvChain* chain, CvChainPtReader* reader );
-
-/* Retrieves the next chain point */
-CVAPI(CvPoint) cvReadChainPoint( CvChainPtReader* reader );
 
 
 /****************************************************************************************\
@@ -503,14 +473,6 @@ CVAPI(void)  cvCalcProbDensity( const CvHistogram* hist1, const CvHistogram* his
 /* equalizes histogram of 8-bit single-channel image */
 CVAPI(void)  cvEqualizeHist( const CvArr* src, CvArr* dst );
 
-
-/* Applies distance transform to binary image */
-CVAPI(void)  cvDistTransform( const CvArr* src, CvArr* dst,
-                              int distance_type CV_DEFAULT(CV_DIST_L2),
-                              int mask_size CV_DEFAULT(3),
-                              const float* mask CV_DEFAULT(NULL),
-                              CvArr* labels CV_DEFAULT(NULL),
-                              int labelType CV_DEFAULT(CV_DIST_LABEL_CCOMP));
 
 
 /* Applies fixed-level threshold to grayscale image.

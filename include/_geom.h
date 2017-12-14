@@ -19,10 +19,6 @@ int  icvIntersectLines( double x1, double dx1, double y1, double dy1,
 
 
 
-
-/* curvature: 0 - 1-curvature, 1 - k-cosine curvature. */
-CvSeq* icvApproximateChainTC89( CvChain* chain, int header_size, CvMemStorage* storage, int method );
-
 #endif /*_IPCVGEOM_H_*/
 
 /* End of file. */

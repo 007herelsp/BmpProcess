@@ -89,18 +89,6 @@ cvArcLength( const void *array, CvSlice slice, int is_closed )
 }
 
 
-
-
-CV_INLINE double icvIsPtInCircle( CvPoint2D32f pt, CvPoint2D32f center, float radius )
-{
-    double dx = pt.x - center.x;
-    double dy = pt.y - center.y;
-    return (double)radius*radius - dx*dx - dy*dy;
-}
-
-
-
-
 /* area of a whole sequence */
 static CvStatus
 icvContourArea( const CvSeq* contour, double *area )

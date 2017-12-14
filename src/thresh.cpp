@@ -801,10 +801,8 @@ void cv::adaptiveThreshold( InputArray _src, OutputArray _dst, double maxValue,
     if( src.data != dst.data )
         mean = dst;
 
-    if( method == ADAPTIVE_THRESH_MEAN_C )
-        boxFilter( src, mean, src.type(), Size(blockSize, blockSize),
-                   Point(-1,-1), true, BORDER_REPLICATE );
-    else if( method == ADAPTIVE_THRESH_GAUSSIAN_C )
+
+     if( method == ADAPTIVE_THRESH_GAUSSIAN_C )
         GaussianBlur( src, mean, Size(blockSize, blockSize), 0, 0, BORDER_REPLICATE );
     else
         CV_Error( CV_StsBadFlag, "Unknown/unsupported adaptive threshold method" );

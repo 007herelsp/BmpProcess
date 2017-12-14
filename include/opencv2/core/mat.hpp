@@ -43,10 +43,6 @@
 #ifndef __OPENCV_CORE_MATRIX_OPERATIONS_HPP__
 #define __OPENCV_CORE_MATRIX_OPERATIONS_HPP__
 
-#ifndef SKIP_INCLUDES
-#include <limits.h>
-#include <string.h>
-#endif // SKIP_INCLUDES
 
 #ifdef __cplusplus
 

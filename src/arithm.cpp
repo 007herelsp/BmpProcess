@@ -1,50 +1,3 @@
-/*M///////////////////////////////////////////////////////////////////////////////////////
-//
-//  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.
-//
-//  By downloading, copying, installing or using the software you agree to this license.
-//  If you do not agree to this license, do not download, install,
-//  copy or use the software.
-//
-//
-//                           License Agreement
-//                For Open Source Computer Vision Library
-//
-// Copyright (C) 2000-2008, Intel Corporation, all rights reserved.
-// Copyright (C) 2009-2011, Willow Garage Inc., all rights reserved.
-// Third party copyrights are property of their respective owners.
-//
-// Redistribution and use in source and binary forms, with or without modification,
-// are permitted provided that the following conditions are met:
-//
-//   * Redistribution's of source code must retain the above copyright notice,
-//     this list of conditions and the following disclaimer.
-//
-//   * Redistribution's in binary form must reproduce the above copyright notice,
-//     this list of conditions and the following disclaimer in the documentation
-//     and/or other materials provided with the distribution.
-//
-//   * The name of the copyright holders may not be used to endorse or promote products
-//     derived from this software without specific prior written permission.
-//
-// This software is provided by the copyright holders and contributors "as is" and
-// any express or implied warranties, including, but not limited to, the implied
-// warranties of merchantability and fitness for a particular purpose are disclaimed.
-// In no event shall the Intel Corporation or contributors be liable for any direct,
-// indirect, incidental, special, exemplary, or consequential damages
-// (including, but not limited to, procurement of substitute goods or services;
-// loss of use, data, or profits; or business interruption) however caused
-// and on any theory of liability, whether in contract, strict liability,
-// or tort (including negligence or otherwise) arising in any way out of
-// the use of this software, even if advised of the possibility of such damage.
-//
-//M*/
-
-/* ////////////////////////////////////////////////////////////////////
-//
-//  Arithmetic and logical operations: +, -, *, /, &, |, ^, ~, abs ...
-//
-// */
 
 #include "core.precomp.hpp"
 
@@ -67,27 +20,9 @@ void vBinOp8(const T* src1, size_t step1, const T* src2, size_t step2, T* dst, s
     {
         int x = 0;
 
-    #if CV_SSE2
-        if( USE_SSE2 )
-        {
-            for( ; x <= sz.width - 32; x += 32 )
-            {
-                __m128i r0 = _mm_loadu_si128((const __m128i*)(src1 + x));
-                __m128i r1 = _mm_loadu_si128((const __m128i*)(src1 + x + 16));
-                r0 = op8(r0,_mm_loadu_si128((const __m128i*)(src2 + x)));
-                r1 = op8(r1,_mm_loadu_si128((const __m128i*)(src2 + x + 16)));
-                _mm_storeu_si128((__m128i*)(dst + x), r0);
-                _mm_storeu_si128((__m128i*)(dst + x + 16), r1);
-            }
-            for( ; x <= sz.width - 8; x += 8 )
-            {
-                __m128i r0 = _mm_loadl_epi64((const __m128i*)(src1 + x));
-                r0 = op8(r0,_mm_loadl_epi64((const __m128i*)(src2 + x)));
-                _mm_storel_epi64((__m128i*)(dst + x), r0);
-            }
-        }
-    #endif
+
 #if CV_ENABLE_UNROLLED
+
         for( ; x <= sz.width - 4; x += 4 )
         {
             T v0 = op(src1[x], src2[x]);
@@ -107,9 +42,6 @@ template<typename T, class Op, class Op16>
 void vBinOp16(const T* src1, size_t step1, const T* src2, size_t step2,
               T* dst, size_t step, Size sz)
 {
-#if CV_SSE2
-    Op16 op16;
-#endif
     Op op;
 
     for( ; sz.height--; src1 += step1/sizeof(src1[0]),
@@ -117,29 +49,6 @@ void vBinOp16(const T* src1, size_t step1, const T* src2, size_t step2,
         dst += step/sizeof(dst[0]) )
     {
         int x = 0;
-
-    #if CV_SSE2
-        if( USE_SSE2 )
-        {
-            for( ; x <= sz.width - 16; x += 16 )
-            {
-                __m128i r0 = _mm_loadu_si128((const __m128i*)(src1 + x));
-                __m128i r1 = _mm_loadu_si128((const __m128i*)(src1 + x + 8));
-                r0 = op16(r0,_mm_loadu_si128((const __m128i*)(src2 + x)));
-                r1 = op16(r1,_mm_loadu_si128((const __m128i*)(src2 + x + 8)));
-                _mm_storeu_si128((__m128i*)(dst + x), r0);
-                _mm_storeu_si128((__m128i*)(dst + x + 8), r1);
-            }
-            for( ; x <= sz.width - 4; x += 4 )
-            {
-                __m128i r0 = _mm_loadl_epi64((const __m128i*)(src1 + x));
-                r0 = op16(r0,_mm_loadl_epi64((const __m128i*)(src2 + x)));
-                _mm_storel_epi64((__m128i*)(dst + x), r0);
-            }
-        }
-        else
-    #endif
-
         for( ; x <= sz.width - 4; x += 4 )
         {
             T v0 = op(src1[x], src2[x]);
@@ -160,9 +69,6 @@ template<class Op, class Op32>
 void vBinOp32s(const int* src1, size_t step1, const int* src2, size_t step2,
                int* dst, size_t step, Size sz)
 {
-#if CV_SSE2
-    Op32 op32;
-#endif
     Op op;
 
     for( ; sz.height--; src1 += step1/sizeof(src1[0]),
@@ -171,31 +77,6 @@ void vBinOp32s(const int* src1, size_t step1, const int* src2, size_t step2,
     {
         int x = 0;
 
-#if CV_SSE2
-        if( USE_SSE2 )
-        {
-            if( (((size_t)src1|(size_t)src2|(size_t)dst)&15) == 0 )
-                for( ; x <= sz.width - 8; x += 8 )
-                {
-                    __m128i r0 = _mm_load_si128((const __m128i*)(src1 + x));
-                    __m128i r1 = _mm_load_si128((const __m128i*)(src1 + x + 4));
-                    r0 = op32(r0,_mm_load_si128((const __m128i*)(src2 + x)));
-                    r1 = op32(r1,_mm_load_si128((const __m128i*)(src2 + x + 4)));
-                    _mm_store_si128((__m128i*)(dst + x), r0);
-                    _mm_store_si128((__m128i*)(dst + x + 4), r1);
-                }
-            else
-                for( ; x <= sz.width - 8; x += 8 )
-                {
-                    __m128i r0 = _mm_loadu_si128((const __m128i*)(src1 + x));
-                    __m128i r1 = _mm_loadu_si128((const __m128i*)(src1 + x + 4));
-                    r0 = op32(r0,_mm_loadu_si128((const __m128i*)(src2 + x)));
-                    r1 = op32(r1,_mm_loadu_si128((const __m128i*)(src2 + x + 4)));
-                    _mm_storeu_si128((__m128i*)(dst + x), r0);
-                    _mm_storeu_si128((__m128i*)(dst + x + 4), r1);
-                }
-        }
-#endif
 #if CV_ENABLE_UNROLLED
         for( ; x <= sz.width - 4; x += 4 )
         {
@@ -217,9 +98,6 @@ template<class Op, class Op32>
 void vBinOp32f(const float* src1, size_t step1, const float* src2, size_t step2,
                float* dst, size_t step, Size sz)
 {
-#if CV_SSE2
-    Op32 op32;
-#endif
     Op op;
 
     for( ; sz.height--; src1 += step1/sizeof(src1[0]),
@@ -227,32 +105,6 @@ void vBinOp32f(const float* src1, size_t step1, const float* src2, size_t step2,
         dst += step/sizeof(dst[0]) )
     {
         int x = 0;
-
-    #if CV_SSE2
-        if( USE_SSE2 )
-        {
-            if( (((size_t)src1|(size_t)src2|(size_t)dst)&15) == 0 )
-                for( ; x <= sz.width - 8; x += 8 )
-                {
-                    __m128 r0 = _mm_load_ps(src1 + x);
-                    __m128 r1 = _mm_load_ps(src1 + x + 4);
-                    r0 = op32(r0,_mm_load_ps(src2 + x));
-                    r1 = op32(r1,_mm_load_ps(src2 + x + 4));
-                    _mm_store_ps(dst + x, r0);
-                    _mm_store_ps(dst + x + 4, r1);
-                }
-            else
-                for( ; x <= sz.width - 8; x += 8 )
-                {
-                    __m128 r0 = _mm_loadu_ps(src1 + x);
-                    __m128 r1 = _mm_loadu_ps(src1 + x + 4);
-                    r0 = op32(r0,_mm_loadu_ps(src2 + x));
-                    r1 = op32(r1,_mm_loadu_ps(src2 + x + 4));
-                    _mm_storeu_ps(dst + x, r0);
-                    _mm_storeu_ps(dst + x + 4, r1);
-                }
-        }
-    #endif
 #if CV_ENABLE_UNROLLED
         for( ; x <= sz.width - 4; x += 4 )
         {
@@ -273,9 +125,6 @@ template<class Op, class Op64>
 void vBinOp64f(const double* src1, size_t step1, const double* src2, size_t step2,
                double* dst, size_t step, Size sz)
 {
-#if CV_SSE2
-    Op64 op64;
-#endif
     Op op;
 
     for( ; sz.height--; src1 += step1/sizeof(src1[0]),
@@ -283,20 +132,6 @@ void vBinOp64f(const double* src1, size_t step1, const double* src2, size_t step
         dst += step/sizeof(dst[0]) )
     {
         int x = 0;
-
-    #if CV_SSE2
-        if( USE_SSE2 && (((size_t)src1|(size_t)src2|(size_t)dst)&15) == 0 )
-            for( ; x <= sz.width - 4; x += 4 )
-            {
-                __m128d r0 = _mm_load_pd(src1 + x);
-                __m128d r1 = _mm_load_pd(src1 + x + 2);
-                r0 = op64(r0,_mm_load_pd(src2 + x));
-                r1 = op64(r1,_mm_load_pd(src2 + x + 2));
-                _mm_store_pd(dst + x, r0);
-                _mm_store_pd(dst + x + 2, r1);
-            }
-        else
-    #endif
         for( ; x <= sz.width - 4; x += 4 )
         {
             double v0 = op(src1[x], src2[x]);
@@ -312,144 +147,10 @@ void vBinOp64f(const double* src1, size_t step1, const double* src2, size_t step
     }
 }
 
-#if CV_SSE2
 
-struct _VAdd8u { __m128i operator()(const __m128i& a, const __m128i& b) const { return _mm_adds_epu8(a,b); }};
-struct _VSub8u { __m128i operator()(const __m128i& a, const __m128i& b) const { return _mm_subs_epu8(a,b); }};
-struct _VMin8u { __m128i operator()(const __m128i& a, const __m128i& b) const { return _mm_min_epu8(a,b); }};
-struct _VMax8u { __m128i operator()(const __m128i& a, const __m128i& b) const { return _mm_max_epu8(a,b); }};
-struct _VAbsDiff8u
-{
-    __m128i operator()(const __m128i& a, const __m128i& b) const
-    { return _mm_add_epi8(_mm_subs_epu8(a,b),_mm_subs_epu8(b,a)); }
-};
 
-struct _VAdd8s { __m128i operator()(const __m128i& a, const __m128i& b) const { return _mm_adds_epi8(a,b); }};
-struct _VSub8s { __m128i operator()(const __m128i& a, const __m128i& b) const { return _mm_subs_epi8(a,b); }};
-struct _VMin8s
-{
-    __m128i operator()(const __m128i& a, const __m128i& b) const
-    {
-        __m128i m = _mm_cmpgt_epi8(a, b);
-        return _mm_xor_si128(a, _mm_and_si128(_mm_xor_si128(a, b), m));
-    }
-};
-struct _VMax8s
-{
-    __m128i operator()(const __m128i& a, const __m128i& b) const
-    {
-        __m128i m = _mm_cmpgt_epi8(b, a);
-        return _mm_xor_si128(a, _mm_and_si128(_mm_xor_si128(a, b), m));
-    }
-};
-struct _VAbsDiff8s
-{
-    __m128i operator()(const __m128i& a, const __m128i& b) const
-    {
-        __m128i d = _mm_subs_epi8(a, b);
-        __m128i m = _mm_cmpgt_epi8(b, a);
-        return _mm_subs_epi8(_mm_xor_si128(d, m), m);
-    }
-};
 
-struct _VAdd16u { __m128i operator()(const __m128i& a, const __m128i& b) const { return _mm_adds_epu16(a,b); }};
-struct _VSub16u { __m128i operator()(const __m128i& a, const __m128i& b) const { return _mm_subs_epu16(a,b); }};
-struct _VMin16u
-{
-    __m128i operator()(const __m128i& a, const __m128i& b) const
-    { return _mm_subs_epu16(a,_mm_subs_epu16(a,b)); }
-};
-struct _VMax16u
-{
-    __m128i operator()(const __m128i& a, const __m128i& b) const
-    { return _mm_adds_epu16(_mm_subs_epu16(a,b),b); }
-};
-struct _VAbsDiff16u
-{
-    __m128i operator()(const __m128i& a, const __m128i& b) const
-    { return _mm_add_epi16(_mm_subs_epu16(a,b),_mm_subs_epu16(b,a)); }
-};
-
-struct _VAdd16s { __m128i operator()(const __m128i& a, const __m128i& b) const { return _mm_adds_epi16(a,b); }};
-struct _VSub16s { __m128i operator()(const __m128i& a, const __m128i& b) const { return _mm_subs_epi16(a,b); }};
-struct _VMin16s { __m128i operator()(const __m128i& a, const __m128i& b) const { return _mm_min_epi16(a,b); }};
-struct _VMax16s { __m128i operator()(const __m128i& a, const __m128i& b) const { return _mm_max_epi16(a,b); }};
-struct _VAbsDiff16s
-{
-    __m128i operator()(const __m128i& a, const __m128i& b) const
-    {
-        __m128i M = _mm_max_epi16(a,b), m = _mm_min_epi16(a,b);
-        return _mm_subs_epi16(M, m);
-    }
-};
-
-struct _VAdd32s { __m128i operator()(const __m128i& a, const __m128i& b) const { return _mm_add_epi32(a,b); }};
-struct _VSub32s { __m128i operator()(const __m128i& a, const __m128i& b) const { return _mm_sub_epi32(a,b); }};
-struct _VMin32s
-{
-    __m128i operator()(const __m128i& a, const __m128i& b) const
-    {
-        __m128i m = _mm_cmpgt_epi32(a, b);
-        return _mm_xor_si128(a, _mm_and_si128(_mm_xor_si128(a, b), m));
-    }
-};
-struct _VMax32s
-{
-    __m128i operator()(const __m128i& a, const __m128i& b) const
-    {
-        __m128i m = _mm_cmpgt_epi32(b, a);
-        return _mm_xor_si128(a, _mm_and_si128(_mm_xor_si128(a, b), m));
-    }
-};
-struct _VAbsDiff32s
-{
-    __m128i operator()(const __m128i& a, const __m128i& b) const
-    {
-        __m128i d = _mm_sub_epi32(a, b);
-        __m128i m = _mm_cmpgt_epi32(b, a);
-        return _mm_sub_epi32(_mm_xor_si128(d, m), m);
-    }
-};
-
-struct _VAdd32f { __m128 operator()(const __m128& a, const __m128& b) const { return _mm_add_ps(a,b); }};
-struct _VSub32f { __m128 operator()(const __m128& a, const __m128& b) const { return _mm_sub_ps(a,b); }};
-struct _VMin32f { __m128 operator()(const __m128& a, const __m128& b) const { return _mm_min_ps(a,b); }};
-struct _VMax32f { __m128 operator()(const __m128& a, const __m128& b) const { return _mm_max_ps(a,b); }};
-static unsigned int CV_DECL_ALIGNED(16) v32f_absmask[] = { 0x7fffffff, 0x7fffffff, 0x7fffffff, 0x7fffffff };
-struct _VAbsDiff32f
-{
-    __m128 operator()(const __m128& a, const __m128& b) const
-    {
-        return _mm_and_ps(_mm_sub_ps(a,b), *(const __m128*)v32f_absmask);
-    }
-};
-
-struct _VAdd64f { __m128d operator()(const __m128d& a, const __m128d& b) const { return _mm_add_pd(a,b); }};
-struct _VSub64f { __m128d operator()(const __m128d& a, const __m128d& b) const { return _mm_sub_pd(a,b); }};
-struct _VMin64f { __m128d operator()(const __m128d& a, const __m128d& b) const { return _mm_min_pd(a,b); }};
-struct _VMax64f { __m128d operator()(const __m128d& a, const __m128d& b) const { return _mm_max_pd(a,b); }};
-
-static unsigned int CV_DECL_ALIGNED(16) v64f_absmask[] = { 0xffffffff, 0x7fffffff, 0xffffffff, 0x7fffffff };
-struct _VAbsDiff64f
-{
-    __m128d operator()(const __m128d& a, const __m128d& b) const
-    {
-        return _mm_and_pd(_mm_sub_pd(a,b), *(const __m128d*)v64f_absmask);
-    }
-};
-
-struct _VAnd8u { __m128i operator()(const __m128i& a, const __m128i& b) const { return _mm_and_si128(a,b); }};
-struct _VOr8u  { __m128i operator()(const __m128i& a, const __m128i& b) const { return _mm_or_si128(a,b); }};
-struct _VXor8u { __m128i operator()(const __m128i& a, const __m128i& b) const { return _mm_xor_si128(a,b); }};
-struct _VNot8u { __m128i operator()(const __m128i& a, const __m128i&) const { return _mm_xor_si128(_mm_set1_epi32(-1),a); }};
-
-#endif
-
-#if CV_SSE2
-#define IF_SIMD(op) op
-#else
 #define IF_SIMD(op) NOP
-#endif
 
 template<> inline uchar OpAdd<uchar>::operator ()(uchar a, uchar b) const
 { return CV_FAST_CAST_8U(a + b); }
@@ -511,18 +212,11 @@ template<typename T> struct OpNot
 };
 
 
-#if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-function"
-#endif
 static inline void fixSteps(Size sz, size_t elemSize, size_t& step1, size_t& step2, size_t& step)
 {
     if( sz.height == 1 )
         step1 = step2 = step = sz.width*elemSize;
 }
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#endif
 
 static void add8u( const uchar* src1, size_t step1,
                    const uchar* src2, size_t step2,
@@ -645,27 +339,7 @@ static void max8u( const uchar* src1, size_t step1,
                    const uchar* src2, size_t step2,
                    uchar* dst, size_t step, Size sz, void* )
 {
-#if (ARITHM_USE_IPP == 1)
-  {
-    uchar* s1 = (uchar*)src1;
-    uchar* s2 = (uchar*)src2;
-    uchar* d  = dst;
-    fixSteps(sz, sizeof(dst[0]), step1, step2, step);
-    for(int i = 0; i < sz.height; i++)
-    {
-      ippsMaxEvery_8u(s1, s2, d, sz.width);
-      s1 += step1;
-      s2 += step2;
-      d  += step;
-    }
-  }
-#else
   vBinOp8<uchar, OpMax<uchar>, IF_SIMD(_VMax8u)>(src1, step1, src2, step2, dst, step, sz);
-#endif
-
-//    IF_IPP(fixSteps(sz, sizeof(dst[0]), step1, step2, step);
-//           ippiMaxEvery_8u_C1R(src1, (int)step1, src2, (int)step2, dst, ippiSize(sz)),
-//           (vBinOp8<uchar, OpMax<uchar>, IF_SIMD(_VMax8u)>(src1, step1, src2, step2, dst, step, sz)));
 }
 
 static void max8s( const schar* src1, size_t step1,
@@ -679,23 +353,9 @@ static void max16u( const ushort* src1, size_t step1,
                     const ushort* src2, size_t step2,
                     ushort* dst, size_t step, Size sz, void* )
 {
-#if (ARITHM_USE_IPP == 1)
-  {
-    ushort* s1 = (ushort*)src1;
-    ushort* s2 = (ushort*)src2;
-    ushort* d  = dst;
-    fixSteps(sz, sizeof(dst[0]), step1, step2, step);
-    for(int i = 0; i < sz.height; i++)
-    {
-      ippsMaxEvery_16u(s1, s2, d, sz.width);
-      s1 = (ushort*)((uchar*)s1 + step1);
-      s2 = (ushort*)((uchar*)s2 + step2);
-      d  = (ushort*)((uchar*)d + step);
-    }
-  }
-#else
+
   vBinOp16<ushort, OpMax<ushort>, IF_SIMD(_VMax16u)>(src1, step1, src2, step2, dst, step, sz);
-#endif
+
 
 //    IF_IPP(fixSteps(sz, sizeof(dst[0]), step1, step2, step);
 //           ippiMaxEvery_16u_C1R(src1, (int)step1, src2, (int)step2, dst, ippiSize(sz)),
@@ -720,26 +380,7 @@ static void max32f( const float* src1, size_t step1,
                     const float* src2, size_t step2,
                     float* dst, size_t step, Size sz, void* )
 {
-#if (ARITHM_USE_IPP == 1)
-  {
-    float* s1 = (float*)src1;
-    float* s2 = (float*)src2;
-    float* d  = dst;
-    fixSteps(sz, sizeof(dst[0]), step1, step2, step);
-    for(int i = 0; i < sz.height; i++)
-    {
-      ippsMaxEvery_32f(s1, s2, d, sz.width);
-      s1 = (float*)((uchar*)s1 + step1);
-      s2 = (float*)((uchar*)s2 + step2);
-      d  = (float*)((uchar*)d + step);
-    }
-  }
-#else
   vBinOp32f<OpMax<float>, IF_SIMD(_VMax32f)>(src1, step1, src2, step2, dst, step, sz);
-#endif
-//    IF_IPP(fixSteps(sz, sizeof(dst[0]), step1, step2, step);
-//           ippiMaxEvery_32f_C1R(src1, (int)step1, src2, (int)step2, dst, ippiSize(sz)),
-//           (vBinOp32f<OpMax<float>, IF_SIMD(_VMax32f)>(src1, step1, src2, step2, dst, step, sz)));
 }
 
 static void max64f( const double* src1, size_t step1,
@@ -753,27 +394,7 @@ static void min8u( const uchar* src1, size_t step1,
                    const uchar* src2, size_t step2,
                    uchar* dst, size_t step, Size sz, void* )
 {
-#if (ARITHM_USE_IPP == 1)
-  {
-    uchar* s1 = (uchar*)src1;
-    uchar* s2 = (uchar*)src2;
-    uchar* d  = dst;
-    fixSteps(sz, sizeof(dst[0]), step1, step2, step);
-    for(int i = 0; i < sz.height; i++)
-    {
-      ippsMinEvery_8u(s1, s2, d, sz.width);
-      s1 += step1;
-      s2 += step2;
-      d  += step;
-    }
-  }
-#else
   vBinOp8<uchar, OpMin<uchar>, IF_SIMD(_VMin8u)>(src1, step1, src2, step2, dst, step, sz);
-#endif
-
-//    IF_IPP(fixSteps(sz, sizeof(dst[0]), step1, step2, step);
-//           ippiMinEvery_8u_C1R(src1, (int)step1, src2, (int)step2, dst, ippiSize(sz)),
-//           (vBinOp8<uchar, OpMin<uchar>, IF_SIMD(_VMin8u)>(src1, step1, src2, step2, dst, step, sz)));
 }
 
 static void min8s( const schar* src1, size_t step1,
@@ -787,27 +408,7 @@ static void min16u( const ushort* src1, size_t step1,
                     const ushort* src2, size_t step2,
                     ushort* dst, size_t step, Size sz, void* )
 {
-#if (ARITHM_USE_IPP == 1)
-  {
-    ushort* s1 = (ushort*)src1;
-    ushort* s2 = (ushort*)src2;
-    ushort* d  = dst;
-    fixSteps(sz, sizeof(dst[0]), step1, step2, step);
-    for(int i = 0; i < sz.height; i++)
-    {
-      ippsMinEvery_16u(s1, s2, d, sz.width);
-      s1 = (ushort*)((uchar*)s1 + step1);
-      s2 = (ushort*)((uchar*)s2 + step2);
-      d  = (ushort*)((uchar*)d + step);
-    }
-  }
-#else
   vBinOp16<ushort, OpMin<ushort>, IF_SIMD(_VMin16u)>(src1, step1, src2, step2, dst, step, sz);
-#endif
-
-//    IF_IPP(fixSteps(sz, sizeof(dst[0]), step1, step2, step);
-//           ippiMinEvery_16u_C1R(src1, (int)step1, src2, (int)step2, dst, ippiSize(sz)),
-//           (vBinOp16<ushort, OpMin<ushort>, IF_SIMD(_VMin16u)>(src1, step1, src2, step2, dst, step, sz)));
 }
 
 static void min16s( const short* src1, size_t step1,
@@ -828,26 +429,7 @@ static void min32f( const float* src1, size_t step1,
                     const float* src2, size_t step2,
                     float* dst, size_t step, Size sz, void* )
 {
-#if (ARITHM_USE_IPP == 1)
-  {
-    float* s1 = (float*)src1;
-    float* s2 = (float*)src2;
-    float* d  = dst;
-    fixSteps(sz, sizeof(dst[0]), step1, step2, step);
-    for(int i = 0; i < sz.height; i++)
-    {
-      ippsMinEvery_32f(s1, s2, d, sz.width);
-      s1 = (float*)((uchar*)s1 + step1);
-      s2 = (float*)((uchar*)s2 + step2);
-      d  = (float*)((uchar*)d + step);
-    }
-  }
-#else
   vBinOp32f<OpMin<float>, IF_SIMD(_VMin32f)>(src1, step1, src2, step2, dst, step, sz);
-#endif
-//    IF_IPP(fixSteps(sz, sizeof(dst[0]), step1, step2, step);
-//           ippiMinEvery_32f_C1R(src1, (int)step1, src2, (int)step2, dst, ippiSize(sz)),
-//           (vBinOp32f<OpMin<float>, IF_SIMD(_VMin32f)>(src1, step1, src2, step2, dst, step, sz)));
 }
 
 static void min64f( const double* src1, size_t step1,
@@ -2272,33 +1854,6 @@ static void cmp16s(const short* src1, size_t step1, const short* src2, size_t st
         for( ; size.height--; src1 += step1, src2 += step2, dst += step )
         {
             int x =0;
-            #if CV_SSE2
-            if( USE_SSE2){//
-                __m128i m128 =  code == CMP_GT ? _mm_setzero_si128() : _mm_set1_epi16 (-1);
-                for( ; x <= size.width - 16; x += 16 )
-                {
-                    __m128i r00 = _mm_loadu_si128((const __m128i*)(src1 + x));
-                    __m128i r10 = _mm_loadu_si128((const __m128i*)(src2 + x));
-                    r00 = _mm_xor_si128 ( _mm_cmpgt_epi16 (r00, r10), m128);
-                    __m128i r01 = _mm_loadu_si128((const __m128i*)(src1 + x + 8));
-                    __m128i r11 = _mm_loadu_si128((const __m128i*)(src2 + x + 8));
-                    r01 = _mm_xor_si128 ( _mm_cmpgt_epi16 (r01, r11), m128);
-                    r11 = _mm_packs_epi16(r00, r01);
-                    _mm_storeu_si128((__m128i*)(dst + x), r11);
-                }
-                if( x <= size.width-8)
-                {
-                    __m128i r00 = _mm_loadu_si128((const __m128i*)(src1 + x));
-                    __m128i r10 = _mm_loadu_si128((const __m128i*)(src2 + x));
-                    r00 = _mm_xor_si128 ( _mm_cmpgt_epi16 (r00, r10), m128);
-                    r10 = _mm_packs_epi16(r00, r00);
-                    _mm_storel_epi64((__m128i*)(dst + x), r10);
-
-                    x += 8;
-                }
-            }
-           #endif
-
             for( ; x < size.width; x++ ){
                  dst[x] = (uchar)(-(src1[x] > src2[x]) ^ m);
             }
@@ -2310,32 +1865,6 @@ static void cmp16s(const short* src1, size_t step1, const short* src2, size_t st
         for( ; size.height--; src1 += step1, src2 += step2, dst += step )
         {
             int x = 0;
-            #if CV_SSE2
-            if( USE_SSE2 ){
-                __m128i m128 =  code == CMP_EQ ? _mm_setzero_si128() : _mm_set1_epi16 (-1);
-                for( ; x <= size.width - 16; x += 16 )
-                {
-                    __m128i r00 = _mm_loadu_si128((const __m128i*)(src1 + x));
-                    __m128i r10 = _mm_loadu_si128((const __m128i*)(src2 + x));
-                    r00 = _mm_xor_si128 ( _mm_cmpeq_epi16 (r00, r10), m128);
-                    __m128i r01 = _mm_loadu_si128((const __m128i*)(src1 + x + 8));
-                    __m128i r11 = _mm_loadu_si128((const __m128i*)(src2 + x + 8));
-                    r01 = _mm_xor_si128 ( _mm_cmpeq_epi16 (r01, r11), m128);
-                    r11 = _mm_packs_epi16(r00, r01);
-                    _mm_storeu_si128((__m128i*)(dst + x), r11);
-                }
-                if( x <= size.width - 8)
-                {
-                    __m128i r00 = _mm_loadu_si128((const __m128i*)(src1 + x));
-                    __m128i r10 = _mm_loadu_si128((const __m128i*)(src2 + x));
-                    r00 = _mm_xor_si128 ( _mm_cmpeq_epi16 (r00, r10), m128);
-                    r10 = _mm_packs_epi16(r00, r00);
-                    _mm_storel_epi64((__m128i*)(dst + x), r10);
-
-                    x += 8;
-                }
-            }
-           #endif
            for( ; x < size.width; x++ )
                 dst[x] = (uchar)(-(src1[x] == src2[x]) ^ m);
         }
@@ -2351,15 +1880,6 @@ static void cmp32s(const int* src1, size_t step1, const int* src2, size_t step2,
 static void cmp32f(const float* src1, size_t step1, const float* src2, size_t step2,
                   uchar* dst, size_t step, Size size, void* _cmpop)
 {
-#if ARITHM_USE_IPP
-    IppCmpOp op = convert_cmp(*(int *)_cmpop);
-    if( op  >= 0 )
-    {
-        fixSteps(size, sizeof(dst[0]), step1, step2, step);
-        if( ippiCompare_32f_C1R(src1, (int)step1, src2, (int)step2, dst, (int)step, ippiSize(size), op) >= 0 )
-            return;
-    }
-#endif
     cmp_(src1, step1, src2, step2, dst, step, size, *(int*)_cmpop);
 }
 

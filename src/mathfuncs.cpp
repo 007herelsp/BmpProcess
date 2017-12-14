@@ -1,44 +1,3 @@
-/*M///////////////////////////////////////////////////////////////////////////////////////
-//
-//  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.
-//
-//  By downloading, copying, installing or using the software you agree to this license.
-//  If you do not agree to this license, do not download, install,
-//  copy or use the software.
-//
-//
-//                           License Agreement
-//                For Open Source Computer Vision Library
-//
-// Copyright (C) 2000-2008, Intel Corporation, all rights reserved.
-// Copyright (C) 2009-2011, Willow Garage Inc., all rights reserved.
-// Third party copyrights are property of their respective owners.
-//
-// Redistribution and use in source and binary forms, with or without modification,
-// are permitted provided that the following conditions are met:
-//
-//   * Redistribution's of source code must retain the above copyright notice,
-//     this list of conditions and the following disclaimer.
-//
-//   * Redistribution's in binary form must reproduce the above copyright notice,
-//     this list of conditions and the following disclaimer in the documentation
-//     and/or other materials provided with the distribution.
-//
-//   * The name of the copyright holders may not be used to endorse or promote products
-//     derived from this software without specific prior written permission.
-//
-// This software is provided by the copyright holders and contributors "as is" and
-// any express or implied warranties, including, but not limited to, the implied
-// warranties of merchantability and fitness for a particular purpose are disclaimed.
-// In no event shall the Intel Corporation or contributors be liable for any direct,
-// indirect, incidental, special, exemplary, or consequential damages
-// (including, but not limited to, procurement of substitute goods or services;
-// loss of use, data, or profits; or business interruption) however caused
-// and on any theory of liability, whether in contract, strict liability,
-// or tort (including negligence or otherwise) arising in any way out of
-// the use of this software, even if advised of the possibility of such damage.
-//
-//M*/
 
 #include "core.precomp.hpp"
 
@@ -80,48 +39,6 @@ static void FastAtan2_32f(const float *Y, const float *X, float *angle, int len,
 {
     int i = 0;
     float scale = angleInDegrees ? 1 : (float)(CV_PI/180);
-
-
-
-#if CV_SSE2
-    if( USE_SSE2 )
-    {
-        Cv32suf iabsmask; iabsmask.i = 0x7fffffff;
-        __m128 eps = _mm_set1_ps((float)DBL_EPSILON), absmask = _mm_set1_ps(iabsmask.f);
-        __m128 _90 = _mm_set1_ps(90.f), _180 = _mm_set1_ps(180.f), _360 = _mm_set1_ps(360.f);
-        __m128 z = _mm_setzero_ps(), scale4 = _mm_set1_ps(scale);
-        __m128 p1 = _mm_set1_ps(atan2_p1), p3 = _mm_set1_ps(atan2_p3);
-        __m128 p5 = _mm_set1_ps(atan2_p5), p7 = _mm_set1_ps(atan2_p7);
-
-        for( ; i <= len - 4; i += 4 )
-        {
-            __m128 x = _mm_loadu_ps(X + i), y = _mm_loadu_ps(Y + i);
-            __m128 ax = _mm_and_ps(x, absmask), ay = _mm_and_ps(y, absmask);
-            __m128 mask = _mm_cmplt_ps(ax, ay);
-            __m128 tmin = _mm_min_ps(ax, ay), tmax = _mm_max_ps(ax, ay);
-            __m128 c = _mm_div_ps(tmin, _mm_add_ps(tmax, eps));
-            __m128 c2 = _mm_mul_ps(c, c);
-            __m128 a = _mm_mul_ps(c2, p7);
-            a = _mm_mul_ps(_mm_add_ps(a, p5), c2);
-            a = _mm_mul_ps(_mm_add_ps(a, p3), c2);
-            a = _mm_mul_ps(_mm_add_ps(a, p1), c);
-
-            __m128 b = _mm_sub_ps(_90, a);
-            a = _mm_xor_ps(a, _mm_and_ps(_mm_xor_ps(a, b), mask));
-
-            b = _mm_sub_ps(_180, a);
-            mask = _mm_cmplt_ps(x, z);
-            a = _mm_xor_ps(a, _mm_and_ps(_mm_xor_ps(a, b), mask));
-
-            b = _mm_sub_ps(_360, a);
-            mask = _mm_cmplt_ps(y, z);
-            a = _mm_xor_ps(a, _mm_and_ps(_mm_xor_ps(a, b), mask));
-
-            a = _mm_mul_ps(a, scale4);
-            _mm_storeu_ps(angle + i, a);
-        }
-    }
-#endif
 
     for( ; i < len; i++ )
     {
@@ -194,21 +111,6 @@ static void Magnitude_32f(const float* x, const float* y, float* mag, int len)
 {
     int i = 0;
 
-#if CV_SSE
-    if( USE_SSE2 )
-    {
-        for( ; i <= len - 8; i += 8 )
-        {
-            __m128 x0 = _mm_loadu_ps(x + i), x1 = _mm_loadu_ps(x + i + 4);
-            __m128 y0 = _mm_loadu_ps(y + i), y1 = _mm_loadu_ps(y + i + 4);
-            x0 = _mm_add_ps(_mm_mul_ps(x0, x0), _mm_mul_ps(y0, y0));
-            x1 = _mm_add_ps(_mm_mul_ps(x1, x1), _mm_mul_ps(y1, y1));
-            x0 = _mm_sqrt_ps(x0); x1 = _mm_sqrt_ps(x1);
-            _mm_storeu_ps(mag + i, x0); _mm_storeu_ps(mag + i + 4, x1);
-        }
-    }
-#endif
-
     for( ; i < len; i++ )
     {
         float x0 = x[i], y0 = y[i];
@@ -219,21 +121,6 @@ static void Magnitude_32f(const float* x, const float* y, float* mag, int len)
 static void Magnitude_64f(const double* x, const double* y, double* mag, int len)
 {
     int i = 0;
-
-#if CV_SSE2
-    if( USE_SSE2 )
-    {
-        for( ; i <= len - 4; i += 4 )
-        {
-            __m128d x0 = _mm_loadu_pd(x + i), x1 = _mm_loadu_pd(x + i + 2);
-            __m128d y0 = _mm_loadu_pd(y + i), y1 = _mm_loadu_pd(y + i + 2);
-            x0 = _mm_add_pd(_mm_mul_pd(x0, x0), _mm_mul_pd(y0, y0));
-            x1 = _mm_add_pd(_mm_mul_pd(x1, x1), _mm_mul_pd(y1, y1));
-            x0 = _mm_sqrt_pd(x0); x1 = _mm_sqrt_pd(x1);
-            _mm_storeu_pd(mag + i, x0); _mm_storeu_pd(mag + i + 2, x1);
-        }
-    }
-#endif
 
     for( ; i < len; i++ )
     {
@@ -246,33 +133,6 @@ static void Magnitude_64f(const double* x, const double* y, double* mag, int len
 static void InvSqrt_32f(const float* src, float* dst, int len)
 {
     int i = 0;
-
-#if CV_SSE
-    if( USE_SSE2 )
-    {
-        __m128 _0_5 = _mm_set1_ps(0.5f), _1_5 = _mm_set1_ps(1.5f);
-        if( (((size_t)src|(size_t)dst) & 15) == 0 )
-            for( ; i <= len - 8; i += 8 )
-            {
-                __m128 t0 = _mm_load_ps(src + i), t1 = _mm_load_ps(src + i + 4);
-                __m128 h0 = _mm_mul_ps(t0, _0_5), h1 = _mm_mul_ps(t1, _0_5);
-                t0 = _mm_rsqrt_ps(t0); t1 = _mm_rsqrt_ps(t1);
-                t0 = _mm_mul_ps(t0, _mm_sub_ps(_1_5, _mm_mul_ps(_mm_mul_ps(t0,t0),h0)));
-                t1 = _mm_mul_ps(t1, _mm_sub_ps(_1_5, _mm_mul_ps(_mm_mul_ps(t1,t1),h1)));
-                _mm_store_ps(dst + i, t0); _mm_store_ps(dst + i + 4, t1);
-            }
-        else
-            for( ; i <= len - 8; i += 8 )
-            {
-                __m128 t0 = _mm_loadu_ps(src + i), t1 = _mm_loadu_ps(src + i + 4);
-                __m128 h0 = _mm_mul_ps(t0, _0_5), h1 = _mm_mul_ps(t1, _0_5);
-                t0 = _mm_rsqrt_ps(t0); t1 = _mm_rsqrt_ps(t1);
-                t0 = _mm_mul_ps(t0, _mm_sub_ps(_1_5, _mm_mul_ps(_mm_mul_ps(t0,t0),h0)));
-                t1 = _mm_mul_ps(t1, _mm_sub_ps(_1_5, _mm_mul_ps(_mm_mul_ps(t1,t1),h1)));
-                _mm_storeu_ps(dst + i, t0); _mm_storeu_ps(dst + i + 4, t1);
-            }
-    }
-#endif
 
     for( ; i < len; i++ )
         dst[i] = 1/std::sqrt(src[i]);
@@ -290,26 +150,6 @@ static void Sqrt_32f(const float* src, float* dst, int len)
 {
     int i = 0;
 
-#if CV_SSE
-    if( USE_SSE2 )
-    {
-        if( (((size_t)src|(size_t)dst) & 15) == 0 )
-            for( ; i <= len - 8; i += 8 )
-            {
-                __m128 t0 = _mm_load_ps(src + i), t1 = _mm_load_ps(src + i + 4);
-                t0 = _mm_sqrt_ps(t0); t1 = _mm_sqrt_ps(t1);
-                _mm_store_ps(dst + i, t0); _mm_store_ps(dst + i + 4, t1);
-            }
-        else
-            for( ; i <= len - 8; i += 8 )
-            {
-                __m128 t0 = _mm_loadu_ps(src + i), t1 = _mm_loadu_ps(src + i + 4);
-                t0 = _mm_sqrt_ps(t0); t1 = _mm_sqrt_ps(t1);
-                _mm_storeu_ps(dst + i, t0); _mm_storeu_ps(dst + i + 4, t1);
-            }
-    }
-#endif
-
     for( ; i < len; i++ )
         dst[i] = std::sqrt(src[i]);
 }
@@ -318,26 +158,6 @@ static void Sqrt_32f(const float* src, float* dst, int len)
 static void Sqrt_64f(const double* src, double* dst, int len)
 {
     int i = 0;
-
-#if CV_SSE2
-    if( USE_SSE2 )
-    {
-        if( (((size_t)src|(size_t)dst) & 15) == 0 )
-            for( ; i <= len - 4; i += 4 )
-            {
-                __m128d t0 = _mm_load_pd(src + i), t1 = _mm_load_pd(src + i + 2);
-                t0 = _mm_sqrt_pd(t0); t1 = _mm_sqrt_pd(t1);
-                _mm_store_pd(dst + i, t0); _mm_store_pd(dst + i + 2, t1);
-            }
-        else
-            for( ; i <= len - 4; i += 4 )
-            {
-                __m128d t0 = _mm_loadu_pd(src + i), t1 = _mm_loadu_pd(src + i + 2);
-                t0 = _mm_sqrt_pd(t0); t1 = _mm_sqrt_pd(t1);
-                _mm_storeu_pd(dst + i, t0); _mm_storeu_pd(dst + i + 2, t1);
-            }
-    }
-#endif
 
     for( ; i < len; i++ )
         dst[i] = std::sqrt(src[i]);
@@ -379,123 +199,6 @@ void magnitude( InputArray src1, InputArray src2, OutputArray dst )
 }
 
 
-void phase( InputArray src1, InputArray src2, OutputArray dst, bool angleInDegrees )
-{
-    Mat X = src1.getMat(), Y = src2.getMat();
-    int type = X.type(), depth = X.depth(), cn = X.channels();
-    CV_Assert( X.size == Y.size && type == Y.type() && (depth == CV_32F || depth == CV_64F));
-    dst.create( X.dims, X.size, type );
-    Mat Angle = dst.getMat();
-
-    const Mat* arrays[] = {&X, &Y, &Angle, 0};
-    uchar* ptrs[3];
-    NAryMatIterator it(arrays, ptrs);
-    cv::AutoBuffer<float> _buf;
-    float* buf[2] = {0, 0};
-    int j, k, total = (int)(it.size*cn), blockSize = total;
-    size_t esz1 = X.elemSize1();
-
-    if( depth == CV_64F )
-    {
-        blockSize = std::min(blockSize, ((BLOCK_SIZE+cn-1)/cn)*cn);
-        _buf.allocate(blockSize*2);
-        buf[0] = _buf;
-        buf[1] = buf[0] + blockSize;
-    }
-
-    for( size_t i = 0; i < it.nplanes; i++, ++it )
-    {
-        for( j = 0; j < total; j += blockSize )
-        {
-            int len = std::min(total - j, blockSize);
-            if( depth == CV_32F )
-            {
-                const float *x = (const float*)ptrs[0], *y = (const float*)ptrs[1];
-                float *angle = (float*)ptrs[2];
-                FastAtan2_32f( y, x, angle, len, angleInDegrees );
-            }
-            else
-            {
-                const double *x = (const double*)ptrs[0], *y = (const double*)ptrs[1];
-                double *angle = (double*)ptrs[2];
-                for( k = 0; k < len; k++ )
-                {
-                    buf[0][k] = (float)x[k];
-                    buf[1][k] = (float)y[k];
-                }
-
-                FastAtan2_32f( buf[1], buf[0], buf[0], len, angleInDegrees );
-                for( k = 0; k < len; k++ )
-                    angle[k] = buf[0][k];
-            }
-            ptrs[0] += len*esz1;
-            ptrs[1] += len*esz1;
-            ptrs[2] += len*esz1;
-        }
-    }
-}
-
-
-void cartToPolar( InputArray src1, InputArray src2,
-                  OutputArray dst1, OutputArray dst2, bool angleInDegrees )
-{
-    Mat X = src1.getMat(), Y = src2.getMat();
-    int type = X.type(), depth = X.depth(), cn = X.channels();
-    CV_Assert( X.size == Y.size && type == Y.type() && (depth == CV_32F || depth == CV_64F));
-    dst1.create( X.dims, X.size, type );
-    dst2.create( X.dims, X.size, type );
-    Mat Mag = dst1.getMat(), Angle = dst2.getMat();
-
-    const Mat* arrays[] = {&X, &Y, &Mag, &Angle, 0};
-    uchar* ptrs[4];
-    NAryMatIterator it(arrays, ptrs);
-    cv::AutoBuffer<float> _buf;
-    float* buf[2] = {0, 0};
-    int j, k, total = (int)(it.size*cn), blockSize = std::min(total, ((BLOCK_SIZE+cn-1)/cn)*cn);
-    size_t esz1 = X.elemSize1();
-
-    if( depth == CV_64F )
-    {
-        _buf.allocate(blockSize*2);
-        buf[0] = _buf;
-        buf[1] = buf[0] + blockSize;
-    }
-
-    for( size_t i = 0; i < it.nplanes; i++, ++it )
-    {
-        for( j = 0; j < total; j += blockSize )
-        {
-            int len = std::min(total - j, blockSize);
-            if( depth == CV_32F )
-            {
-                const float *x = (const float*)ptrs[0], *y = (const float*)ptrs[1];
-                float *mag = (float*)ptrs[2], *angle = (float*)ptrs[3];
-                Magnitude_32f( x, y, mag, len );
-                FastAtan2_32f( y, x, angle, len, angleInDegrees );
-            }
-            else
-            {
-                const double *x = (const double*)ptrs[0], *y = (const double*)ptrs[1];
-                double *angle = (double*)ptrs[3];
-
-                Magnitude_64f(x, y, (double*)ptrs[2], len);
-                for( k = 0; k < len; k++ )
-                {
-                    buf[0][k] = (float)x[k];
-                    buf[1][k] = (float)y[k];
-                }
-
-                FastAtan2_32f( buf[1], buf[0], buf[0], len, angleInDegrees );
-                for( k = 0; k < len; k++ )
-                    angle[k] = buf[0][k];
-            }
-            ptrs[0] += len*esz1;
-            ptrs[1] += len*esz1;
-            ptrs[2] += len*esz1;
-            ptrs[3] += len*esz1;
-        }
-    }
-}
 
 
 /****************************************************************************************\
@@ -582,79 +285,6 @@ static void SinCos_32f( const float *angle, float *sinval, float* cosval,
 }
 
 
-void polarToCart( InputArray src1, InputArray src2,
-                  OutputArray dst1, OutputArray dst2, bool angleInDegrees )
-{
-    Mat Mag = src1.getMat(), Angle = src2.getMat();
-    int type = Angle.type(), depth = Angle.depth(), cn = Angle.channels();
-    CV_Assert( Mag.empty() || (Angle.size == Mag.size && type == Mag.type() && (depth == CV_32F || depth == CV_64F)));
-    dst1.create( Angle.dims, Angle.size, type );
-    dst2.create( Angle.dims, Angle.size, type );
-    Mat X = dst1.getMat(), Y = dst2.getMat();
-
-    const Mat* arrays[] = {&Mag, &Angle, &X, &Y, 0};
-    uchar* ptrs[4];
-    NAryMatIterator it(arrays, ptrs);
-    cv::AutoBuffer<float> _buf;
-    float* buf[2] = {0, 0};
-    int j, k, total = (int)(it.size*cn), blockSize = std::min(total, ((BLOCK_SIZE+cn-1)/cn)*cn);
-    size_t esz1 = Angle.elemSize1();
-
-    if( depth == CV_64F )
-    {
-        _buf.allocate(blockSize*2);
-        buf[0] = _buf;
-        buf[1] = buf[0] + blockSize;
-    }
-
-    for( size_t i = 0; i < it.nplanes; i++, ++it )
-    {
-        for( j = 0; j < total; j += blockSize )
-        {
-            int len = std::min(total - j, blockSize);
-            if( depth == CV_32F )
-            {
-                const float *mag = (const float*)ptrs[0], *angle = (const float*)ptrs[1];
-                float *x = (float*)ptrs[2], *y = (float*)ptrs[3];
-
-                SinCos_32f( angle, y, x, len, angleInDegrees );
-                if( mag )
-                    for( k = 0; k < len; k++ )
-                    {
-                        float m = mag[k];
-                        x[k] *= m; y[k] *= m;
-                    }
-            }
-            else
-            {
-                const double *mag = (const double*)ptrs[0], *angle = (const double*)ptrs[1];
-                double *x = (double*)ptrs[2], *y = (double*)ptrs[3];
-
-                for( k = 0; k < len; k++ )
-                    buf[0][k] = (float)angle[k];
-
-                SinCos_32f( buf[0], buf[1], buf[0], len, angleInDegrees );
-                if( mag )
-                    for( k = 0; k < len; k++ )
-                    {
-                        double m = mag[k];
-                        x[k] = buf[0][k]*m; y[k] = buf[1][k]*m;
-                    }
-                else
-                    for( k = 0; k < len; k++ )
-                    {
-                        x[k] = buf[0][k]; y[k] = buf[1][k];
-                    }
-            }
-
-            if( ptrs[0] )
-                ptrs[0] += len*esz1;
-            ptrs[1] += len*esz1;
-            ptrs[2] += len*esz1;
-            ptrs[3] += len*esz1;
-        }
-    }
-}
 
 /****************************************************************************************\
 *                                          E X P                                         *
@@ -750,12 +380,7 @@ static const double expTab[] = {
 };
 
 
-// the code below uses _mm_cast* intrinsics, which are not avialable on VS2005
-#if (defined _MSC_VER && _MSC_VER < 1500) || \
-    (!defined __APPLE__ && defined __GNUC__ && __GNUC__*100 + __GNUC_MINOR__ < 402)
-#undef CV_SSE2
-#define CV_SSE2 0
-#endif
+
 
 static const double exp_prescale = 1.4426950408889634073599246810019 * (1 << EXPTAB_SCALE);
 static const double exp_postscale = 1./(1 << EXPTAB_SCALE);
@@ -777,111 +402,7 @@ static void Exp_32f( const float *_x, float *y, int n )
     const Cv32suf* x = (const Cv32suf*)_x;
     Cv32suf buf[4];
 
-#if CV_SSE2
-    if( n >= 8 && USE_SSE2 )
-    {
-        static const __m128d prescale2 = _mm_set1_pd(exp_prescale);
-        static const __m128 postscale4 = _mm_set1_ps((float)exp_postscale);
-        static const __m128 maxval4 = _mm_set1_ps((float)(exp_max_val/exp_prescale));
-        static const __m128 minval4 = _mm_set1_ps((float)(-exp_max_val/exp_prescale));
 
-        static const __m128 mA1 = _mm_set1_ps(A1);
-        static const __m128 mA2 = _mm_set1_ps(A2);
-        static const __m128 mA3 = _mm_set1_ps(A3);
-        static const __m128 mA4 = _mm_set1_ps(A4);
-        bool y_aligned = (size_t)(void*)y % 16 == 0;
-
-        ushort CV_DECL_ALIGNED(16) tab_idx[8];
-
-        for( ; i <= n - 8; i += 8 )
-        {
-            __m128 xf0, xf1;
-            xf0 = _mm_loadu_ps(&x[i].f);
-            xf1 = _mm_loadu_ps(&x[i+4].f);
-            __m128i xi0, xi1, xi2, xi3;
-
-            xf0 = _mm_min_ps(_mm_max_ps(xf0, minval4), maxval4);
-            xf1 = _mm_min_ps(_mm_max_ps(xf1, minval4), maxval4);
-
-            __m128d xd0 = _mm_cvtps_pd(xf0);
-            __m128d xd2 = _mm_cvtps_pd(_mm_movehl_ps(xf0, xf0));
-            __m128d xd1 = _mm_cvtps_pd(xf1);
-            __m128d xd3 = _mm_cvtps_pd(_mm_movehl_ps(xf1, xf1));
-
-            xd0 = _mm_mul_pd(xd0, prescale2);
-            xd2 = _mm_mul_pd(xd2, prescale2);
-            xd1 = _mm_mul_pd(xd1, prescale2);
-            xd3 = _mm_mul_pd(xd3, prescale2);
-
-            xi0 = _mm_cvtpd_epi32(xd0);
-            xi2 = _mm_cvtpd_epi32(xd2);
-
-            xi1 = _mm_cvtpd_epi32(xd1);
-            xi3 = _mm_cvtpd_epi32(xd3);
-
-            xd0 = _mm_sub_pd(xd0, _mm_cvtepi32_pd(xi0));
-            xd2 = _mm_sub_pd(xd2, _mm_cvtepi32_pd(xi2));
-            xd1 = _mm_sub_pd(xd1, _mm_cvtepi32_pd(xi1));
-            xd3 = _mm_sub_pd(xd3, _mm_cvtepi32_pd(xi3));
-
-            xf0 = _mm_movelh_ps(_mm_cvtpd_ps(xd0), _mm_cvtpd_ps(xd2));
-            xf1 = _mm_movelh_ps(_mm_cvtpd_ps(xd1), _mm_cvtpd_ps(xd3));
-
-            xf0 = _mm_mul_ps(xf0, postscale4);
-            xf1 = _mm_mul_ps(xf1, postscale4);
-
-            xi0 = _mm_unpacklo_epi64(xi0, xi2);
-            xi1 = _mm_unpacklo_epi64(xi1, xi3);
-            xi0 = _mm_packs_epi32(xi0, xi1);
-
-            _mm_store_si128((__m128i*)tab_idx, _mm_and_si128(xi0, _mm_set1_epi16(EXPTAB_MASK)));
-
-            xi0 = _mm_add_epi16(_mm_srai_epi16(xi0, EXPTAB_SCALE), _mm_set1_epi16(127));
-            xi0 = _mm_max_epi16(xi0, _mm_setzero_si128());
-            xi0 = _mm_min_epi16(xi0, _mm_set1_epi16(255));
-            xi1 = _mm_unpackhi_epi16(xi0, _mm_setzero_si128());
-            xi0 = _mm_unpacklo_epi16(xi0, _mm_setzero_si128());
-
-            __m128d yd0 = _mm_unpacklo_pd(_mm_load_sd(expTab + tab_idx[0]), _mm_load_sd(expTab + tab_idx[1]));
-            __m128d yd1 = _mm_unpacklo_pd(_mm_load_sd(expTab + tab_idx[2]), _mm_load_sd(expTab + tab_idx[3]));
-            __m128d yd2 = _mm_unpacklo_pd(_mm_load_sd(expTab + tab_idx[4]), _mm_load_sd(expTab + tab_idx[5]));
-            __m128d yd3 = _mm_unpacklo_pd(_mm_load_sd(expTab + tab_idx[6]), _mm_load_sd(expTab + tab_idx[7]));
-
-            __m128 yf0 = _mm_movelh_ps(_mm_cvtpd_ps(yd0), _mm_cvtpd_ps(yd1));
-            __m128 yf1 = _mm_movelh_ps(_mm_cvtpd_ps(yd2), _mm_cvtpd_ps(yd3));
-
-            yf0 = _mm_mul_ps(yf0, _mm_castsi128_ps(_mm_slli_epi32(xi0, 23)));
-            yf1 = _mm_mul_ps(yf1, _mm_castsi128_ps(_mm_slli_epi32(xi1, 23)));
-
-            __m128 zf0 = _mm_add_ps(xf0, mA1);
-            __m128 zf1 = _mm_add_ps(xf1, mA1);
-
-            zf0 = _mm_add_ps(_mm_mul_ps(zf0, xf0), mA2);
-            zf1 = _mm_add_ps(_mm_mul_ps(zf1, xf1), mA2);
-
-            zf0 = _mm_add_ps(_mm_mul_ps(zf0, xf0), mA3);
-            zf1 = _mm_add_ps(_mm_mul_ps(zf1, xf1), mA3);
-
-            zf0 = _mm_add_ps(_mm_mul_ps(zf0, xf0), mA4);
-            zf1 = _mm_add_ps(_mm_mul_ps(zf1, xf1), mA4);
-
-            zf0 = _mm_mul_ps(zf0, yf0);
-            zf1 = _mm_mul_ps(zf1, yf1);
-
-            if( y_aligned )
-            {
-                _mm_store_ps(y + i, zf0);
-                _mm_store_ps(y + i + 4, zf1);
-            }
-            else
-            {
-                _mm_storeu_ps(y + i, zf0);
-                _mm_storeu_ps(y + i + 4, zf1);
-            }
-        }
-    }
-    else
-#endif
     for( ; i <= n - 4; i += 4 )
     {
         double x0 = x[i].f * exp_prescale;
@@ -978,77 +499,7 @@ static void Exp_64f( const double *_x, double *y, int n )
     Cv64suf buf[4];
     const Cv64suf* x = (const Cv64suf*)_x;
 
-#if CV_SSE2
-    if( USE_SSE2 )
-    {
-        static const __m128d prescale2 = _mm_set1_pd(exp_prescale);
-        static const __m128d postscale2 = _mm_set1_pd(exp_postscale);
-        static const __m128d maxval2 = _mm_set1_pd(exp_max_val);
-        static const __m128d minval2 = _mm_set1_pd(-exp_max_val);
 
-        static const __m128d mA0 = _mm_set1_pd(A0);
-        static const __m128d mA1 = _mm_set1_pd(A1);
-        static const __m128d mA2 = _mm_set1_pd(A2);
-        static const __m128d mA3 = _mm_set1_pd(A3);
-        static const __m128d mA4 = _mm_set1_pd(A4);
-        static const __m128d mA5 = _mm_set1_pd(A5);
-
-        int CV_DECL_ALIGNED(16) tab_idx[4];
-
-        for( ; i <= n - 4; i += 4 )
-        {
-            __m128d xf0 = _mm_loadu_pd(&x[i].f), xf1 = _mm_loadu_pd(&x[i+2].f);
-            __m128i xi0, xi1;
-            xf0 = _mm_min_pd(_mm_max_pd(xf0, minval2), maxval2);
-            xf1 = _mm_min_pd(_mm_max_pd(xf1, minval2), maxval2);
-            xf0 = _mm_mul_pd(xf0, prescale2);
-            xf1 = _mm_mul_pd(xf1, prescale2);
-
-            xi0 = _mm_cvtpd_epi32(xf0);
-            xi1 = _mm_cvtpd_epi32(xf1);
-            xf0 = _mm_mul_pd(_mm_sub_pd(xf0, _mm_cvtepi32_pd(xi0)), postscale2);
-            xf1 = _mm_mul_pd(_mm_sub_pd(xf1, _mm_cvtepi32_pd(xi1)), postscale2);
-
-            xi0 = _mm_unpacklo_epi64(xi0, xi1);
-            _mm_store_si128((__m128i*)tab_idx, _mm_and_si128(xi0, _mm_set1_epi32(EXPTAB_MASK)));
-
-            xi0 = _mm_add_epi32(_mm_srai_epi32(xi0, EXPTAB_SCALE), _mm_set1_epi32(1023));
-            xi0 = _mm_packs_epi32(xi0, xi0);
-            xi0 = _mm_max_epi16(xi0, _mm_setzero_si128());
-            xi0 = _mm_min_epi16(xi0, _mm_set1_epi16(2047));
-            xi0 = _mm_unpacklo_epi16(xi0, _mm_setzero_si128());
-            xi1 = _mm_unpackhi_epi32(xi0, _mm_setzero_si128());
-            xi0 = _mm_unpacklo_epi32(xi0, _mm_setzero_si128());
-
-            __m128d yf0 = _mm_unpacklo_pd(_mm_load_sd(expTab + tab_idx[0]), _mm_load_sd(expTab + tab_idx[1]));
-            __m128d yf1 = _mm_unpacklo_pd(_mm_load_sd(expTab + tab_idx[2]), _mm_load_sd(expTab + tab_idx[3]));
-            yf0 = _mm_mul_pd(yf0, _mm_castsi128_pd(_mm_slli_epi64(xi0, 52)));
-            yf1 = _mm_mul_pd(yf1, _mm_castsi128_pd(_mm_slli_epi64(xi1, 52)));
-
-            __m128d zf0 = _mm_add_pd(_mm_mul_pd(mA0, xf0), mA1);
-            __m128d zf1 = _mm_add_pd(_mm_mul_pd(mA0, xf1), mA1);
-
-            zf0 = _mm_add_pd(_mm_mul_pd(zf0, xf0), mA2);
-            zf1 = _mm_add_pd(_mm_mul_pd(zf1, xf1), mA2);
-
-            zf0 = _mm_add_pd(_mm_mul_pd(zf0, xf0), mA3);
-            zf1 = _mm_add_pd(_mm_mul_pd(zf1, xf1), mA3);
-
-            zf0 = _mm_add_pd(_mm_mul_pd(zf0, xf0), mA4);
-            zf1 = _mm_add_pd(_mm_mul_pd(zf1, xf1), mA4);
-
-            zf0 = _mm_add_pd(_mm_mul_pd(zf0, xf0), mA5);
-            zf1 = _mm_add_pd(_mm_mul_pd(zf1, xf1), mA5);
-
-            zf0 = _mm_mul_pd(zf0, yf0);
-            zf1 = _mm_mul_pd(zf1, yf1);
-
-            _mm_storeu_pd(y + i, zf0);
-            _mm_storeu_pd(y + i + 2, zf1);
-        }
-    }
-    else
-#endif
     for( ; i <= n - 4; i += 4 )
     {
         double x0 = x[i].f * exp_prescale;
@@ -1460,61 +911,7 @@ static void Log_32f( const float *_x, float *y, int n )
     Cv32suf buf[4];
     const int* x = (const int*)_x;
 
-#if CV_SSE2
-    if( USE_SSE2 )
-    {
-        static const __m128d ln2_2 = _mm_set1_pd(ln_2);
-        static const __m128 _1_4 = _mm_set1_ps(1.f);
-        static const __m128 shift4 = _mm_set1_ps(-1.f/512);
 
-        static const __m128 mA0 = _mm_set1_ps(A0);
-        static const __m128 mA1 = _mm_set1_ps(A1);
-        static const __m128 mA2 = _mm_set1_ps(A2);
-
-        int CV_DECL_ALIGNED(16) idx[4];
-
-        for( ; i <= n - 4; i += 4 )
-        {
-            __m128i h0 = _mm_loadu_si128((const __m128i*)(x + i));
-            __m128i yi0 = _mm_sub_epi32(_mm_and_si128(_mm_srli_epi32(h0, 23), _mm_set1_epi32(255)), _mm_set1_epi32(127));
-            __m128d yd0 = _mm_mul_pd(_mm_cvtepi32_pd(yi0), ln2_2);
-            __m128d yd1 = _mm_mul_pd(_mm_cvtepi32_pd(_mm_unpackhi_epi64(yi0,yi0)), ln2_2);
-
-            __m128i xi0 = _mm_or_si128(_mm_and_si128(h0, _mm_set1_epi32(LOGTAB_MASK2_32F)), _mm_set1_epi32(127 << 23));
-
-            h0 = _mm_and_si128(_mm_srli_epi32(h0, 23 - LOGTAB_SCALE - 1), _mm_set1_epi32(LOGTAB_MASK*2));
-            _mm_store_si128((__m128i*)idx, h0);
-            h0 = _mm_cmpeq_epi32(h0, _mm_set1_epi32(510));
-
-            __m128d t0, t1, t2, t3, t4;
-            t0 = _mm_load_pd(icvLogTab + idx[0]);
-            t2 = _mm_load_pd(icvLogTab + idx[1]);
-            t1 = _mm_unpackhi_pd(t0, t2);
-            t0 = _mm_unpacklo_pd(t0, t2);
-            t2 = _mm_load_pd(icvLogTab + idx[2]);
-            t4 = _mm_load_pd(icvLogTab + idx[3]);
-            t3 = _mm_unpackhi_pd(t2, t4);
-            t2 = _mm_unpacklo_pd(t2, t4);
-
-            yd0 = _mm_add_pd(yd0, t0);
-            yd1 = _mm_add_pd(yd1, t2);
-
-            __m128 yf0 = _mm_movelh_ps(_mm_cvtpd_ps(yd0), _mm_cvtpd_ps(yd1));
-
-            __m128 xf0 = _mm_sub_ps(_mm_castsi128_ps(xi0), _1_4);
-            xf0 = _mm_mul_ps(xf0, _mm_movelh_ps(_mm_cvtpd_ps(t1), _mm_cvtpd_ps(t3)));
-            xf0 = _mm_add_ps(xf0, _mm_and_ps(_mm_castsi128_ps(h0), shift4));
-
-            __m128 zf0 = _mm_mul_ps(xf0, mA0);
-            zf0 = _mm_mul_ps(_mm_add_ps(zf0, mA1), xf0);
-            zf0 = _mm_mul_ps(_mm_add_ps(zf0, mA2), xf0);
-            yf0 = _mm_add_ps(yf0, zf0);
-
-            _mm_storeu_ps(y + i, yf0);
-        }
-    }
-    else
-#endif
     for( ; i <= n - 4; i += 4 )
     {
         double x0, x1, x2, x3;
@@ -1616,91 +1013,6 @@ static void Log_64f( const double *x, double *y, int n )
     DBLINT buf[4];
     DBLINT *X = (DBLINT *) x;
 
-#if CV_SSE2
-    if( USE_SSE2 )
-    {
-        static const __m128d ln2_2 = _mm_set1_pd(ln_2);
-        static const __m128d _1_2 = _mm_set1_pd(1.);
-        static const __m128d shift2 = _mm_set1_pd(-1./512);
-
-        static const __m128i log_and_mask2 = _mm_set_epi32(LOGTAB_MASK2, 0xffffffff, LOGTAB_MASK2, 0xffffffff);
-        static const __m128i log_or_mask2 = _mm_set_epi32(1023 << 20, 0, 1023 << 20, 0);
-
-        static const __m128d mA0 = _mm_set1_pd(A0);
-        static const __m128d mA1 = _mm_set1_pd(A1);
-        static const __m128d mA2 = _mm_set1_pd(A2);
-        static const __m128d mA3 = _mm_set1_pd(A3);
-        static const __m128d mA4 = _mm_set1_pd(A4);
-        static const __m128d mA5 = _mm_set1_pd(A5);
-        static const __m128d mA6 = _mm_set1_pd(A6);
-        static const __m128d mA7 = _mm_set1_pd(A7);
-
-        int CV_DECL_ALIGNED(16) idx[4];
-
-        for( ; i <= n - 4; i += 4 )
-        {
-            __m128i h0 = _mm_loadu_si128((const __m128i*)(x + i));
-            __m128i h1 = _mm_loadu_si128((const __m128i*)(x + i + 2));
-
-            __m128d xd0 = _mm_castsi128_pd(_mm_or_si128(_mm_and_si128(h0, log_and_mask2), log_or_mask2));
-            __m128d xd1 = _mm_castsi128_pd(_mm_or_si128(_mm_and_si128(h1, log_and_mask2), log_or_mask2));
-
-            h0 = _mm_unpackhi_epi32(_mm_unpacklo_epi32(h0, h1), _mm_unpackhi_epi32(h0, h1));
-
-            __m128i yi0 = _mm_sub_epi32(_mm_and_si128(_mm_srli_epi32(h0, 20),
-                                    _mm_set1_epi32(2047)), _mm_set1_epi32(1023));
-            __m128d yd0 = _mm_mul_pd(_mm_cvtepi32_pd(yi0), ln2_2);
-            __m128d yd1 = _mm_mul_pd(_mm_cvtepi32_pd(_mm_unpackhi_epi64(yi0, yi0)), ln2_2);
-
-            h0 = _mm_and_si128(_mm_srli_epi32(h0, 20 - LOGTAB_SCALE - 1), _mm_set1_epi32(LOGTAB_MASK * 2));
-            _mm_store_si128((__m128i*)idx, h0);
-            h0 = _mm_cmpeq_epi32(h0, _mm_set1_epi32(510));
-
-            __m128d t0, t1, t2, t3, t4;
-            t0 = _mm_load_pd(icvLogTab + idx[0]);
-            t2 = _mm_load_pd(icvLogTab + idx[1]);
-            t1 = _mm_unpackhi_pd(t0, t2);
-            t0 = _mm_unpacklo_pd(t0, t2);
-            t2 = _mm_load_pd(icvLogTab + idx[2]);
-            t4 = _mm_load_pd(icvLogTab + idx[3]);
-            t3 = _mm_unpackhi_pd(t2, t4);
-            t2 = _mm_unpacklo_pd(t2, t4);
-
-            yd0 = _mm_add_pd(yd0, t0);
-            yd1 = _mm_add_pd(yd1, t2);
-
-            xd0 = _mm_mul_pd(_mm_sub_pd(xd0, _1_2), t1);
-            xd1 = _mm_mul_pd(_mm_sub_pd(xd1, _1_2), t3);
-
-            xd0 = _mm_add_pd(xd0, _mm_and_pd(_mm_castsi128_pd(_mm_unpacklo_epi32(h0, h0)), shift2));
-            xd1 = _mm_add_pd(xd1, _mm_and_pd(_mm_castsi128_pd(_mm_unpackhi_epi32(h0, h0)), shift2));
-
-            __m128d zd0 = _mm_mul_pd(xd0, mA0);
-            __m128d zd1 = _mm_mul_pd(xd1, mA0);
-            zd0 = _mm_mul_pd(_mm_add_pd(zd0, mA1), xd0);
-            zd1 = _mm_mul_pd(_mm_add_pd(zd1, mA1), xd1);
-            zd0 = _mm_mul_pd(_mm_add_pd(zd0, mA2), xd0);
-            zd1 = _mm_mul_pd(_mm_add_pd(zd1, mA2), xd1);
-            zd0 = _mm_mul_pd(_mm_add_pd(zd0, mA3), xd0);
-            zd1 = _mm_mul_pd(_mm_add_pd(zd1, mA3), xd1);
-            zd0 = _mm_mul_pd(_mm_add_pd(zd0, mA4), xd0);
-            zd1 = _mm_mul_pd(_mm_add_pd(zd1, mA4), xd1);
-            zd0 = _mm_mul_pd(_mm_add_pd(zd0, mA5), xd0);
-            zd1 = _mm_mul_pd(_mm_add_pd(zd1, mA5), xd1);
-            zd0 = _mm_mul_pd(_mm_add_pd(zd0, mA6), xd0);
-            zd1 = _mm_mul_pd(_mm_add_pd(zd1, mA6), xd1);
-            zd0 = _mm_mul_pd(_mm_add_pd(zd0, mA7), xd0);
-            zd1 = _mm_mul_pd(_mm_add_pd(zd1, mA7), xd1);
-
-            yd0 = _mm_add_pd(yd0, zd0);
-            yd1 = _mm_add_pd(yd1, zd1);
-
-            _mm_storeu_pd(y + i, yd0);
-            _mm_storeu_pd(y + i + 2, yd1);
-        }
-    }
-    else
-#endif
     for( ; i <= n - 4; i += 4 )
     {
         double xq;
@@ -1992,194 +1304,6 @@ void sqrt(InputArray a, OutputArray b)
 
 /************************** CheckArray for NaN's, Inf's *********************************/
 
-template<int cv_mat_type> struct mat_type_assotiations{};
-
-template<> struct mat_type_assotiations<CV_8U>
-{
-    typedef unsigned char type;
-    static const type min_allowable = 0x0;
-    static const type max_allowable = 0xFF;
-};
-
-template<> struct mat_type_assotiations<CV_8S>
-{
-    typedef signed char type;
-    static const type min_allowable = SCHAR_MIN;
-    static const type max_allowable = SCHAR_MAX;
-};
-
-template<> struct mat_type_assotiations<CV_16U>
-{
-    typedef unsigned short type;
-    static const type min_allowable = 0x0;
-    static const type max_allowable = USHRT_MAX;
-};
-template<> struct mat_type_assotiations<CV_16S>
-{
-    typedef signed short type;
-    static const type min_allowable = SHRT_MIN;
-    static const type max_allowable = SHRT_MAX;
-};
-
-template<> struct mat_type_assotiations<CV_32S>
-{
-    typedef int type;
-    static const type min_allowable = (-INT_MAX - 1);
-    static const type max_allowable = INT_MAX;
-};
-
-// inclusive maxVal !!!
-template<int depth>
-bool checkIntegerRange(cv::Mat src, Point& bad_pt, int minVal, int maxVal, double& bad_value)
-{
-    typedef mat_type_assotiations<depth> type_ass;
-
-    if (minVal < type_ass::min_allowable && maxVal > type_ass::max_allowable)
-    {
-        return true;
-    }
-    else if (minVal > type_ass::max_allowable || maxVal < type_ass::min_allowable || maxVal < minVal)
-    {
-        bad_pt = cv::Point(0,0);
-        return false;
-    }
-    cv::Mat as_one_channel = src.reshape(1,0);
-
-    for (int j = 0; j < as_one_channel.rows; ++j)
-        for (int i = 0; i < as_one_channel.cols; ++i)
-        {
-            if (as_one_channel.at<typename type_ass::type>(j ,i) < minVal || as_one_channel.at<typename type_ass::type>(j ,i) > maxVal)
-            {
-                bad_pt.y = j ;
-                bad_pt.x = i % src.channels();
-                bad_value = as_one_channel.at<typename type_ass::type>(j ,i);
-                return false;
-            }
-        }
-    bad_value = 0.0;
-
-    return true;
-}
-
-typedef bool (*check_range_function)(cv::Mat src, Point& bad_pt, int minVal, int maxVal, double& bad_value);
-
-check_range_function check_range_functions[] =
-{
-    &checkIntegerRange<CV_8U>,
-    &checkIntegerRange<CV_8S>,
-    &checkIntegerRange<CV_16U>,
-    &checkIntegerRange<CV_16S>,
-    &checkIntegerRange<CV_32S>
-};
-
-bool checkRange(InputArray _src, bool quiet, Point* pt, double minVal, double maxVal)
-{
-    Mat src = _src.getMat();
-
-    if ( src.dims > 2 )
-    {
-        const Mat* arrays[] = {&src, 0};
-        Mat planes[1];
-        NAryMatIterator it(arrays, planes);
-
-        for ( size_t i = 0; i < it.nplanes; i++, ++it )
-        {
-            if (!checkRange( it.planes[0], quiet, pt, minVal, maxVal ))
-            {
-                // todo: set index properly
-                return false;
-            }
-        }
-        return true;
-    }
-
-    int depth = src.depth();
-    Point badPt(-1, -1);
-    double badValue = 0;
-
-    if (depth < CV_32F)
-    {
-        // see "Bug #1784"
-        int minVali = minVal<(-INT_MAX - 1) ? (-INT_MAX - 1) : cvFloor(minVal);
-        int maxVali = maxVal>INT_MAX ? INT_MAX : cvCeil(maxVal) - 1; // checkIntegerRang() use inclusive maxVal
-
-        (check_range_functions[depth])(src, badPt, minVali, maxVali, badValue);
-    }
-    else
-    {
-        int i, loc = 0;
-        Size size = getContinuousSize( src, src.channels() );
-
-        if( depth == CV_32F )
-        {
-            Cv32suf a, b;
-            int ia, ib;
-            const int* isrc = (const int*)src.data;
-            size_t step = src.step/sizeof(isrc[0]);
-
-            a.f = (float)std::max(minVal, (double)-FLT_MAX);
-            b.f = (float)std::min(maxVal, (double)FLT_MAX);
-
-            ia = CV_TOGGLE_FLT(a.i);
-            ib = CV_TOGGLE_FLT(b.i);
-
-            for( ; badPt.x < 0 && size.height--; loc += size.width, isrc += step )
-            {
-                for( i = 0; i < size.width; i++ )
-                {
-                    int val = isrc[i];
-                    val = CV_TOGGLE_FLT(val);
-
-                    if( val < ia || val >= ib )
-                    {
-                        badPt = Point((loc + i) % src.cols, (loc + i) / src.cols);
-                        badValue = ((const float*)isrc)[i];
-                        break;
-                    }
-                }
-            }
-        }
-        else
-        {
-            Cv64suf a, b;
-            int64 ia, ib;
-            const int64* isrc = (const int64*)src.data;
-            size_t step = src.step/sizeof(isrc[0]);
-
-            a.f = minVal;
-            b.f = maxVal;
-
-            ia = CV_TOGGLE_DBL(a.i);
-            ib = CV_TOGGLE_DBL(b.i);
-
-            for( ; badPt.x < 0 && size.height--; loc += size.width, isrc += step )
-            {
-                for( i = 0; i < size.width; i++ )
-                {
-                    int64 val = isrc[i];
-                    val = CV_TOGGLE_DBL(val);
-
-                    if( val < ia || val >= ib )
-                    {
-                        badPt = Point((loc + i) % src.cols, (loc + i) / src.cols);
-                        badValue = ((const double*)isrc)[i];
-                        break;
-                    }
-                }
-            }
-        }
-    }
-
-    if( badPt.x >= 0 )
-    {
-        if( pt )
-            *pt = badPt;
-        if( !quiet )
-            CV_Error_( CV_StsOutOfRange,
-            ("the value at (%d, %d)=%g is out of range", badPt.x, badPt.y, badValue));
-    }
-    return badPt.x < 0;
-}
 
 
 void patchNaNs( InputOutputArray _a, double _val )
@@ -2229,70 +1353,8 @@ void magnitude(const float* x, const float* y, float* dst, int n)
 CV_IMPL float cvCbrt(float value) { return cv::cubeRoot(value); }
 CV_IMPL float cvFastArctan(float y, float x) { return cv::fastAtan2(y, x); }
 
-CV_IMPL void
-cvCartToPolar( const CvArr* xarr, const CvArr* yarr,
-               CvArr* magarr, CvArr* anglearr,
-               int angle_in_degrees )
-{
-    cv::Mat X = cv::cvarrToMat(xarr), Y = cv::cvarrToMat(yarr), Mag, Angle;
-    if( magarr )
-    {
-        Mag = cv::cvarrToMat(magarr);
-        CV_Assert( Mag.size() == X.size() && Mag.type() == X.type() );
-    }
-    if( anglearr )
-    {
-        Angle = cv::cvarrToMat(anglearr);
-        CV_Assert( Angle.size() == X.size() && Angle.type() == X.type() );
-    }
-    if( magarr )
-    {
-        if( anglearr )
-            cv::cartToPolar( X, Y, Mag, Angle, angle_in_degrees != 0 );
-        else
-            cv::magnitude( X, Y, Mag );
-    }
-    else
-        cv::phase( X, Y, Angle, angle_in_degrees != 0 );
-}
 
-CV_IMPL void
-cvPolarToCart( const CvArr* magarr, const CvArr* anglearr,
-               CvArr* xarr, CvArr* yarr, int angle_in_degrees )
-{
-    cv::Mat X, Y, Angle = cv::cvarrToMat(anglearr), Mag;
-    if( magarr )
-    {
-        Mag = cv::cvarrToMat(magarr);
-        CV_Assert( Mag.size() == Angle.size() && Mag.type() == Angle.type() );
-    }
-    if( xarr )
-    {
-        X = cv::cvarrToMat(xarr);
-        CV_Assert( X.size() == Angle.size() && X.type() == Angle.type() );
-    }
-    if( yarr )
-    {
-        Y = cv::cvarrToMat(yarr);
-        CV_Assert( Y.size() == Angle.size() && Y.type() == Angle.type() );
-    }
 
-    cv::polarToCart( Mag, Angle, X, Y, angle_in_degrees != 0 );
-}
-
-CV_IMPL void cvExp( const CvArr* srcarr, CvArr* dstarr )
-{
-    cv::Mat src = cv::cvarrToMat(srcarr), dst = cv::cvarrToMat(dstarr);
-    CV_Assert( src.type() == dst.type() && src.size == dst.size );
-    cv::exp( src, dst );
-}
-
-CV_IMPL void cvLog( const CvArr* srcarr, CvArr* dstarr )
-{
-    cv::Mat src = cv::cvarrToMat(srcarr), dst = cv::cvarrToMat(dstarr);
-    CV_Assert( src.type() == dst.type() && src.size == dst.size );
-    cv::log( src, dst );
-}
 
 CV_IMPL void cvPow( const CvArr* srcarr, CvArr* dstarr, double power )
 {
@@ -2301,13 +1363,6 @@ CV_IMPL void cvPow( const CvArr* srcarr, CvArr* dstarr, double power )
     cv::pow( src, power, dst );
 }
 
-CV_IMPL int cvCheckArr( const CvArr* arr, int flags,
-                        double minVal, double maxVal )
-{
-    if( (flags & CV_CHECK_RANGE) == 0 )
-        minVal = -DBL_MAX, maxVal = DBL_MAX;
-    return cv::checkRange(cv::cvarrToMat(arr), (flags & CV_CHECK_QUIET) != 0, 0, minVal, maxVal );
-}
 
 
 /*

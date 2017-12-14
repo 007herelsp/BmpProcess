@@ -393,8 +393,6 @@ enum
     CV_TM_CCOEFF_NORMED =5
 };
 
-typedef float (CV_CDECL * CvDistanceFunction)( const float* a, const float* b, void* user_param );
-
 /* Contour retrieval modes */
 enum
 {
@@ -422,15 +420,7 @@ It supports both hierarchical and plane variants of Suzuki algorithm.
 */
 typedef struct _CvContourScanner* CvContourScanner;
 
-/* Freeman chain reader state */
-typedef struct CvChainPtReader
-{
-    CV_SEQ_READER_FIELDS()
-    char      code;
-    CvPoint   pt;
-    schar     deltas[8][2];
-}
-CvChainPtReader;
+
 
 /* initializes 8-element array for fast access to 3x3 neighborhood of a pixel */
 #define  CV_INIT_3X3_DELTAS( deltas, step, nch )            \
@@ -440,77 +430,7 @@ CvChainPtReader;
      (deltas)[6] =  (step), (deltas)[7] =  (step) + (nch))
 
 
-/****************************************************************************************\
-*                              Planar subdivisions                                       *
-\****************************************************************************************/
 
-typedef size_t CvSubdiv2DEdge;
-
-#define CV_QUADEDGE2D_FIELDS()     \
-    int flags;                     \
-    struct CvSubdiv2DPoint* pt[4]; \
-    CvSubdiv2DEdge  next[4];
-
-#define CV_SUBDIV2D_POINT_FIELDS()\
-    int            flags;      \
-    CvSubdiv2DEdge first;      \
-    CvPoint2D32f   pt;         \
-    int id;
-
-#define CV_SUBDIV2D_VIRTUAL_POINT_FLAG (1 << 30)
-
-typedef struct CvQuadEdge2D
-{
-    CV_QUADEDGE2D_FIELDS()
-}
-CvQuadEdge2D;
-
-typedef struct CvSubdiv2DPoint
-{
-    CV_SUBDIV2D_POINT_FIELDS()
-}
-CvSubdiv2DPoint;
-
-#define CV_SUBDIV2D_FIELDS()    \
-    CV_GRAPH_FIELDS()           \
-    int  quad_edges;            \
-    int  is_geometry_valid;     \
-    CvSubdiv2DEdge recent_edge; \
-    CvPoint2D32f  topleft;      \
-    CvPoint2D32f  bottomright;
-
-typedef struct CvSubdiv2D
-{
-    CV_SUBDIV2D_FIELDS()
-}
-CvSubdiv2D;
-
-
-typedef enum CvSubdiv2DPointLocation
-{
-    CV_PTLOC_ERROR = -2,
-    CV_PTLOC_OUTSIDE_RECT = -1,
-    CV_PTLOC_INSIDE = 0,
-    CV_PTLOC_VERTEX = 1,
-    CV_PTLOC_ON_EDGE = 2
-}
-CvSubdiv2DPointLocation;
-
-typedef enum CvNextEdgeType
-{
-    CV_NEXT_AROUND_ORG   = 0x00,
-    CV_NEXT_AROUND_DST   = 0x22,
-    CV_PREV_AROUND_ORG   = 0x11,
-    CV_PREV_AROUND_DST   = 0x33,
-    CV_NEXT_AROUND_LEFT  = 0x13,
-    CV_NEXT_AROUND_RIGHT = 0x31,
-    CV_PREV_AROUND_LEFT  = 0x20,
-    CV_PREV_AROUND_RIGHT = 0x02
-}
-CvNextEdgeType;
-
-/* get the next edge with the same origin point (counterwise) */
-#define  CV_SUBDIV2D_NEXT_EDGE( edge )  (((CvQuadEdge2D*)((edge) & ~3))->next[(edge)&3])
 
 
 /* Contour approximation algorithms */
@@ -519,13 +439,7 @@ enum
     CV_POLY_APPROX_DP = 0
 };
 
-/* Shape matching methods */
-enum
-{
-    CV_CONTOURS_MATCH_I1  =1,
-    CV_CONTOURS_MATCH_I2  =2,
-    CV_CONTOURS_MATCH_I3  =3
-};
+
 
 /* Shape orientation */
 enum
@@ -555,33 +469,6 @@ enum
     CV_COMP_HELLINGER     =CV_COMP_BHATTACHARYYA
 };
 
-/* Mask size for distance transform */
-enum
-{
-    CV_DIST_MASK_3   =3,
-    CV_DIST_MASK_5   =5,
-    CV_DIST_MASK_PRECISE =0
-};
-
-/* Content of output label array: connected components or pixels */
-enum
-{
-  CV_DIST_LABEL_CCOMP = 0,
-  CV_DIST_LABEL_PIXEL = 1
-};
-
-/* Distance types for Distance Transform and M-estimators */
-enum
-{
-    CV_DIST_USER    =-1,  /* User defined distance */
-    CV_DIST_L1      =1,   /* distance = |x1-x2| + |y1-y2| */
-    CV_DIST_L2      =2,   /* the simple euclidean distance */
-    CV_DIST_C       =3,   /* distance = max(|x1-x2|,|y1-y2|) */
-    CV_DIST_L12     =4,   /* L1-L2 metric: distance = 2(sqrt(1+x*x/2) - 1)) */
-    CV_DIST_FAIR    =5,   /* distance = c^2(|x|/c-log(1+|x|/c)), c = 1.3998 */
-    CV_DIST_WELSCH  =6,   /* distance = c^2/2(1-exp(-(x/c)^2)), c = 2.9846 */
-    CV_DIST_HUBER   =7    /* distance = |x|<c ? x^2/2 : c(|x|-c/2), c=1.345 */
-};
 
 
 /* Threshold types */
@@ -604,13 +491,6 @@ enum
     CV_ADAPTIVE_THRESH_GAUSSIAN_C  =1
 };
 
-/* FloodFill flags */
-enum
-{
-    CV_FLOODFILL_FIXED_RANGE =(1 << 16),
-    CV_FLOODFILL_MASK_ONLY   =(1 << 17)
-};
-
 
 /* Canny edge detector flags */
 enum
@@ -618,20 +498,6 @@ enum
     CV_CANNY_L2_GRADIENT  =(1 << 31)
 };
 
-/* Variants of a Hough transform */
-enum
-{
-    CV_HOUGH_STANDARD =0,
-    CV_HOUGH_PROBABILISTIC =1,
-    CV_HOUGH_MULTI_SCALE =2,
-    CV_HOUGH_GRADIENT =3
-};
-
-
-/* Fast search data structures  */
-struct CvFeatureTree;
-struct CvLSH;
-struct CvLSHOperations;
 
 #ifdef __cplusplus
 }

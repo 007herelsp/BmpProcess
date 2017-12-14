@@ -244,15 +244,7 @@ static bool imwrite_( const string& filename, const Mat& image,
 
 }
 
-/****************************************************************************************\
-*                         HighGUI loading & saving function implementation               *
-\****************************************************************************************/
 
-CV_IMPL int cvHaveImageWriter( const char* filename )
-{
-    cv::ImageEncoder encoder = cv::findEncoder(filename);
-    return !encoder.empty();
-}
 
 CV_IMPL IplImage*
 cvLoadImage( const char* filename, int iscolor )
@@ -275,8 +267,5 @@ cvSaveImage( const char* filename, const CvArr* arr, const int* _params )
         CV_IS_IMAGE(arr) && ((const IplImage*)arr)->origin == IPL_ORIGIN_BL );
 }
 
- 
-
- 
 
 /* End of file. */
