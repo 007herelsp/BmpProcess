@@ -645,6 +645,17 @@ int main(int argc, char *args[])
         cvDilate(lpCannyImg, lpDilateImg, 0, 1);
         cvErode(lpDilateImg, lpDilateImg, 0, 1);
         cvSaveImage("lpDilateImg.bmp", lpDilateImg);
+
+        IplImage *pGrayImage = cvCreateImage(cvGetSize(lpTargetImg), IPL_DEPTH_8U, 1);
+        IplImage *pGrayEqualizeImage = cvCreateImage(cvGetSize(lpTargetImg), IPL_DEPTH_8U, 1);
+        cvSmooth(lpTargetImg, lpTargetImg, CV_GAUSSIAN, 3, 3, 0, 0); //高斯滤波
+        cvCvtColor(lpTargetImg, pGrayImage, CV_BGR2GRAY);
+        cvSaveImage("pGrayImage.bmp", pGrayImage);
+        cvEqualizeHist(pGrayImage, pGrayEqualizeImage);
+        cvSaveImage("pGrayEqualizeImage.bmp", pGrayEqualizeImage);
+
+        cvCanny(pGrayEqualizeImage, lpCannyImg, 0.5, 20, 3);
+        cvSaveImage("canny2.bmp", lpCannyImg);
     }
     //查找目标区域
     IplImage *lpOutImg = cvCloneImage(lpTargetImg);
@@ -768,6 +779,7 @@ int main(int argc, char *args[])
             //cvSmooth(gray, dst, CV_GAUSSIAN, 3, 3, 0, 0);
             cvShowImage("cvCanny", dst);
             cvSaveImage("canny.bmp", dst);
+
             if (!laplace) //创建需要创建的变量
             {
                 for (int i = 0; i < 3; i++)
