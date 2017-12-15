@@ -3,7 +3,7 @@ CXX = g++
 LD = g++ 
 INCLUDE_PATH=./include
 CFLAGS = -Wall -g  -pipe  -c  -I$(INCLUDE_PATH)
-CXXFLAGS  = -Wall -g -std=c++11 -pipe  -c  -I$(INCLUDE_PATH)
+CXXFLAGS  = -Wall -g -g3 -ggdb -std=c++11 -pipe  -c  -I$(INCLUDE_PATH)
 #LDFLAGS =   -lpthread    -ldl   -lrt
 #-lapr-1 for libapr
 OUT_DIR = ./build

@@ -53,7 +53,7 @@ void drawSquares(IplImage *img, CvSeq *squares)
         CV_READ_SEQ_ELEM(pt[3], reader);
 
         // draw the square as a closed polyline
-       // cvPolyLine(cpy, &rect, &count, 1, 1, CV_RGB(0, 0, 255), 2, CV_AA, 0);
+        // cvPolyLine(cpy, &rect, &count, 1, 1, CV_RGB(0, 0, 255), 2, CV_AA, 0);
     }
 
     cvShowImage("xx", cpy);
@@ -183,8 +183,6 @@ struct SymCmp
         }
     }
 };
-
-
 
 set<CvBox2D, SymCmp> SearchProcess(IplImage *lpSrcImg)
 {
@@ -343,7 +341,7 @@ set<Box, SymUBoxCmp> SearchProcess_v2(IplImage *lpSrcImg)
                         if (index >= 2)
                         {
                             t = fabs(angle(
-                                (CvPoint *)cvGetSeqElem(result, index%4),
+                                (CvPoint *)cvGetSeqElem(result, index % 4),
                                 (CvPoint *)cvGetSeqElem(result, index - 2),
                                 (CvPoint *)cvGetSeqElem(result, index - 1)));
                             s = s > t ? s : t;
@@ -426,12 +424,12 @@ int process(IplImage *lpImg, IplImage *lpTargetImg, int argc, char *argv[])
             {
                 srcTri[1].x = 0;
                 srcTri[1].y = 0;
-                srcTri[2].x = temp->width - 1 + 1; //缩小一个像素
+                srcTri[2].x = temp->width - 1 ; //缩小一个像素
                 srcTri[2].y = 0;
-                srcTri[3].x = temp->width - 1 + 1;
-                srcTri[3].y = temp->height - 1 + 1;
+                srcTri[3].x = temp->width - 1 ;
+                srcTri[3].y = temp->height - 1;
                 srcTri[0].x = 0; //bot right
-                srcTri[0].y = temp->height - 1 + 1;
+                srcTri[0].y = temp->height - 1;
             }
             else
             {
@@ -552,19 +550,19 @@ int process_v2(IplImage *lpImg, IplImage *lpTargetImg, int argc, char *argv[])
             {
                 CvPoint pt = cvPointFrom32f(dstTri[i]);
 
-               // cvCircle(lpTargetImg, pt, 4 + 4 * i, cvScalar(0, 0, 255), 1, 8, 0);
+                // cvCircle(lpTargetImg, pt, 4 + 4 * i, cvScalar(0, 0, 255), 1, 8, 0);
             }
             //计算矩阵仿射变换
             if (box.box.size.width > box.box.size.height)
             {
                 srcTri[1].x = 0;
                 srcTri[1].y = 0;
-                srcTri[2].x = temp->width - 1 + 1; //缩小一个像素
+                srcTri[2].x = temp->width - 1 ; //缩小一个像素
                 srcTri[2].y = 0;
-                srcTri[3].x = temp->width - 1 + 1;
-                srcTri[3].y = temp->height - 1 + 1;
+                srcTri[3].x = temp->width - 1 ;
+                srcTri[3].y = temp->height - 1 ;
                 srcTri[0].x = 0; //bot right
-                srcTri[0].y = temp->height - 1 + 1;
+                srcTri[0].y = temp->height - 1 ;
             }
             else
             {
@@ -612,8 +610,11 @@ int main(int argc, char *args[])
     IplImage *gray = cvCreateImage(cvGetSize(lpTargetImg), 8, 1);
     cvCvtColor(lpTargetImg, gray, CV_RGB2GRAY);
     IplImage *lpCannyImg = cvCreateImage(cvGetSize(lpTargetImg), 8, 1);
+    IplImage *tmp = cvCreateImage(cvGetSize(lpTargetImg), 8, 1);
     IplImage *lpDilateImg = cvCreateImage(cvGetSize(lpTargetImg), 8, 1);
-    cvSmooth(gray, gray, CV_GAUSSIAN, 3, 3, 0, 0); //高斯滤波
+    cvSmooth(gray, tmp, CV_BILATERAL, 3, 3, 0, 0); //高斯滤波
+    cvSaveImage("tmp.bmp", tmp);
+    printf("save\n");
     if (NULL != lpCannyImg && NULL != lpDilateImg)
     {
         cvCanny(lpTargetImg, lpCannyImg, 0.5, 20, 3);
@@ -653,7 +654,6 @@ int main(int argc, char *args[])
     cvReleaseImage(&lpCannyImg);
 
     return 0;
-
 }
 
 int main1(int argc, char **argv)
