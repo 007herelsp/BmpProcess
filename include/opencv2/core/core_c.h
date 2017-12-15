@@ -269,9 +269,6 @@ CVAPI(IplImage*) cvGetImage( const CvArr* arr, IplImage* image_header );
 
 
 
-/* Repeats source 2d array several times in both horizontal and
-   vertical direction to fill destination array */
-CVAPI(void) cvRepeat( const CvArr* src, CvArr* dst );
 
 /* Allocates array data */
 CVAPI(void)  cvCreateData( CvArr* arr );
@@ -561,12 +558,8 @@ CVAPI(void)  cvTranspose( const CvArr* src, CvArr* dst );
 /* Completes the symmetric matrix from the lower (LtoR=0) or from the upper (LtoR!=0) part */
 CVAPI(void)  cvCompleteSymm( CvMat* matrix, int LtoR CV_DEFAULT(0) );
 
-/* Mirror array data around horizontal (flip=0),
-   vertical (flip=1) or both(flip=-1) axises:
-   cvFlip(src) flips images vertically and sequences horizontally (inplace) */
-CVAPI(void)  cvFlip( const CvArr* src, CvArr* dst CV_DEFAULT(NULL),
-                     int flip_mode CV_DEFAULT(0));
-#define cvMirror cvFlip
+
+
 
 
 #define CV_SVD_MODIFY_A   1

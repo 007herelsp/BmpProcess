@@ -12,9 +12,7 @@ cvArcLength( const void *array, CvSlice slice, int is_closed )
     float buf[N];
     CvMat buffer = cvMat( 1, N, CV_32F, buf );
     CvSeqReader reader;
-    CvContour contour_header;
     CvSeq* contour = 0;
-    CvSeqBlock block;
 
     if( CV_IS_SEQ( array ))
     {
@@ -27,9 +25,7 @@ cvArcLength( const void *array, CvSlice slice, int is_closed )
     else
     {
         is_closed = is_closed > 0;
-        contour = cvPointSeqFromMat(
-            CV_SEQ_KIND_CURVE | (is_closed ? CV_SEQ_FLAG_CLOSED : 0),
-            array, &contour_header, &block );
+     CV_Error( CV_StsBadArg, "Unsupported sequence type" );
     }
 
     if( contour->total > 1 )
@@ -366,10 +362,7 @@ CV_IMPL double
 cvContourArea( const void *array, CvSlice slice, int oriented )
 {
     double area = 0;
-
-    CvContour contour_header;
     CvSeq* contour = 0;
-    CvSeqBlock block;
 
     if( CV_IS_SEQ( array ))
     {
@@ -379,7 +372,7 @@ cvContourArea( const void *array, CvSlice slice, int oriented )
     }
     else
     {
-        contour = cvPointSeqFromMat( CV_SEQ_KIND_CURVE, array, &contour_header, &block );
+       CV_Error( CV_StsBadArg, "Unsupported sequence type" );
     }
 
     if( cvSliceLength( slice, contour ) == contour->total )
@@ -406,9 +399,7 @@ cvBoundingRect( CvArr* array, int update )
 {
     CvSeqReader reader;
     CvRect  rect = { 0, 0, 0, 0 };
-    CvContour contour_header;
     CvSeq* ptseq = 0;
-    CvSeqBlock block;
 
     CvMat stub, *mat = 0;
     int  xmin = 0, ymin = 0, xmax = -1, ymax = -1, i, j, k;
@@ -432,7 +423,7 @@ cvBoundingRect( CvArr* array, int update )
         if( CV_MAT_TYPE(mat->type) == CV_32SC2 ||
             CV_MAT_TYPE(mat->type) == CV_32FC2 )
         {
-            ptseq = cvPointSeqFromMat(CV_SEQ_KIND_GENERIC, mat, &contour_header, &block);
+             CV_Error( CV_StsBadArg, "Unsupported sequence type" );
             mat = 0;
         }
         else if( CV_MAT_TYPE(mat->type) != CV_8UC1 &&

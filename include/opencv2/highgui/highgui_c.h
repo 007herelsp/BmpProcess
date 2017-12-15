@@ -77,18 +77,6 @@ CVAPI(int) cvSaveImage( const char* filename, const CvArr* image,
                         const int* params CV_DEFAULT(0) );
 
 
-
-enum
-{
-    CV_CVTIMG_FLIP      =1,
-    CV_CVTIMG_SWAP_RB   =2
-};
-
-
-
-
-
-
 #ifdef __cplusplus
 }
 #endif

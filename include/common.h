@@ -13,8 +13,13 @@
 #define VOS_ALLOC alloca
 
 #define RGB(r, g, b) ((r + g + b) / 3)
+#ifndef MIN
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
+#endif /*MIN*/
+
+#ifndef MAX
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
+#endif /*MAX*/
 
 #define ERR_OK 0
 #define ERR_1 1

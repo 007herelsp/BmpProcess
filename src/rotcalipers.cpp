@@ -321,8 +321,6 @@ cvMinAreaRect2( const CvArr* array, CvMemStorage* storage )
 
     int i, n;
     CvSeqReader reader;
-    CvContour contour_header;
-    CvSeqBlock block;
     CvSeq* ptseq = (CvSeq*)array;
     CvPoint2D32f out[3];
 
@@ -338,7 +336,7 @@ cvMinAreaRect2( const CvArr* array, CvMemStorage* storage )
     }
     else
     {
-        ptseq = cvPointSeqFromMat( CV_SEQ_KIND_GENERIC, array, &contour_header, &block );
+  CV_Error( CV_StsBadArg, "Unsupported sequence type" );
     }
 
     if( storage )

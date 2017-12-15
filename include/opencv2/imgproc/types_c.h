@@ -49,16 +49,6 @@
 extern "C" {
 #endif
 
-/* Connected component structure */
-typedef struct CvConnectedComp
-{
-    double area;    /* area of the connected component  */
-    CvScalar value; /* average color of the connected component */
-    CvRect rect;    /* ROI of the component  */
-    CvSeq* contour; /* optional component boundary
-                      (the contour might have child contours corresponding to the holes)*/
-}
-CvConnectedComp;
 
 /* Image smooth methods */
 enum
@@ -375,12 +365,7 @@ typedef struct CvMoments
 }
 CvMoments;
 
-/* Hu invariants */
-typedef struct CvHuMoments
-{
-    double hu1, hu2, hu3, hu4, hu5, hu6, hu7; /* Hu invariants */
-}
-CvHuMoments;
+
 
 /* Template matching methods */
 enum

@@ -1469,26 +1469,4 @@ cvDilate( const CvArr* srcarr, CvArr* dstarr, IplConvKernel* element, int iterat
 }
 
 
-CV_IMPL void
-cvMorphologyEx( const void* srcarr, void* dstarr, void*,
-                IplConvKernel* element, int op, int iterations )
-{
-    cv::Mat src = cv::cvarrToMat(srcarr), dst = cv::cvarrToMat(dstarr), kernel;
-    CV_Assert( src.size() == dst.size() && src.type() == dst.type() );
-    cv::Point anchor;
-    IplConvKernel* temp_element = NULL;
-    if (!element)
-    {
-        temp_element = cvCreateStructuringElementEx(3, 3, 1, 1, CV_SHAPE_RECT);
-    } else {
-        temp_element = element;
-    }
-    convertConvKernel( temp_element, kernel, anchor );
-    if (!element)
-    {
-        cvReleaseStructuringElement(&temp_element);
-    }
-    cv::morphologyEx( src, dst, op, kernel, anchor, iterations, cv::BORDER_REPLICATE );
-}
-
 /* End of file. */

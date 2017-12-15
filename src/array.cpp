@@ -370,7 +370,6 @@ cvInitSparseMatIterator( const CvSparseMat* mat, CvSparseMatIterator* iterator )
     return node;
 }
 
-#define ICV_SPARSE_MAT_HASH_MULTIPLIER  cv::SparseMat::HASH_SCALE
 
 
 
@@ -644,14 +643,6 @@ cvGetSubRect( const CvArr* arr, CvMat* submat, CvRect rect )
         CV_Error( CV_StsBadSize, "" );
 
     {
-    /*
-    int* refcount = mat->refcount;
-
-    if( refcount )
-        ++*refcount;
-
-    cvDecRefData( submat );
-    */
     submat->data.ptr = mat->data.ptr + (size_t)rect.y*mat->step +
                        rect.x*CV_ELEM_SIZE(mat->type);
     submat->step = mat->step;
@@ -683,15 +674,6 @@ cvGetDiag( const CvArr* arr, CvMat* submat, int diag )
         CV_Error( CV_StsNullPtr, "" );
 
     pix_size = CV_ELEM_SIZE(mat->type);
-
-    /*{
-    int* refcount = mat->refcount;
-
-    if( refcount )
-        ++*refcount;
-
-    cvDecRefData( submat );
-    }*/
 
     if( diag >= 0 )
     {

@@ -2973,7 +2973,6 @@ template<typename _Tp> static inline void write( FileStorage& fs, const string& 
 }
 
 CV_EXPORTS_W void write( FileStorage& fs, const string& name, const Mat& value );
-CV_EXPORTS void write( FileStorage& fs, const string& name, const SparseMat& value );
 
 template<typename _Tp> static inline FileStorage& operator << (FileStorage& fs, const _Tp& value)
 {
@@ -3129,7 +3128,7 @@ static inline void read(const FileNode& node, Range& value, const Range& default
 }
 
 CV_EXPORTS_W void read(const FileNode& node, Mat& mat, const Mat& default_mat=Mat() );
-CV_EXPORTS void read(const FileNode& node, SparseMat& mat, const SparseMat& default_mat=SparseMat() );
+
 
 inline FileNode::operator int() const
 {

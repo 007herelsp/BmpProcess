@@ -1,44 +1,4 @@
-/*M///////////////////////////////////////////////////////////////////////////////////////
-//
-//  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.
-//
-//  By downloading, copying, installing or using the software you agree to this license.
-//  If you do not agree to this license, do not download, install,
-//  copy or use the software.
-//
-//
-//                           License Agreement
-//                For Open Source Computer Vision Library
-//
-// Copyright (C) 2000-2008, Intel Corporation, all rights reserved.
-// Copyright (C) 2009, Willow Garage Inc., all rights reserved.
-// Third party copyrights are property of their respective owners.
-//
-// Redistribution and use in source and binary forms, with or without modification,
-// are permitted provided that the following conditions are met:
-//
-//   * Redistribution's of source code must retain the above copyright notice,
-//     this list of conditions and the following disclaimer.
-//
-//   * Redistribution's in binary form must reproduce the above copyright notice,
-//     this list of conditions and the following disclaimer in the documentation
-//     and/or other materials provided with the distribution.
-//
-//   * The name of the copyright holders may not be used to endorse or promote products
-//     derived from this software without specific prior written permission.
-//
-// This software is provided by the copyright holders and contributors "as is" and
-// any express or implied warranties, including, but not limited to, the implied
-// warranties of merchantability and fitness for a particular purpose are disclaimed.
-// In no event shall the Intel Corporation or contributors be liable for any direct,
-// indirect, incidental, special, exemplary, or consequential damages
-// (including, but not limited to, procurement of substitute goods or services;
-// loss of use, data, or profits; or business interruption) however caused
-// and on any theory of liability, whether in contract, strict liability,
-// or tort (including negligence or otherwise) arising in any way out of
-// the use of this software, even if advised of the possibility of such damage.
-//
-//M*/
+
 
 #include "imgproc.precomp.hpp"
 #include <opencv2/imgproc/imgproc.hpp>
@@ -779,64 +739,6 @@ double cv::threshold( InputArray _src, OutputArray _dst, double thresh, double m
 }
 
 
-void cv::adaptiveThreshold( InputArray _src, OutputArray _dst, double maxValue,
-                            int method, int type, int blockSize, double delta )
-{
-    Mat src = _src.getMat();
-    CV_Assert( src.type() == CV_8UC1 );
-    CV_Assert( blockSize % 2 == 1 && blockSize > 1 );
-    Size size = src.size();
-
-    _dst.create( size, src.type() );
-    Mat dst = _dst.getMat();
-
-    if( maxValue < 0 )
-    {
-        dst = Scalar(0);
-        return;
-    }
-
-    Mat mean;
-
-    if( src.data != dst.data )
-        mean = dst;
-
-
-     if( method == ADAPTIVE_THRESH_GAUSSIAN_C )
-        GaussianBlur( src, mean, Size(blockSize, blockSize), 0, 0, BORDER_REPLICATE );
-    else
-        CV_Error( CV_StsBadFlag, "Unknown/unsupported adaptive threshold method" );
-
-    int i, j;
-    uchar imaxval = saturate_cast<uchar>(maxValue);
-    int idelta = type == THRESH_BINARY ? cvCeil(delta) : cvFloor(delta);
-    uchar tab[768];
-
-    if( type == CV_THRESH_BINARY )
-        for( i = 0; i < 768; i++ )
-            tab[i] = (uchar)(i - 255 > -idelta ? imaxval : 0);
-    else if( type == CV_THRESH_BINARY_INV )
-        for( i = 0; i < 768; i++ )
-            tab[i] = (uchar)(i - 255 <= -idelta ? imaxval : 0);
-    else
-        CV_Error( CV_StsBadFlag, "Unknown/unsupported threshold type" );
-
-    if( src.isContinuous() && mean.isContinuous() && dst.isContinuous() )
-    {
-        size.width *= size.height;
-        size.height = 1;
-    }
-
-    for( i = 0; i < size.height; i++ )
-    {
-        const uchar* sdata = src.data + src.step*i;
-        const uchar* mdata = mean.data + mean.step*i;
-        uchar* ddata = dst.data + dst.step*i;
-
-        for( j = 0; j < size.width; j++ )
-            ddata[j] = tab[sdata[j] - mdata[j] + 255];
-    }
-}
 
 CV_IMPL double
 cvThreshold( const void* srcarr, void* dstarr, double thresh, double maxval, int type )
@@ -853,13 +755,6 @@ cvThreshold( const void* srcarr, void* dstarr, double thresh, double maxval, int
 }
 
 
-CV_IMPL void
-cvAdaptiveThreshold( const void *srcIm, void *dstIm, double maxValue,
-                     int method, int type, int blockSize, double delta )
-{
-    cv::Mat src = cv::cvarrToMat(srcIm), dst = cv::cvarrToMat(dstIm);
-    CV_Assert( src.size == dst.size && src.type() == dst.type() );
-    cv::adaptiveThreshold( src, dst, maxValue, method, type, blockSize, delta );
-}
+
 
 /* End of file. */

@@ -21,13 +21,6 @@ void cv::parallel_for_(const cv::Range& range, const cv::ParallelLoopBody& body,
 }
 
 
-const char* cv::currentParallelFramework() {
-#ifdef CV_PARALLEL_FRAMEWORK
-    return CV_PARALLEL_FRAMEWORK;
-#else
-    return NULL;
-#endif
-}
 
 
 

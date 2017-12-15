@@ -237,9 +237,7 @@ cvApproxPoly( const void*  array, int  header_size,
 {
     CvSeq* dst_seq = 0;
     CvSeq *prev_contour = 0, *parent = 0;
-    CvContour contour_header;
     CvSeq* src_seq = 0;
-    CvSeqBlock block;
     int recursive = 0;
 
     if( CV_IS_SEQ( array ))
@@ -255,9 +253,7 @@ cvApproxPoly( const void*  array, int  header_size,
     }
     else
     {
-        src_seq = cvPointSeqFromMat(
-            CV_SEQ_KIND_CURVE | (parameter2 ? CV_SEQ_FLAG_CLOSED : 0),
-            array, &contour_header, &block );
+        assert(0);
     }
 
     if( !storage )

@@ -102,7 +102,7 @@ IplImage *rotateImage2(IplImage *img, IplImage *img_rotate, int degree)
     m[2] = w * 0.5f;
     m[5] = h * 0.5f;
     CvMat M = cvMat(2, 3, CV_32F, m);
-    cvGetQuadrangleSubPix(img, img_rotate, &M);
+    //cvGetQuadrangleSubPix(img, img_rotate, &M);
     cvReleaseImage(&temp);
     cvResetImageROI(img_rotate);
     return img_rotate;
@@ -142,7 +142,7 @@ IplImage *rotateImage3(IplImage *img, IplImage *img_rotate, float degree)
     m[2] = w * 0.5f;
     m[5] = h * 0.5f;
     CvMat M = cvMat(2, 3, CV_32F, m);
-    cvGetQuadrangleSubPix(temp, img_rotate, &M);
+    //cvGetQuadrangleSubPix(temp, img_rotate, &M);
     cvReleaseImage(&temp);
     return img_rotate;
 }
@@ -628,7 +628,7 @@ int main(int argc, char *args[])
         cvSmooth(lpTargetImg, lpTargetImg, CV_GAUSSIAN, 3, 3, 0, 0); //高斯滤波
         cvCvtColor(lpTargetImg, pGrayImage, CV_BGR2GRAY);
         cvSaveImage("pGrayImage.bmp", pGrayImage);
-        cvEqualizeHist(pGrayImage, pGrayEqualizeImage);
+        //cvEqualizeHist(pGrayImage, pGrayEqualizeImage);
         cvSaveImage("pGrayEqualizeImage.bmp", pGrayEqualizeImage);
 
         cvCanny(pGrayEqualizeImage, lpCannyImg, 0.5, 20, 3);
@@ -678,7 +678,7 @@ int main1(int argc, char **argv)
     cvSplit(timg, panel[0], panel[1], panel[2], NULL); //分割图像到单通道
     for (int i = 0; i < 3; i++)
     {
-        cvLaplace(panel[i], laplace, 3);            //每一个通道做拉普拉斯变换
+       // cvLaplace(panel[i], laplace, 3);            //每一个通道做拉普拉斯变换
         cvConvertScaleAbs(laplace, panel[i], 1, 0); //做类型转换，转换到8U
     }
 

@@ -159,118 +159,11 @@ void cv::Sobel( InputArray _src, OutputArray _dst, int ddepth, int dx, int dy,
 }
 
 
-void cv::Scharr( InputArray _src, OutputArray _dst, int ddepth, int dx, int dy,
-                 double scale, double delta, int borderType )
-{
-    Mat src = _src.getMat();
-    if (ddepth < 0)
-        ddepth = src.depth();
-    _dst.create( src.size(), CV_MAKETYPE(ddepth, src.channels()) );
-    Mat dst = _dst.getMat();
-
-    int ktype = std::max(CV_32F, std::max(ddepth, src.depth()));
-
-    Mat kx, ky;
-    getScharrKernels( kx, ky, dx, dy, false, ktype );
-    if( scale != 1 )
-    {
-        // usually the smoothing part is the slowest to compute,
-        // so try to scale it instead of the faster differenciating part
-        if( dx == 0 )
-            kx *= scale;
-        else
-            ky *= scale;
-    }
-    sepFilter2D( src, dst, ddepth, kx, ky, Point(-1,-1), delta, borderType );
-}
-
-
-void cv::Laplacian( InputArray _src, OutputArray _dst, int ddepth, int ksize,
-                    double scale, double delta, int borderType )
-{
-    Mat src = _src.getMat();
-    if (ddepth < 0)
-        ddepth = src.depth();
-    _dst.create( src.size(), CV_MAKETYPE(ddepth, src.channels()) );
-    Mat dst = _dst.getMat();
-
-
-
-    if( ksize == 1 || ksize == 3 )
-    {
-        float K[2][9] =
-        {{0, 1, 0, 1, -4, 1, 0, 1, 0},
-         {2, 0, 2, 0, -8, 0, 2, 0, 2}};
-        Mat kernel(3, 3, CV_32F, K[ksize == 3]);
-        if( scale != 1 )
-            kernel *= scale;
-        filter2D( src, dst, ddepth, kernel, Point(-1,-1), delta, borderType );
-    }
-    else
-    {
-        const size_t STRIPE_SIZE = 1 << 14;
-
-        int depth = src.depth();
-        int ktype = std::max(CV_32F, std::max(ddepth, depth));
-        int wdepth = depth == CV_8U && ksize <= 5 ? CV_16S : depth <= CV_32F ? CV_32F : CV_64F;
-        int wtype = CV_MAKETYPE(wdepth, src.channels());
-        Mat kd, ks;
-        getSobelKernels( kd, ks, 2, 0, ksize, false, ktype );
-        if( ddepth < 0 )
-            ddepth = src.depth();
-        int dtype = CV_MAKETYPE(ddepth, src.channels());
-
-        int dy0 = std::min(std::max((int)(STRIPE_SIZE/(getElemSize(src.type())*src.cols)), 1), src.rows);
-        Ptr<FilterEngine> fx = createSeparableLinearFilter(src.type(),
-            wtype, kd, ks, Point(-1,-1), 0, borderType, borderType, Scalar() );
-        Ptr<FilterEngine> fy = createSeparableLinearFilter(src.type(),
-            wtype, ks, kd, Point(-1,-1), 0, borderType, borderType, Scalar() );
-
-        int y = fx->start(src), dsty = 0, dy = 0;
-        fy->start(src);
-        const uchar* sptr = src.data + y*src.step;
-
-        Mat d2x( dy0 + kd.rows - 1, src.cols, wtype );
-        Mat d2y( dy0 + kd.rows - 1, src.cols, wtype );
-
-        for( ; dsty < src.rows; sptr += dy0*src.step, dsty += dy )
-        {
-            fx->proceed( sptr, (int)src.step, dy0, d2x.data, (int)d2x.step );
-            dy = fy->proceed( sptr, (int)src.step, dy0, d2y.data, (int)d2y.step );
-            if( dy > 0 )
-            {
-                Mat dstripe = dst.rowRange(dsty, dsty + dy);
-                d2x.rows = d2y.rows = dy; // modify the headers, which should work
-                d2x += d2y;
-                d2x.convertTo( dstripe, dtype, scale, delta );
-            }
-        }
-    }
-}
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
-CV_IMPL void
-cvSobel( const void* srcarr, void* dstarr, int dx, int dy, int aperture_size )
-{
-    cv::Mat src = cv::cvarrToMat(srcarr), dst = cv::cvarrToMat(dstarr);
-
-    CV_Assert( src.size() == dst.size() && src.channels() == dst.channels() );
-
-    cv::Sobel( src, dst, dst.depth(), dx, dy, aperture_size, 1, 0, cv::BORDER_REPLICATE );
-    if( CV_IS_IMAGE(srcarr) && ((IplImage*)srcarr)->origin && dy % 2 != 0 )
-        dst *= -1;
-}
 
 
-CV_IMPL void
-cvLaplace( const void* srcarr, void* dstarr, int aperture_size )
-{
-    cv::Mat src = cv::cvarrToMat(srcarr), dst = cv::cvarrToMat(dstarr);
 
-    CV_Assert( src.size() == dst.size() && src.channels() == dst.channels() );
-
-    cv::Laplacian( src, dst, dst.depth(), aperture_size, 1, 0, cv::BORDER_REPLICATE );
-}
 
 /* End of file. */
