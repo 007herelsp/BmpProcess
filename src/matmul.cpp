@@ -1641,132 +1641,7 @@ void cv::scaleAdd( InputArray _src1, double alpha, InputArray _src2, OutputArray
         func( ptrs[0], ptrs[1], ptrs[2], (int)len, palpha );
 }
 
-/****************************************************************************************\
-*                                 Covariation Matrix                                     *
-\****************************************************************************************/
 
-void cv::calcCovarMatrix( const Mat* data, int nsamples, Mat& covar, Mat& _mean, int flags, int ctype )
-{
-    CV_Assert( data && nsamples > 0 );
-    Size size = data[0].size();
-    int sz = size.width * size.height, esz = (int)data[0].elemSize();
-    int type = data[0].type();
-    Mat mean;
-    ctype = std::max(std::max(CV_MAT_DEPTH(ctype >= 0 ? ctype : type), _mean.depth()), CV_32F);
-
-    if( (flags & CV_COVAR_USE_AVG) != 0 )
-    {
-        CV_Assert( _mean.size() == size );
-        if( _mean.isContinuous() && _mean.type() == ctype )
-            mean = _mean.reshape(1, 1);
-        else
-        {
-            _mean.convertTo(mean, ctype);
-            mean = mean.reshape(1, 1);
-        }
-    }
-
-    Mat _data(nsamples, sz, type);
-
-    for( int i = 0; i < nsamples; i++ )
-    {
-        CV_Assert( data[i].size() == size && data[i].type() == type );
-        if( data[i].isContinuous() )
-            memcpy( _data.ptr(i), data[i].data, sz*esz );
-        else
-        {
-            Mat dataRow(size.height, size.width, type, _data.ptr(i));
-            data[i].copyTo(dataRow);
-        }
-    }
-
-    calcCovarMatrix( _data, covar, mean, (flags & ~(CV_COVAR_ROWS|CV_COVAR_COLS)) | CV_COVAR_ROWS, ctype );
-    if( (flags & CV_COVAR_USE_AVG) == 0 )
-        _mean = mean.reshape(1, size.height);
-}
-
-void cv::calcCovarMatrix( InputArray _src, OutputArray _covar, InputOutputArray _mean, int flags, int ctype )
-{
-    if(_src.kind() == _InputArray::STD_VECTOR_MAT)
-    {
-        std::vector<cv::Mat> src;
-        _src.getMatVector(src);
-
-        CV_Assert( src.size() > 0 );
-
-        Size size = src[0].size();
-        int type = src[0].type();
-
-        ctype = std::max(std::max(CV_MAT_DEPTH(ctype >= 0 ? ctype : type), _mean.depth()), CV_32F);
-
-        Mat _data(static_cast<int>(src.size()), size.area(), type);
-
-        int i = 0;
-        for(vector<cv::Mat>::iterator each = src.begin(); each != src.end(); each++, i++ )
-        {
-            CV_Assert( (*each).size() == size && (*each).type() == type );
-            Mat dataRow(size.height, size.width, type, _data.ptr(i));
-            (*each).copyTo(dataRow);
-        }
-
-        Mat mean;
-        if( (flags & CV_COVAR_USE_AVG) != 0 )
-        {
-            CV_Assert( _mean.size() == size );
-
-            if( mean.type() != ctype )
-            {
-                mean = _mean.getMat();
-                _mean.create(mean.size(), ctype);
-                Mat tmp = _mean.getMat();
-                mean.convertTo(tmp, ctype);
-                mean = tmp;
-            }
-
-            mean = _mean.getMat().reshape(1, 1);
-        }
-
-        calcCovarMatrix( _data, _covar, mean, (flags & ~(CV_COVAR_ROWS|CV_COVAR_COLS)) | CV_COVAR_ROWS, ctype );
-
-        if( (flags & CV_COVAR_USE_AVG) == 0 )
-        {
-            mean = mean.reshape(1, size.height);
-            mean.copyTo(_mean);
-        }
-        return;
-    }
-
-    Mat data = _src.getMat(), mean;
-    CV_Assert( ((flags & CV_COVAR_ROWS) != 0) ^ ((flags & CV_COVAR_COLS) != 0) );
-    bool takeRows = (flags & CV_COVAR_ROWS) != 0;
-    int type = data.type();
-    int nsamples = takeRows ? data.rows : data.cols;
-    CV_Assert( nsamples > 0 );
-    Size size = takeRows ? Size(data.cols, 1) : Size(1, data.rows);
-
-    if( (flags & CV_COVAR_USE_AVG) != 0 )
-    {
-        mean = _mean.getMat();
-        ctype = std::max(std::max(CV_MAT_DEPTH(ctype >= 0 ? ctype : type), mean.depth()), CV_32F);
-        CV_Assert( mean.size() == size );
-        if( mean.type() != ctype )
-        {
-            _mean.create(mean.size(), ctype);
-            Mat tmp = _mean.getMat();
-            mean.convertTo(tmp, ctype);
-            mean = tmp;
-        }
-    }
-    else
-    {
-        ctype = std::max(CV_MAT_DEPTH(ctype >= 0 ? ctype : type), CV_32F);
-        reduce( _src, _mean, takeRows ? 0 : 1, CV_REDUCE_AVG, ctype );
-        mean = _mean.getMat();
-    }
-
-    mulTransposed( data, _covar, ((flags & CV_COVAR_NORMAL) == 0) ^ takeRows,
-        mean, (flags & CV_COVAR_SCALE) != 0 ? 1./nsamples : 1, ctype );
-}
 
 /****************************************************************************************\
 *                                        Mahalanobis                                     *
@@ -2188,585 +2063,234 @@ void cv::mulTransposed( InputArray _src, OutputArray _dst, bool ata,
 namespace cv
 {
 
-template<typename T> double
-dotProd_(const T* src1, const T* src2, int len)
-{
-    int i = 0;
-    double result = 0;
-     #if CV_ENABLE_UNROLLED
-    for( ; i <= len - 4; i += 4 )
-        result += (double)src1[i]*src2[i] + (double)src1[i+1]*src2[i+1] +
-            (double)src1[i+2]*src2[i+2] + (double)src1[i+3]*src2[i+3];
-    #endif
-    for( ; i < len; i++ )
-        result += (double)src1[i]*src2[i];
+	template<typename T> double
+		dotProd_(const T* src1, const T* src2, int len)
+	{
+		int i = 0;
+		double result = 0;
+#if CV_ENABLE_UNROLLED
+		for (; i <= len - 4; i += 4)
+			result += (double)src1[i] * src2[i] + (double)src1[i + 1] * src2[i + 1] +
+			(double)src1[i + 2] * src2[i + 2] + (double)src1[i + 3] * src2[i + 3];
+#endif
+		for (; i < len; i++)
+			result += (double)src1[i] * src2[i];
 
-    return result;
-}
+		return result;
+	}
 
 
-static double dotProd_8u(const uchar* src1, const uchar* src2, int len)
-{
-    double r = 0;
+	static double dotProd_8u(const uchar* src1, const uchar* src2, int len)
+	{
+		double r = 0;
 #if ARITHM_USE_IPP
-    ippiDotProd_8u64f_C1R(src1, (int)(len*sizeof(src1[0])),
-                          src2, (int)(len*sizeof(src2[0])),
-                          ippiSize(len, 1), &r);
-    return r;
+		ippiDotProd_8u64f_C1R(src1, (int)(len*sizeof(src1[0])),
+			src2, (int)(len*sizeof(src2[0])),
+			ippiSize(len, 1), &r);
+		return r;
 #else
-    int i = 0;
+		int i = 0;
 
 #if CV_SSE2
-    if( USE_SSE2 )
-    {
-        int j, len0 = len & -4, blockSize0 = (1 << 13), blockSize;
-        __m128i z = _mm_setzero_si128();
-        while( i < len0 )
-        {
-            blockSize = std::min(len0 - i, blockSize0);
-            __m128i s = _mm_setzero_si128();
-            j = 0;
-            for( ; j <= blockSize - 16; j += 16 )
-            {
-                __m128i b0 = _mm_loadu_si128((const __m128i*)(src1 + j));
-                __m128i b1 = _mm_loadu_si128((const __m128i*)(src2 + j));
-                __m128i s0, s1, s2, s3;
-                s0 = _mm_unpacklo_epi8(b0, z);
-                s2 = _mm_unpackhi_epi8(b0, z);
-                s1 = _mm_unpacklo_epi8(b1, z);
-                s3 = _mm_unpackhi_epi8(b1, z);
-                s0 = _mm_madd_epi16(s0, s1);
-                s2 = _mm_madd_epi16(s2, s3);
-                s = _mm_add_epi32(s, s0);
-                s = _mm_add_epi32(s, s2);
-            }
+		if (USE_SSE2)
+		{
+			int j, len0 = len & -4, blockSize0 = (1 << 13), blockSize;
+			__m128i z = _mm_setzero_si128();
+			while (i < len0)
+			{
+				blockSize = std::min(len0 - i, blockSize0);
+				__m128i s = _mm_setzero_si128();
+				j = 0;
+				for (; j <= blockSize - 16; j += 16)
+				{
+					__m128i b0 = _mm_loadu_si128((const __m128i*)(src1 + j));
+					__m128i b1 = _mm_loadu_si128((const __m128i*)(src2 + j));
+					__m128i s0, s1, s2, s3;
+					s0 = _mm_unpacklo_epi8(b0, z);
+					s2 = _mm_unpackhi_epi8(b0, z);
+					s1 = _mm_unpacklo_epi8(b1, z);
+					s3 = _mm_unpackhi_epi8(b1, z);
+					s0 = _mm_madd_epi16(s0, s1);
+					s2 = _mm_madd_epi16(s2, s3);
+					s = _mm_add_epi32(s, s0);
+					s = _mm_add_epi32(s, s2);
+				}
 
-            for( ; j < blockSize; j += 4 )
-            {
-                __m128i s0 = _mm_unpacklo_epi8(_mm_cvtsi32_si128(*(const int*)(src1 + j)), z);
-                __m128i s1 = _mm_unpacklo_epi8(_mm_cvtsi32_si128(*(const int*)(src2 + j)), z);
-                s0 = _mm_madd_epi16(s0, s1);
-                s = _mm_add_epi32(s, s0);
-            }
-            CV_DECL_ALIGNED(16) int buf[4];
-            _mm_store_si128((__m128i*)buf, s);
-            r += buf[0] + buf[1] + buf[2] + buf[3];
+				for (; j < blockSize; j += 4)
+				{
+					__m128i s0 = _mm_unpacklo_epi8(_mm_cvtsi32_si128(*(const int*)(src1 + j)), z);
+					__m128i s1 = _mm_unpacklo_epi8(_mm_cvtsi32_si128(*(const int*)(src2 + j)), z);
+					s0 = _mm_madd_epi16(s0, s1);
+					s = _mm_add_epi32(s, s0);
+				}
+				CV_DECL_ALIGNED(16) int buf[4];
+				_mm_store_si128((__m128i*)buf, s);
+				r += buf[0] + buf[1] + buf[2] + buf[3];
 
-            src1 += blockSize;
-            src2 += blockSize;
-            i += blockSize;
-        }
-    }
+				src1 += blockSize;
+				src2 += blockSize;
+				i += blockSize;
+			}
+		}
 #endif
-    return r + dotProd_(src1, src2, len - i);
+		return r + dotProd_(src1, src2, len - i);
 #endif
-}
+	}
 
 
-static double dotProd_8s(const schar* src1, const schar* src2, int len)
-{
-    return dotProd_(src1, src2, len);
-}
+	static double dotProd_8s(const schar* src1, const schar* src2, int len)
+	{
+		return dotProd_(src1, src2, len);
+	}
 
-static double dotProd_16u(const ushort* src1, const ushort* src2, int len)
-{
-    double r = 0;
-    IF_IPP(ippiDotProd_16u64f_C1R(src1, (int)(len*sizeof(src1[0])),
-                                  src2, (int)(len*sizeof(src2[0])),
-                                  ippiSize(len, 1), &r),
-           r = dotProd_(src1, src2, len));
-    return r;
-}
+	static double dotProd_16u(const ushort* src1, const ushort* src2, int len)
+	{
+		double r = 0;
+		IF_IPP(ippiDotProd_16u64f_C1R(src1, (int)(len*sizeof(src1[0])),
+			src2, (int)(len*sizeof(src2[0])),
+			ippiSize(len, 1), &r),
+			r = dotProd_(src1, src2, len));
+		return r;
+	}
 
-static double dotProd_16s(const short* src1, const short* src2, int len)
-{
-    double r = 0;
-    IF_IPP(ippiDotProd_16s64f_C1R(src1, (int)(len*sizeof(src1[0])),
-                                  src2, (int)(len*sizeof(src2[0])),
-                                  ippiSize(len, 1), &r),
-           r = dotProd_(src1, src2, len));
-    return r;
-}
+	static double dotProd_16s(const short* src1, const short* src2, int len)
+	{
+		double r = 0;
+		IF_IPP(ippiDotProd_16s64f_C1R(src1, (int)(len*sizeof(src1[0])),
+			src2, (int)(len*sizeof(src2[0])),
+			ippiSize(len, 1), &r),
+			r = dotProd_(src1, src2, len));
+		return r;
+	}
 
-static double dotProd_32s(const int* src1, const int* src2, int len)
-{
-    double r = 0;
-    IF_IPP(ippiDotProd_32s64f_C1R(src1, (int)(len*sizeof(src1[0])),
-                                  src2, (int)(len*sizeof(src2[0])),
-                                  ippiSize(len, 1), &r),
-           r = dotProd_(src1, src2, len));
-    return r;
-}
+	static double dotProd_32s(const int* src1, const int* src2, int len)
+	{
+		double r = 0;
+		IF_IPP(ippiDotProd_32s64f_C1R(src1, (int)(len*sizeof(src1[0])),
+			src2, (int)(len*sizeof(src2[0])),
+			ippiSize(len, 1), &r),
+			r = dotProd_(src1, src2, len));
+		return r;
+	}
 
-static double dotProd_32f(const float* src1, const float* src2, int len)
-{
-    double r = 0;
-    IF_IPP(ippsDotProd_32f64f(src1, src2, len, &r),
-           r = dotProd_(src1, src2, len));
-    return r;
-}
+	static double dotProd_32f(const float* src1, const float* src2, int len)
+	{
+		double r = 0;
+		IF_IPP(ippsDotProd_32f64f(src1, src2, len, &r),
+			r = dotProd_(src1, src2, len));
+		return r;
+	}
 
-static double dotProd_64f(const double* src1, const double* src2, int len)
-{
-    double r = 0;
-    IF_IPP(ippsDotProd_64f(src1, src2, len, &r),
-           r = dotProd_(src1, src2, len));
-    return r;
-}
+	static double dotProd_64f(const double* src1, const double* src2, int len)
+	{
+		double r = 0;
+		IF_IPP(ippsDotProd_64f(src1, src2, len, &r),
+			r = dotProd_(src1, src2, len));
+		return r;
+	}
 
 
-typedef double (*DotProdFunc)(const uchar* src1, const uchar* src2, int len);
+	typedef double(*DotProdFunc)(const uchar* src1, const uchar* src2, int len);
 
-static DotProdFunc getDotProdFunc(int depth)
-{
-    static DotProdFunc dotProdTab[] =
-    {
-        (DotProdFunc)GET_OPTIMIZED(dotProd_8u), (DotProdFunc)GET_OPTIMIZED(dotProd_8s),
-        (DotProdFunc)dotProd_16u, (DotProdFunc)dotProd_16s,
-        (DotProdFunc)dotProd_32s, (DotProdFunc)GET_OPTIMIZED(dotProd_32f),
-        (DotProdFunc)dotProd_64f, 0
-    };
+	static DotProdFunc getDotProdFunc(int depth)
+	{
+		static DotProdFunc dotProdTab[] =
+		{
+			(DotProdFunc)GET_OPTIMIZED(dotProd_8u), (DotProdFunc)GET_OPTIMIZED(dotProd_8s),
+			(DotProdFunc)dotProd_16u, (DotProdFunc)dotProd_16s,
+			(DotProdFunc)dotProd_32s, (DotProdFunc)GET_OPTIMIZED(dotProd_32f),
+			(DotProdFunc)dotProd_64f, 0
+		};
 
-    return dotProdTab[depth];
-}
+		return dotProdTab[depth];
+	}
 
-double Mat::dot(InputArray _mat) const
-{
-    Mat mat = _mat.getMat();
-    int cn = channels();
-    DotProdFunc func = getDotProdFunc(depth());
-    CV_Assert( mat.type() == type() && mat.size == size && func != 0 );
+	double Mat::dot(InputArray _mat) const
+	{
+		Mat mat = _mat.getMat();
+		int cn = channels();
+		DotProdFunc func = getDotProdFunc(depth());
+		CV_Assert(mat.type() == type() && mat.size == size && func != 0);
 
-    if( isContinuous() && mat.isContinuous() )
-    {
-        size_t len = total()*cn;
-        if( len == (size_t)(int)len )
-            return func(data, mat.data, (int)len);
-    }
+		if (isContinuous() && mat.isContinuous())
+		{
+			size_t len = total()*cn;
+			if (len == (size_t)(int)len)
+				return func(data, mat.data, (int)len);
+		}
 
-    const Mat* arrays[] = {this, &mat, 0};
-    uchar* ptrs[2];
-    NAryMatIterator it(arrays, ptrs);
-    int len = (int)(it.size*cn);
-    double r = 0;
+		const Mat* arrays[] = { this, &mat, 0 };
+		uchar* ptrs[2];
+		NAryMatIterator it(arrays, ptrs);
+		int len = (int)(it.size*cn);
+		double r = 0;
 
-    for( size_t i = 0; i < it.nplanes; i++, ++it )
-        r += func( ptrs[0], ptrs[1], len );
+		for (size_t i = 0; i < it.nplanes; i++, ++it)
+			r += func(ptrs[0], ptrs[1], len);
 
-    return r;
-}
+		return r;
+	}
 
-/****************************************************************************************\
-*                                          PCA                                           *
-\****************************************************************************************/
 
-PCA::PCA() {}
 
-PCA::PCA(InputArray data, InputArray _mean, int flags, int maxComponents)
-{
-    operator()(data, _mean, flags, maxComponents);
-}
 
-PCA::PCA(InputArray data, InputArray _mean, int flags, double retainedVariance)
-{
-    computeVar(data, _mean, flags, retainedVariance);
-}
+	/****************************************************************************************\
+	*                                    Earlier API                                         *
+	\****************************************************************************************/
 
-PCA& PCA::operator()(InputArray _data, InputArray __mean, int flags, int maxComponents)
-{
-    Mat data = _data.getMat(), _mean = __mean.getMat();
-    int covar_flags = CV_COVAR_SCALE;
-    int i, len, in_count;
-    Size mean_sz;
+	CV_IMPL void cvGEMM(const CvArr* Aarr, const CvArr* Barr, double alpha,
+		const CvArr* Carr, double beta, CvArr* Darr, int flags)
+	{
+		cv::Mat A = cv::cvarrToMat(Aarr), B = cv::cvarrToMat(Barr);
+		cv::Mat C, D = cv::cvarrToMat(Darr);
 
-    CV_Assert( data.channels() == 1 );
-    if( flags & CV_PCA_DATA_AS_COL )
-    {
-        len = data.rows;
-        in_count = data.cols;
-        covar_flags |= CV_COVAR_COLS;
-        mean_sz = Size(1, len);
-    }
-    else
-    {
-        len = data.cols;
-        in_count = data.rows;
-        covar_flags |= CV_COVAR_ROWS;
-        mean_sz = Size(len, 1);
-    }
+		if (Carr)
+			C = cv::cvarrToMat(Carr);
 
-    int count = std::min(len, in_count), out_count = count;
-    if( maxComponents > 0 )
-        out_count = std::min(count, maxComponents);
+		CV_Assert((D.rows == ((flags & CV_GEMM_A_T) == 0 ? A.rows : A.cols)) &&
+			(D.cols == ((flags & CV_GEMM_B_T) == 0 ? B.cols : B.rows)) &&
+			D.type() == A.type());
 
-    // "scrambled" way to compute PCA (when cols(A)>rows(A)):
-    // B = A'A; B*x=b*x; C = AA'; C*y=c*y -> AA'*y=c*y -> A'A*(A'*y)=c*(A'*y) -> c = b, x=A'*y
-    if( len <= in_count )
-        covar_flags |= CV_COVAR_NORMAL;
+		gemm(A, B, alpha, C, beta, D, flags);
+	}
 
-    int ctype = std::max(CV_32F, data.depth());
-    mean.create( mean_sz, ctype );
 
-    Mat covar( count, count, ctype );
 
-    if( _mean.data )
-    {
-        CV_Assert( _mean.size() == mean_sz );
-        _mean.convertTo(mean, ctype);
-        covar_flags |= CV_COVAR_USE_AVG;
-    }
 
-    calcCovarMatrix( data, covar, mean, covar_flags, ctype );
-    eigen( covar, eigenvalues, eigenvectors );
+	CV_IMPL void
+		cvPerspectiveTransform(const CvArr* srcarr, CvArr* dstarr, const CvMat* mat)
+	{
+		cv::Mat m = cv::cvarrToMat(mat), src = cv::cvarrToMat(srcarr), dst = cv::cvarrToMat(dstarr);
 
-    if( !(covar_flags & CV_COVAR_NORMAL) )
-    {
-        // CV_PCA_DATA_AS_ROW: cols(A)>rows(A). x=A'*y -> x'=y'*A
-        // CV_PCA_DATA_AS_COL: rows(A)>cols(A). x=A''*y -> x'=y'*A'
-        Mat tmp_data, tmp_mean = repeat(mean, data.rows/mean.rows, data.cols/mean.cols);
-        if( data.type() != ctype || tmp_mean.data == mean.data )
-        {
-            data.convertTo( tmp_data, ctype );
-            subtract( tmp_data, tmp_mean, tmp_data );
-        }
-        else
-        {
-            subtract( data, tmp_mean, tmp_mean );
-            tmp_data = tmp_mean;
-        }
+		CV_Assert(dst.type() == src.type() && dst.channels() == m.rows - 1);
+		cv::perspectiveTransform(src, dst, m);
+	}
 
-        Mat evects1(count, len, ctype);
-        gemm( eigenvectors, tmp_data, 1, Mat(), 0, evects1,
-            (flags & CV_PCA_DATA_AS_COL) ? CV_GEMM_B_T : 0);
-        eigenvectors = evects1;
 
-        // normalize eigenvectors
-        for( i = 0; i < out_count; i++ )
-        {
-            Mat vec = eigenvectors.row(i);
-            normalize(vec, vec);
-        }
-    }
+	CV_IMPL void cvScaleAdd(const CvArr* srcarr1, CvScalar scale,
+		const CvArr* srcarr2, CvArr* dstarr)
+	{
+		cv::Mat src1 = cv::cvarrToMat(srcarr1), dst = cv::cvarrToMat(dstarr);
 
-    if( count > out_count )
-    {
-        // use clone() to physically copy the data and thus deallocate the original matrices
-        eigenvalues = eigenvalues.rowRange(0,out_count).clone();
-        eigenvectors = eigenvectors.rowRange(0,out_count).clone();
-    }
-    return *this;
-}
+		CV_Assert(src1.size == dst.size && src1.type() == dst.type());
+		cv::scaleAdd(src1, scale.val[0], cv::cvarrToMat(srcarr2), dst);
+	}
 
-template <typename T>
-int computeCumulativeEnergy(const Mat& eigenvalues, double retainedVariance)
-{
-    CV_DbgAssert( eigenvalues.type() == DataType<T>::type );
 
-    Mat g(eigenvalues.size(), DataType<T>::type);
 
-    for(int ig = 0; ig < g.rows; ig++)
-    {
-        g.at<T>(ig, 0) = 0;
-        for(int im = 0; im <= ig; im++)
-        {
-            g.at<T>(ig,0) += eigenvalues.at<T>(im,0);
-        }
-    }
 
-    int L;
-
-    for(L = 0; L < eigenvalues.rows; L++)
-    {
-        double energy = g.at<T>(L, 0) / g.at<T>(g.rows - 1, 0);
-        if(energy > retainedVariance)
-            break;
-    }
-
-    L = std::max(2, L);
-
-    return L;
-}
-
-PCA& PCA::computeVar(InputArray _data, InputArray __mean, int flags, double retainedVariance)
-{
-    Mat data = _data.getMat(), _mean = __mean.getMat();
-    int covar_flags = CV_COVAR_SCALE;
-    int i, len, in_count;
-    Size mean_sz;
-
-    CV_Assert( data.channels() == 1 );
-    if( flags & CV_PCA_DATA_AS_COL )
-    {
-        len = data.rows;
-        in_count = data.cols;
-        covar_flags |= CV_COVAR_COLS;
-        mean_sz = Size(1, len);
-    }
-    else
-    {
-        len = data.cols;
-        in_count = data.rows;
-        covar_flags |= CV_COVAR_ROWS;
-        mean_sz = Size(len, 1);
-    }
-
-    CV_Assert( retainedVariance > 0 && retainedVariance <= 1 );
-
-    int count = std::min(len, in_count);
-
-    // "scrambled" way to compute PCA (when cols(A)>rows(A)):
-    // B = A'A; B*x=b*x; C = AA'; C*y=c*y -> AA'*y=c*y -> A'A*(A'*y)=c*(A'*y) -> c = b, x=A'*y
-    if( len <= in_count )
-        covar_flags |= CV_COVAR_NORMAL;
-
-    int ctype = std::max(CV_32F, data.depth());
-    mean.create( mean_sz, ctype );
-
-    Mat covar( count, count, ctype );
-
-    if( _mean.data )
-    {
-        CV_Assert( _mean.size() == mean_sz );
-        _mean.convertTo(mean, ctype);
-    }
-
-    calcCovarMatrix( data, covar, mean, covar_flags, ctype );
-    eigen( covar, eigenvalues, eigenvectors );
-
-    if( !(covar_flags & CV_COVAR_NORMAL) )
-    {
-        // CV_PCA_DATA_AS_ROW: cols(A)>rows(A). x=A'*y -> x'=y'*A
-        // CV_PCA_DATA_AS_COL: rows(A)>cols(A). x=A''*y -> x'=y'*A'
-        Mat tmp_data, tmp_mean = repeat(mean, data.rows/mean.rows, data.cols/mean.cols);
-        if( data.type() != ctype || tmp_mean.data == mean.data )
-        {
-            data.convertTo( tmp_data, ctype );
-            subtract( tmp_data, tmp_mean, tmp_data );
-        }
-        else
-        {
-            subtract( data, tmp_mean, tmp_mean );
-            tmp_data = tmp_mean;
-        }
-
-        Mat evects1(count, len, ctype);
-        gemm( eigenvectors, tmp_data, 1, Mat(), 0, evects1,
-            (flags & CV_PCA_DATA_AS_COL) ? CV_GEMM_B_T : 0);
-        eigenvectors = evects1;
-
-        // normalize all eigenvectors
-        for( i = 0; i < eigenvectors.rows; i++ )
-        {
-            Mat vec = eigenvectors.row(i);
-            normalize(vec, vec);
-        }
-    }
-
-    // compute the cumulative energy content for each eigenvector
-    int L;
-    if (ctype == CV_32F)
-        L = computeCumulativeEnergy<float>(eigenvalues, retainedVariance);
-    else
-        L = computeCumulativeEnergy<double>(eigenvalues, retainedVariance);
-
-    // use clone() to physically copy the data and thus deallocate the original matrices
-    eigenvalues = eigenvalues.rowRange(0,L).clone();
-    eigenvectors = eigenvectors.rowRange(0,L).clone();
-
-    return *this;
-}
-
-void PCA::project(InputArray _data, OutputArray result) const
-{
-    Mat data = _data.getMat();
-    CV_Assert( mean.data && eigenvectors.data &&
-        ((mean.rows == 1 && mean.cols == data.cols) || (mean.cols == 1 && mean.rows == data.rows)));
-    Mat tmp_data, tmp_mean = repeat(mean, data.rows/mean.rows, data.cols/mean.cols);
-    int ctype = mean.type();
-    if( data.type() != ctype || tmp_mean.data == mean.data )
-    {
-        data.convertTo( tmp_data, ctype );
-        subtract( tmp_data, tmp_mean, tmp_data );
-    }
-    else
-    {
-        subtract( data, tmp_mean, tmp_mean );
-        tmp_data = tmp_mean;
-    }
-    if( mean.rows == 1 )
-        gemm( tmp_data, eigenvectors, 1, Mat(), 0, result, GEMM_2_T );
-    else
-        gemm( eigenvectors, tmp_data, 1, Mat(), 0, result, 0 );
-}
-
-Mat PCA::project(InputArray data) const
-{
-    Mat result;
-    project(data, result);
-    return result;
-}
-
-void PCA::backProject(InputArray _data, OutputArray result) const
-{
-    Mat data = _data.getMat();
-    CV_Assert( mean.data && eigenvectors.data &&
-        ((mean.rows == 1 && eigenvectors.rows == data.cols) ||
-         (mean.cols == 1 && eigenvectors.rows == data.rows)));
-
-    Mat tmp_data, tmp_mean;
-    data.convertTo(tmp_data, mean.type());
-    if( mean.rows == 1 )
-    {
-        tmp_mean = repeat(mean, data.rows, 1);
-        gemm( tmp_data, eigenvectors, 1, tmp_mean, 1, result, 0 );
-    }
-    else
-    {
-        tmp_mean = repeat(mean, 1, data.cols);
-        gemm( eigenvectors, tmp_data, 1, tmp_mean, 1, result, GEMM_1_T );
-    }
-}
-
-Mat PCA::backProject(InputArray data) const
-{
-    Mat result;
-    backProject(data, result);
-    return result;
-}
+	CV_IMPL void
+		cvMulTransposed(const CvArr* srcarr, CvArr* dstarr,
+		int order, const CvArr* deltaarr, double scale)
+	{
+		cv::Mat src = cv::cvarrToMat(srcarr), dst0 = cv::cvarrToMat(dstarr), dst = dst0, delta;
+		if (deltaarr)
+			delta = cv::cvarrToMat(deltaarr);
+		cv::mulTransposed(src, dst, order != 0, delta, scale, dst.type());
+		if (dst.data != dst0.data)
+			dst.convertTo(dst0, dst0.type());
+	}
 
 }
-
-void cv::PCACompute(InputArray data, InputOutputArray mean,
-                    OutputArray eigenvectors, int maxComponents)
-{
-    PCA pca;
-    pca(data, mean, 0, maxComponents);
-    pca.mean.copyTo(mean);
-    pca.eigenvectors.copyTo(eigenvectors);
-}
-
-void cv::PCAComputeVar(InputArray data, InputOutputArray mean,
-                    OutputArray eigenvectors, double retainedVariance)
-{
-    PCA pca;
-    pca.computeVar(data, mean, 0, retainedVariance);
-    pca.mean.copyTo(mean);
-    pca.eigenvectors.copyTo(eigenvectors);
-}
-
-void cv::PCAProject(InputArray data, InputArray mean,
-                    InputArray eigenvectors, OutputArray result)
-{
-    PCA pca;
-    pca.mean = mean.getMat();
-    pca.eigenvectors = eigenvectors.getMat();
-    pca.project(data, result);
-}
-
-void cv::PCABackProject(InputArray data, InputArray mean,
-                    InputArray eigenvectors, OutputArray result)
-{
-    PCA pca;
-    pca.mean = mean.getMat();
-    pca.eigenvectors = eigenvectors.getMat();
-    pca.backProject(data, result);
-}
-
-
-/****************************************************************************************\
-*                                    Earlier API                                         *
-\****************************************************************************************/
-
-CV_IMPL void cvGEMM( const CvArr* Aarr, const CvArr* Barr, double alpha,
-                     const CvArr* Carr, double beta, CvArr* Darr, int flags )
-{
-    cv::Mat A = cv::cvarrToMat(Aarr), B = cv::cvarrToMat(Barr);
-    cv::Mat C, D = cv::cvarrToMat(Darr);
-
-    if( Carr )
-        C = cv::cvarrToMat(Carr);
-
-    CV_Assert( (D.rows == ((flags & CV_GEMM_A_T) == 0 ? A.rows : A.cols)) &&
-               (D.cols == ((flags & CV_GEMM_B_T) == 0 ? B.cols : B.rows)) &&
-               D.type() == A.type() );
-
-    gemm( A, B, alpha, C, beta, D, flags );
-}
-
-
-
-
-CV_IMPL void
-cvPerspectiveTransform( const CvArr* srcarr, CvArr* dstarr, const CvMat* mat )
-{
-    cv::Mat m = cv::cvarrToMat(mat), src = cv::cvarrToMat(srcarr), dst = cv::cvarrToMat(dstarr);
-
-    CV_Assert( dst.type() == src.type() && dst.channels() == m.rows-1 );
-    cv::perspectiveTransform( src, dst, m );
-}
-
-
-CV_IMPL void cvScaleAdd( const CvArr* srcarr1, CvScalar scale,
-                         const CvArr* srcarr2, CvArr* dstarr )
-{
-    cv::Mat src1 = cv::cvarrToMat(srcarr1), dst = cv::cvarrToMat(dstarr);
-
-    CV_Assert( src1.size == dst.size && src1.type() == dst.type() );
-    cv::scaleAdd( src1, scale.val[0], cv::cvarrToMat(srcarr2), dst );
-}
-
-
-CV_IMPL void
-cvCalcCovarMatrix( const CvArr** vecarr, int count,
-                   CvArr* covarr, CvArr* avgarr, int flags )
-{
-    cv::Mat cov0 = cv::cvarrToMat(covarr), cov = cov0, mean0, mean;
-    CV_Assert( vecarr != 0 && count >= 1 );
-
-    if( avgarr )
-        mean = mean0 = cv::cvarrToMat(avgarr);
-
-    if( (flags & CV_COVAR_COLS) != 0 || (flags & CV_COVAR_ROWS) != 0 )
-    {
-
-        cv::Mat data = cv::cvarrToMat(vecarr[0]);
-        cv::calcCovarMatrix( data, cov, mean, flags, cov.type() );
-    }
-    else
-    {
-        std::vector<cv::Mat> data(count);
-        for( int i = 0; i < count; i++ )
-            data[i] = cv::cvarrToMat(vecarr[i]);
-        cv::calcCovarMatrix( &data[0], count, cov, mean, flags, cov.type() );
-    }
-
-    if( mean.data != mean0.data && mean0.data )
-        mean.convertTo(mean0, mean0.type());
-
-    if( cov.data != cov0.data )
-        cov.convertTo(cov0, cov0.type());
-}
-
-
-CV_IMPL double
-cvMahalanobis( const CvArr* srcAarr, const CvArr* srcBarr, const CvArr* matarr )
-{
-    return cv::Mahalanobis(cv::cvarrToMat(srcAarr),
-        cv::cvarrToMat(srcBarr), cv::cvarrToMat(matarr));
-}
-
-CV_IMPL void
-cvMulTransposed( const CvArr* srcarr, CvArr* dstarr,
-                 int order, const CvArr* deltaarr, double scale )
-{
-    cv::Mat src = cv::cvarrToMat(srcarr), dst0 = cv::cvarrToMat(dstarr), dst = dst0, delta;
-    if( deltaarr )
-        delta = cv::cvarrToMat(deltaarr);
-    cv::mulTransposed( src, dst, order != 0, delta, scale, dst.type());
-    if( dst.data != dst0.data )
-        dst.convertTo(dst0, dst0.type());
-}
-
-
 
 /* End of file. */

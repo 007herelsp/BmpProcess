@@ -52,53 +52,11 @@
 #ifdef __cplusplus
 
 /////// exchange-add operation for atomic operations on reference counters ///////
-#ifdef CV_XADD
-  // allow to use user-defined macro
-#elif defined __GNUC__
-
-  #if defined __clang__ && __clang_major__ >= 3 && !defined __ANDROID__ && !defined __EMSCRIPTEN__  && !defined(__CUDACC__)
-    #ifdef __ATOMIC_SEQ_CST
-        #define CV_XADD(addr, delta) __c11_atomic_fetch_add((_Atomic(int)*)(addr), (delta), __ATOMIC_SEQ_CST)
-    #else
-        #define CV_XADD(addr, delta) __atomic_fetch_add((_Atomic(int)*)(addr), (delta), 5)
-    #endif
-  #elif __GNUC__*10 + __GNUC_MINOR__ >= 42
-
-    #if !(defined WIN32 || defined _WIN32) && (defined __i486__ || defined __i586__ || \
-        defined __i686__ || defined __MMX__ || defined __SSE__  || defined __ppc__) || \
-        defined _STLPORT_MAJOR || defined _LIBCPP_VERSION || \
-        defined __EMSCRIPTEN__
-
-      #define CV_XADD __sync_fetch_and_add
-    #else
-      #include <ext/atomicity.h>
-      #define CV_XADD __gnu_cxx::__exchange_and_add
-    #endif
-
-  #else
-    #include <bits/atomicity.h>
-    #if __GNUC__*10 + __GNUC_MINOR__ >= 34
-      #define CV_XADD __gnu_cxx::__exchange_and_add
-    #else
-      #define CV_XADD __exchange_and_add
-    #endif
-  #endif
-
-#elif defined WIN32 || defined _WIN32 || defined WINCE
-  namespace cv { CV_EXPORTS int _interlockedExchangeAdd(int* addr, int delta); }
-  #define CV_XADD cv::_interlockedExchangeAdd
-
-#else
   static inline int CV_XADD(int* addr, int delta)
   { int tmp = *addr; *addr += delta; return tmp; }
-#endif
 
 #include <limits>
 
-#ifdef _MSC_VER
-# pragma warning(push)
-# pragma warning(disable:4127) //conditional expression is constant
-#endif
 
 namespace cv
 {
@@ -4117,9 +4075,6 @@ template<typename _Tp> inline void AlgorithmInfo::addParam(Algorithm& algo, cons
 
 }
 
-#ifdef _MSC_VER
-# pragma warning(pop)
-#endif
 
 #endif // __cplusplus
 #endif

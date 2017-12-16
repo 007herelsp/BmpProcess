@@ -4,7 +4,9 @@
 #include "vostype.h"
 
 #include <fcntl.h>
+#ifdef __linux__
 #include <unistd.h>
+#endif
 #include <math.h>
 #include <assert.h>
 

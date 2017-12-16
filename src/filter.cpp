@@ -1741,12 +1741,7 @@ void cv::filter2D( InputArray _src, OutputArray _dst, int ddepth,
     if( ddepth < 0 )
         ddepth = src.depth();
 
-#if CV_SSE2
-    int dft_filter_size = ((src.depth() == CV_8U && (ddepth == CV_8U || ddepth == CV_16S)) ||
-        (src.depth() == CV_32F && ddepth == CV_32F)) && checkHardwareSupport(CV_CPU_SSE3)? 130 : 50;
-#else
     int dft_filter_size = 50;
-#endif
 
     _dst.create( src.size(), CV_MAKETYPE(ddepth, src.channels()) );
     Mat dst = _dst.getMat();

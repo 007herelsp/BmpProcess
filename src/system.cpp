@@ -1,132 +1,7 @@
 #include "core.precomp.hpp"
 
-#ifdef _MSC_VER
-# if _MSC_VER >= 1700
-#  pragma warning(disable:4447) // Disable warning 'main' signature found without threading model
-# endif
-#endif
-
-#if defined WIN32 || defined _WIN32 || defined WINCE
-#ifndef _WIN32_WINNT           // This is needed for the declaration of TryEnterCriticalSection in winbase.h with Visual Studio 2005 (and older?)
-  #define _WIN32_WINNT 0x0400  // http://msdn.microsoft.com/en-us/library/ms686857(VS.85).aspx
-#endif
-#include <windows.h>
-#if (_WIN32_WINNT >= 0x0602)
-  #include <synchapi.h>
-#endif
-#undef small
-#undef min
-#undef max
-#undef abs
-#include <tchar.h>
-#if defined _MSC_VER
-  #if _MSC_VER >= 1400
-    #include <intrin.h>
-  #elif defined _M_IX86
-    static void __cpuid(int* cpuid_data, int)
-    {
-        __asm
-        {
-            push ebx
-            push edi
-            mov edi, cpuid_data
-            mov eax, 1
-            cpuid
-            mov [edi], eax
-            mov [edi + 4], ebx
-            mov [edi + 8], ecx
-            mov [edi + 12], edx
-            pop edi
-            pop ebx
-        }
-    }
-  #endif
-#endif
-
-#ifdef HAVE_WINRT
-#include <wrl/client.h>
-#ifndef __cplusplus_winrt
-#include <windows.storage.h>
-#pragma comment(lib, "runtimeobject.lib")
-#endif
-
-std::wstring GetTempPathWinRT()
-{
-#ifdef __cplusplus_winrt
-    return std::wstring(Windows::Storage::ApplicationData::Current->TemporaryFolder->Path->Data());
-#else
-    Microsoft::WRL::ComPtr<ABI::Windows::Storage::IApplicationDataStatics> appdataFactory;
-    Microsoft::WRL::ComPtr<ABI::Windows::Storage::IApplicationData> appdataRef;
-    Microsoft::WRL::ComPtr<ABI::Windows::Storage::IStorageFolder> storagefolderRef;
-    Microsoft::WRL::ComPtr<ABI::Windows::Storage::IStorageItem> storageitemRef;
-    HSTRING str;
-    HSTRING_HEADER hstrHead;
-    std::wstring wstr;
-    if (FAILED(WindowsCreateStringReference(RuntimeClass_Windows_Storage_ApplicationData,
-                                            (UINT32)wcslen(RuntimeClass_Windows_Storage_ApplicationData), &hstrHead, &str)))
-        return wstr;
-    if (FAILED(RoGetActivationFactory(str, IID_PPV_ARGS(appdataFactory.ReleaseAndGetAddressOf()))))
-        return wstr;
-    if (FAILED(appdataFactory->get_Current(appdataRef.ReleaseAndGetAddressOf())))
-        return wstr;
-    if (FAILED(appdataRef->get_TemporaryFolder(storagefolderRef.ReleaseAndGetAddressOf())))
-        return wstr;
-    if (FAILED(storagefolderRef.As(&storageitemRef)))
-        return wstr;
-    str = NULL;
-    if (FAILED(storageitemRef->get_Path(&str)))
-        return wstr;
-    wstr = WindowsGetStringRawBuffer(str, NULL);
-    WindowsDeleteString(str);
-    return wstr;
-#endif
-}
-
-std::wstring GetTempFileNameWinRT(std::wstring prefix)
-{
-    wchar_t guidStr[40];
-    GUID g;
-    CoCreateGuid(&g);
-    wchar_t* mask = L"%08x_%04x_%04x_%02x%02x_%02x%02x%02x%02x%02x%02x";
-    swprintf(&guidStr[0], sizeof(guidStr)/sizeof(wchar_t), mask,
-             g.Data1, g.Data2, g.Data3, UINT(g.Data4[0]), UINT(g.Data4[1]),
-             UINT(g.Data4[2]), UINT(g.Data4[3]), UINT(g.Data4[4]),
-             UINT(g.Data4[5]), UINT(g.Data4[6]), UINT(g.Data4[7]));
-
-    return prefix + std::wstring(guidStr);
-}
-
-#endif
-#else
-#include <pthread.h>
-#include <sys/time.h>
-#include <time.h>
-
-#if defined __MACH__ && defined __APPLE__
-#include <mach/mach.h>
-#include <mach/mach_time.h>
-#endif
-
-#endif
-
-#ifdef _OPENMP
-#include "omp.h"
-#endif
 
 #include <stdarg.h>
-
-#if defined __linux__ || defined __APPLE__ || defined __EMSCRIPTEN__ || defined __QNX__
-#include <unistd.h>
-#include <stdio.h>
-#include <sys/types.h>
-#if defined ANDROID
-#include <sys/sysconf.h>
-#endif
-#endif
-
-#ifdef ANDROID
-# include <android/log.h>
-#endif
 
 namespace cv
 {
@@ -255,22 +130,10 @@ struct HWFeatures
 static HWFeatures  featuresEnabled = HWFeatures::initialize(), featuresDisabled = HWFeatures();
 static HWFeatures* currentFeatures = &featuresEnabled;
 
-bool checkHardwareSupport(int feature)
-{
-    CV_DbgAssert( 0 <= feature && feature <= CV_HARDWARE_MAX_FEATURE );
-    return currentFeatures->have[feature];
-}
+
 
 
 volatile bool useOptimizedFlag = true;
-#ifdef HAVE_IPP
-struct IPPInitializer
-{
-    IPPInitializer(void) { ippStaticInit(); }
-};
-
-IPPInitializer ippInitializer;
-#endif
 
 volatile bool USE_SSE2 = featuresEnabled.have[CV_CPU_SSE2];
 volatile bool USE_SSE4_2 = featuresEnabled.have[CV_CPU_SSE4_2];
@@ -290,111 +153,15 @@ bool useOptimized(void)
 
 int64 getTickCount(void)
 {
-#if defined WIN32 || defined _WIN32 || defined WINCE
-    LARGE_INTEGER counter;
-    QueryPerformanceCounter( &counter );
-    return (int64)counter.QuadPart;
-#elif defined __linux || defined __linux__
-    struct timespec tp;
-    clock_gettime(CLOCK_MONOTONIC, &tp);
-    return (int64)tp.tv_sec*1000000000 + tp.tv_nsec;
-#elif defined __MACH__ && defined __APPLE__
-    return (int64)mach_absolute_time();
-#else
-    struct timeval tv;
-    struct timezone tz;
-    gettimeofday( &tv, &tz );
-    return (int64)tv.tv_sec*1000000 + tv.tv_usec;
-#endif
+	return 0;
 }
 
 double getTickFrequency(void)
 {
-#if defined WIN32 || defined _WIN32 || defined WINCE
-    LARGE_INTEGER freq;
-    QueryPerformanceFrequency(&freq);
-    return (double)freq.QuadPart;
-#elif defined __linux || defined __linux__
-    return 1e9;
-#elif defined __MACH__ && defined __APPLE__
-    static double freq = 0;
-    if( freq == 0 )
-    {
-        mach_timebase_info_data_t sTimebaseInfo;
-        mach_timebase_info(&sTimebaseInfo);
-        freq = sTimebaseInfo.denom*1e9/sTimebaseInfo.numer;
-    }
-    return freq;
-#else
-    return 1e6;
-#endif
+	return 0;
 }
 
-#if defined __GNUC__ && (defined __i386__ || defined __x86_64__ || defined __ppc__)
-#if defined(__i386__)
 
-int64 getCPUTickCount(void)
-{
-    int64 x;
-    __asm__ volatile (".byte 0x0f, 0x31" : "=A" (x));
-    return x;
-}
-#elif defined(__x86_64__)
-
-int64 getCPUTickCount(void)
-{
-    unsigned hi, lo;
-    __asm__ __volatile__ ("rdtsc" : "=a"(lo), "=d"(hi));
-    return (int64)lo | ((int64)hi << 32);
-}
-
-#elif defined(__ppc__)
-
-int64 getCPUTickCount(void)
-{
-    int64 result = 0;
-    unsigned upper, lower, tmp;
-    __asm__ volatile(
-                     "0:                  \n"
-                     "\tmftbu   %0           \n"
-                     "\tmftb    %1           \n"
-                     "\tmftbu   %2           \n"
-                     "\tcmpw    %2,%0        \n"
-                     "\tbne     0b         \n"
-                     : "=r"(upper),"=r"(lower),"=r"(tmp)
-                     );
-    return lower | ((int64)upper << 32);
-}
-
-#else
-
-#error "RDTSC not defined"
-
-#endif
-
-#elif defined _MSC_VER && defined WIN32 && defined _M_IX86
-
-int64 getCPUTickCount(void)
-{
-    __asm _emit 0x0f;
-    __asm _emit 0x31;
-}
-
-#else
-
-#ifdef HAVE_IPP
-int64 getCPUTickCount(void)
-{
-    return ippGetCpuClocks();
-}
-#else
-int64 getCPUTickCount(void)
-{
-    return getTickCount();
-}
-#endif
-
-#endif
 
 
 
@@ -407,85 +174,6 @@ string format( const char* fmt, ... )
     return string(buf);
 }
 
-string tempfile( const char* suffix )
-{
-    string fname;
-#ifndef HAVE_WINRT
-    const char *temp_dir = getenv("OPENCV_TEMP_PATH");
-#endif
-
-#if defined WIN32 || defined _WIN32
-#ifdef HAVE_WINRT
-    RoInitialize(RO_INIT_MULTITHREADED);
-    std::wstring temp_dir = L"";
-    const wchar_t* opencv_temp_dir = GetTempPathWinRT().c_str();
-    if (opencv_temp_dir)
-        temp_dir = std::wstring(opencv_temp_dir);
-
-    std::wstring temp_file;
-    temp_file = GetTempFileNameWinRT(L"ocv");
-    if (temp_file.empty())
-        return string();
-
-    temp_file = temp_dir + std::wstring(L"\\") + temp_file;
-    DeleteFileW(temp_file.c_str());
-
-    char aname[MAX_PATH];
-    size_t copied = wcstombs(aname, temp_file.c_str(), MAX_PATH);
-    CV_Assert((copied != MAX_PATH) && (copied != (size_t)-1));
-    fname = string(aname);
-    RoUninitialize();
-#else
-    char temp_dir2[MAX_PATH] = { 0 };
-    char temp_file[MAX_PATH] = { 0 };
-
-    if (temp_dir == 0 || temp_dir[0] == 0)
-    {
-        ::GetTempPathA(sizeof(temp_dir2), temp_dir2);
-        temp_dir = temp_dir2;
-    }
-    if(0 == ::GetTempFileNameA(temp_dir, "ocv", 0, temp_file))
-        return string();
-
-    DeleteFileA(temp_file);
-
-    fname = temp_file;
-#endif
-# else
-#  ifdef ANDROID
-    //char defaultTemplate[] = "/mnt/sdcard/__opencv_temp.XXXXXX";
-    char defaultTemplate[] = "/data/local/tmp/__opencv_temp.XXXXXX";
-#  else
-    char defaultTemplate[] = "/tmp/__opencv_temp.XXXXXX";
-#  endif
-
-    if (temp_dir == 0 || temp_dir[0] == 0)
-        fname = defaultTemplate;
-    else
-    {
-        fname = temp_dir;
-        char ech = fname[fname.size() - 1];
-        if(ech != '/' && ech != '\\')
-            fname += "/";
-        fname += "__opencv_temp.XXXXXX";
-    }
-
-    const int fd = mkstemp((char*)fname.c_str());
-    if (fd == -1) return string();
-
-    close(fd);
-    remove(fname.c_str());
-# endif
-
-    if (suffix)
-    {
-        if (suffix[0] != '.')
-            return fname + "." + suffix;
-        else
-            return fname + suffix;
-    }
-    return fname;
-}
 
 static CvErrorCallback customErrorCallback = 0;
 static void* customErrorCallbackData = 0;
@@ -513,9 +201,7 @@ void error( const Exception& exc )
             exc.func.c_str() : "unknown function", exc.file.c_str(), exc.line );
         fprintf( stderr, "%s\n", buf );
         fflush( stderr );
-#  ifdef __ANDROID__
-        __android_log_print(ANDROID_LOG_ERROR, "cv::error()", "%s", buf);
-#  endif
+
     }
 
     if(breakOnError)
@@ -543,11 +229,7 @@ redirectError( CvErrorCallback errCallback, void* userdata, void** prevUserdata)
 
 }
 
-CV_IMPL int cvCheckHardwareSupport(int feature)
-{
-    CV_DbgAssert( 0 <= feature && feature <= CV_HARDWARE_MAX_FEATURE );
-    return cv::currentFeatures->have[feature];
-}
+
 
 CV_IMPL int cvUseOptimized( int flag )
 {

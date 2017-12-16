@@ -635,24 +635,10 @@ CVAPI(CvArr*)  cvRange( CvArr* mat, double start, double end );
 /* all the input vectors are stored in a single matrix, as its columns */
 #define CV_COVAR_COLS     16
 
-CVAPI(void)  cvCalcCovarMatrix( const CvArr** vects, int count,
-                                CvArr* cov_mat, CvArr* avg, int flags );
 
-#define CV_PCA_DATA_AS_ROW 0
-#define CV_PCA_DATA_AS_COL 1
-#define CV_PCA_USE_AVG 2
-CVAPI(void)  cvCalcPCA( const CvArr* data, CvArr* mean,
-                        CvArr* eigenvals, CvArr* eigenvects, int flags );
 
-CVAPI(void)  cvProjectPCA( const CvArr* data, const CvArr* mean,
-                           const CvArr* eigenvects, CvArr* result );
 
-CVAPI(void)  cvBackProjectPCA( const CvArr* proj, const CvArr* mean,
-                               const CvArr* eigenvects, CvArr* result );
 
-/* Calculates Mahalanobis(weighted) distance */
-CVAPI(double)  cvMahalanobis( const CvArr* vec1, const CvArr* vec2, const CvArr* mat );
-#define cvMahalonobis  cvMahalanobis
 
 /****************************************************************************************\
 *                                    Array Statistics                                    *
@@ -724,23 +710,12 @@ CVAPI(void)  cvReduce( const CvArr* src, CvArr* dst, int dim CV_DEFAULT(-1),
 #define CV_DXT_ROWS     4 /* transform each row individually */
 #define CV_DXT_MUL_CONJ 8 /* conjugate the second argument of cvMulSpectrums */
 
-/* Discrete Fourier Transform:
-    complex->complex,
-    real->ccs (forward),
-    ccs->real (inverse) */
-CVAPI(void)  cvDFT( const CvArr* src, CvArr* dst, int flags,
-                    int nonzero_rows CV_DEFAULT(0) );
-#define cvFFT cvDFT
 
-/* Multiply results of DFTs: DFT(X)*DFT(Y) or DFT(X)*conj(DFT(Y)) */
-CVAPI(void)  cvMulSpectrums( const CvArr* src1, const CvArr* src2,
-                             CvArr* dst, int flags );
 
-/* Finds optimal DFT vector size >= size0 */
-CVAPI(int)  cvGetOptimalDFTSize( int size0 );
 
-/* Discrete Cosine Transform */
-CVAPI(void)  cvDCT( const CvArr* src, CvArr* dst, int flags );
+
+
+
 
 /****************************************************************************************\
 *                              Dynamic data structures                                   *
@@ -1296,7 +1271,6 @@ CVAPI(double) cvGetTickFrequency( void );
 #define CV_CPU_AVX2   11
 #define CV_HARDWARE_MAX_FEATURE 255
 
-CVAPI(int) cvCheckHardwareSupport(int feature);
 
 /*********************************** Multi-Threading ************************************/
 

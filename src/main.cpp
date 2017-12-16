@@ -24,671 +24,677 @@ using namespace std;
 
 double angle(CvPoint *pt1, CvPoint *pt2, CvPoint *pt0)
 {
-    double dx1 = pt1->x - pt0->x;
-    double dy1 = pt1->y - pt0->y;
-    double dx2 = pt2->x - pt0->x;
-    double dy2 = pt2->y - pt0->y;
-    return (dx1 * dx2 + dy1 * dy2) / sqrt((dx1 * dx1 + dy1 * dy1) * (dx2 * dx2 + dy2 * dy2) + 1e-10);
+	double dx1 = pt1->x - pt0->x;
+	double dy1 = pt1->y - pt0->y;
+	double dx2 = pt2->x - pt0->x;
+	double dy2 = pt2->y - pt0->y;
+	return (dx1 * dx2 + dy1 * dy2) / sqrt((dx1 * dx1 + dy1 * dy1) * (dx2 * dx2 + dy2 * dy2) + 1e-10);
 }
 
-//drawSquareså‡½æ•°ç”¨æ¥ç”»å‡ºåœ¨å›¾åƒä¸­æ‰¾åˆ°çš„æ‰€æœ‰æ­£æ–¹å½¢è½®å»“
+//drawSquaresº¯ÊıÓÃÀ´»­³öÔÚÍ¼ÏñÖĞÕÒµ½µÄËùÓĞÕı·½ĞÎÂÖÀª
 void drawSquares(IplImage *img, CvSeq *squares)
 {
-    CvSeqReader reader;
-    IplImage *cpy = cvCloneImage(img);
-    int i;
-    cvStartReadSeq(squares, &reader, 0);
-    printf("total = %d\n", squares->total);
-    // read 4 sequence elements at a time (all vertices of a square)
+	CvSeqReader reader;
+	IplImage *cpy = cvCloneImage(img);
+	int i;
+	cvStartReadSeq(squares, &reader, 0);
+	printf("total = %d\n", squares->total);
+	// read 4 sequence elements at a time (all vertices of a square)
 
-    for (i = 0; i < squares->total; i += 4)
-    {
-        CvPoint pt[4], *rect = pt;
-        int count = 4;
+	for (i = 0; i < squares->total; i += 4)
+	{
+		CvPoint pt[4], *rect = pt;
+		int count = 4;
 
-        // read 4 vertices
-        CV_READ_SEQ_ELEM(pt[0], reader);
-        CV_READ_SEQ_ELEM(pt[1], reader);
-        CV_READ_SEQ_ELEM(pt[2], reader);
-        CV_READ_SEQ_ELEM(pt[3], reader);
+		// read 4 vertices
+		CV_READ_SEQ_ELEM(pt[0], reader);
+		CV_READ_SEQ_ELEM(pt[1], reader);
+		CV_READ_SEQ_ELEM(pt[2], reader);
+		CV_READ_SEQ_ELEM(pt[3], reader);
 
-        // draw the square as a closed polyline
-        // cvPolyLine(cpy, &rect, &count, 1, 1, CV_RGB(0, 0, 255), 2, CV_AA, 0);
-    }
+		// draw the square as a closed polyline
+		// cvPolyLine(cpy, &rect, &count, 1, 1, CV_RGB(0, 0, 255), 2, CV_AA, 0);
+	}
 
-    cvShowImage("xx", cpy);
-    /*const char* filename = "111111111111111111111.jpg";
+	cvShowImage("xx", cpy);
+	/*const char* filename = "111111111111111111111.jpg";
 	const CvArr* image = cpy;
 	int cvSaveImage("1111111111111111111111.jpg",image);*/
-    char *filename2 = "rsult.bmp"; //å›¾åƒå
-    cvSaveImage(filename2, cpy);   //æŠŠå›¾åƒå†™å…¥æ–‡ä»¶
+	char *filename2 = "rsult.bmp"; //Í¼ÏñÃû
+	cvSaveImage(filename2, cpy);   //°ÑÍ¼ÏñĞ´ÈëÎÄ¼ş
 
-    //Mat mtx(cpy);
+	//Mat mtx(cpy);
 
-    cvReleaseImage(&cpy);
+	cvReleaseImage(&cpy);
 }
-//æ—‹è½¬å›¾åƒå†…å®¹ä¸å˜ï¼Œå°ºå¯¸ç›¸åº”å˜å¤§
+//Ğı×ªÍ¼ÏñÄÚÈİ²»±ä£¬³ß´çÏàÓ¦±ä´ó
 IplImage *rotateImage2(IplImage *img, IplImage *img_rotate, int degree)
 {
-    double angle = degree * CV_PI / 180.;
-    double a = sin(angle), b = cos(angle);
-    int width = img->width, height = img->height;
-    //æ—‹è½¬åçš„æ–°å›¾å°ºå¯¸
-    int width_rotate = int(height * fabs(a) + width * fabs(b));
-    int height_rotate = int(width * fabs(a) + height * fabs(b));
-    //IplImage *img_rotate = cvCreateImage(cvSize(width_rotate, height_rotate), img->depth, img->nChannels);
-    //cvZero(img_rotate);
-    //ä¿è¯åŸå›¾å¯ä»¥ä»»æ„è§’åº¦æ—‹è½¬çš„æœ€å°å°ºå¯¸
-    int tempLength = sqrt((double)width * width + (double)height * height) + 10;
-    int tempX = (tempLength + 1) / 2 - width / 2;
-    int tempY = (tempLength + 1) / 2 - height / 2;
-    IplImage *temp = cvCreateImage(cvSize(tempLength, tempLength), img->depth, img->nChannels);
-    cvZero(temp);
-    //å°†åŸå›¾å¤åˆ¶åˆ°ä¸´æ—¶å›¾åƒtmpä¸­å¿ƒ
-    //cvSetImageROI(img_rotate, cvRect(tempX, tempY, width, height));
-    // cvCopy(img, temp, NULL);
+	double angle = degree * CV_PI / 180.;
+	double a = sin(angle), b = cos(angle);
+	int width = img->width, height = img->height;
+	//Ğı×ªºóµÄĞÂÍ¼³ß´ç
+	int width_rotate = int(height * fabs(a) + width * fabs(b));
+	int height_rotate = int(width * fabs(a) + height * fabs(b));
+	//IplImage *img_rotate = cvCreateImage(cvSize(width_rotate, height_rotate), img->depth, img->nChannels);
+	//cvZero(img_rotate);
+	//±£Ö¤Ô­Í¼¿ÉÒÔÈÎÒâ½Ç¶ÈĞı×ªµÄ×îĞ¡³ß´ç
+	int tempLength = sqrt((double)width * width + (double)height * height) + 10;
+	int tempX = (tempLength + 1) / 2 - width / 2;
+	int tempY = (tempLength + 1) / 2 - height / 2;
+	IplImage *temp = cvCreateImage(cvSize(tempLength, tempLength), img->depth, img->nChannels);
+	cvZero(temp);
+	//½«Ô­Í¼¸´ÖÆµ½ÁÙÊ±Í¼ÏñtmpÖĞĞÄ
+	//cvSetImageROI(img_rotate, cvRect(tempX, tempY, width, height));
+	// cvCopy(img, temp, NULL);
 
-    //æ—‹è½¬æ•°ç»„map
-    // [ m0  m1  m2 ] ===>  [ A11  A12   b1 ]
-    // [ m3  m4  m5 ] ===>  [ A21  A22   b2 ]
-    float m[6];
-    int w = img->width;
-    int h = img->height;
-    m[0] = b;
-    m[1] = a;
-    m[3] = -m[1];
-    m[4] = m[0];
-    // å°†æ—‹è½¬ä¸­å¿ƒç§»è‡³å›¾åƒä¸­é—´
-    m[2] = w * 0.5f;
-    m[5] = h * 0.5f;
-    CvMat M = cvMat(2, 3, CV_32F, m);
-    //cvGetQuadrangleSubPix(img, img_rotate, &M);
-    cvReleaseImage(&temp);
-    cvResetImageROI(img_rotate);
-    return img_rotate;
+	//Ğı×ªÊı×émap
+	// [ m0  m1  m2 ] ===>  [ A11  A12   b1 ]
+	// [ m3  m4  m5 ] ===>  [ A21  A22   b2 ]
+	float m[6];
+	int w = img->width;
+	int h = img->height;
+	m[0] = b;
+	m[1] = a;
+	m[3] = -m[1];
+	m[4] = m[0];
+	// ½«Ğı×ªÖĞĞÄÒÆÖÁÍ¼ÏñÖĞ¼ä
+	m[2] = w * 0.5f;
+	m[5] = h * 0.5f;
+	CvMat M = cvMat(2, 3, CV_32F, m);
+	//cvGetQuadrangleSubPix(img, img_rotate, &M);
+	cvReleaseImage(&temp);
+	cvResetImageROI(img_rotate);
+	return img_rotate;
 }
 
 IplImage *rotateImage3(IplImage *img, IplImage *img_rotate, float degree)
 {
-    double angle = degree * CV_PI / 180.;
-    double a = sin(angle), b = cos(angle);
-    int width = img->width, height = img->height;
-    //æ—‹è½¬åçš„æ–°å›¾å°ºå¯¸
-    int width_rotate = int(height * fabs(a) + width * fabs(b));
-    int height_rotate = int(width * fabs(a) + height * fabs(b));
-    //IplImage *img_rotate = cvCreateImage(cvSize(width_rotate, height_rotate), img->depth, img->nChannels);
-    //cvZero(img_rotate);
-    //ä¿è¯åŸå›¾å¯ä»¥ä»»æ„è§’åº¦æ—‹è½¬çš„æœ€å°å°ºå¯¸
-    int tempLength = sqrt((double)width * width + (double)height * height) + 10;
-    int tempX = (tempLength + 1) / 2 - width / 2;
-    int tempY = (tempLength + 1) / 2 - height / 2;
-    IplImage *temp = cvCreateImage(cvSize(tempLength, tempLength), img->depth, img->nChannels);
-    cvZero(temp);
-    //å°†åŸå›¾å¤åˆ¶åˆ°ä¸´æ—¶å›¾åƒtmpä¸­å¿ƒ
-    cvSetImageROI(temp, cvRect(tempX, tempY, width, height));
-    cvCopy(img, temp, NULL);
-    cvResetImageROI(temp);
-    //æ—‹è½¬æ•°ç»„map
-    // [ m0  m1  m2 ] ===>  [ A11  A12   b1 ]
-    // [ m3  m4  m5 ] ===>  [ A21  A22   b2 ]
-    float m[6];
-    int w = temp->width;
-    int h = temp->height;
-    m[0] = b;
-    m[1] = a;
-    m[3] = -m[1];
-    m[4] = m[0];
-    // å°†æ—‹è½¬ä¸­å¿ƒç§»è‡³å›¾åƒä¸­é—´
-    m[2] = w * 0.5f;
-    m[5] = h * 0.5f;
-    CvMat M = cvMat(2, 3, CV_32F, m);
-    //cvGetQuadrangleSubPix(temp, img_rotate, &M);
-    cvReleaseImage(&temp);
-    return img_rotate;
+	double angle = degree * CV_PI / 180.;
+	double a = sin(angle), b = cos(angle);
+	int width = img->width, height = img->height;
+	//Ğı×ªºóµÄĞÂÍ¼³ß´ç
+	int width_rotate = int(height * fabs(a) + width * fabs(b));
+	int height_rotate = int(width * fabs(a) + height * fabs(b));
+	//IplImage *img_rotate = cvCreateImage(cvSize(width_rotate, height_rotate), img->depth, img->nChannels);
+	//cvZero(img_rotate);
+	//±£Ö¤Ô­Í¼¿ÉÒÔÈÎÒâ½Ç¶ÈĞı×ªµÄ×îĞ¡³ß´ç
+	int tempLength = sqrt((double)width * width + (double)height * height) + 10;
+	int tempX = (tempLength + 1) / 2 - width / 2;
+	int tempY = (tempLength + 1) / 2 - height / 2;
+	IplImage *temp = cvCreateImage(cvSize(tempLength, tempLength), img->depth, img->nChannels);
+	cvZero(temp);
+	//½«Ô­Í¼¸´ÖÆµ½ÁÙÊ±Í¼ÏñtmpÖĞĞÄ
+	cvSetImageROI(temp, cvRect(tempX, tempY, width, height));
+	cvCopy(img, temp, NULL);
+	cvResetImageROI(temp);
+	//Ğı×ªÊı×émap
+	// [ m0  m1  m2 ] ===>  [ A11  A12   b1 ]
+	// [ m3  m4  m5 ] ===>  [ A21  A22   b2 ]
+	float m[6];
+	int w = temp->width;
+	int h = temp->height;
+	m[0] = b;
+	m[1] = a;
+	m[3] = -m[1];
+	m[4] = m[0];
+	// ½«Ğı×ªÖĞĞÄÒÆÖÁÍ¼ÏñÖĞ¼ä
+	m[2] = w * 0.5f;
+	m[5] = h * 0.5f;
+	CvMat M = cvMat(2, 3, CV_32F, m);
+	//cvGetQuadrangleSubPix(temp, img_rotate, &M);
+	cvReleaseImage(&temp);
+	return img_rotate;
 }
 
 IplImage *protc(IplImage *imgin, IplImage *imgin2, float theta)
 {
-    int x;
-    int y;
+	int x;
+	int y;
 
-    for (int i = 0; i < imgin->height; i++)
-    {
-        for (int j = 0; j < imgin->width; j++)
-        {
-            float fy = (float(j) * cos(theta) + float(i) * sin(theta)) + 200;
-            float fx = (float(-j) * sin(theta) + float(i) * cos(theta)) + 200;
-            x = (int)(fx + 1);
-            y = (int)(fy + 1);
-            imgin2->imageData[(x * imgin2->widthStep + 3 * y) + 0] = imgin->imageData[(i * imgin->widthStep + 3 * j) + 0];
-            imgin2->imageData[(x * imgin2->widthStep + 3 * y) + 1] = imgin->imageData[(i * imgin->widthStep + 3 * j) + 1];
-            imgin2->imageData[(x * imgin2->widthStep + 3 * y) + 2] = imgin->imageData[(i * imgin->widthStep + 3 * j) + 2];
-        }
-    }
+	for (int i = 0; i < imgin->height; i++)
+	{
+		for (int j = 0; j < imgin->width; j++)
+		{
+			float fy = (float(j) * cos(theta) + float(i) * sin(theta)) + 200;
+			float fx = (float(-j) * sin(theta) + float(i) * cos(theta)) + 200;
+			x = (int)(fx + 1);
+			y = (int)(fy + 1);
+			imgin2->imageData[(x * imgin2->widthStep + 3 * y) + 0] = imgin->imageData[(i * imgin->widthStep + 3 * j) + 0];
+			imgin2->imageData[(x * imgin2->widthStep + 3 * y) + 1] = imgin->imageData[(i * imgin->widthStep + 3 * j) + 1];
+			imgin2->imageData[(x * imgin2->widthStep + 3 * y) + 2] = imgin->imageData[(i * imgin->widthStep + 3 * j) + 2];
+		}
+	}
 
-    return imgin2;
+	return imgin2;
 }
 
 struct SymCmp
 {
-    bool operator()(const CvBox2D &x, const CvBox2D &y) const
-    {
-        if (x.center.x == y.center.x)
-        {
-            return x.center.y < y.center.y;
-        }
-        else
-        {
-            return x.center.x < y.center.x;
-        }
-    }
+	bool operator()(const CvBox2D &x, const CvBox2D &y) const
+	{
+		if (x.center.x == y.center.x)
+		{
+			return x.center.y < y.center.y;
+		}
+		else
+		{
+			return x.center.x < y.center.x;
+		}
+	}
 };
 
 set<CvBox2D, SymCmp> SearchProcess(IplImage *lpSrcImg)
 {
-    CvMemStorage *storage = cvCreateMemStorage();
-    CvSeq *contours = NULL;
-    CvSeq *result = NULL;
-    double s, t;
-    double dContourArea;
-    CvBox2D End_Rage2D;
-    CvPoint2D32f rectpoint[4];
-    int index = 0;
-    set<CvBox2D, SymCmp> lstRes;
-    // åˆ›å»ºä¸€ä¸ªç©ºåºåˆ—ç”¨äºå­˜å‚¨è½®å»“è§’ç‚¹
-    CvSeq *squares = cvCreateSeq(0, sizeof(CvSeq), sizeof(CvPoint), storage);
-    cvFindContours(lpSrcImg, storage, &contours, sizeof(CvContour),
-                   CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE, cvPoint(0, 0));
+	CvMemStorage *storage = cvCreateMemStorage();
+	CvSeq *contours = NULL;
+	CvSeq *result = NULL;
+	double s, t;
+	double dContourArea;
+	CvBox2D End_Rage2D;
+	CvPoint2D32f rectpoint[4];
+	int index = 0;
+	set<CvBox2D, SymCmp> lstRes;
+	// ´´½¨Ò»¸ö¿ÕĞòÁĞÓÃÓÚ´æ´¢ÂÖÀª½Çµã
+	CvSeq *squares = cvCreateSeq(0, sizeof(CvSeq), sizeof(CvPoint), storage);
+	cvFindContours(lpSrcImg, storage, &contours, sizeof(CvContour),
+		CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE, cvPoint(0, 0));
 
-    // éå†æ‰¾åˆ°çš„æ¯ä¸ªè½®å»“contours
-    while (contours)
-    {
-        //ç”¨æŒ‡å®šç²¾åº¦é€¼è¿‘å¤šè¾¹å½¢æ›²çº¿
-        result = cvApproxPoly(contours, sizeof(CvContour), storage,
-                              CV_POLY_APPROX_DP, cvContourPerimeter(contours) * 0.01, 0);
-        if (NULL != result)
-        {
-            if (result->total == 4)
-            {
-                dContourArea = fabs(cvContourArea(result, CV_WHOLE_SEQ));
-                if (dContourArea >= 500 && dContourArea <= 1000000 && cvCheckContourConvexity(result))
-                {
-                    End_Rage2D = cvMinAreaRect2(contours);
-                    s = 0;
-                    for (index = 0; index < 5; index++)
-                    {
-                        // find minimum angle between joint edges (maximum of cosine)
-                        if (index >= 2)
-                        {
-                            t = fabs(angle(
-                                (CvPoint *)cvGetSeqElem(result, index),
-                                (CvPoint *)cvGetSeqElem(result, index - 2),
-                                (CvPoint *)cvGetSeqElem(result, index - 1)));
-                            s = s > t ? s : t;
-                        }
-                    }
+	// ±éÀúÕÒµ½µÄÃ¿¸öÂÖÀªcontours
+	while (contours)
+	{
+		//ÓÃÖ¸¶¨¾«¶È±Æ½ü¶à±ßĞÎÇúÏß
+		result = cvApproxPoly(contours, sizeof(CvContour), storage,
+			CV_POLY_APPROX_DP, cvContourPerimeter(contours) * 0.01, 0);
+		if (NULL != result)
+		{
+			if (result->total == 4)
+			{
+				dContourArea = fabs(cvContourArea(result, CV_WHOLE_SEQ));
+				if (dContourArea >= 500 && dContourArea <= 1000000 && cvCheckContourConvexity(result))
+				{
+					End_Rage2D = cvMinAreaRect2(contours);
+					s = 0;
+					for (index = 0; index < 5; index++)
+					{
+						// find minimum angle between joint edges (maximum of cosine)
+						if (index >= 2)
+						{
+							t = fabs(angle(
+								(CvPoint *)cvGetSeqElem(result, index),
+								(CvPoint *)cvGetSeqElem(result, index - 2),
+								(CvPoint *)cvGetSeqElem(result, index - 1)));
+							s = s > t ? s : t;
+						}
+					}
 
-                    // if ä½™å¼¦å€¼ è¶³å¤Ÿå°ï¼Œå¯ä»¥è®¤å®šè§’åº¦ä¸º90åº¦ç›´è§’
-                    //cos0.1=83åº¦ï¼Œèƒ½è¾ƒå¥½çš„è¶‹è¿‘ç›´è§’
-                    if (s < 0.1)
-                    {
-                        // for (i = 0; i < 4; i++)
-                        // {
-                        //     cvSeqPush(squares, (CvPoint *)cvGetSeqElem(result, i));
-                        // }
-                        lstRes.insert(End_Rage2D);
-                    }
-                }
-            }
-        }
-        // ç»§ç»­æŸ¥æ‰¾ä¸‹ä¸€ä¸ªè½®å»“
-        contours = contours->h_next;
-    }
-    return std::move(lstRes);
+					// if ÓàÏÒÖµ ×ã¹»Ğ¡£¬¿ÉÒÔÈÏ¶¨½Ç¶ÈÎª90¶ÈÖ±½Ç
+					//cos0.1=83¶È£¬ÄÜ½ÏºÃµÄÇ÷½üÖ±½Ç
+					if (s < 0.1)
+					{
+						// for (i = 0; i < 4; i++)
+						// {
+						//     cvSeqPush(squares, (CvPoint *)cvGetSeqElem(result, i));
+						// }
+						lstRes.insert(End_Rage2D);
+					}
+				}
+			}
+		}
+		// ¼ÌĞø²éÕÒÏÂÒ»¸öÂÖÀª
+		contours = contours->h_next;
+	}
+	return std::move(lstRes);
 }
 
 typedef struct stBox
 {
-    CvPoint pt[4];
-    CvBox2D box;
-    bool isRect;
+	CvPoint pt[4];
+	CvBox2D box;
+	bool isRect;
 } Box;
 
 #define MAX_P 40.0
 
 bool isEqu(float x1, float x2)
 {
-    return (abs(x1 - x2) <= MAX_P);
+	return (abs(x1 - x2) <= MAX_P);
 }
 
 struct SymBoxCmp
 {
-    bool operator()(const Box &x, const Box &y) const
-    {
-        if (abs(x.box.center.x - y.box.center.x) <= MAX_P && abs(x.box.center.y - y.box.center.y) <= MAX_P)
-        {
-            if (abs(x.box.size.width - y.box.size.width) <= MAX_P && abs(x.box.size.height - y.box.size.height) <= MAX_P)
-            {
-                return false;
-            }
-        }
+	bool operator()(const Box &x, const Box &y) const
+	{
+		if (abs(x.box.center.x - y.box.center.x) <= MAX_P && abs(x.box.center.y - y.box.center.y) <= MAX_P)
+		{
+			if (abs(x.box.size.width - y.box.size.width) <= MAX_P && abs(x.box.size.height - y.box.size.height) <= MAX_P)
+			{
+				return false;
+			}
+		}
 
-        bool ret = false;
-        if (x.box.center.x == y.box.center.x)
-        {
-            ret = x.box.center.y < y.box.center.y;
-        }
-        else
-        {
-            ret = x.box.center.x < y.box.center.x;
-        }
-        return ret;
-    }
+		bool ret = false;
+		if (x.box.center.x == y.box.center.x)
+		{
+			ret = x.box.center.y < y.box.center.y;
+		}
+		else
+		{
+			ret = x.box.center.x < y.box.center.x;
+		}
+		return ret;
+	}
 };
 
 struct SymUBoxCmp
 {
-    bool operator()(const Box &x, const Box &y) const
-    {
-        if (abs(x.box.center.x - y.box.center.x) <= MAX_P && abs(x.box.center.y - y.box.center.y) <= MAX_P)
-        {
-            if (abs(x.box.size.width - y.box.size.width) <= MAX_P && abs(x.box.size.height - y.box.size.height) <= MAX_P)
-            {
-                return false;
-            }
-        }
-        return true;
-    }
+	bool operator()(const Box &x, const Box &y) const
+	{
+		if (abs(x.box.center.x - y.box.center.x) <= MAX_P && abs(x.box.center.y - y.box.center.y) <= MAX_P)
+		{
+			if (abs(x.box.size.width - y.box.size.width) <= MAX_P && abs(x.box.size.height - y.box.size.height) <= MAX_P)
+			{
+				return false;
+			}
+		}
+		return true;
+	}
 };
 
 set<Box, SymUBoxCmp> SearchProcess_v2(IplImage *lpSrcImg)
 {
-    CvMemStorage *storage = cvCreateMemStorage();
-    CvSeq *contours = NULL;
-    CvSeq *result = NULL;
-    double s, t;
-    double dContourArea;
-    CvBox2D End_Rage2D;
-    CvPoint2D32f rectpoint[4];
-    int index = 0;
-    set<Box, SymUBoxCmp> lstRes;
-    // åˆ›å»ºä¸€ä¸ªç©ºåºåˆ—ç”¨äºå­˜å‚¨è½®å»“è§’ç‚¹
-    CvSeq *squares = cvCreateSeq(0, sizeof(CvSeq), sizeof(CvPoint), storage);
-    cvFindContours(lpSrcImg, storage, &contours, sizeof(CvContour),
-                   CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE, cvPoint(0, 0));
-    int iCount = 0;
-    cvSaveImage("c.bmp", lpSrcImg);
-    // éå†æ‰¾åˆ°çš„æ¯ä¸ªè½®å»“contours
-    while (contours)
-    {
-        //ç”¨æŒ‡å®šç²¾åº¦é€¼è¿‘å¤šè¾¹å½¢æ›²çº¿
-        result = cvApproxPoly(contours, sizeof(CvContour), storage,
-                              CV_POLY_APPROX_DP, cvContourPerimeter(contours) * 0.01, 0);
-        if (NULL != result)
-        {
-            if (result->total == 4)
-            {
-                dContourArea = fabs(cvContourArea(result, CV_WHOLE_SEQ));
-                if (dContourArea >= 500 && dContourArea <= 1000000 && cvCheckContourConvexity(result))
-                {
-                    End_Rage2D = cvMinAreaRect2(contours);
-                    s = 0;
-                    Box box;
-                    box.box = End_Rage2D;
-                    for (index = 2; index < 5; index++)
-                    {
-                        // find minimum angle between joint edges (maximum of cosine)
-                        if (index >= 2)
-                        {
-                            t = fabs(angle(
-                                (CvPoint *)cvGetSeqElem(result, index % 4),
-                                (CvPoint *)cvGetSeqElem(result, index - 2),
-                                (CvPoint *)cvGetSeqElem(result, index - 1)));
-                            s = s > t ? s : t;
-                        }
-                    }
+	CvMemStorage *storage = cvCreateMemStorage();
+	CvSeq *contours = NULL;
+	CvSeq *result = NULL;
+	double s, t;
+	double dContourArea;
+	CvBox2D End_Rage2D;
+	CvPoint2D32f rectpoint[4];
+	int index = 0;
+	set<Box, SymUBoxCmp> lstRes;
+	// ´´½¨Ò»¸ö¿ÕĞòÁĞÓÃÓÚ´æ´¢ÂÖÀª½Çµã
+	CvSeq *squares = cvCreateSeq(0, sizeof(CvSeq), sizeof(CvPoint), storage);
+	cvFindContours(lpSrcImg, storage, &contours, sizeof(CvContour),
+		CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE, cvPoint(0, 0));
+	int iCount = 0;
+	cvSaveImage("c.bmp", lpSrcImg);
+	// ±éÀúÕÒµ½µÄÃ¿¸öÂÖÀªcontours
+	while (contours)
+	{
+		//ÓÃÖ¸¶¨¾«¶È±Æ½ü¶à±ßĞÎÇúÏß
+		result = cvApproxPoly(contours, sizeof(CvContour), storage,
+			CV_POLY_APPROX_DP, cvContourPerimeter(contours) * 0.01, 0);
+		if (NULL != result)
+		{
+			if (result->total == 4)
+			{
+				dContourArea = fabs(cvContourArea(result, CV_WHOLE_SEQ));
+				if (dContourArea >= 500 && dContourArea <= 1000000 && cvCheckContourConvexity(result))
+				{
+					End_Rage2D = cvMinAreaRect2(contours);
+					s = 0;
+					Box box;
+					box.box = End_Rage2D;
+					for (index = 2; index < 5; index++)
+					{
+						// find minimum angle between joint edges (maximum of cosine)
+						if (index >= 2)
+						{
+							t = fabs(angle(
+								(CvPoint *)cvGetSeqElem(result, index % 4),
+								(CvPoint *)cvGetSeqElem(result, index - 2),
+								(CvPoint *)cvGetSeqElem(result, index - 1)));
+							s = s > t ? s : t;
+						}
+					}
 
-                    // if ä½™å¼¦å€¼ è¶³å¤Ÿå°ï¼Œå¯ä»¥è®¤å®šè§’åº¦ä¸º90åº¦ç›´è§’
-                    //cos0.1=83åº¦ï¼Œèƒ½è¾ƒå¥½çš„è¶‹è¿‘ç›´è§’
-                    CvPoint *tp;
-                    for (int i = 0; i < 4; i++)
-                    {
-                        tp = (CvPoint *)cvGetSeqElem(result, i);
-                        box.pt[i].x = tp->x;
-                        box.pt[i].y = tp->y;
-                        //  cvSeqPush(squares, (CvPoint *)cvGetSeqElem(result, i));
-                    }
-                    if (s < 0.1)
-                    {
-                        box.isRect = true;
-                    }
-                    else
-                    {
-                        box.isRect = false;
-                    }
-                    printf("centerInfo:[%f,%f]:[%f,%f]\n", End_Rage2D.center.x, End_Rage2D.center.y, End_Rage2D.size.width, End_Rage2D.size.height);
-                    lstRes.insert(box);
-                    iCount++;
+					// if ÓàÏÒÖµ ×ã¹»Ğ¡£¬¿ÉÒÔÈÏ¶¨½Ç¶ÈÎª90¶ÈÖ±½Ç
+					//cos0.1=83¶È£¬ÄÜ½ÏºÃµÄÇ÷½üÖ±½Ç
+					CvPoint *tp;
+					for (int i = 0; i < 4; i++)
+					{
+						tp = (CvPoint *)cvGetSeqElem(result, i);
+						box.pt[i].x = tp->x;
+						box.pt[i].y = tp->y;
+						//  cvSeqPush(squares, (CvPoint *)cvGetSeqElem(result, i));
+					}
+					if (s < 0.1)
+					{
+						box.isRect = true;
+					}
+					else
+					{
+						box.isRect = false;
+					}
+					printf("centerInfo:[%f,%f]:[%f,%f]\n", End_Rage2D.center.x, End_Rage2D.center.y, End_Rage2D.size.width, End_Rage2D.size.height);
+					lstRes.insert(box);
+					iCount++;
 
-                    // if (abs(x.box.center.x - y.box.center.x) <= MAX_P && abs(x.box.center.y - y.box.center.y) <= MAX_P)
-                    // {
-                    //     //if(abs(x.box.size.width - y.box.size.width)  <= MAX_P && abs(x.box.size.height - y.box.size.height)<= MAX_P )
-                    //     {
-                    //         return false;
-                    //     }
-                    // }
-                }
-            }
-        }
-        // ç»§ç»­æŸ¥æ‰¾ä¸‹ä¸€ä¸ªè½®å»“
-        contours = contours->h_next;
-    }
+					// if (abs(x.box.center.x - y.box.center.x) <= MAX_P && abs(x.box.center.y - y.box.center.y) <= MAX_P)
+					// {
+					//     //if(abs(x.box.size.width - y.box.size.width)  <= MAX_P && abs(x.box.size.height - y.box.size.height)<= MAX_P )
+					//     {
+					//         return false;
+					//     }
+					// }
+				}
+			}
+		}
+		// ¼ÌĞø²éÕÒÏÂÒ»¸öÂÖÀª
+		contours = contours->h_next;
+	}
 
-    cvReleaseMemStorage(&storage);
+	cvReleaseMemStorage(&storage);
 
-    return std::move(lstRes);
+	return std::move(lstRes);
 }
 
 IplImage *protc2(IplImage *imgin, IplImage *imgin2, float theta);
 int process(IplImage *lpImg, IplImage *lpTargetImg, int argc, char *argv[])
 {
-    set<CvBox2D, SymCmp> lstRes = SearchProcess(lpImg);
+	set<CvBox2D, SymCmp> lstRes = SearchProcess(lpImg);
 
-    set<CvBox2D, SymCmp>::iterator it;
+	set<CvBox2D, SymCmp>::iterator it;
 
-    CvBox2D box;
-    for (it = lstRes.begin(); it != lstRes.end(); it++)
-    {
-        box = *it;
-    }
-    it = lstRes.begin();
-    for (int i = 0; i < argc && it != lstRes.end(); i++)
-    {
-        printf("%s\n", argv[i]);
-        IplImage *lpSrcImg = cvLoadImage(argv[i], 1);
-        if (lpSrcImg != NULL)
-        {
-            box = *it;
-            it++;
+	CvBox2D box;
+	for (it = lstRes.begin(); it != lstRes.end(); it++)
+	{
+		box = *it;
+	}
+	it = lstRes.begin();
+	for (int i = 0; i < argc && it != lstRes.end(); i++)
+	{
+		printf("%s\n", argv[i]);
+		IplImage *lpSrcImg = cvLoadImage(argv[i], 1);
+		if (lpSrcImg != NULL)
+		{
+			box = *it;
+			it++;
 
-            IplImage *temp = cvCreateImage(cvSize((int)box.size.width, (int)box.size.height), lpSrcImg->depth, lpSrcImg->nChannels);
+			IplImage *temp = cvCreateImage(cvSize((int)box.size.width, (int)box.size.height), lpSrcImg->depth, lpSrcImg->nChannels);
 
-            cvResize(lpSrcImg, temp, CV_INTER_AREA);
-            temp = lpSrcImg;
-            CvPoint2D32f srcTri[4], dstTri[4];
-            CvMat *warp_mat = cvCreateMat(3, 3, CV_32FC1);
-            //cvBoxPoints(box, dstTri); //è®¡ç®—äºŒç»´ç›’å­é¡¶ç‚¹
+			cvResize(lpSrcImg, temp, CV_INTER_AREA);
+			temp = lpSrcImg;
+			CvPoint2D32f srcTri[4], dstTri[4];
+			CvMat *warp_mat = cvCreateMat(3, 3, CV_32FC1);
+			//cvBoxPoints(box, dstTri); //¼ÆËã¶şÎ¬ºĞ×Ó¶¥µã
 
-            //è®¡ç®—çŸ©é˜µä»¿å°„å˜æ¢
-            if (box.size.width > box.size.height)
-            {
-                srcTri[1].x = 0;
-                srcTri[1].y = 0;
-                srcTri[2].x = temp->width - 1 ; //ç¼©å°ä¸€ä¸ªåƒç´ 
-                srcTri[2].y = 0;
-                srcTri[3].x = temp->width - 1 ;
-                srcTri[3].y = temp->height - 1;
-                srcTri[0].x = 0; //bot right
-                srcTri[0].y = temp->height - 1;
-            }
-            else
-            {
-                srcTri[2].x = 0;
-                srcTri[2].y = 0;
-                srcTri[3].x = temp->width - 1; //ç¼©å°ä¸€ä¸ªåƒç´ 
-                srcTri[3].y = 0;
-                srcTri[0].x = temp->width - 1;
-                srcTri[0].y = temp->height - 1;
-                srcTri[1].x = 0; //bot right
-                srcTri[1].y = temp->height - 1;
-            }
-            //æ”¹å˜ç›®æ ‡å›¾åƒå¤§å°
-            // dstTri[0].x =893;// temp->width * 0.05;
-            // dstTri[0].y =598;// temp->height * 0.33;
-            // dstTri[1].x =893;// temp->width * 0.9;
-            // dstTri[1].y =477;// temp->height * 0.25;
-            // dstTri[2].x =1107;// temp->width * 0.2;
-            // dstTri[2].y =477; temp->height * 0.7;
-            // dstTri[3].x =1107;// temp->width * 0.8;
-            // dstTri[3].y =598;// temp->height * 0.9;
+			//¼ÆËã¾ØÕó·ÂÉä±ä»»
+			if (box.size.width > box.size.height)
+			{
+				srcTri[1].x = 0;
+				srcTri[1].y = 0;
+				srcTri[2].x = temp->width - 1; //ËõĞ¡Ò»¸öÏñËØ
+				srcTri[2].y = 0;
+				srcTri[3].x = temp->width - 1;
+				srcTri[3].y = temp->height - 1;
+				srcTri[0].x = 0; //bot right
+				srcTri[0].y = temp->height - 1;
+			}
+			else
+			{
+				srcTri[2].x = 0;
+				srcTri[2].y = 0;
+				srcTri[3].x = temp->width - 1; //ËõĞ¡Ò»¸öÏñËØ
+				srcTri[3].y = 0;
+				srcTri[0].x = temp->width - 1;
+				srcTri[0].y = temp->height - 1;
+				srcTri[1].x = 0; //bot right
+				srcTri[1].y = temp->height - 1;
+			}
+			//¸Ä±äÄ¿±êÍ¼Ïñ´óĞ¡
+			// dstTri[0].x =893;// temp->width * 0.05;
+			// dstTri[0].y =598;// temp->height * 0.33;
+			// dstTri[1].x =893;// temp->width * 0.9;
+			// dstTri[1].y =477;// temp->height * 0.25;
+			// dstTri[2].x =1107;// temp->width * 0.2;
+			// dstTri[2].y =477; temp->height * 0.7;
+			// dstTri[3].x =1107;// temp->width * 0.8;
+			// dstTri[3].y =598;// temp->height * 0.9;
 
-            cvGetPerspectiveTransform(dstTri, srcTri, warp_mat);                                     //ç”±ä¸‰å¯¹ç‚¹è®¡ç®—ä»¿å°„å˜æ¢
-            cvWarpPerspective(temp, lpTargetImg, warp_mat, CV_INTER_LINEAR | (CV_WARP_INVERSE_MAP)); //å¯¹å›¾åƒåšä»¿å°„å˜æ¢
-        }
-    }
+			cvGetPerspectiveTransform(dstTri, srcTri, warp_mat);                                     //ÓÉÈı¶Ôµã¼ÆËã·ÂÉä±ä»»
+			cvWarpPerspective(temp, lpTargetImg, warp_mat, CV_INTER_LINEAR | (CV_WARP_INVERSE_MAP)); //¶ÔÍ¼Ïñ×ö·ÂÉä±ä»»
+		}
+	}
 
-    return lstRes.size();
+	return lstRes.size();
 }
 
 int process_v2(IplImage *lpImg, IplImage *lpTargetImg, int argc, char *argv[])
 {
-    set<Box, SymBoxCmp> lstRes;
-    set<Box, SymUBoxCmp> setURes = SearchProcess_v2(lpImg);
-    set<Box, SymUBoxCmp>::iterator itu;
-    int iCount = 0;
-    for (itu = setURes.begin(); itu != setURes.end(); itu++)
-    {
-        if ((*itu).isRect)
-        {
-            iCount++;
-        }
-        lstRes.insert(*itu);
-    }
-    set<Box, SymBoxCmp>::iterator it;
 
-    Box box;
-    it = lstRes.begin();
-    for (int i = 0; i < argc && it != lstRes.end(); i++)
-    {
-        printf("%s\n", argv[i]);
-        IplImage *lpSrcImg = cvLoadImage(argv[i], 1);
-        if (lpSrcImg != NULL)
-        {
-            box = *it;
-            it++;
 
-            IplImage *temp = lpSrcImg;
-            CvPoint2D32f srcTri[4], dstTri[4];
-            CvMat *warp_mat = cvCreateMat(3, 3, CV_32FC1);
+	set<Box, SymBoxCmp> lstRes;
+	set<Box, SymUBoxCmp> setURes = SearchProcess_v2(lpImg);
+	set<Box, SymUBoxCmp>::iterator itu;
+	CvPoint2D32f srcTri[4], dstTri[4];
+	IplImage *temp;
+	CvPoint p[4];
+	CvMat *warp_mat;
+	int iCount = 0;
 
-            //æ’åº
-            CvPoint pt;
-            for (int j = 0; j < 4; j++) /* æ°”æ³¡æ³•è¦æ’åºnæ¬¡*/
-            {
-                for (int i = 0; i < 4 - j; i++) /* å€¼æ¯”è¾ƒå¤§çš„å…ƒç´ æ²‰ä¸‹å»åï¼ŒåªæŠŠå‰©ä¸‹çš„å…ƒç´ ä¸­çš„æœ€å¤§å€¼å†æ²‰ä¸‹å»å°±å¯ä»¥å•¦ */
-                {
-                    if (box.pt[i].x > box.pt[i + 1].x) /* æŠŠå€¼æ¯”è¾ƒå¤§çš„å…ƒç´ æ²‰åˆ°åº• */
-                    {
-                        pt = box.pt[i];
-                        box.pt[i] = box.pt[i + 1];
-                        box.pt[i + 1] = pt;
-                    }
-                }
-            }
-            printf("after centerInfo:[%f,%f]:[%f,%f]\n", box.box.center.x, box.box.center.y, box.box.size.width, box.box.size.height);
-            CvPoint p[4];
-            //æ‰¾p0ç‚¹
-            if (box.pt[0].y > box.pt[1].y)
-            {
-                p[0] = box.pt[0];
-                p[1] = box.pt[1];
-            }
-            else
-            {
-                p[0] = box.pt[1];
-                p[1] = box.pt[0];
-            }
+	for (itu = setURes.begin(); itu != setURes.end(); itu++)
+	{
+		if ((*itu).isRect)
+		{
+			iCount++;
+		}
+		lstRes.insert(*itu);
+	}
+	set<Box, SymBoxCmp>::iterator it;
 
-            if (box.pt[2].y > box.pt[3].y)
-            {
-                p[2] = box.pt[3];
-                p[3] = box.pt[2];
-            }
-            else
-            {
-                p[2] = box.pt[2];
-                p[3] = box.pt[3];
-            }
-            int diff = +5;
-            p[0].x -= diff;
-            p[0].y += diff;
+	Box box;
+	it = lstRes.begin();
+	for (int i = 0; i < argc && it != lstRes.end(); i++)
+	{
+		printf("%s\n", argv[i]);
+		IplImage *lpSrcImg = cvLoadImage(argv[i], 1);
+		if (lpSrcImg != NULL)
+		{
+			box = *it;
+			it++;
 
-            p[1].x -= diff;
-            p[1].y -= diff;
+			temp = lpSrcImg;
 
-            p[2].x += diff;
-            p[2].y -= diff;
-            p[3].x += diff;
-            p[3].y += diff;
-            for (int i = 0; i < 4; i++)
-            {
-                dstTri[i].x = p[i].x;
-                dstTri[i].y = p[i].y;
-            }
+			warp_mat = cvCreateMat(3, 3, CV_32FC1);
 
-            for (int i = 0; i < 4; i++)
-            {
-                CvPoint pt = cvPointFrom32f(dstTri[i]);
+			//ÅÅĞò
+			CvPoint pt;
+			for (int j = 0; j < 4; j++) /* ÆøÅİ·¨ÒªÅÅĞòn´Î*/
+			{
+				for (int i = 0; i < 4 - j; i++) /* Öµ±È½Ï´óµÄÔªËØ³ÁÏÂÈ¥ºó£¬Ö»°ÑÊ£ÏÂµÄÔªËØÖĞµÄ×î´óÖµÔÙ³ÁÏÂÈ¥¾Í¿ÉÒÔÀ² */
+				{
+					if (box.pt[i].x > box.pt[i + 1].x) /* °ÑÖµ±È½Ï´óµÄÔªËØ³Áµ½µ× */
+					{
+						pt = box.pt[i];
+						box.pt[i] = box.pt[i + 1];
+						box.pt[i + 1] = pt;
+					}
+				}
+			}
+			printf("after centerInfo:[%f,%f]:[%f,%f]\n", box.box.center.x, box.box.center.y, box.box.size.width, box.box.size.height);
 
-                // cvCircle(lpTargetImg, pt, 4 + 4 * i, cvScalar(0, 0, 255), 1, 8, 0);
-            }
-            //è®¡ç®—çŸ©é˜µä»¿å°„å˜æ¢
-            if (box.box.size.width > box.box.size.height)
-            {
-                srcTri[1].x = 0;
-                srcTri[1].y = 0;
-                srcTri[2].x = temp->width - 1 ; //ç¼©å°ä¸€ä¸ªåƒç´ 
-                srcTri[2].y = 0;
-                srcTri[3].x = temp->width - 1 ;
-                srcTri[3].y = temp->height - 1 ;
-                srcTri[0].x = 0; //bot right
-                srcTri[0].y = temp->height - 1 ;
-            }
-            else
-            {
-                srcTri[1].x = 0;
-                srcTri[1].y = 0;
-                srcTri[2].x = temp->width - 1 + 1; //ç¼©å°ä¸€ä¸ªåƒç´ 
-                srcTri[2].y = 0;
-                srcTri[3].x = temp->width - 1 + 1;
-                srcTri[3].y = temp->height - 1 + 1;
-                srcTri[0].x = 0; //bot right
-                srcTri[0].y = temp->height - 1 + 1;
+			//ÕÒp0µã
+			if (box.pt[0].y > box.pt[1].y)
+			{
+				p[0] = box.pt[0];
+				p[1] = box.pt[1];
+			}
+			else
+			{
+				p[0] = box.pt[1];
+				p[1] = box.pt[0];
+			}
 
-                // srcTri[2].x = 0;
-                // srcTri[2].y = 0;
-                // srcTri[3].x = temp->width - 1; //ç¼©å°ä¸€ä¸ªåƒç´ 
-                // srcTri[3].y = 0;
-                // srcTri[0].x = temp->width - 1;
-                // srcTri[0].y = temp->height - 1;
-                // srcTri[1].x = 0; //bot right
-                // srcTri[1].y = temp->height - 1;
-            }
+			if (box.pt[2].y > box.pt[3].y)
+			{
+				p[2] = box.pt[3];
+				p[3] = box.pt[2];
+			}
+			else
+			{
+				p[2] = box.pt[2];
+				p[3] = box.pt[3];
+			}
+			int diff = +5;
+			p[0].x -= diff;
+			p[0].y += diff;
 
-            cvGetPerspectiveTransform(dstTri, srcTri, warp_mat);                                     //ç”±ä¸‰å¯¹ç‚¹è®¡ç®—ä»¿å°„å˜æ¢
-            cvWarpPerspective(temp, lpTargetImg, warp_mat, CV_INTER_LINEAR | (CV_WARP_INVERSE_MAP)); //å¯¹å›¾åƒåšä»¿å°„å˜æ¢
-        }
-    }
+			p[1].x -= diff;
+			p[1].y -= diff;
 
-    return iCount;
+			p[2].x += diff;
+			p[2].y -= diff;
+			p[3].x += diff;
+			p[3].y += diff;
+			for (int i = 0; i < 4; i++)
+			{
+				dstTri[i].x = p[i].x;
+				dstTri[i].y = p[i].y;
+			}
+
+			for (int i = 0; i < 4; i++)
+			{
+				CvPoint pt = cvPointFrom32f(dstTri[i]);
+
+				// cvCircle(lpTargetImg, pt, 4 + 4 * i, cvScalar(0, 0, 255), 1, 8, 0);
+			}
+			//¼ÆËã¾ØÕó·ÂÉä±ä»»
+			if (box.box.size.width > box.box.size.height)
+			{
+				srcTri[1].x = 0;
+				srcTri[1].y = 0;
+				srcTri[2].x = temp->width - 1; //ËõĞ¡Ò»¸öÏñËØ
+				srcTri[2].y = 0;
+				srcTri[3].x = temp->width - 1;
+				srcTri[3].y = temp->height - 1;
+				srcTri[0].x = 0; //bot right
+				srcTri[0].y = temp->height - 1;
+			}
+			else
+			{
+				srcTri[1].x = 0;
+				srcTri[1].y = 0;
+				srcTri[2].x = temp->width - 1 + 1; //ËõĞ¡Ò»¸öÏñËØ
+				srcTri[2].y = 0;
+				srcTri[3].x = temp->width - 1 + 1;
+				srcTri[3].y = temp->height - 1 + 1;
+				srcTri[0].x = 0; //bot right
+				srcTri[0].y = temp->height - 1 + 1;
+
+				// srcTri[2].x = 0;
+				// srcTri[2].y = 0;
+				// srcTri[3].x = temp->width - 1; //ËõĞ¡Ò»¸öÏñËØ
+				// srcTri[3].y = 0;
+				// srcTri[0].x = temp->width - 1;
+				// srcTri[0].y = temp->height - 1;
+				// srcTri[1].x = 0; //bot right
+				// srcTri[1].y = temp->height - 1;
+			}
+
+			cvGetPerspectiveTransform(dstTri, srcTri, warp_mat);                                     //ÓÉÈı¶Ôµã¼ÆËã·ÂÉä±ä»»
+			cvWarpPerspective(temp, lpTargetImg, warp_mat, CV_INTER_LINEAR | (CV_WARP_INVERSE_MAP)); //¶ÔÍ¼Ïñ×ö·ÂÉä±ä»»
+		}
+	}
+	return iCount;
 }
 
-int main(int argc, char *args[])
+int main(int argc, char** args)
 {
-    if (3 > argc)
-    {
-        return ERR_1;
-    }
-    const char *OutputPath = (const char *)args[1];
-    const char *TargetPicPath = (const char *)args[2];
+	if (3 > argc)
+	{
+		return ERR_1;
+	}
+	const char *OutputPath = (const char *)args[1];
+	const char *TargetPicPath = (const char *)args[2];
 
-    IplImage *lpTargetImg = cvLoadImage(TargetPicPath, 1);
-    if (NULL == lpTargetImg)
-    {
-        return ERR_1;
-    }
-    IplImage *gray = cvCreateImage(cvGetSize(lpTargetImg), 8, 1);
-    cvCvtColor(lpTargetImg, gray, CV_RGB2GRAY);
-    IplImage *lpCannyImg = cvCreateImage(cvGetSize(lpTargetImg), 8, 1);
-    IplImage *tmp = cvCreateImage(cvGetSize(lpTargetImg), 8, 1);
-    IplImage *lpDilateImg = cvCreateImage(cvGetSize(lpTargetImg), 8, 1);
-    cvSmooth(gray, tmp, CV_BILATERAL, 3, 3, 0, 0); //é«˜æ–¯æ»¤æ³¢
-    cvSaveImage("tmp.bmp", tmp);
-    printf("save\n");
-    if (NULL != lpCannyImg && NULL != lpDilateImg)
-    {
-        cvCanny(lpTargetImg, lpCannyImg, 0.5, 20, 3);
-        cvSaveImage("canny1.bmp", lpCannyImg);
-        cvDilate(lpCannyImg, lpDilateImg, 0, 1);
-        cvErode(lpDilateImg, lpDilateImg, 0, 1);
-        cvSaveImage("lpDilateImg.bmp", lpDilateImg);
+	IplImage *lpTargetImg = cvLoadImage(TargetPicPath, 1);
+	if (NULL == lpTargetImg)
+	{
+		return ERR_1;
+	}
+	IplImage *gray = cvCreateImage(cvGetSize(lpTargetImg), 8, 1);
+	cvCvtColor(lpTargetImg, gray, CV_RGB2GRAY);
+	IplImage *lpCannyImg = cvCreateImage(cvGetSize(lpTargetImg), 8, 1);
+	IplImage *tmp = cvCreateImage(cvGetSize(lpTargetImg), 8, 1);
+	IplImage *lpDilateImg = cvCreateImage(cvGetSize(lpTargetImg), 8, 1);
+	cvSmooth(gray, tmp, CV_BILATERAL, 3, 3, 0, 0); //¸ßË¹ÂË²¨
+	cvSaveImage("tmp.bmp", tmp);
+	printf("save\n");
+	if (NULL != lpCannyImg && NULL != lpDilateImg)
+	{
+		cvCanny(lpTargetImg, lpCannyImg, 0.5, 20, 3);
+		cvSaveImage("canny1.bmp", lpCannyImg);
+		cvDilate(lpCannyImg, lpDilateImg, 0, 1);
+		cvErode(lpDilateImg, lpDilateImg, 0, 1);
+		cvSaveImage("lpDilateImg.bmp", lpDilateImg);
 
-        IplImage *pGrayImage = cvCreateImage(cvGetSize(lpTargetImg), IPL_DEPTH_8U, 1);
-        IplImage *pGrayEqualizeImage = cvCreateImage(cvGetSize(lpTargetImg), IPL_DEPTH_8U, 1);
-        cvSmooth(lpTargetImg, lpTargetImg, CV_GAUSSIAN, 3, 3, 0, 0); //é«˜æ–¯æ»¤æ³¢
-        cvCvtColor(lpTargetImg, pGrayImage, CV_BGR2GRAY);
-        cvSaveImage("pGrayImage.bmp", pGrayImage);
-        //cvEqualizeHist(pGrayImage, pGrayEqualizeImage);
-        cvSaveImage("pGrayEqualizeImage.bmp", pGrayEqualizeImage);
+		IplImage *pGrayImage = cvCreateImage(cvGetSize(lpTargetImg), IPL_DEPTH_8U, 1);
+		IplImage *pGrayEqualizeImage = cvCreateImage(cvGetSize(lpTargetImg), IPL_DEPTH_8U, 1);
+		cvSmooth(lpTargetImg, lpTargetImg, CV_GAUSSIAN, 3, 3, 0, 0); //¸ßË¹ÂË²¨
+		cvCvtColor(lpTargetImg, pGrayImage, CV_BGR2GRAY);
+		cvSaveImage("pGrayImage.bmp", pGrayImage);
+		//cvEqualizeHist(pGrayImage, pGrayEqualizeImage);
+		cvSaveImage("pGrayEqualizeImage.bmp", pGrayEqualizeImage);
 
-        cvCanny(pGrayEqualizeImage, lpCannyImg, 0.5, 20, 3);
-        cvSaveImage("canny2.bmp", lpCannyImg);
-    }
-    //æŸ¥æ‰¾ç›®æ ‡åŒºåŸŸ
-    IplImage *lpOutImg = cvCloneImage(lpTargetImg);
-    int iCunt = 0;
-    if (NULL != lpOutImg)
-    {
-        // iCunt = process(lpDilateImg, lpOutImg, argc - 3, &args[3]);
-        iCunt = process_v2(lpDilateImg, lpOutImg, argc - 3, &args[3]);
+		cvCanny(pGrayEqualizeImage, lpCannyImg, 0.5, 20, 3);
+		cvSaveImage("canny2.bmp", lpCannyImg);
+	}
+	//²éÕÒÄ¿±êÇøÓò
+	IplImage *lpOutImg = cvCloneImage(lpTargetImg);
+	int iCunt = 0;
+	if (NULL != lpOutImg)
+	{
+		// iCunt = process(lpDilateImg, lpOutImg, argc - 3, &args[3]);
+		iCunt = process_v2(lpDilateImg, lpOutImg, argc - 3, &args[3]);
 
-        cvSaveImage(OutputPath, lpOutImg);
-    }
+		cvSaveImage(OutputPath, lpOutImg);
+	}
 
-    //è¾“å‡ºä¸ªæ•°
-    printf("%d\n", iCunt);
-    //é‡Šæ”¾èµ„æº
-    cvReleaseImage(&lpOutImg);
-    cvReleaseImage(&lpTargetImg);
-    cvReleaseImage(&lpDilateImg);
-    cvReleaseImage(&lpCannyImg);
+	//Êä³ö¸öÊı
+	printf("%d\n", iCunt);
+	//ÊÍ·Å×ÊÔ´
+	cvReleaseImage(&lpOutImg);
+	cvReleaseImage(&lpTargetImg);
+	cvReleaseImage(&lpDilateImg);
+	cvReleaseImage(&lpCannyImg);
 
-    return 0;
+	return 0;
 }
 
 int main1(int argc, char **argv)
 {
 
-    IplImage *frame = NULL;
-    IplImage *laplace = NULL;    //æ‹‰æ™®æ‹‰æ–¯è½¬æ¢åçš„å•é€šé“å›¾åƒ
-    IplImage *ColorImage = NULL; //ç”¨äºæ˜¾ç¤ºæœ€ç»ˆè½¬æ¢åçš„å›¾åƒ
+	IplImage *frame = NULL;
+	IplImage *laplace = NULL;    //À­ÆÕÀ­Ë¹×ª»»ºóµÄµ¥Í¨µÀÍ¼Ïñ
+	IplImage *ColorImage = NULL; //ÓÃÓÚÏÔÊ¾×îÖÕ×ª»»ºóµÄÍ¼Ïñ
 
-    frame = cvLoadImage(argv[1], 1);
-    IplImage *timg = cvCreateImage(cvGetSize(frame), IPL_DEPTH_8U, 3);
-    cvSmooth(frame, timg, CV_BILATERAL, 3, 3, 0, 0); //åŒè¾¹æ»¤æ³¢
-    IplImage *panel[3];                              //ä¸‰ä¸ªé€šé“
+	frame = cvLoadImage(argv[1], 1);
+	IplImage *timg = cvCreateImage(cvGetSize(frame), IPL_DEPTH_8U, 3);
+	cvSmooth(frame, timg, CV_BILATERAL, 3, 3, 0, 0); //Ë«±ßÂË²¨
+	IplImage *panel[3];                              //Èı¸öÍ¨µÀ
 
-    if (!laplace) //åˆ›å»ºéœ€è¦åˆ›å»ºçš„å˜é‡
-    {
-        for (int i = 0; i < 3; i++)
-            panel[i] = cvCreateImage(cvGetSize(frame), IPL_DEPTH_8U, 1);
-        laplace = cvCreateImage(cvGetSize(frame), IPL_DEPTH_16S, 1);
-        ColorImage = cvCreateImage(cvGetSize(frame), IPL_DEPTH_8U, 3);
-    }
-    cvSplit(timg, panel[0], panel[1], panel[2], NULL); //åˆ†å‰²å›¾åƒåˆ°å•é€šé“
-    for (int i = 0; i < 3; i++)
-    {
-       // cvLaplace(panel[i], laplace, 3);            //æ¯ä¸€ä¸ªé€šé“åšæ‹‰æ™®æ‹‰æ–¯å˜æ¢
-        cvConvertScaleAbs(laplace, panel[i], 1, 0); //åšç±»å‹è½¬æ¢ï¼Œè½¬æ¢åˆ°8U
-    }
+	if (!laplace) //´´½¨ĞèÒª´´½¨µÄ±äÁ¿
+	{
+		for (int i = 0; i < 3; i++)
+			panel[i] = cvCreateImage(cvGetSize(frame), IPL_DEPTH_8U, 1);
+		laplace = cvCreateImage(cvGetSize(frame), IPL_DEPTH_16S, 1);
+		ColorImage = cvCreateImage(cvGetSize(frame), IPL_DEPTH_8U, 3);
+	}
+	cvSplit(timg, panel[0], panel[1], panel[2], NULL); //·Ö¸îÍ¼Ïñµ½µ¥Í¨µÀ
+	for (int i = 0; i < 3; i++)
+	{
+		// cvLaplace(panel[i], laplace, 3);            //Ã¿Ò»¸öÍ¨µÀ×öÀ­ÆÕÀ­Ë¹±ä»»
+		cvConvertScaleAbs(laplace, panel[i], 1, 0); //×öÀàĞÍ×ª»»£¬×ª»»µ½8U
+	}
 
-    cvDilate(panel[0], panel[0], 0, 2);
-    cvDilate(panel[1], panel[1], 0, 2);
-    cvDilate(panel[2], panel[2], 0, 2);
-    cvMerge(panel[0], panel[1], panel[2], NULL, ColorImage); //åˆå¹¶å›¾åƒé€šé“
-    ColorImage->origin = 0;                                  //0--æ­£é¢å¯¹æ‘„åƒå¤´ï¼›1--å€’è¿‡æ¥å¯¹æ‘„åƒå¤´
-    cvShowImage("Laplace", ColorImage);
-    ///cvWaitKey(0);
+	cvDilate(panel[0], panel[0], 0, 2);
+	cvDilate(panel[1], panel[1], 0, 2);
+	cvDilate(panel[2], panel[2], 0, 2);
+	cvMerge(panel[0], panel[1], panel[2], NULL, ColorImage); //ºÏ²¢Í¼ÏñÍ¨µÀ
+	ColorImage->origin = 0;                                  //0--ÕıÃæ¶ÔÉãÏñÍ·£»1--µ¹¹ıÀ´¶ÔÉãÏñÍ·
+	cvShowImage("Laplace", ColorImage);
+	///cvWaitKey(0);
 
-    return 0;
+	return 0;
 }

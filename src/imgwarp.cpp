@@ -1650,211 +1650,8 @@ struct RemapNoVec
                     const void*, int ) const { return 0; }
 };
 
-#if CV_SSE2
-
-struct RemapVec_8u
-{
-    int operator()( const Mat& _src, void* _dst, const short* XY,
-                    const ushort* FXY, const void* _wtab, int width ) const
-    {
-        int cn = _src.channels(), x = 0, sstep = (int)_src.step;
-
-        if( (cn != 1 && cn != 3 && cn != 4) || !checkHardwareSupport(CV_CPU_SSE2) ||
-                sstep > 0x8000 )
-            return 0;
-
-        const uchar *S0 = _src.data, *S1 = _src.data + _src.step;
-        const short* wtab = cn == 1 ? (const short*)_wtab : &BilinearTab_iC4[0][0][0];
-        uchar* D = (uchar*)_dst;
-        __m128i delta = _mm_set1_epi32(INTER_REMAP_COEF_SCALE/2);
-        __m128i xy2ofs = _mm_set1_epi32(cn + (sstep << 16));
-        __m128i z = _mm_setzero_si128();
-        int CV_DECL_ALIGNED(16) iofs0[4], iofs1[4];
-
-        if( cn == 1 )
-        {
-            for( ; x <= width - 8; x += 8 )
-            {
-                __m128i xy0 = _mm_loadu_si128( (const __m128i*)(XY + x*2));
-                __m128i xy1 = _mm_loadu_si128( (const __m128i*)(XY + x*2 + 8));
-                __m128i v0, v1, v2, v3, a0, a1, b0, b1;
-                unsigned i0, i1;
-
-                xy0 = _mm_madd_epi16( xy0, xy2ofs );
-                xy1 = _mm_madd_epi16( xy1, xy2ofs );
-                _mm_store_si128( (__m128i*)iofs0, xy0 );
-                _mm_store_si128( (__m128i*)iofs1, xy1 );
-
-                i0 = *(ushort*)(S0 + iofs0[0]) + (*(ushort*)(S0 + iofs0[1]) << 16);
-                i1 = *(ushort*)(S0 + iofs0[2]) + (*(ushort*)(S0 + iofs0[3]) << 16);
-                v0 = _mm_unpacklo_epi32(_mm_cvtsi32_si128(i0), _mm_cvtsi32_si128(i1));
-                i0 = *(ushort*)(S1 + iofs0[0]) + (*(ushort*)(S1 + iofs0[1]) << 16);
-                i1 = *(ushort*)(S1 + iofs0[2]) + (*(ushort*)(S1 + iofs0[3]) << 16);
-                v1 = _mm_unpacklo_epi32(_mm_cvtsi32_si128(i0), _mm_cvtsi32_si128(i1));
-                v0 = _mm_unpacklo_epi8(v0, z);
-                v1 = _mm_unpacklo_epi8(v1, z);
-
-                a0 = _mm_unpacklo_epi32(_mm_loadl_epi64((__m128i*)(wtab+FXY[x]*4)),
-                                        _mm_loadl_epi64((__m128i*)(wtab+FXY[x+1]*4)));
-                a1 = _mm_unpacklo_epi32(_mm_loadl_epi64((__m128i*)(wtab+FXY[x+2]*4)),
-                                        _mm_loadl_epi64((__m128i*)(wtab+FXY[x+3]*4)));
-                b0 = _mm_unpacklo_epi64(a0, a1);
-                b1 = _mm_unpackhi_epi64(a0, a1);
-                v0 = _mm_madd_epi16(v0, b0);
-                v1 = _mm_madd_epi16(v1, b1);
-                v0 = _mm_add_epi32(_mm_add_epi32(v0, v1), delta);
-
-                i0 = *(ushort*)(S0 + iofs1[0]) + (*(ushort*)(S0 + iofs1[1]) << 16);
-                i1 = *(ushort*)(S0 + iofs1[2]) + (*(ushort*)(S0 + iofs1[3]) << 16);
-                v2 = _mm_unpacklo_epi32(_mm_cvtsi32_si128(i0), _mm_cvtsi32_si128(i1));
-                i0 = *(ushort*)(S1 + iofs1[0]) + (*(ushort*)(S1 + iofs1[1]) << 16);
-                i1 = *(ushort*)(S1 + iofs1[2]) + (*(ushort*)(S1 + iofs1[3]) << 16);
-                v3 = _mm_unpacklo_epi32(_mm_cvtsi32_si128(i0), _mm_cvtsi32_si128(i1));
-                v2 = _mm_unpacklo_epi8(v2, z);
-                v3 = _mm_unpacklo_epi8(v3, z);
-
-                a0 = _mm_unpacklo_epi32(_mm_loadl_epi64((__m128i*)(wtab+FXY[x+4]*4)),
-                                        _mm_loadl_epi64((__m128i*)(wtab+FXY[x+5]*4)));
-                a1 = _mm_unpacklo_epi32(_mm_loadl_epi64((__m128i*)(wtab+FXY[x+6]*4)),
-                                        _mm_loadl_epi64((__m128i*)(wtab+FXY[x+7]*4)));
-                b0 = _mm_unpacklo_epi64(a0, a1);
-                b1 = _mm_unpackhi_epi64(a0, a1);
-                v2 = _mm_madd_epi16(v2, b0);
-                v3 = _mm_madd_epi16(v3, b1);
-                v2 = _mm_add_epi32(_mm_add_epi32(v2, v3), delta);
-
-                v0 = _mm_srai_epi32(v0, INTER_REMAP_COEF_BITS);
-                v2 = _mm_srai_epi32(v2, INTER_REMAP_COEF_BITS);
-                v0 = _mm_packus_epi16(_mm_packs_epi32(v0, v2), z);
-                _mm_storel_epi64( (__m128i*)(D + x), v0 );
-            }
-        }
-        else if( cn == 3 )
-        {
-            for( ; x <= width - 5; x += 4, D += 12 )
-            {
-                __m128i xy0 = _mm_loadu_si128( (const __m128i*)(XY + x*2));
-                __m128i u0, v0, u1, v1;
-
-                xy0 = _mm_madd_epi16( xy0, xy2ofs );
-                _mm_store_si128( (__m128i*)iofs0, xy0 );
-                const __m128i *w0, *w1;
-                w0 = (const __m128i*)(wtab + FXY[x]*16);
-                w1 = (const __m128i*)(wtab + FXY[x+1]*16);
-
-                u0 = _mm_unpacklo_epi8(_mm_cvtsi32_si128(*(int*)(S0 + iofs0[0])),
-                                       _mm_cvtsi32_si128(*(int*)(S0 + iofs0[0] + 3)));
-                v0 = _mm_unpacklo_epi8(_mm_cvtsi32_si128(*(int*)(S1 + iofs0[0])),
-                                       _mm_cvtsi32_si128(*(int*)(S1 + iofs0[0] + 3)));
-                u1 = _mm_unpacklo_epi8(_mm_cvtsi32_si128(*(int*)(S0 + iofs0[1])),
-                                       _mm_cvtsi32_si128(*(int*)(S0 + iofs0[1] + 3)));
-                v1 = _mm_unpacklo_epi8(_mm_cvtsi32_si128(*(int*)(S1 + iofs0[1])),
-                                       _mm_cvtsi32_si128(*(int*)(S1 + iofs0[1] + 3)));
-                u0 = _mm_unpacklo_epi8(u0, z);
-                v0 = _mm_unpacklo_epi8(v0, z);
-                u1 = _mm_unpacklo_epi8(u1, z);
-                v1 = _mm_unpacklo_epi8(v1, z);
-                u0 = _mm_add_epi32(_mm_madd_epi16(u0, w0[0]), _mm_madd_epi16(v0, w0[1]));
-                u1 = _mm_add_epi32(_mm_madd_epi16(u1, w1[0]), _mm_madd_epi16(v1, w1[1]));
-                u0 = _mm_srai_epi32(_mm_add_epi32(u0, delta), INTER_REMAP_COEF_BITS);
-                u1 = _mm_srai_epi32(_mm_add_epi32(u1, delta), INTER_REMAP_COEF_BITS);
-                u0 = _mm_slli_si128(u0, 4);
-                u0 = _mm_packs_epi32(u0, u1);
-                u0 = _mm_packus_epi16(u0, u0);
-                _mm_storel_epi64((__m128i*)D, _mm_srli_si128(u0,1));
-
-                w0 = (const __m128i*)(wtab + FXY[x+2]*16);
-                w1 = (const __m128i*)(wtab + FXY[x+3]*16);
-
-                u0 = _mm_unpacklo_epi8(_mm_cvtsi32_si128(*(int*)(S0 + iofs0[2])),
-                                       _mm_cvtsi32_si128(*(int*)(S0 + iofs0[2] + 3)));
-                v0 = _mm_unpacklo_epi8(_mm_cvtsi32_si128(*(int*)(S1 + iofs0[2])),
-                                       _mm_cvtsi32_si128(*(int*)(S1 + iofs0[2] + 3)));
-                u1 = _mm_unpacklo_epi8(_mm_cvtsi32_si128(*(int*)(S0 + iofs0[3])),
-                                       _mm_cvtsi32_si128(*(int*)(S0 + iofs0[3] + 3)));
-                v1 = _mm_unpacklo_epi8(_mm_cvtsi32_si128(*(int*)(S1 + iofs0[3])),
-                                       _mm_cvtsi32_si128(*(int*)(S1 + iofs0[3] + 3)));
-                u0 = _mm_unpacklo_epi8(u0, z);
-                v0 = _mm_unpacklo_epi8(v0, z);
-                u1 = _mm_unpacklo_epi8(u1, z);
-                v1 = _mm_unpacklo_epi8(v1, z);
-                u0 = _mm_add_epi32(_mm_madd_epi16(u0, w0[0]), _mm_madd_epi16(v0, w0[1]));
-                u1 = _mm_add_epi32(_mm_madd_epi16(u1, w1[0]), _mm_madd_epi16(v1, w1[1]));
-                u0 = _mm_srai_epi32(_mm_add_epi32(u0, delta), INTER_REMAP_COEF_BITS);
-                u1 = _mm_srai_epi32(_mm_add_epi32(u1, delta), INTER_REMAP_COEF_BITS);
-                u0 = _mm_slli_si128(u0, 4);
-                u0 = _mm_packs_epi32(u0, u1);
-                u0 = _mm_packus_epi16(u0, u0);
-                _mm_storel_epi64((__m128i*)(D + 6), _mm_srli_si128(u0,1));
-            }
-        }
-        else if( cn == 4 )
-        {
-            for( ; x <= width - 4; x += 4, D += 16 )
-            {
-                __m128i xy0 = _mm_loadu_si128( (const __m128i*)(XY + x*2));
-                __m128i u0, v0, u1, v1;
-
-                xy0 = _mm_madd_epi16( xy0, xy2ofs );
-                _mm_store_si128( (__m128i*)iofs0, xy0 );
-                const __m128i *w0, *w1;
-                w0 = (const __m128i*)(wtab + FXY[x]*16);
-                w1 = (const __m128i*)(wtab + FXY[x+1]*16);
-
-                u0 = _mm_unpacklo_epi8(_mm_cvtsi32_si128(*(int*)(S0 + iofs0[0])),
-                                       _mm_cvtsi32_si128(*(int*)(S0 + iofs0[0] + 4)));
-                v0 = _mm_unpacklo_epi8(_mm_cvtsi32_si128(*(int*)(S1 + iofs0[0])),
-                                       _mm_cvtsi32_si128(*(int*)(S1 + iofs0[0] + 4)));
-                u1 = _mm_unpacklo_epi8(_mm_cvtsi32_si128(*(int*)(S0 + iofs0[1])),
-                                       _mm_cvtsi32_si128(*(int*)(S0 + iofs0[1] + 4)));
-                v1 = _mm_unpacklo_epi8(_mm_cvtsi32_si128(*(int*)(S1 + iofs0[1])),
-                                       _mm_cvtsi32_si128(*(int*)(S1 + iofs0[1] + 4)));
-                u0 = _mm_unpacklo_epi8(u0, z);
-                v0 = _mm_unpacklo_epi8(v0, z);
-                u1 = _mm_unpacklo_epi8(u1, z);
-                v1 = _mm_unpacklo_epi8(v1, z);
-                u0 = _mm_add_epi32(_mm_madd_epi16(u0, w0[0]), _mm_madd_epi16(v0, w0[1]));
-                u1 = _mm_add_epi32(_mm_madd_epi16(u1, w1[0]), _mm_madd_epi16(v1, w1[1]));
-                u0 = _mm_srai_epi32(_mm_add_epi32(u0, delta), INTER_REMAP_COEF_BITS);
-                u1 = _mm_srai_epi32(_mm_add_epi32(u1, delta), INTER_REMAP_COEF_BITS);
-                u0 = _mm_packs_epi32(u0, u1);
-                u0 = _mm_packus_epi16(u0, u0);
-                _mm_storel_epi64((__m128i*)D, u0);
-
-                w0 = (const __m128i*)(wtab + FXY[x+2]*16);
-                w1 = (const __m128i*)(wtab + FXY[x+3]*16);
-
-                u0 = _mm_unpacklo_epi8(_mm_cvtsi32_si128(*(int*)(S0 + iofs0[2])),
-                                       _mm_cvtsi32_si128(*(int*)(S0 + iofs0[2] + 4)));
-                v0 = _mm_unpacklo_epi8(_mm_cvtsi32_si128(*(int*)(S1 + iofs0[2])),
-                                       _mm_cvtsi32_si128(*(int*)(S1 + iofs0[2] + 4)));
-                u1 = _mm_unpacklo_epi8(_mm_cvtsi32_si128(*(int*)(S0 + iofs0[3])),
-                                       _mm_cvtsi32_si128(*(int*)(S0 + iofs0[3] + 4)));
-                v1 = _mm_unpacklo_epi8(_mm_cvtsi32_si128(*(int*)(S1 + iofs0[3])),
-                                       _mm_cvtsi32_si128(*(int*)(S1 + iofs0[3] + 4)));
-                u0 = _mm_unpacklo_epi8(u0, z);
-                v0 = _mm_unpacklo_epi8(v0, z);
-                u1 = _mm_unpacklo_epi8(u1, z);
-                v1 = _mm_unpacklo_epi8(v1, z);
-                u0 = _mm_add_epi32(_mm_madd_epi16(u0, w0[0]), _mm_madd_epi16(v0, w0[1]));
-                u1 = _mm_add_epi32(_mm_madd_epi16(u1, w1[0]), _mm_madd_epi16(v1, w1[1]));
-                u0 = _mm_srai_epi32(_mm_add_epi32(u0, delta), INTER_REMAP_COEF_BITS);
-                u1 = _mm_srai_epi32(_mm_add_epi32(u1, delta), INTER_REMAP_COEF_BITS);
-                u0 = _mm_packs_epi32(u0, u1);
-                u0 = _mm_packus_epi16(u0, u0);
-                _mm_storel_epi64((__m128i*)(D + 8), u0);
-            }
-        }
-
-        return x;
-    }
-};
-
-#else
 
 typedef RemapNoVec RemapVec_8u;
-
-#endif
 
 
 template<class CastOp, class VecOp, typename AT>
@@ -2300,9 +2097,7 @@ public:
         int brows0 = std::min(128, dst->rows), map_depth = m1->depth();
         int bcols0 = std::min(buf_size/brows0, dst->cols);
         brows0 = std::min(buf_size/bcols0, dst->rows);
-    #if CV_SSE2
-        bool useSIMD = checkHardwareSupport(CV_CPU_SSE2);
-    #endif
+
 
         Mat _bufxy(brows0, bcols0, CV_16SC2), _bufa;
         if( !nnfunc )
@@ -2348,28 +2143,6 @@ public:
                             const float* sY = (const float*)(m2->data + m2->step*(y+y1)) + x;
                             x1 = 0;
 
-                        #if CV_SSE2
-                            if( useSIMD )
-                            {
-                                for( ; x1 <= bcols - 8; x1 += 8 )
-                                {
-                                    __m128 fx0 = _mm_loadu_ps(sX + x1);
-                                    __m128 fx1 = _mm_loadu_ps(sX + x1 + 4);
-                                    __m128 fy0 = _mm_loadu_ps(sY + x1);
-                                    __m128 fy1 = _mm_loadu_ps(sY + x1 + 4);
-                                    __m128i ix0 = _mm_cvtps_epi32(fx0);
-                                    __m128i ix1 = _mm_cvtps_epi32(fx1);
-                                    __m128i iy0 = _mm_cvtps_epi32(fy0);
-                                    __m128i iy1 = _mm_cvtps_epi32(fy1);
-                                    ix0 = _mm_packs_epi32(ix0, ix1);
-                                    iy0 = _mm_packs_epi32(iy0, iy1);
-                                    ix1 = _mm_unpacklo_epi16(ix0, iy0);
-                                    iy1 = _mm_unpackhi_epi16(ix0, iy0);
-                                    _mm_storeu_si128((__m128i*)(XY + x1*2), ix1);
-                                    _mm_storeu_si128((__m128i*)(XY + x1*2 + 8), iy1);
-                                }
-                            }
-                        #endif
 
                             for( ; x1 < bcols; x1++ )
                             {
@@ -2402,43 +2175,6 @@ public:
                         const float* sY = (const float*)(m2->data + m2->step*(y+y1)) + x;
 
                         x1 = 0;
-                    #if CV_SSE2
-                        if( useSIMD )
-                        {
-                            __m128 scale = _mm_set1_ps((float)INTER_TAB_SIZE);
-                            __m128i mask = _mm_set1_epi32(INTER_TAB_SIZE-1);
-                            for( ; x1 <= bcols - 8; x1 += 8 )
-                            {
-                                __m128 fx0 = _mm_loadu_ps(sX + x1);
-                                __m128 fx1 = _mm_loadu_ps(sX + x1 + 4);
-                                __m128 fy0 = _mm_loadu_ps(sY + x1);
-                                __m128 fy1 = _mm_loadu_ps(sY + x1 + 4);
-                                __m128i ix0 = _mm_cvtps_epi32(_mm_mul_ps(fx0, scale));
-                                __m128i ix1 = _mm_cvtps_epi32(_mm_mul_ps(fx1, scale));
-                                __m128i iy0 = _mm_cvtps_epi32(_mm_mul_ps(fy0, scale));
-                                __m128i iy1 = _mm_cvtps_epi32(_mm_mul_ps(fy1, scale));
-                                __m128i mx0 = _mm_and_si128(ix0, mask);
-                                __m128i mx1 = _mm_and_si128(ix1, mask);
-                                __m128i my0 = _mm_and_si128(iy0, mask);
-                                __m128i my1 = _mm_and_si128(iy1, mask);
-                                mx0 = _mm_packs_epi32(mx0, mx1);
-                                my0 = _mm_packs_epi32(my0, my1);
-                                my0 = _mm_slli_epi16(my0, INTER_BITS);
-                                mx0 = _mm_or_si128(mx0, my0);
-                                _mm_storeu_si128((__m128i*)(A + x1), mx0);
-                                ix0 = _mm_srai_epi32(ix0, INTER_BITS);
-                                ix1 = _mm_srai_epi32(ix1, INTER_BITS);
-                                iy0 = _mm_srai_epi32(iy0, INTER_BITS);
-                                iy1 = _mm_srai_epi32(iy1, INTER_BITS);
-                                ix0 = _mm_packs_epi32(ix0, ix1);
-                                iy0 = _mm_packs_epi32(iy0, iy1);
-                                ix1 = _mm_unpacklo_epi16(ix0, iy0);
-                                iy1 = _mm_unpackhi_epi16(ix0, iy0);
-                                _mm_storeu_si128((__m128i*)(XY + x1*2), ix1);
-                                _mm_storeu_si128((__m128i*)(XY + x1*2 + 8), iy1);
-                            }
-                        }
-                    #endif
 
                         for( ; x1 < bcols; x1++ )
                         {
@@ -2605,9 +2341,7 @@ public:
         const int AB_BITS = MAX(10, (int)INTER_BITS);
         const int AB_SCALE = 1 << AB_BITS;
         int round_delta = interpolation == INTER_NEAREST ? AB_SCALE/2 : AB_SCALE/INTER_TAB_SIZE/2, x, y, x1, y1;
-    #if CV_SSE2
-        bool useSIMD = checkHardwareSupport(CV_CPU_SSE2);
-    #endif
+
 
         int bh0 = std::min(BLOCK_SZ/2, dst.rows);
         int bw0 = std::min(BLOCK_SZ*BLOCK_SZ/bh0, dst.cols);
@@ -2641,40 +2375,6 @@ public:
                     {
                         short* alpha = A + y1*bw;
                         x1 = 0;
-                    #if CV_SSE2
-                        if( useSIMD )
-                        {
-                            __m128i fxy_mask = _mm_set1_epi32(INTER_TAB_SIZE - 1);
-                            __m128i XX = _mm_set1_epi32(X0), YY = _mm_set1_epi32(Y0);
-                            for( ; x1 <= bw - 8; x1 += 8 )
-                            {
-                                __m128i tx0, tx1, ty0, ty1;
-                                tx0 = _mm_add_epi32(_mm_loadu_si128((const __m128i*)(adelta + x + x1)), XX);
-                                ty0 = _mm_add_epi32(_mm_loadu_si128((const __m128i*)(bdelta + x + x1)), YY);
-                                tx1 = _mm_add_epi32(_mm_loadu_si128((const __m128i*)(adelta + x + x1 + 4)), XX);
-                                ty1 = _mm_add_epi32(_mm_loadu_si128((const __m128i*)(bdelta + x + x1 + 4)), YY);
-
-                                tx0 = _mm_srai_epi32(tx0, AB_BITS - INTER_BITS);
-                                ty0 = _mm_srai_epi32(ty0, AB_BITS - INTER_BITS);
-                                tx1 = _mm_srai_epi32(tx1, AB_BITS - INTER_BITS);
-                                ty1 = _mm_srai_epi32(ty1, AB_BITS - INTER_BITS);
-
-                                __m128i fx_ = _mm_packs_epi32(_mm_and_si128(tx0, fxy_mask),
-                                                            _mm_and_si128(tx1, fxy_mask));
-                                __m128i fy_ = _mm_packs_epi32(_mm_and_si128(ty0, fxy_mask),
-                                                            _mm_and_si128(ty1, fxy_mask));
-                                tx0 = _mm_packs_epi32(_mm_srai_epi32(tx0, INTER_BITS),
-                                                            _mm_srai_epi32(tx1, INTER_BITS));
-                                ty0 = _mm_packs_epi32(_mm_srai_epi32(ty0, INTER_BITS),
-                                                    _mm_srai_epi32(ty1, INTER_BITS));
-                                fx_ = _mm_adds_epi16(fx_, _mm_slli_epi16(fy_, INTER_BITS));
-
-                                _mm_storeu_si128((__m128i*)(xy + x1*2), _mm_unpacklo_epi16(tx0, ty0));
-                                _mm_storeu_si128((__m128i*)(xy + x1*2 + 8), _mm_unpackhi_epi16(tx0, ty0));
-                                _mm_storeu_si128((__m128i*)(alpha + x1), fx_);
-                            }
-                        }
-                    #endif
                         for( ; x1 < bw; x1++ )
                         {
                             int X = (X0 + adelta[x+x1]) >> (AB_BITS - INTER_BITS);

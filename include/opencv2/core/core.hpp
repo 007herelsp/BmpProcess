@@ -210,27 +210,6 @@ CV_EXPORTS_W double getTickFrequency();
 */
 CV_EXPORTS_W int64 getCPUTickCount();
 
-/*!
-  Returns SSE etc. support status
-
-  The function returns true if certain hardware features are available.
-  Currently, the following features are recognized:
-  - CV_CPU_MMX - MMX
-  - CV_CPU_SSE - SSE
-  - CV_CPU_SSE2 - SSE 2
-  - CV_CPU_SSE3 - SSE 3
-  - CV_CPU_SSSE3 - SSSE 3
-  - CV_CPU_SSE4_1 - SSE 4.1
-  - CV_CPU_SSE4_2 - SSE 4.2
-  - CV_CPU_POPCNT - POPCOUNT
-  - CV_CPU_AVX - AVX
-  - CV_CPU_AVX2 - AVX2
-
-  \note {Note that the function output is not static. Once you called cv::useOptimized(false),
-  most of the hardware acceleration is disabled and thus the function will returns false,
-  until you call cv::useOptimized(true)}
-*/
-CV_EXPORTS_W bool checkHardwareSupport(int feature);
 
 //! returns the number of CPUs (including hyper-threading)
 CV_EXPORTS_W int getNumberOfCPUs();
@@ -2115,42 +2094,6 @@ CV_EXPORTS void calcCovarMatrix( const Mat* samples, int nsamples, Mat& covar, M
 CV_EXPORTS_W void calcCovarMatrix( InputArray samples, OutputArray covar,
                                    OutputArray mean, int flags, int ctype=CV_64F);
 
-class CV_EXPORTS PCA
-{
-public:
-    //! default constructor
-    PCA();
-    //! the constructor that performs PCA
-    PCA(InputArray data, InputArray mean, int flags, int maxComponents=0);
-    PCA(InputArray data, InputArray mean, int flags, double retainedVariance);
-    //! operator that performs PCA. The previously stored data, if any, is released
-    PCA& operator()(InputArray data, InputArray mean, int flags, int maxComponents=0);
-    PCA& computeVar(InputArray data, InputArray mean, int flags, double retainedVariance);
-    //! projects vector from the original space to the principal components subspace
-    Mat project(InputArray vec) const;
-    //! projects vector from the original space to the principal components subspace
-    void project(InputArray vec, OutputArray result) const;
-    //! reconstructs the original vector from the projection
-    Mat backProject(InputArray vec) const;
-    //! reconstructs the original vector from the projection
-    void backProject(InputArray vec, OutputArray result) const;
-
-    Mat eigenvectors; //!< eigenvectors of the covariation matrix
-    Mat eigenvalues; //!< eigenvalues of the covariation matrix
-    Mat mean; //!< mean value subtracted before the projection and added after the back projection
-};
-
-CV_EXPORTS_W void PCACompute(InputArray data, CV_OUT InputOutputArray mean,
-                             OutputArray eigenvectors, int maxComponents=0);
-
-CV_EXPORTS_W void PCAComputeVar(InputArray data, CV_OUT InputOutputArray mean,
-                             OutputArray eigenvectors, double retainedVariance);
-
-CV_EXPORTS_W void PCAProject(InputArray data, InputArray mean,
-                             InputArray eigenvectors, OutputArray result);
-
-CV_EXPORTS_W void PCABackProject(InputArray data, InputArray mean,
-                                 InputArray eigenvectors, OutputArray result);
 
 
 /*!

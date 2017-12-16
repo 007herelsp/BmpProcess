@@ -325,93 +325,6 @@ template<typename T> struct DFT_VecR4
     int operator()(Complex<T>*, int, int, int&, const Complex<T>*) const { return 1; }
 };
 
-#if CV_SSE3
-
-// optimized radix-4 transform
-template<> struct DFT_VecR4<float>
-{
-    int operator()(Complex<float>* dst, int N, int n0, int& _dw0, const Complex<float>* wave) const
-    {
-        int n = 1, i, j, nx, dw, dw0 = _dw0;
-        __m128 z = _mm_setzero_ps(), x02=z, x13=z, w01=z, w23=z, y01, y23, t0, t1;
-        Cv32suf t; t.i = 0x80000000;
-        __m128 neg0_mask = _mm_load_ss(&t.f);
-        __m128 neg3_mask = _mm_shuffle_ps(neg0_mask, neg0_mask, _MM_SHUFFLE(0,1,2,3));
-
-        for( ; n*4 <= N; )
-        {
-            nx = n;
-            n *= 4;
-            dw0 /= 4;
-
-            for( i = 0; i < n0; i += n )
-            {
-                Complexf *v0, *v1;
-
-                v0 = dst + i;
-                v1 = v0 + nx*2;
-
-                x02 = _mm_loadl_pi(x02, (const __m64*)&v0[0]);
-                x13 = _mm_loadl_pi(x13, (const __m64*)&v0[nx]);
-                x02 = _mm_loadh_pi(x02, (const __m64*)&v1[0]);
-                x13 = _mm_loadh_pi(x13, (const __m64*)&v1[nx]);
-
-                y01 = _mm_add_ps(x02, x13);
-                y23 = _mm_sub_ps(x02, x13);
-                t1 = _mm_xor_ps(_mm_shuffle_ps(y01, y23, _MM_SHUFFLE(2,3,3,2)), neg3_mask);
-                t0 = _mm_movelh_ps(y01, y23);
-                y01 = _mm_add_ps(t0, t1);
-                y23 = _mm_sub_ps(t0, t1);
-
-                _mm_storel_pi((__m64*)&v0[0], y01);
-                _mm_storeh_pi((__m64*)&v0[nx], y01);
-                _mm_storel_pi((__m64*)&v1[0], y23);
-                _mm_storeh_pi((__m64*)&v1[nx], y23);
-
-                for( j = 1, dw = dw0; j < nx; j++, dw += dw0 )
-                {
-                    v0 = dst + i + j;
-                    v1 = v0 + nx*2;
-
-                    x13 = _mm_loadl_pi(x13, (const __m64*)&v0[nx]);
-                    w23 = _mm_loadl_pi(w23, (const __m64*)&wave[dw*2]);
-                    x13 = _mm_loadh_pi(x13, (const __m64*)&v1[nx]); // x1, x3 = r1 i1 r3 i3
-                    w23 = _mm_loadh_pi(w23, (const __m64*)&wave[dw*3]); // w2, w3 = wr2 wi2 wr3 wi3
-
-                    t0 = _mm_mul_ps(_mm_moveldup_ps(x13), w23);
-                    t1 = _mm_mul_ps(_mm_movehdup_ps(x13), _mm_shuffle_ps(w23, w23, _MM_SHUFFLE(2,3,0,1)));
-                    x13 = _mm_addsub_ps(t0, t1);
-                    // re(x1*w2), im(x1*w2), re(x3*w3), im(x3*w3)
-                    x02 = _mm_loadl_pi(x02, (const __m64*)&v1[0]); // x2 = r2 i2
-                    w01 = _mm_loadl_pi(w01, (const __m64*)&wave[dw]); // w1 = wr1 wi1
-                    x02 = _mm_shuffle_ps(x02, x02, _MM_SHUFFLE(0,0,1,1));
-                    w01 = _mm_shuffle_ps(w01, w01, _MM_SHUFFLE(1,0,0,1));
-                    x02 = _mm_mul_ps(x02, w01);
-                    x02 = _mm_addsub_ps(x02, _mm_movelh_ps(x02, x02));
-                    // re(x0) im(x0) re(x2*w1), im(x2*w1)
-                    x02 = _mm_loadl_pi(x02, (const __m64*)&v0[0]);
-
-                    y01 = _mm_add_ps(x02, x13);
-                    y23 = _mm_sub_ps(x02, x13);
-                    t1 = _mm_xor_ps(_mm_shuffle_ps(y01, y23, _MM_SHUFFLE(2,3,3,2)), neg3_mask);
-                    t0 = _mm_movelh_ps(y01, y23);
-                    y01 = _mm_add_ps(t0, t1);
-                    y23 = _mm_sub_ps(t0, t1);
-
-                    _mm_storel_pi((__m64*)&v0[0], y01);
-                    _mm_storeh_pi((__m64*)&v0[nx], y01);
-                    _mm_storel_pi((__m64*)&v1[0], y23);
-                    _mm_storeh_pi((__m64*)&v1[nx], y23);
-                }
-            }
-        }
-
-        _dw0 = dw0;
-        return n;
-    }
-};
-
-#endif
 
 #ifdef USE_IPP_DFT
 static void ippsDFTFwd_CToC( const Complex<float>* src, Complex<float>* dst,
@@ -475,9 +388,7 @@ DFT( const Complex<T>* src, Complex<T>* dst, int n,
      int nf, const int* factors, const int* itab,
      const Complex<T>* wave, int tab_size,
      const void*
-#ifdef USE_IPP_DFT
-     spec
-#endif
+
      , Complex<T>* buf,
      int flags, double _scale )
 {
@@ -494,17 +405,6 @@ DFT( const Complex<T>* src, Complex<T>* dst, int n,
     Complex<T> t;
     T scale = (T)_scale;
     int tab_step;
-
-#ifdef USE_IPP_DFT
-    if( spec )
-    {
-        if( !inv )
-            ippsDFTFwd_CToC( src, dst, spec, (uchar*)buf );
-        else
-            ippsDFTInv_CToC( src, dst, spec, (uchar*)buf );
-        return;
-    }
-#endif
 
     tab_step = tab_size == n ? 1 : tab_size == n*2 ? 2 : tab_size/n;
 
@@ -600,7 +500,7 @@ DFT( const Complex<T>* src, Complex<T>* dst, int n,
     // 1. power-2 transforms
     if( (factors[0] & 1) == 0 )
     {
-        if( factors[0] >= 4 && checkHardwareSupport(CV_CPU_SSE3))
+        if( factors[0] >= 4 && false)
         {
             DFT_VecR4<T> vr4;
             n = vr4(dst, factors[0], n0, dw0, wave);
@@ -2590,59 +2490,6 @@ int cv::getOptimalDFTSize( int size0 )
     return optimalDFTSizeTab[b];
 }
 
-CV_IMPL void
-cvDFT( const CvArr* srcarr, CvArr* dstarr, int flags, int nonzero_rows )
-{
-    cv::Mat src = cv::cvarrToMat(srcarr), dst0 = cv::cvarrToMat(dstarr), dst = dst0;
-    int _flags = ((flags & CV_DXT_INVERSE) ? cv::DFT_INVERSE : 0) |
-        ((flags & CV_DXT_SCALE) ? cv::DFT_SCALE : 0) |
-        ((flags & CV_DXT_ROWS) ? cv::DFT_ROWS : 0);
 
-    CV_Assert( src.size == dst.size );
-
-    if( src.type() != dst.type() )
-    {
-        if( dst.channels() == 2 )
-            _flags |= cv::DFT_COMPLEX_OUTPUT;
-        else
-            _flags |= cv::DFT_REAL_OUTPUT;
-    }
-
-    cv::dft( src, dst, _flags, nonzero_rows );
-    CV_Assert( dst.data == dst0.data ); // otherwise it means that the destination size or type was incorrect
-}
-
-
-CV_IMPL void
-cvMulSpectrums( const CvArr* srcAarr, const CvArr* srcBarr,
-                CvArr* dstarr, int flags )
-{
-    cv::Mat srcA = cv::cvarrToMat(srcAarr),
-        srcB = cv::cvarrToMat(srcBarr),
-        dst = cv::cvarrToMat(dstarr);
-    CV_Assert( srcA.size == dst.size && srcA.type() == dst.type() );
-
-    cv::mulSpectrums(srcA, srcB, dst,
-        (flags & CV_DXT_ROWS) ? cv::DFT_ROWS : 0,
-        (flags & CV_DXT_MUL_CONJ) != 0 );
-}
-
-
-CV_IMPL void
-cvDCT( const CvArr* srcarr, CvArr* dstarr, int flags )
-{
-    cv::Mat src = cv::cvarrToMat(srcarr), dst = cv::cvarrToMat(dstarr);
-    CV_Assert( src.size == dst.size && src.type() == dst.type() );
-    int _flags = ((flags & CV_DXT_INVERSE) ? cv::DCT_INVERSE : 0) |
-            ((flags & CV_DXT_ROWS) ? cv::DCT_ROWS : 0);
-    cv::dct( src, dst, _flags );
-}
-
-
-CV_IMPL int
-cvGetOptimalDFTSize( int size0 )
-{
-    return cv::getOptimalDFTSize(size0);
-}
 
 /* End of file. */
