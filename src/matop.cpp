@@ -75,6 +75,9 @@ public:
 
 static MatOp_Cmp g_MatOp_Cmp;
 
+
+
+
 class MatOp_T : public MatOp
 {
 public:
