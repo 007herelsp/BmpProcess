@@ -1384,11 +1384,6 @@ template<typename _Tp> static inline MatExpr abs(const Mat_<_Tp>& m)
 
 ////////////////////////////// Augmenting algebraic operations //////////////////////////////////
 
-inline Mat& Mat::operator = (const MatExpr& e)
-{
-    e.op->assign(e, *this);
-    return *this;
-}
 
 template<typename _Tp> inline Mat_<_Tp>::Mat_(const MatExpr& e)
 {

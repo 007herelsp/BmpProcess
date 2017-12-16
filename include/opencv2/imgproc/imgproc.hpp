@@ -312,12 +312,7 @@ CV_EXPORTS_W void dilate( InputArray src, OutputArray dst, InputArray kernel,
                           int borderType=BORDER_CONSTANT,
                           const Scalar& borderValue=morphologyDefaultBorderValue() );
 
-//! applies an advanced morphological operation to the image
-CV_EXPORTS_W void morphologyEx( InputArray src, OutputArray dst,
-                                int op, InputArray kernel,
-                                Point anchor=Point(-1,-1), int iterations=1,
-                                int borderType=BORDER_CONSTANT,
-                                const Scalar& borderValue=morphologyDefaultBorderValue() );
+
 
 //! interpolation algorithm
 enum

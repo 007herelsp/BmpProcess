@@ -75,43 +75,6 @@ public:
 
 static MatOp_Cmp g_MatOp_Cmp;
 
-class MatOp_GEMM : public MatOp
-{
-public:
-    MatOp_GEMM() {}
-    virtual ~MatOp_GEMM() {}
-
-    bool elementWise(const MatExpr& /*expr*/) const { return false; }
-    void assign(const MatExpr& expr, Mat& m, int type=-1) const;
-
-    void add(const MatExpr& e1, const MatExpr& e2, MatExpr& res) const;
-    void subtract(const MatExpr& e1, const MatExpr& e2, MatExpr& res) const;
-    void multiply(const MatExpr& e, double s, MatExpr& res) const;
-
-    void transpose(const MatExpr& expr, MatExpr& res) const;
-
-    static void makeExpr(MatExpr& res, int flags, const Mat& a, const Mat& b,
-                         double alpha=1, const Mat& c=Mat(), double beta=1);
-};
-
-static MatOp_GEMM g_MatOp_GEMM;
-
-class MatOp_Invert : public MatOp
-{
-public:
-    MatOp_Invert() {}
-    virtual ~MatOp_Invert() {}
-
-    bool elementWise(const MatExpr& /*expr*/) const { return false; }
-    void assign(const MatExpr& expr, Mat& m, int type=-1) const;
-
-    void matmul(const MatExpr& expr1, const MatExpr& expr2, MatExpr& res) const;
-
-    static void makeExpr(MatExpr& res, int method, const Mat& m);
-};
-
-static MatOp_Invert g_MatOp_Invert;
-
 class MatOp_T : public MatOp
 {
 public:
@@ -129,40 +92,9 @@ public:
 
 static MatOp_T g_MatOp_T;
 
-class MatOp_Solve : public MatOp
-{
-public:
-    MatOp_Solve() {}
-    virtual ~MatOp_Solve() {}
 
-    bool elementWise(const MatExpr& /*expr*/) const { return false; }
-    void assign(const MatExpr& expr, Mat& m, int type=-1) const;
 
-    static void makeExpr(MatExpr& res, int method, const Mat& a, const Mat& b);
-};
-
-static MatOp_Solve g_MatOp_Solve;
-
-class MatOp_Initializer : public MatOp
-{
-public:
-    MatOp_Initializer() {}
-    virtual ~MatOp_Initializer() {}
-
-    bool elementWise(const MatExpr& /*expr*/) const { return false; }
-    void assign(const MatExpr& expr, Mat& m, int type=-1) const;
-
-    void multiply(const MatExpr& e, double s, MatExpr& res) const;
-
-    static void makeExpr(MatExpr& res, int method, Size sz, int type, double alpha=1);
-    static void makeExpr(MatExpr& res, int method, int ndims, const int* sizes, int type, double alpha=1);
-};
-
-static MatOp_Initializer* getGlobalMatOpInitializer()
-{
-    static MatOp_Initializer initializer;
-    return &initializer;
-}
+ 
 
 static inline bool isIdentity(const MatExpr& e) { return e.op == &g_MatOp_Identity; }
 static inline bool isAddEx(const MatExpr& e) { return e.op == &g_MatOp_AddEx; }
@@ -171,11 +103,6 @@ static inline bool isBin(const MatExpr& e, char c) { return e.op == &g_MatOp_Bin
 static inline bool isCmp(const MatExpr& e) { return e.op == &g_MatOp_Cmp; }
 static inline bool isReciprocal(const MatExpr& e) { return isBin(e,'/') && (!e.b.data || e.beta == 0); }
 static inline bool isT(const MatExpr& e) { return e.op == &g_MatOp_T; }
-static inline bool isInv(const MatExpr& e) { return e.op == &g_MatOp_Invert; }
-static inline bool isSolve(const MatExpr& e) { return e.op == &g_MatOp_Solve; }
-static inline bool isGEMM(const MatExpr& e) { return e.op == &g_MatOp_GEMM; }
-static inline bool isMatProd(const MatExpr& e) { return e.op == &g_MatOp_GEMM && (!e.c.data || e.beta == 0); }
-static inline bool isInitializer(const MatExpr& e) { return e.op == getGlobalMatOpInitializer(); }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -520,7 +447,6 @@ void MatOp::matmul(const MatExpr& e1, const MatExpr& e2, MatExpr& res) const
         else
             e2.op->assign(e2, m2);
 
-        MatOp_GEMM::makeExpr(res, flags, m1, m2, scale);
     }
     else
         e2.op->matmul(e1, e2, res);
@@ -531,7 +457,7 @@ void MatOp::invert(const MatExpr& expr, int method, MatExpr& res) const
 {
     Mat m;
     expr.op->assign(expr, m);
-    MatOp_Invert::makeExpr(res, method, m);
+
 }
 
 
@@ -547,117 +473,6 @@ int MatOp::type(const MatExpr& expr) const
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-MatExpr::MatExpr(const Mat& m) : op(&g_MatOp_Identity), flags(0), a(m), b(Mat()), c(Mat()), alpha(1), beta(0), s(Scalar())
-{
-}
-
-MatExpr MatExpr::row(int y) const
-{
-    MatExpr e;
-    op->roi(*this, Range(y, y+1), Range::all(), e);
-    return e;
-}
-
-MatExpr MatExpr::col(int x) const
-{
-    MatExpr e;
-    op->roi(*this, Range::all(), Range(x, x+1), e);
-    return e;
-}
-
-MatExpr MatExpr::diag(int d) const
-{
-    MatExpr e;
-    op->diag(*this, d, e);
-    return e;
-}
-
-MatExpr MatExpr::operator()( const Range& rowRange, const Range& colRange ) const
-{
-    MatExpr e;
-    op->roi(*this, rowRange, colRange, e);
-    return e;
-}
-
-MatExpr MatExpr::operator()( const Rect& roi ) const
-{
-    MatExpr e;
-    op->roi(*this, Range(roi.y, roi.y + roi.height), Range(roi.x, roi.x + roi.width), e);
-    return e;
-}
-
-Mat MatExpr::cross(const Mat& m) const
-{
-    return ((Mat)*this).cross(m);
-}
-
-double MatExpr::dot(const Mat& m) const
-{
-    return ((Mat)*this).dot(m);
-}
-
-MatExpr MatExpr::t() const
-{
-    MatExpr e;
-    op->transpose(*this, e);
-    return e;
-}
-
-MatExpr MatExpr::inv(int method) const
-{
-    MatExpr e;
-    op->invert(*this, method, e);
-    return e;
-}
-
-MatExpr MatExpr::mul(const MatExpr& e, double scale) const
-{
-    MatExpr en;
-    op->multiply(*this, e, en, scale);
-    return en;
-}
-
-MatExpr MatExpr::mul(const Mat& m, double scale) const
-{
-    MatExpr e;
-    op->multiply(*this, MatExpr(m), e, scale);
-    return e;
-}
-
-MatExpr operator + (const Mat& a, const Mat& b)
-{
-    MatExpr e;
-    MatOp_AddEx::makeExpr(e, a, b, 1, 1);
-    return e;
-}
-
-MatExpr operator + (const Mat& a, const Scalar& s)
-{
-    MatExpr e;
-    MatOp_AddEx::makeExpr(e, a, Mat(), 1, 0, s);
-    return e;
-}
-
-MatExpr operator + (const Scalar& s, const Mat& a)
-{
-    MatExpr e;
-    MatOp_AddEx::makeExpr(e, a, Mat(), 1, 0, s);
-    return e;
-}
-
-MatExpr operator + (const MatExpr& e, const Mat& m)
-{
-    MatExpr en;
-    e.op->add(e, MatExpr(m), en);
-    return en;
-}
-
-MatExpr operator + (const Mat& m, const MatExpr& e)
-{
-    MatExpr en;
-    e.op->add(e, MatExpr(m), en);
-    return en;
-}
 
 MatExpr operator + (const MatExpr& e, const Scalar& s)
 {
@@ -701,20 +516,6 @@ MatExpr operator - (const Scalar& s, const Mat& a)
     return e;
 }
 
-MatExpr operator - (const MatExpr& e, const Mat& m)
-{
-    MatExpr en;
-    e.op->subtract(e, MatExpr(m), en);
-    return en;
-}
-
-MatExpr operator - (const Mat& m, const MatExpr& e)
-{
-    MatExpr en;
-    e.op->subtract(MatExpr(m), e, en);
-    return en;
-}
-
 MatExpr operator - (const MatExpr& e, const Scalar& s)
 {
     MatExpr en;
@@ -753,7 +554,6 @@ MatExpr operator - (const MatExpr& e)
 MatExpr operator * (const Mat& a, const Mat& b)
 {
     MatExpr e;
-    MatOp_GEMM::makeExpr(e, 0, a, b);
     return e;
 }
 
@@ -771,19 +571,6 @@ MatExpr operator * (double s, const Mat& a)
     return e;
 }
 
-MatExpr operator * (const MatExpr& e, const Mat& m)
-{
-    MatExpr en;
-    e.op->matmul(e, MatExpr(m), en);
-    return en;
-}
-
-MatExpr operator * (const Mat& m, const MatExpr& e)
-{
-    MatExpr en;
-    e.op->matmul(MatExpr(m), e, en);
-    return en;
-}
 
 MatExpr operator * (const MatExpr& e, double s)
 {
@@ -827,19 +614,6 @@ MatExpr operator / (double s, const Mat& a)
     return e;
 }
 
-MatExpr operator / (const MatExpr& e, const Mat& m)
-{
-    MatExpr en;
-    e.op->divide(e, MatExpr(m), en);
-    return en;
-}
-
-MatExpr operator / (const Mat& m, const MatExpr& e)
-{
-    MatExpr en;
-    e.op->divide(MatExpr(m), e, en);
-    return en;
-}
 
 MatExpr operator / (const MatExpr& e, double s)
 {
@@ -1117,25 +891,15 @@ MatExpr abs(const MatExpr& e)
 
 Size MatExpr::size() const
 {
-    if( isT(*this) || isInv(*this) )
-        return Size(a.rows, a.cols);
-    if( isGEMM(*this) )
-        return Size(b.cols, a.rows);
-    if( isSolve(*this) )
-        return Size(b.cols, a.cols);
-    if( isInitializer(*this) )
-        return a.size();
-    return op ? op->size(*this) : Size();
+
+   return Size();
 }
 
 
 int MatExpr::type() const
 {
-    if( isInitializer(*this) )
-        return a.type();
-    if( isCmp(*this) )
-        return CV_8U;
-    return op ? op->type(*this) : -1;
+
+    return  -1;
 }
 
 
@@ -1396,240 +1160,7 @@ inline void MatOp_T::makeExpr(MatExpr& res, const Mat& a, double alpha)
     res = MatExpr(&g_MatOp_T, 0, a, Mat(), Mat(), alpha, 0);
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MatOp_GEMM::assign(const MatExpr& e, Mat& m, int _type) const
-{
-    Mat temp, &dst = _type == -1 || _type == e.a.type() ? m : temp;
-
-    cv::gemm(e.a, e.b, e.alpha, e.c, e.beta, dst, e.flags);
-    if( dst.data != m.data )
-        dst.convertTo(m, _type);
-}
-
-void MatOp_GEMM::add(const MatExpr& e1, const MatExpr& e2, MatExpr& res) const
-{
-    bool i1 = isIdentity(e1), i2 = isIdentity(e2);
-    double alpha1 = i1 ? 1 : e1.alpha, alpha2 = i2 ? 1 : e2.alpha;
-
-    if( isMatProd(e1) && (i2 || isScaled(e2) || isT(e2)) )
-        MatOp_GEMM::makeExpr(res, (e1.flags & ~CV_GEMM_C_T)|(isT(e2) ? CV_GEMM_C_T : 0),
-                             e1.a, e1.b, alpha1, e2.a, alpha2);
-    else if( isMatProd(e2) && (i1 || isScaled(e1) || isT(e1)) )
-        MatOp_GEMM::makeExpr(res, (e2.flags & ~CV_GEMM_C_T)|(isT(e1) ? CV_GEMM_C_T : 0),
-                             e2.a, e2.b, alpha2, e1.a, alpha1);
-    else if( this == e2.op )
-        MatOp::add(e1, e2, res);
-    else
-        e2.op->add(e1, e2, res);
-}
-
-void MatOp_GEMM::subtract(const MatExpr& e1, const MatExpr& e2, MatExpr& res) const
-{
-    bool i1 = isIdentity(e1), i2 = isIdentity(e2);
-    double alpha1 = i1 ? 1 : e1.alpha, alpha2 = i2 ? 1 : e2.alpha;
-
-    if( isMatProd(e1) && (i2 || isScaled(e2) || isT(e2)) )
-        MatOp_GEMM::makeExpr(res, (e1.flags & ~CV_GEMM_C_T)|(isT(e2) ? CV_GEMM_C_T : 0),
-                             e1.a, e1.b, alpha1, e2.a, -alpha2);
-    else if( isMatProd(e2) && (i1 || isScaled(e1) || isT(e1)) )
-        MatOp_GEMM::makeExpr(res, (e2.flags & ~CV_GEMM_C_T)|(isT(e1) ? CV_GEMM_C_T : 0),
-                            e2.a, e2.b, -alpha2, e1.a, alpha1);
-    else if( this == e2.op )
-        MatOp::subtract(e1, e2, res);
-    else
-        e2.op->subtract(e1, e2, res);
-}
-
-void MatOp_GEMM::multiply(const MatExpr& e, double s, MatExpr& res) const
-{
-    res = e;
-    res.alpha *= s;
-    res.beta *= s;
-}
-
-void MatOp_GEMM::transpose(const MatExpr& e, MatExpr& res) const
-{
-    res = e;
-    res.flags = (!(e.flags & CV_GEMM_A_T) ? CV_GEMM_B_T : 0) |
-                (!(e.flags & CV_GEMM_B_T) ? CV_GEMM_A_T : 0) |
-                (!(e.flags & CV_GEMM_C_T) ? CV_GEMM_C_T : 0);
-    swap(res.a, res.b);
-}
-
-inline void MatOp_GEMM::makeExpr(MatExpr& res, int flags, const Mat& a, const Mat& b,
-                                 double alpha, const Mat& c, double beta)
-{
-    res = MatExpr(&g_MatOp_GEMM, flags, a, b, c, alpha, beta);
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void MatOp_Invert::assign(const MatExpr& e, Mat& m, int _type) const
-{
-    Mat temp, &dst = _type == -1 || _type == e.a.type() ? m : temp;
-
-    cv::invert(e.a, dst, e.flags);
-    if( dst.data != m.data )
-        dst.convertTo(m, _type);
-}
-
-void MatOp_Invert::matmul(const MatExpr& e1, const MatExpr& e2, MatExpr& res) const
-{
-    if( isInv(e1) && isIdentity(e2) )
-        MatOp_Solve::makeExpr(res, e1.flags, e1.a, e2.a);
-    else if( this == e2.op )
-        MatOp::matmul(e1, e2, res);
-    else
-        e2.op->matmul(e1, e2, res);
-}
-
-inline void MatOp_Invert::makeExpr(MatExpr& res, int method, const Mat& m)
-{
-    res = MatExpr(&g_MatOp_Invert, method, m, Mat(), Mat(), 1, 0);
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void MatOp_Solve::assign(const MatExpr& e, Mat& m, int _type) const
-{
-    Mat temp, &dst = _type == -1 || _type == e.a.type() ? m : temp;
-
-    cv::solve(e.a, e.b, dst, e.flags);
-    if( dst.data != m.data )
-        dst.convertTo(m, _type);
-}
-
-inline void MatOp_Solve::makeExpr(MatExpr& res, int method, const Mat& a, const Mat& b)
-{
-    res = MatExpr(&g_MatOp_Solve, method, a, b, Mat(), 1, 1);
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void MatOp_Initializer::assign(const MatExpr& e, Mat& m, int _type) const
-{
-    if( _type == -1 )
-        _type = e.a.type();
-
-    if( e.a.dims <= 2 )
-        m.create(e.a.size(), _type);
-    else
-        m.create(e.a.dims, e.a.size, _type);
-
-    if( e.flags == 'I' && e.a.dims <= 2 )
-        setIdentity(m, Scalar(e.alpha));
-    else if( e.flags == '0' )
-        m = Scalar();
-    else if( e.flags == '1' )
-        m = Scalar(e.alpha);
-    else
-        CV_Error(CV_StsError, "Invalid matrix initializer type");
-}
-
-void MatOp_Initializer::multiply(const MatExpr& e, double s, MatExpr& res) const
-{
-    res = e;
-    res.alpha *= s;
-}
-
-inline void MatOp_Initializer::makeExpr(MatExpr& res, int method, Size sz, int type, double alpha)
-{
-    res = MatExpr(getGlobalMatOpInitializer(), method, Mat(sz, type, (void*)0), Mat(), Mat(), alpha, 0);
-}
-
-inline void MatOp_Initializer::makeExpr(MatExpr& res, int method, int ndims, const int* sizes, int type, double alpha)
-{
-    res = MatExpr(getGlobalMatOpInitializer(), method, Mat(ndims, sizes, type, (void*)0), Mat(), Mat(), alpha, 0);
-}
-
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-MatExpr Mat::t() const
-{
-    MatExpr e;
-    MatOp_T::makeExpr(e, *this);
-    return e;
-}
-
-MatExpr Mat::inv(int method) const
-{
-    MatExpr e;
-    MatOp_Invert::makeExpr(e, method, *this);
-    return e;
-}
-
-
-MatExpr Mat::mul(InputArray m, double scale) const
-{
-    MatExpr e;
-    if(m.kind() == _InputArray::EXPR)
-    {
-        const MatExpr& me = *(const MatExpr*)m.obj;
-        me.op->multiply(MatExpr(*this), me, e, scale);
-    }
-    else
-        MatOp_Bin::makeExpr(e, '*', *this, m.getMat(), scale);
-    return e;
-}
-
-MatExpr Mat::zeros(int rows, int cols, int type)
-{
-    MatExpr e;
-    MatOp_Initializer::makeExpr(e, '0', Size(cols, rows), type);
-    return e;
-}
-
-MatExpr Mat::zeros(Size size, int type)
-{
-    MatExpr e;
-    MatOp_Initializer::makeExpr(e, '0', size, type);
-    return e;
-}
-
-MatExpr Mat::ones(int rows, int cols, int type)
-{
-    MatExpr e;
-    MatOp_Initializer::makeExpr(e, '1', Size(cols, rows), type);
-    return e;
-}
-
-MatExpr Mat::ones(Size size, int type)
-{
-    MatExpr e;
-    MatOp_Initializer::makeExpr(e, '1', size, type);
-    return e;
-}
-
-MatExpr Mat::zeros(int ndims, const int* sizes, int type)
-{
-    MatExpr e;
-    MatOp_Initializer::makeExpr(e, '0', ndims, sizes, type);
-    return e;
-}
-
-MatExpr Mat::ones(int ndims, const int* sizes, int type)
-{
-    MatExpr e;
-    MatOp_Initializer::makeExpr(e, '1', ndims, sizes, type);
-    return e;
-}
-
-MatExpr Mat::eye(int rows, int cols, int type)
-{
-    MatExpr e;
-    MatOp_Initializer::makeExpr(e, 'I', Size(cols, rows), type);
-    return e;
-}
-
-MatExpr Mat::eye(Size size, int type)
-{
-    MatExpr e;
-    MatOp_Initializer::makeExpr(e, 'I', size, type);
-    return e;
-}
 
 }
 
