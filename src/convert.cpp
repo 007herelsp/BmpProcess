@@ -1067,45 +1067,6 @@ static LUTFunc lutTab[] =
 
 
 
-void cv::normalize( InputArray _src, OutputArray _dst, double a, double b,
-                    int norm_type, int rtype, InputArray _mask )
-{
-    Mat src = _src.getMat(), mask = _mask.getMat();
-
-    double scale = 1, shift = 0;
-    if( norm_type == CV_MINMAX )
-    {
-        double smin = 0, smax = 0;
-        double dmin = MIN( a, b ), dmax = MAX( a, b );
-        minMaxLoc( _src, &smin, &smax, 0, 0, mask );
-        scale = (dmax - dmin)*(smax - smin > DBL_EPSILON ? 1./(smax - smin) : 0);
-        shift = dmin - smin*scale;
-    }
-    else if( norm_type == CV_L2 || norm_type == CV_L1 || norm_type == CV_C )
-    {
-        scale = norm( src, norm_type, mask );
-        scale = scale > DBL_EPSILON ? a/scale : 0.;
-        shift = 0;
-    }
-    else
-        CV_Error( CV_StsBadArg, "Unknown/unsupported norm type" );
-
-    if( rtype < 0 )
-        rtype = _dst.fixedType() ? _dst.depth() : src.depth();
-
-    _dst.create(src.dims, src.size, CV_MAKETYPE(rtype, src.channels()));
-    Mat dst = _dst.getMat();
-
-    if( !mask.data )
-        src.convertTo( dst, rtype, scale, shift );
-    else
-    {
-        Mat temp;
-        src.convertTo( temp, rtype, scale, shift );
-        temp.copyTo( dst, mask );
-    }
-}
-
 CV_IMPL void
 cvSplit( const void* srcarr, void* dstarr0, void* dstarr1, void* dstarr2, void* dstarr3 )
 {

@@ -856,11 +856,9 @@ void scalarToRawData(const Scalar& s, void* _buf, int type, int unroll_to)
 \*************************************************************************************************/
 
 _InputArray::_InputArray() : flags(0), obj(0) {}
-
 _InputArray::_InputArray(const Mat& m) : flags(MAT), obj((void*)&m) {}
 _InputArray::_InputArray(const vector<Mat>& vec) : flags(STD_VECTOR_MAT), obj((void*)&vec) {}
 _InputArray::_InputArray(const double& val) : flags(FIXED_TYPE + FIXED_SIZE + MATX + CV_64F), obj((void*)&val), sz(Size(1,1)) {}
-_InputArray::_InputArray(const MatExpr& expr) : flags(FIXED_TYPE + FIXED_SIZE + EXPR), obj((void*)&expr) {}
 
 
 Mat _InputArray::getMat(int i) const
@@ -873,12 +871,6 @@ Mat _InputArray::getMat(int i) const
         if( i < 0 )
             return *m;
         return m->row(i);
-    }
-
-    if( k == EXPR )
-    {
-        CV_Assert( i < 0 );
-        return (Mat)*((const MatExpr*)obj);
     }
 
     if( k == MATX )
@@ -941,16 +933,7 @@ void _InputArray::getMatVector(vector<Mat>& mv) const
         return;
     }
 
-    if( k == EXPR )
-    {
-        Mat m = *(const MatExpr*)obj;
-        int i, n = m.size[0];
-        mv.resize(n);
-
-        for( i = 0; i < n; i++ )
-            mv[i] = m.row(i);
-        return;
-    }
+ 
 
     if( k == MATX )
     {
@@ -1032,11 +1015,7 @@ Size _InputArray::size(int i) const
         return ((const Mat*)obj)->size();
     }
 
-    if( k == EXPR )
-    {
-        CV_Assert( i < 0 );
-        return ((const MatExpr*)obj)->size();
-    }
+ 
 
     if( k == MATX )
     {
@@ -1112,8 +1091,6 @@ int _InputArray::type(int i) const
     if( k == MAT )
         return ((const Mat*)obj)->type();
 
-    if( k == EXPR )
-        return ((const MatExpr*)obj)->type();
 
     if( k == MATX || k == STD_VECTOR || k == STD_VECTOR_VECTOR )
         return CV_MAT_TYPE(flags);

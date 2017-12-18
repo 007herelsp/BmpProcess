@@ -1,13 +1,9 @@
  
 
 #include "imgproc.precomp.hpp"
-#include "imgwarp_avx2.hpp"
 #include <iostream>
 #include <vector>
 
-#if defined (HAVE_IPP) && (IPP_VERSION_MAJOR >= 7)
-static IppStatus sts = ippInit();
-#endif
 
 namespace cv
 {

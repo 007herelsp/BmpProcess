@@ -42,7 +42,6 @@ template<typename _Tp, int m, int n> class Matx;
 typedef std::string String;
 
 class Mat;
-class CV_EXPORTS MatExpr;
 class CV_EXPORTS MatOp_Base;
 class CV_EXPORTS MatArg;
 class CV_EXPORTS MatConstIterator;
@@ -1189,7 +1188,6 @@ public:
     _InputArray();
 
     _InputArray(const Mat& m);
-    _InputArray(const MatExpr& expr);
     template<typename _Tp> _InputArray(const _Tp* vec, int n);
     template<typename _Tp> _InputArray(const vector<_Tp>& vec);
     template<typename _Tp> _InputArray(const vector<vector<_Tp> >& vec);
@@ -1362,7 +1360,6 @@ public:
     ~Mat();
     //! assignment operators
     Mat& operator = (const Mat& m);
-    Mat& operator = (const MatExpr& expr);
 
     //! returns a new matrix header for the specified row
     Mat row(int y) const;
@@ -1404,11 +1401,8 @@ public:
     Mat reshape(int cn, int newndims, const int* newsz) const;
 
     //! matrix transposition by means of matrix expressions
-    MatExpr t() const;
     //! matrix inversion by means of matrix expressions
-    MatExpr inv(int method=DECOMP_LU) const;
     //! per-element matrix multiplication by means of matrix expressions
-    MatExpr mul(InputArray m, double scale=1) const;
 
     //! computes cross-product of 2 3D vectors
     Mat cross(InputArray m) const;
@@ -1416,14 +1410,6 @@ public:
     double dot(InputArray m) const;
 
     //! Matlab-style matrix initialization
-    static MatExpr zeros(int rows, int cols, int type);
-    static MatExpr zeros(Size size, int type);
-    static MatExpr zeros(int ndims, const int* sz, int type);
-    static MatExpr ones(int rows, int cols, int type);
-    static MatExpr ones(Size size, int type);
-    static MatExpr ones(int ndims, const int* sz, int type);
-    static MatExpr eye(int rows, int cols, int type);
-    static MatExpr eye(Size size, int type);
 
     //! allocates new matrix data unless the matrix already has specified size and type.
     // previous data is unreferenced if needed.
@@ -1738,10 +1724,6 @@ CV_EXPORTS_W double norm(InputArray src1, InputArray src2,
                          int normType=NORM_L2, InputArray mask=noArray());
 
 
-
-//! scales and shifts array elements so that either the specified norm (alpha) or the minimum (alpha) and maximum (beta) array values get the specified values
-CV_EXPORTS_W void normalize( InputArray src, OutputArray dst, double alpha=1, double beta=0,
-                             int norm_type=NORM_L2, int dtype=-1, InputArray mask=noArray());
 
 //! finds global minimum and maximum array elements and returns their values and their locations
 CV_EXPORTS_W void minMaxLoc(InputArray src, CV_OUT double* minVal,
@@ -2067,42 +2049,7 @@ CV_EXPORTS bool clipLine(Size2l imgSize, CV_IN_OUT Point2l& pt1, CV_IN_OUT Point
 //! clips the line segment by the rectangle imgRect
 CV_EXPORTS_W bool clipLine(Rect imgRect, CV_OUT CV_IN_OUT Point& pt1, CV_OUT CV_IN_OUT Point& pt2);
 
-/*!
-   Line iterator class
 
-   The class is used to iterate over all the pixels on the raster line
-   segment connecting two specified points.
-*/
-class CV_EXPORTS LineIterator
-{
-public:
-    //! intializes the iterator
-    LineIterator( const Mat& img, Point pt1, Point pt2,
-                  int connectivity=8, bool leftToRight=false );
-    //! returns pointer to the current pixel
-    uchar* operator *();
-    //! prefix increment operator (++it). shifts iterator to the next pixel
-    LineIterator& operator ++();
-    //! postfix increment operator (it++). shifts iterator to the next pixel
-    LineIterator operator ++(int);
-    //! returns coordinates of the current pixel
-    Point pos() const;
-
-    uchar* ptr;
-    const uchar* ptr0;
-    int step, elemSize;
-    int err, count;
-    int minusDelta, plusDelta;
-    int minusStep, plusStep;
-};
-
-//! converts elliptic arc to a polygonal curve
-CV_EXPORTS_W void ellipse2Poly( Point center, Size axes, int angle,
-                                int arcStart, int arcEnd, int delta,
-                                CV_OUT vector<Point>& pts );
-CV_EXPORTS void ellipse2Poly( Point2d center, Size2d axes, int angle,
-                              int arcStart, int arcEnd, int delta,
-                              CV_OUT vector<Point2d>& pts );
 
 enum
 {
@@ -2212,7 +2159,6 @@ public:
     //! selects a submatrix, n-dim version
     Mat_(const Mat_& m, const Range* ranges);
     //! from a matrix expression
-    explicit Mat_(const MatExpr& e);
     //! makes a matrix out of Vec, std::vector, Point_ or Point3_. The matrix will have a single column
     explicit Mat_(const vector<_Tp>& vec, bool copyData=false);
     template<int n> explicit Mat_(const Vec<typename DataType<_Tp>::channel_type, n>& vec, bool copyData=true);
@@ -2226,7 +2172,6 @@ public:
     //! set all the elements to s.
     Mat_& operator = (const _Tp& s);
     //! assign a matrix expression
-    Mat_& operator = (const MatExpr& e);
 
     //! iterators; they are smart enough to skip gaps in the end of rows
     iterator begin();
@@ -2260,15 +2205,7 @@ public:
     //! returns step()/sizeof(_Tp)
     size_t stepT(int i=0) const;
 
-    //! overridden forms of Mat::zeros() etc. Data type is omitted, of course
-    static MatExpr zeros(int rows, int cols);
-    static MatExpr zeros(Size size);
-    static MatExpr zeros(int _ndims, const int* _sizes);
-    static MatExpr ones(int rows, int cols);
-    static MatExpr ones(Size size);
-    static MatExpr ones(int _ndims, const int* _sizes);
-    static MatExpr eye(int rows, int cols);
-    static MatExpr eye(Size size);
+   
 
     //! some more overriden methods
     Mat_& adjustROI( int dtop, int dbottom, int dleft, int dright );

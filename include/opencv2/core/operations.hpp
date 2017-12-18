@@ -959,20 +959,7 @@ _AccTp normInf(const _Tp* a, const _Tp* b, int n)
 }
 
 
-template<typename _Tp, int m, int n> static inline
-double norm(const Matx<_Tp, m, n>& M)
-{
-    return std::sqrt(normL2Sqr<_Tp, double>(M.val, m*n));
-}
 
-
-template<typename _Tp, int m, int n> static inline
-double norm(const Matx<_Tp, m, n>& M, int normType)
-{
-    return normType == NORM_INF ? (double)normInf<_Tp, typename DataType<_Tp>::work_type>(M.val, m*n) :
-        normType == NORM_L1 ? (double)normL1<_Tp, typename DataType<_Tp>::work_type>(M.val, m*n) :
-        std::sqrt((double)normL2Sqr<_Tp, typename DataType<_Tp>::work_type>(M.val, m*n));
-}
 
 
 template<typename _Tp, int m, int n> static inline
@@ -1352,11 +1339,7 @@ template<> inline Vec<double, 3> Vec<double, 3>::cross(const Vec<double, 3>& v) 
                      val[0]*v.val[1] - val[1]*v.val[0]);
 }
 
-template<typename _Tp, int cn> inline Vec<_Tp, cn> normalize(const Vec<_Tp, cn>& v)
-{
-    double nv = norm(v);
-    return v * (nv ? 1./nv : 0.);
-}
+
 
 template<typename _Tp, typename _T2, int cn> static inline
 VecCommaInitializer<_Tp, cn> operator << (const Vec<_Tp, cn>& vec, _T2 val)
@@ -2388,28 +2371,6 @@ inline RNG::operator double()
 inline int RNG::uniform(int a, int b) { return a == b ? a : (int)(next()%(b - a) + a); }
 inline float RNG::uniform(float a, float b) { return ((float)*this)*(b - a) + a; }
 inline double RNG::uniform(double a, double b) { return ((double)*this)*(b - a) + a; }
-
-inline uchar* LineIterator::operator *() { return ptr; }
-inline LineIterator& LineIterator::operator ++()
-{
-    int mask = err < 0 ? -1 : 0;
-    err += minusDelta + (plusDelta & mask);
-    ptr += minusStep + (plusStep & mask);
-    return *this;
-}
-inline LineIterator LineIterator::operator ++(int)
-{
-    LineIterator it = *this;
-    ++(*this);
-    return it;
-}
-inline Point LineIterator::pos() const
-{
-    Point p;
-    p.y = (int)((ptr - ptr0)/step);
-    p.x = (int)(((ptr - ptr0) - p.y*step)/elemSize);
-    return p;
-}
 
 /////////////////////////////// AutoBuffer ////////////////////////////////////////
 
