@@ -2548,39 +2548,6 @@ cvInsertNodeIntoTree( void* _node, void* _parent, void* _frame )
 }
 
 
-// Remove contour from tree, together with the contour's children:
-CV_IMPL void
-cvRemoveNodeFromTree( void* _node, void* _frame )
-{
-    CvTreeNode* node = (CvTreeNode*)_node;
-    CvTreeNode* frame = (CvTreeNode*)_frame;
-
-    if( !node )
-        CV_Error( CV_StsNullPtr, "" );
-
-    if( node == frame )
-        CV_Error( CV_StsBadArg, "frame node could not be deleted" );
-
-    if( node->h_next )
-        node->h_next->h_prev = node->h_prev;
-
-    if( node->h_prev )
-        node->h_prev->h_next = node->h_next;
-    else
-    {
-        CvTreeNode* parent = node->v_prev;
-        if( !parent )
-            parent = frame;
-
-        if( parent )
-        {
-            assert( parent->v_next == node );
-            parent->v_next = node->h_next;
-        }
-    }
-}
-
-
 
 
 CV_IMPL void*

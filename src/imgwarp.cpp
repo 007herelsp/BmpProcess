@@ -26,11 +26,6 @@ static uchar NNDeltaTab_i[INTER_TAB_SIZE2][2];
 static float BilinearTab_f[INTER_TAB_SIZE2][2][2];
 static short BilinearTab_i[INTER_TAB_SIZE2][2][2];
 
-#if CV_SSE2
-static short BilinearTab_iC4_buf[INTER_TAB_SIZE2+2][2][8];
-static short (*BilinearTab_iC4)[2][8] = (short (*)[2][8])alignPtr(BilinearTab_iC4_buf, 16);
-#endif
-
 static float BicubicTab_f[INTER_TAB_SIZE2][4][4];
 static short BicubicTab_i[INTER_TAB_SIZE2][4][4];
 
@@ -669,10 +664,6 @@ public:
         CV_Assert(ksize <= MAX_ESIZE);
     }
 
-#if defined(__GNUC__) && (__GNUC__ == 4) && (__GNUC_MINOR__ == 8)
-# pragma GCC diagnostic push
-# pragma GCC diagnostic ignored "-Warray-bounds"
-#endif
     virtual void operator() (const Range& range) const
     {
         int dy, cn = src.channels();
@@ -1127,43 +1118,6 @@ static int computeResizeAreaTab( int ssize, int dsize, int cn, double scale, Dec
     return k;
 }
 
-#if defined (HAVE_IPP) && (IPP_VERSION_MAJOR >= 7)
-class IPPresizeInvoker :
-    public ParallelLoopBody
-{
-public:
-    IPPresizeInvoker(Mat &_src, Mat &_dst, double &_inv_scale_x, double &_inv_scale_y, int _mode, ippiResizeSqrPixelFunc _func, bool *_ok) :
-      ParallelLoopBody(), src(_src), dst(_dst), inv_scale_x(_inv_scale_x), inv_scale_y(_inv_scale_y), mode(_mode), func(_func), ok(_ok)
-      {
-          *ok = true;
-      }
-
-      virtual void operator() (const Range& range) const
-      {
-          int cn = src.channels();
-          IppiRect srcroi = { 0, range.start, src.cols, range.end - range.start };
-          int dsty = CV_IMIN(cvRound(range.start * inv_scale_y), dst.rows);
-          int dstwidth = CV_IMIN(cvRound(src.cols * inv_scale_x), dst.cols);
-          int dstheight = CV_IMIN(cvRound(range.end * inv_scale_y), dst.rows);
-          IppiRect dstroi = { 0, dsty, dstwidth, dstheight - dsty };
-          int bufsize;
-          ippiResizeGetBufSize( srcroi, dstroi, cn, mode, &bufsize );
-          AutoBuffer<uchar> buf(bufsize + 64);
-          uchar* bufptr = alignPtr((uchar*)buf, 32);
-          if( func( src.data, ippiSize(src.cols, src.rows), (int)src.step[0], srcroi, dst.data, (int)dst.step[0], dstroi, inv_scale_x, inv_scale_y, 0, 0, mode, bufptr ) < 0 )
-              *ok = false;
-      }
-private:
-    Mat &src;
-    Mat &dst;
-    double inv_scale_x;
-    double inv_scale_y;
-    int mode;
-    ippiResizeSqrPixelFunc func;
-    bool *ok;
-    const IPPresizeInvoker& operator= (const IPPresizeInvoker&);
-};
-#endif
 
 }
 
@@ -2407,51 +2361,6 @@ private:
     double *M;
 };
 
-#if defined (HAVE_IPP) && (IPP_VERSION_MAJOR >= 7)
-class IPPwarpAffineInvoker :
-    public ParallelLoopBody
-{
-public:
-    IPPwarpAffineInvoker(Mat &_src, Mat &_dst, double (&_coeffs)[2][3], int &_interpolation, int &_borderType,
-                         const Scalar &_borderValue, ippiWarpAffineBackFunc _func, bool *_ok) :
-        ParallelLoopBody(), src(_src), dst(_dst), coeffs(_coeffs), mode(_interpolation), borderType(_borderType),
-        borderValue(_borderValue), func(_func), ok(_ok)
-    {
-        *ok = true;
-    }
-
-    virtual void operator() (const Range& range) const
-    {
-        IppiSize srcsize = { src.cols, src.rows };
-        IppiRect srcroi = { 0, 0, src.cols, src.rows };
-        IppiRect dstroi = { 0, range.start, dst.cols, range.end - range.start };
-        int cnn = src.channels();
-        if( borderType == BORDER_CONSTANT )
-        {
-            IppiSize setSize = { dst.cols, range.end - range.start };
-            void *dataPointer = dst.data + dst.step[0] * range.start;
-            if( !IPPSet( borderValue, dataPointer, (int)dst.step[0], setSize, cnn, src.depth() ) )
-            {
-                *ok = false;
-                return;
-            }
-        }
-        if( func( src.data, srcsize, (int)src.step[0], srcroi, dst.data, (int)dst.step[0], dstroi, coeffs, mode ) < 0) ////Aug 2013: problem in IPP 7.1, 8.0 : sometimes function return ippStsCoeffErr
-            *ok = false;
-    }
-private:
-    Mat &src;
-    Mat &dst;
-    double (&coeffs)[2][3];
-    int mode;
-    int borderType;
-    Scalar borderValue;
-    ippiWarpAffineBackFunc func;
-    bool *ok;
-    const IPPwarpAffineInvoker& operator= (const IPPwarpAffineInvoker&);
-};
-#endif
-
 }
 
 
@@ -2548,53 +2457,6 @@ private:
     int interpolation, borderType;
     Scalar borderValue;
 };
-
-#if defined (HAVE_IPP) && (IPP_VERSION_MAJOR >= 7)
-class IPPwarpPerspectiveInvoker :
-    public ParallelLoopBody
-{
-public:
-    IPPwarpPerspectiveInvoker(Mat &_src, Mat &_dst, double (&_coeffs)[3][3], int &_interpolation,
-                              int &_borderType, const Scalar &_borderValue, ippiWarpPerspectiveBackFunc _func, bool *_ok) :
-        ParallelLoopBody(), src(_src), dst(_dst), coeffs(_coeffs), mode(_interpolation),
-        borderType(_borderType), borderValue(_borderValue), func(_func), ok(_ok)
-    {
-        *ok = true;
-    }
-
-    virtual void operator() (const Range& range) const
-    {
-        IppiSize srcsize = {src.cols, src.rows};
-        IppiRect srcroi = {0, 0, src.cols, src.rows};
-        IppiRect dstroi = {0, range.start, dst.cols, range.end - range.start};
-        int cnn = src.channels();
-
-        if( borderType == BORDER_CONSTANT )
-        {
-            IppiSize setSize = {dst.cols, range.end - range.start};
-            void *dataPointer = dst.data + dst.step[0] * range.start;
-            if( !IPPSet( borderValue, dataPointer, (int)dst.step[0], setSize, cnn, src.depth() ) )
-            {
-                *ok = false;
-                return;
-            }
-        }
-        if( func(src.data, srcsize, (int)src.step[0], srcroi, dst.data, (int)dst.step[0], dstroi, coeffs, mode) < 0)
-            *ok = false;
-    }
-private:
-    Mat &src;
-    Mat &dst;
-    double (&coeffs)[3][3];
-    int mode;
-    int borderType;
-    const Scalar borderValue;
-    ippiWarpPerspectiveBackFunc func;
-    bool *ok;
-    const IPPwarpPerspectiveInvoker& operator= (const IPPwarpPerspectiveInvoker&);
-};
-#endif
-
 }
 
 void cv::warpPerspective( InputArray _src, OutputArray _dst, InputArray _M0,

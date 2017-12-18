@@ -228,45 +228,6 @@ CVAPI(void)  cvPerspectiveTransform( const CvArr* src, CvArr* dst,
 
 
 
-
-
-#define CV_SVD_SYM 2
-#define CV_CHOLESKY 3
-#define CV_QR  4
-#define CV_NORMAL 16
-
-
-
-
-
-
-/* Calculates covariation matrix for a set of vectors */
-/* transpose([v1-avg, v2-avg,...]) * [v1-avg,v2-avg,...] */
-#define CV_COVAR_SCRAMBLED 0
-
-/* [v1-avg, v2-avg,...] * transpose([v1-avg,v2-avg,...]) */
-#define CV_COVAR_NORMAL    1
-
-/* do not calc average (i.e. mean vector) - use the input vector instead
-   (useful for calculating covariance matrix by parts) */
-#define CV_COVAR_USE_AVG   2
-
-/* scale the covariance matrix coefficients by number of the vectors */
-#define CV_COVAR_SCALE     4
-
-/* all the input vectors are stored in a single matrix, as its rows */
-#define CV_COVAR_ROWS      8
-
-/* all the input vectors are stored in a single matrix, as its columns */
-#define CV_COVAR_COLS     16
-
-
-
-
-
-
-
-
 /* types of array norm */
 #define CV_C            1
 #define CV_L1           2
@@ -583,20 +544,6 @@ CVAPI(void)  cvClearSet( CvSet* set_header );
 }
 
 
-/* basic font types */
-
-#define CV_FONT_HERSHEY_PLAIN           1
-#define CV_FONT_HERSHEY_DUPLEX          2
-#define CV_FONT_HERSHEY_COMPLEX         3
-#define CV_FONT_HERSHEY_TRIPLEX         4
-#define CV_FONT_HERSHEY_COMPLEX_SMALL   5
-#define CV_FONT_HERSHEY_SCRIPT_SIMPLEX  6
-#define CV_FONT_HERSHEY_SCRIPT_COMPLEX  7
-
-/* font flags */
-#define CV_FONT_ITALIC                 16
-
-
 
 
 
@@ -620,21 +567,7 @@ CVAPI(void*) cvPrevTreeNode( CvTreeNodeIterator* tree_iterator );
    then added contour will have null pointer to parent. */
 CVAPI(void) cvInsertNodeIntoTree( void* node, void* parent, void* frame );
 
-/* Removes contour from tree (together with the contour children). */
-CVAPI(void) cvRemoveNodeFromTree( void* node, void* frame );
 
-/* Gathers pointers to all the sequences,
-   accessible from the <first>, to the single sequence */
-CVAPI(CvSeq*) cvTreeToNodeSeq( const void* first, int header_size,
-                              CvMemStorage* storage );
-
-/* The function implements the K-means algorithm for clustering an array of sample
-   vectors in a specified number of classes */
-#define CV_KMEANS_USE_INITIAL_LABELS    1
-CVAPI(int) cvKMeans2( const CvArr* samples, int cluster_count, CvArr* labels,
-                      CvTermCriteria termcrit, int attempts CV_DEFAULT(1),
-                      CvRNG* rng CV_DEFAULT(0), int flags CV_DEFAULT(0),
-                      CvArr* _centers CV_DEFAULT(0), double* compactness CV_DEFAULT(0) );
 
 /****************************************************************************************\
 *                                    System functions                                    *

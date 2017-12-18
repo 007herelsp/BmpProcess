@@ -1672,32 +1672,6 @@ public:
 };
 
 
-/*!
- Termination criteria in iterative algorithms
- */
-class CV_EXPORTS TermCriteria
-{
-public:
-    enum
-    {
-        COUNT=1, //!< the maximum number of iterations or elements to compute
-        MAX_ITER=COUNT, //!< ditto
-        EPS=2 //!< the desired accuracy or change in parameters at which the iterative algorithm stops
-    };
-
-    //! default constructor
-    TermCriteria();
-    //! full constructor
-    TermCriteria(int type, int maxCount, double epsilon);
-    //! conversion from CvTermCriteria
-    TermCriteria(const CvTermCriteria& criteria);
-    //! conversion to CvTermCriteria
-    operator CvTermCriteria() const;
-
-    int type; //!< the type of termination criteria: COUNT, EPS or COUNT + EPS
-    int maxCount; // the maximum number of iterations/elements
-    double epsilon; // the desired accuracy
-};
 
 
 typedef void (*BinaryFunc)(const uchar* src1, size_t step1,
@@ -1746,37 +1720,24 @@ CV_EXPORTS_W void scaleAdd(InputArray src1, double alpha, InputArray src2, Outpu
 CV_EXPORTS_W void addWeighted(InputArray src1, double alpha, InputArray src2,
                               double beta, double gamma, OutputArray dst, int dtype=-1);
 
-//! scales array elements, computes absolute values and converts the results to 8-bit unsigned integers: dst(i)=saturate_cast<uchar>abs(src(i)*alpha+beta)
-CV_EXPORTS_W void convertScaleAbs(InputArray src, OutputArray dst,
-                                  double alpha=1, double beta=0);
-//! transforms array of numbers using a lookup table: dst(i)=lut(src(i))
-CV_EXPORTS_W void LUT(InputArray src, InputArray lut, OutputArray dst,
-                      int interpolation=0);
+
 
 //! computes sum of array elements
 CV_EXPORTS_AS(sumElems) Scalar sum(InputArray src);
 //! computes the number of nonzero array elements
 CV_EXPORTS_W int countNonZero( InputArray src );
-//! returns the list of locations of non-zero pixels
-CV_EXPORTS_W void findNonZero( InputArray src, OutputArray idx );
+
 
 //! computes mean value of selected array elements
 CV_EXPORTS_W Scalar mean(InputArray src, InputArray mask=noArray());
-//! computes mean value and standard deviation of all or selected array elements
-CV_EXPORTS_W void meanStdDev(InputArray src, OutputArray mean, OutputArray stddev,
-                             InputArray mask=noArray());
+
 //! computes norm of the selected array part
 CV_EXPORTS_W double norm(InputArray src1, int normType=NORM_L2, InputArray mask=noArray());
 //! computes norm of selected part of the difference between two arrays
 CV_EXPORTS_W double norm(InputArray src1, InputArray src2,
                          int normType=NORM_L2, InputArray mask=noArray());
 
-//! naive nearest neighbor finder
-CV_EXPORTS_W void batchDistance(InputArray src1, InputArray src2,
-                                OutputArray dist, int dtype, OutputArray nidx,
-                                int normType=NORM_L2, int K=0,
-                                InputArray mask=noArray(), int update=0,
-                                bool crosscheck=false);
+
 
 //! scales and shifts array elements so that either the specified norm (alpha) or the minimum (alpha) and maximum (beta) array values get the specified values
 CV_EXPORTS_W void normalize( InputArray src, OutputArray dst, double alpha=1, double beta=0,
@@ -1873,7 +1834,6 @@ CV_EXPORTS_W void exp(InputArray src, OutputArray dst);
 //! computes natural logarithm of absolute value of each matrix element: dst = log(abs(src))
 CV_EXPORTS_W void log(InputArray src, OutputArray dst);
 //! computes cube root of the argument
-CV_EXPORTS_W float cubeRoot(float val);
 //! computes the angle in degrees (0..360) of the vector (x,y)
 CV_EXPORTS_W float fastAtan2(float y, float x);
 
@@ -1981,10 +1941,7 @@ enum
     KMEANS_PP_CENTERS=2,     // Uses k-Means++ algorithm for initialization
     KMEANS_USE_INITIAL_LABELS=1 // Uses the user-provided labels for K-Means initialization
 };
-//! clusters the input data using k-Means algorithm
-CV_EXPORTS_W double kmeans( InputArray data, int K, CV_OUT InputOutputArray bestLabels,
-                            TermCriteria criteria, int attempts,
-                            int flags, OutputArray centers=noArray() );
+
 
 //! returns the thread-local Random number generator
 CV_EXPORTS RNG& theRNG();

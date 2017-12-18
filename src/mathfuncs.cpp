@@ -12,123 +12,6 @@ static const float atan2_p3 = -0.3258083974640975f*(float)(180/CV_PI);
 static const float atan2_p5 = 0.1555786518463281f*(float)(180/CV_PI);
 static const float atan2_p7 = -0.04432655554792128f*(float)(180/CV_PI);
 
-float fastAtan2( float y, float x )
-{
-    float ax = std::abs(x), ay = std::abs(y);
-    float a, c, c2;
-    if( ax >= ay )
-    {
-        c = ay/(ax + (float)DBL_EPSILON);
-        c2 = c*c;
-        a = (((atan2_p7*c2 + atan2_p5)*c2 + atan2_p3)*c2 + atan2_p1)*c;
-    }
-    else
-    {
-        c = ax/(ay + (float)DBL_EPSILON);
-        c2 = c*c;
-        a = 90.f - (((atan2_p7*c2 + atan2_p5)*c2 + atan2_p3)*c2 + atan2_p1)*c;
-    }
-    if( x < 0 )
-        a = 180.f - a;
-    if( y < 0 )
-        a = 360.f - a;
-    return a;
-}
-
-static void FastAtan2_32f(const float *Y, const float *X, float *angle, int len, bool angleInDegrees=true )
-{
-    int i = 0;
-    float scale = angleInDegrees ? 1 : (float)(CV_PI/180);
-
-    for( ; i < len; i++ )
-    {
-        float x = X[i], y = Y[i];
-        float ax = std::abs(x), ay = std::abs(y);
-        float a, c, c2;
-        if( ax >= ay )
-        {
-            c = ay/(ax + (float)DBL_EPSILON);
-            c2 = c*c;
-            a = (((atan2_p7*c2 + atan2_p5)*c2 + atan2_p3)*c2 + atan2_p1)*c;
-        }
-        else
-        {
-            c = ax/(ay + (float)DBL_EPSILON);
-            c2 = c*c;
-            a = 90.f - (((atan2_p7*c2 + atan2_p5)*c2 + atan2_p3)*c2 + atan2_p1)*c;
-        }
-        if( x < 0 )
-            a = 180.f - a;
-        if( y < 0 )
-            a = 360.f - a;
-        angle[i] = (float)(a*scale);
-    }
-}
-
-
-/* ************************************************************************** *\
-   Fast cube root by Ken Turkowski
-   (http://www.worldserver.com/turk/computergraphics/papers.html)
-\* ************************************************************************** */
-float  cubeRoot( float value )
-{
-    float fr;
-    Cv32suf v, m;
-    int ix, s;
-    int ex, shx;
-
-    v.f = value;
-    ix = v.i & 0x7fffffff;
-    s = v.i & 0x80000000;
-    ex = (ix >> 23) - 127;
-    shx = ex % 3;
-    shx -= shx >= 0 ? 3 : 0;
-    ex = (ex - shx) / 3; /* exponent of cube root */
-    v.i = (ix & ((1<<23)-1)) | ((shx + 127)<<23);
-    fr = v.f;
-
-    /* 0.125 <= fr < 1.0 */
-    /* Use quartic rational polynomial with error < 2^(-24) */
-    fr = (float)(((((45.2548339756803022511987494 * fr +
-    192.2798368355061050458134625) * fr +
-    119.1654824285581628956914143) * fr +
-    13.43250139086239872172837314) * fr +
-    0.1636161226585754240958355063)/
-    ((((14.80884093219134573786480845 * fr +
-    151.9714051044435648658557668) * fr +
-    168.5254414101568283957668343) * fr +
-    33.9905941350215598754191872) * fr +
-    1.0));
-
-    /* fr *= 2^ex * sign */
-    m.f = value;
-    v.f = fr;
-    v.i = (v.i + (ex << 23) + s) & (m.i*2 != 0 ? -1 : 0);
-    return v.f;
-}
-
-static void Magnitude_32f(const float* x, const float* y, float* mag, int len)
-{
-    int i = 0;
-
-    for( ; i < len; i++ )
-    {
-        float x0 = x[i], y0 = y[i];
-        mag[i] = std::sqrt(x0*x0 + y0*y0);
-    }
-}
-
-static void Magnitude_64f(const double* x, const double* y, double* mag, int len)
-{
-    int i = 0;
-
-    for( ; i < len; i++ )
-    {
-        double x0 = x[i], y0 = y[i];
-        mag[i] = std::sqrt(x0*x0 + y0*y0);
-    }
-}
-
 
 static void InvSqrt_32f(const float* src, float* dst, int len)
 {
@@ -164,40 +47,6 @@ static void Sqrt_64f(const double* src, double* dst, int len)
 }
 
 
-/****************************************************************************************\
-*                                  Cartezian -> Polar                                    *
-\****************************************************************************************/
-
-void magnitude( InputArray src1, InputArray src2, OutputArray dst )
-{
-    Mat X = src1.getMat(), Y = src2.getMat();
-    int type = X.type(), depth = X.depth(), cn = X.channels();
-    CV_Assert( X.size == Y.size && type == Y.type() && (depth == CV_32F || depth == CV_64F));
-    dst.create(X.dims, X.size, X.type());
-    Mat Mag = dst.getMat();
-
-    const Mat* arrays[] = {&X, &Y, &Mag, 0};
-    uchar* ptrs[3];
-    NAryMatIterator it(arrays, ptrs);
-    int len = (int)it.size*cn;
-
-    for( size_t i = 0; i < it.nplanes; i++, ++it )
-    {
-        if( depth == CV_32F )
-        {
-            const float *x = (const float*)ptrs[0], *y = (const float*)ptrs[1];
-            float *mag = (float*)ptrs[2];
-            Magnitude_32f( x, y, mag, len );
-        }
-        else
-        {
-            const double *x = (const double*)ptrs[0], *y = (const double*)ptrs[1];
-            double *mag = (double*)ptrs[2];
-            Magnitude_64f( x, y, mag, len );
-        }
-    }
-}
-
 
 /****************************************************************************************\
 *                                          E X P                                         *
@@ -218,7 +67,6 @@ typedef union
 }
 DBLINT;
 
-#ifndef HAVE_IPP
 
 #define EXPTAB_SCALE 6
 #define EXPTAB_MASK  ((1 << EXPTAB_SCALE) - 1)
@@ -502,12 +350,7 @@ static void Exp_64f( const double *_x, double *y, int n )
 #undef EXPTAB_MASK
 #undef EXPPOLY_32F_A0
 
-#else
 
-#define Exp_32f ippsExp_32f_A21
-#define Exp_64f ippsExp_64f_A50
-
-#endif
 
 void exp( InputArray _src, OutputArray _dst )
 {
@@ -537,8 +380,6 @@ void exp( InputArray _src, OutputArray _dst )
 /****************************************************************************************\
 *                                          L O G                                         *
 \****************************************************************************************/
-
-#ifndef HAVE_IPP
 
 #define LOGTAB_SCALE    8
 #define LOGTAB_MASK         ((1 << LOGTAB_SCALE) - 1)
@@ -1008,12 +849,6 @@ static void Log_64f( const double *x, double *y, int n )
     }
 }
 
-#else
-
-#define Log_32f ippsLn_32f_A21
-#define Log_64f ippsLn_64f_A50
-
-#endif
 
 void log( InputArray _src, OutputArray _dst )
 {
@@ -1245,20 +1080,9 @@ void exp(const float* src, float* dst, int n)
     Exp_32f(src, dst, n);
 }
 
-void log(const float* src, float* dst, int n)
-{
-    Log_32f(src, dst, n);
-}
 
-void fastAtan2(const float* y, const float* x, float* dst, int n, bool angleInDegrees)
-{
-    FastAtan2_32f(y, x, dst, n, angleInDegrees);
-}
 
-void magnitude(const float* x, const float* y, float* dst, int n)
-{
-    Magnitude_32f(x, y, dst, n);
-}
+
 
 }
 
