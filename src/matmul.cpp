@@ -2234,29 +2234,6 @@ namespace cv
 
 
 
-	/****************************************************************************************\
-	*                                    Earlier API                                         *
-	\****************************************************************************************/
-
-	CV_IMPL void cvGEMM(const CvArr* Aarr, const CvArr* Barr, double alpha,
-		const CvArr* Carr, double beta, CvArr* Darr, int flags)
-	{
-		cv::Mat A = cv::cvarrToMat(Aarr), B = cv::cvarrToMat(Barr);
-		cv::Mat C, D = cv::cvarrToMat(Darr);
-
-		if (Carr)
-			C = cv::cvarrToMat(Carr);
-
-		CV_Assert((D.rows == ((flags & CV_GEMM_A_T) == 0 ? A.rows : A.cols)) &&
-			(D.cols == ((flags & CV_GEMM_B_T) == 0 ? B.cols : B.rows)) &&
-			D.type() == A.type());
-
-		gemm(A, B, alpha, C, beta, D, flags);
-	}
-
-
-
-
 	CV_IMPL void
 		cvPerspectiveTransform(const CvArr* srcarr, CvArr* dstarr, const CvMat* mat)
 	{
@@ -2267,29 +2244,8 @@ namespace cv
 	}
 
 
-	CV_IMPL void cvScaleAdd(const CvArr* srcarr1, CvScalar scale,
-		const CvArr* srcarr2, CvArr* dstarr)
-	{
-		cv::Mat src1 = cv::cvarrToMat(srcarr1), dst = cv::cvarrToMat(dstarr);
-
-		CV_Assert(src1.size == dst.size && src1.type() == dst.type());
-		cv::scaleAdd(src1, scale.val[0], cv::cvarrToMat(srcarr2), dst);
-	}
 
 
-
-
-	CV_IMPL void
-		cvMulTransposed(const CvArr* srcarr, CvArr* dstarr,
-		int order, const CvArr* deltaarr, double scale)
-	{
-		cv::Mat src = cv::cvarrToMat(srcarr), dst0 = cv::cvarrToMat(dstarr), dst = dst0, delta;
-		if (deltaarr)
-			delta = cv::cvarrToMat(deltaarr);
-		cv::mulTransposed(src, dst, order != 0, delta, scale, dst.type());
-		if (dst.data != dst0.data)
-			dst.convertTo(dst0, dst0.type());
-	}
 
 }
 

@@ -503,30 +503,8 @@ cvCopy( const void* srcarr, void* dstarr, const void* maskarr )
         src.copyTo(dst, cv::cvarrToMat(maskarr));
 }
 
-CV_IMPL void
-cvSet( void* arr, CvScalar value, const void* maskarr )
-{
-    cv::Mat m = cv::cvarrToMat(arr);
-    if( !maskarr )
-        m = value;
-    else
-        m.setTo(cv::Scalar(value), cv::cvarrToMat(maskarr));
-}
 
-CV_IMPL void
-cvSetZero( CvArr* arr )
-{
-    if( CV_IS_SPARSE_MAT(arr) )
-    {
-        CvSparseMat* mat1 = (CvSparseMat*)arr;
-        cvClearSet( mat1->heap );
-        if( mat1->hashtable )
-            memset( mat1->hashtable, 0, mat1->hashsize*sizeof(mat1->hashtable[0]));
-        return;
-    }
-    cv::Mat m = cv::cvarrToMat(arr);
-    m = cv::Scalar(0);
-}
+
 
 
 

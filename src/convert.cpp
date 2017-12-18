@@ -1298,56 +1298,7 @@ cvMerge( const void* srcarr0, const void* srcarr1, const void* srcarr2,
 }
 
 
-CV_IMPL void
-cvMixChannels( const CvArr** src, int src_count,
-               CvArr** dst, int dst_count,
-               const int* from_to, int pair_count )
-{
-    cv::AutoBuffer<cv::Mat, 32> buf(src_count + dst_count);
 
-    int i;
-    for( i = 0; i < src_count; i++ )
-        buf[i] = cv::cvarrToMat(src[i]);
-    for( i = 0; i < dst_count; i++ )
-        buf[i+src_count] = cv::cvarrToMat(dst[i]);
-    cv::mixChannels(&buf[0], src_count, &buf[src_count], dst_count, from_to, pair_count);
-}
 
-CV_IMPL void
-cvConvertScaleAbs( const void* srcarr, void* dstarr,
-                   double scale, double shift )
-{
-    cv::Mat src = cv::cvarrToMat(srcarr), dst = cv::cvarrToMat(dstarr);
-    CV_Assert( src.size == dst.size && dst.type() == CV_8UC(src.channels()));
-    cv::convertScaleAbs( src, dst, scale, shift );
-}
-
-CV_IMPL void
-cvConvertScale( const void* srcarr, void* dstarr,
-                double scale, double shift )
-{
-    cv::Mat src = cv::cvarrToMat(srcarr), dst = cv::cvarrToMat(dstarr);
-
-    CV_Assert( src.size == dst.size && src.channels() == dst.channels() );
-    src.convertTo(dst, dst.type(), scale, shift);
-}
-
-CV_IMPL void cvLUT( const void* srcarr, void* dstarr, const void* lutarr )
-{
-    cv::Mat src = cv::cvarrToMat(srcarr), dst = cv::cvarrToMat(dstarr), lut = cv::cvarrToMat(lutarr);
-
-    CV_Assert( dst.size() == src.size() && dst.type() == CV_MAKETYPE(lut.depth(), src.channels()) );
-    cv::LUT( src, lut, dst );
-}
-
-CV_IMPL void cvNormalize( const CvArr* srcarr, CvArr* dstarr,
-                          double a, double b, int norm_type, const CvArr* maskarr )
-{
-    cv::Mat src = cv::cvarrToMat(srcarr), dst = cv::cvarrToMat(dstarr), mask;
-    if( maskarr )
-        mask = cv::cvarrToMat(maskarr);
-    CV_Assert( dst.size() == src.size() && src.channels() == dst.channels() );
-    cv::normalize( src, dst, a, b, norm_type, dst.type(), mask );
-}
 
 /* End of file. */

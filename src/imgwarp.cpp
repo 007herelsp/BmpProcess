@@ -2620,7 +2620,10 @@ void cv::warpPerspective( InputArray _src, OutputArray _dst, InputArray _M0,
 
 
     if( !(flags & WARP_INVERSE_MAP) )
-         invert(matM, matM);
+    {
+        assert("herelsp remove");
+         //invert(matM, matM);
+    }
 
     Range range(0, dst.rows);
     warpPerspectiveInvoker invoker(src, dst, M, interpolation, borderType, borderValue);

@@ -31,7 +31,7 @@ double angle(CvPoint *pt1, CvPoint *pt2, CvPoint *pt0)
 	return (dx1 * dx2 + dy1 * dy2) / sqrt((dx1 * dx1 + dy1 * dy1) * (dx2 * dx2 + dy2 * dy2) + 1e-10);
 }
 
-//drawSquaresº¯ÊýÓÃÀ´»­³öÔÚÍ¼ÏñÖÐÕÒµ½µÄËùÓÐÕý·½ÐÎÂÖÀª
+//drawSquaresï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ï¿½ï¿½ï¿½ï¿½Òµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 void drawSquares(IplImage *img, CvSeq *squares)
 {
 	CvSeqReader reader;
@@ -60,35 +60,35 @@ void drawSquares(IplImage *img, CvSeq *squares)
 	/*const char* filename = "111111111111111111111.jpg";
 	const CvArr* image = cpy;
 	int cvSaveImage("1111111111111111111111.jpg",image);*/
-	char *filename2 = "rsult.bmp"; //Í¼ÏñÃû
-	cvSaveImage(filename2, cpy);   //°ÑÍ¼ÏñÐ´ÈëÎÄ¼þ
+	char *filename2 = "rsult.bmp"; //Í¼ï¿½ï¿½ï¿½ï¿½
+	cvSaveImage(filename2, cpy);   //ï¿½ï¿½Í¼ï¿½ï¿½Ð´ï¿½ï¿½ï¿½Ä¼ï¿½
 
 	//Mat mtx(cpy);
 
 	cvReleaseImage(&cpy);
 }
-//Ðý×ªÍ¼ÏñÄÚÈÝ²»±ä£¬³ß´çÏàÓ¦±ä´ó
+//ï¿½ï¿½×ªÍ¼ï¿½ï¿½ï¿½ï¿½ï¿½Ý²ï¿½ï¿½ä£¬ï¿½ß´ï¿½ï¿½ï¿½Ó¦ï¿½ï¿½ï¿½
 IplImage *rotateImage2(IplImage *img, IplImage *img_rotate, int degree)
 {
 	double angle = degree * CV_PI / 180.;
 	double a = sin(angle), b = cos(angle);
 	int width = img->width, height = img->height;
-	//Ðý×ªºóµÄÐÂÍ¼³ß´ç
+	//ï¿½ï¿½×ªï¿½ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ß´ï¿½
 	int width_rotate = int(height * fabs(a) + width * fabs(b));
 	int height_rotate = int(width * fabs(a) + height * fabs(b));
 	//IplImage *img_rotate = cvCreateImage(cvSize(width_rotate, height_rotate), img->depth, img->nChannels);
 	//cvZero(img_rotate);
-	//±£Ö¤Ô­Í¼¿ÉÒÔÈÎÒâ½Ç¶ÈÐý×ªµÄ×îÐ¡³ß´ç
+	//ï¿½ï¿½Ö¤Ô­Í¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç¶ï¿½ï¿½ï¿½×ªï¿½ï¿½ï¿½ï¿½Ð¡ï¿½ß´ï¿½
 	int tempLength = sqrt((double)width * width + (double)height * height) + 10;
 	int tempX = (tempLength + 1) / 2 - width / 2;
 	int tempY = (tempLength + 1) / 2 - height / 2;
 	IplImage *temp = cvCreateImage(cvSize(tempLength, tempLength), img->depth, img->nChannels);
-	cvZero(temp);
-	//½«Ô­Í¼¸´ÖÆµ½ÁÙÊ±Í¼ÏñtmpÖÐÐÄ
+	//cvZero(temp);
+	//ï¿½ï¿½Ô­Í¼ï¿½ï¿½ï¿½Æµï¿½ï¿½ï¿½Ê±Í¼ï¿½ï¿½tmpï¿½ï¿½ï¿½ï¿½
 	//cvSetImageROI(img_rotate, cvRect(tempX, tempY, width, height));
 	// cvCopy(img, temp, NULL);
 
-	//Ðý×ªÊý×émap
+	//ï¿½ï¿½×ªï¿½ï¿½ï¿½ï¿½map
 	// [ m0  m1  m2 ] ===>  [ A11  A12   b1 ]
 	// [ m3  m4  m5 ] ===>  [ A21  A22   b2 ]
 	float m[6];
@@ -98,7 +98,7 @@ IplImage *rotateImage2(IplImage *img, IplImage *img_rotate, int degree)
 	m[1] = a;
 	m[3] = -m[1];
 	m[4] = m[0];
-	// ½«Ðý×ªÖÐÐÄÒÆÖÁÍ¼ÏñÖÐ¼ä
+	// ï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ï¿½ï¿½Ð¼ï¿½
 	m[2] = w * 0.5f;
 	m[5] = h * 0.5f;
 	CvMat M = cvMat(2, 3, CV_32F, m);
@@ -113,22 +113,22 @@ IplImage *rotateImage3(IplImage *img, IplImage *img_rotate, float degree)
 	double angle = degree * CV_PI / 180.;
 	double a = sin(angle), b = cos(angle);
 	int width = img->width, height = img->height;
-	//Ðý×ªºóµÄÐÂÍ¼³ß´ç
+	//ï¿½ï¿½×ªï¿½ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ß´ï¿½
 	int width_rotate = int(height * fabs(a) + width * fabs(b));
 	int height_rotate = int(width * fabs(a) + height * fabs(b));
 	//IplImage *img_rotate = cvCreateImage(cvSize(width_rotate, height_rotate), img->depth, img->nChannels);
 	//cvZero(img_rotate);
-	//±£Ö¤Ô­Í¼¿ÉÒÔÈÎÒâ½Ç¶ÈÐý×ªµÄ×îÐ¡³ß´ç
+	//ï¿½ï¿½Ö¤Ô­Í¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç¶ï¿½ï¿½ï¿½×ªï¿½ï¿½ï¿½ï¿½Ð¡ï¿½ß´ï¿½
 	int tempLength = sqrt((double)width * width + (double)height * height) + 10;
 	int tempX = (tempLength + 1) / 2 - width / 2;
 	int tempY = (tempLength + 1) / 2 - height / 2;
 	IplImage *temp = cvCreateImage(cvSize(tempLength, tempLength), img->depth, img->nChannels);
-	cvZero(temp);
-	//½«Ô­Í¼¸´ÖÆµ½ÁÙÊ±Í¼ÏñtmpÖÐÐÄ
+	//cvZero(temp);
+	//ï¿½ï¿½Ô­Í¼ï¿½ï¿½ï¿½Æµï¿½ï¿½ï¿½Ê±Í¼ï¿½ï¿½tmpï¿½ï¿½ï¿½ï¿½
 	cvSetImageROI(temp, cvRect(tempX, tempY, width, height));
 	cvCopy(img, temp, NULL);
 	cvResetImageROI(temp);
-	//Ðý×ªÊý×émap
+	//ï¿½ï¿½×ªï¿½ï¿½ï¿½ï¿½map
 	// [ m0  m1  m2 ] ===>  [ A11  A12   b1 ]
 	// [ m3  m4  m5 ] ===>  [ A21  A22   b2 ]
 	float m[6];
@@ -138,7 +138,7 @@ IplImage *rotateImage3(IplImage *img, IplImage *img_rotate, float degree)
 	m[1] = a;
 	m[3] = -m[1];
 	m[4] = m[0];
-	// ½«Ðý×ªÖÐÐÄÒÆÖÁÍ¼ÏñÖÐ¼ä
+	// ï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ï¿½ï¿½Ð¼ï¿½
 	m[2] = w * 0.5f;
 	m[5] = h * 0.5f;
 	CvMat M = cvMat(2, 3, CV_32F, m);
@@ -195,15 +195,15 @@ set<CvBox2D, SymCmp> SearchProcess(IplImage *lpSrcImg)
 	CvPoint2D32f rectpoint[4];
 	int index = 0;
 	set<CvBox2D, SymCmp> lstRes;
-	// ´´½¨Ò»¸ö¿ÕÐòÁÐÓÃÓÚ´æ´¢ÂÖÀª½Çµã
+	// ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú´æ´¢ï¿½ï¿½ï¿½ï¿½ï¿½Çµï¿½
 	CvSeq *squares = cvCreateSeq(0, sizeof(CvSeq), sizeof(CvPoint), storage);
 	cvFindContours(lpSrcImg, storage, &contours, sizeof(CvContour),
 		CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE, cvPoint(0, 0));
 
-	// ±éÀúÕÒµ½µÄÃ¿¸öÂÖÀªcontours
+	// ï¿½ï¿½ï¿½ï¿½ï¿½Òµï¿½ï¿½ï¿½Ã¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½contours
 	while (contours)
 	{
-		//ÓÃÖ¸¶¨¾«¶È±Æ½ü¶à±ßÐÎÇúÏß
+		//ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½È±Æ½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		result = cvApproxPoly(contours, sizeof(CvContour), storage,
 			CV_POLY_APPROX_DP, cvContourPerimeter(contours) * 0.01, 0);
 		if (NULL != result)
@@ -228,8 +228,8 @@ set<CvBox2D, SymCmp> SearchProcess(IplImage *lpSrcImg)
 						}
 					}
 
-					// if ÓàÏÒÖµ ×ã¹»Ð¡£¬¿ÉÒÔÈÏ¶¨½Ç¶ÈÎª90¶ÈÖ±½Ç
-					//cos0.1=83¶È£¬ÄÜ½ÏºÃµÄÇ÷½üÖ±½Ç
+					// if ï¿½ï¿½ï¿½ï¿½Öµ ï¿½ã¹»Ð¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¶ï¿½ï¿½Ç¶ï¿½Îª90ï¿½ï¿½Ö±ï¿½ï¿½
+					//cos0.1=83ï¿½È£ï¿½ï¿½Ü½ÏºÃµï¿½ï¿½ï¿½ï¿½ï¿½Ö±ï¿½ï¿½
 					if (s < 0.1)
 					{
 						// for (i = 0; i < 4; i++)
@@ -241,7 +241,7 @@ set<CvBox2D, SymCmp> SearchProcess(IplImage *lpSrcImg)
 				}
 			}
 		}
-		// ¼ÌÐø²éÕÒÏÂÒ»¸öÂÖÀª
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		contours = contours->h_next;
 	}
 	return std::move(lstRes);
@@ -312,16 +312,16 @@ set<Box, SymUBoxCmp> SearchProcess_v2(IplImage *lpSrcImg)
 	CvPoint2D32f rectpoint[4];
 	int index = 0;
 	set<Box, SymUBoxCmp> lstRes;
-	// ´´½¨Ò»¸ö¿ÕÐòÁÐÓÃÓÚ´æ´¢ÂÖÀª½Çµã
+	// ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú´æ´¢ï¿½ï¿½ï¿½ï¿½ï¿½Çµï¿½
 	CvSeq *squares = cvCreateSeq(0, sizeof(CvSeq), sizeof(CvPoint), storage);
 	cvFindContours(lpSrcImg, storage, &contours, sizeof(CvContour),
 		CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE, cvPoint(0, 0));
 	int iCount = 0;
 	cvSaveImage("c.bmp", lpSrcImg);
-	// ±éÀúÕÒµ½µÄÃ¿¸öÂÖÀªcontours
+	// ï¿½ï¿½ï¿½ï¿½ï¿½Òµï¿½ï¿½ï¿½Ã¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½contours
 	while (contours)
 	{
-		//ÓÃÖ¸¶¨¾«¶È±Æ½ü¶à±ßÐÎÇúÏß
+		//ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½È±Æ½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		result = cvApproxPoly(contours, sizeof(CvContour), storage,
 			CV_POLY_APPROX_DP, cvContourPerimeter(contours) * 0.01, 0);
 		if (NULL != result)
@@ -348,8 +348,8 @@ set<Box, SymUBoxCmp> SearchProcess_v2(IplImage *lpSrcImg)
 						}
 					}
 
-					// if ÓàÏÒÖµ ×ã¹»Ð¡£¬¿ÉÒÔÈÏ¶¨½Ç¶ÈÎª90¶ÈÖ±½Ç
-					//cos0.1=83¶È£¬ÄÜ½ÏºÃµÄÇ÷½üÖ±½Ç
+					// if ï¿½ï¿½ï¿½ï¿½Öµ ï¿½ã¹»Ð¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¶ï¿½ï¿½Ç¶ï¿½Îª90ï¿½ï¿½Ö±ï¿½ï¿½
+					//cos0.1=83ï¿½È£ï¿½ï¿½Ü½ÏºÃµï¿½ï¿½ï¿½ï¿½ï¿½Ö±ï¿½ï¿½
 					CvPoint *tp;
 					for (int i = 0; i < 4; i++)
 					{
@@ -380,7 +380,7 @@ set<Box, SymUBoxCmp> SearchProcess_v2(IplImage *lpSrcImg)
 				}
 			}
 		}
-		// ¼ÌÐø²éÕÒÏÂÒ»¸öÂÖÀª
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		contours = contours->h_next;
 	}
 
@@ -417,14 +417,14 @@ int process(IplImage *lpImg, IplImage *lpTargetImg, int argc, char *argv[])
 			temp = lpSrcImg;
 			CvPoint2D32f srcTri[4], dstTri[4];
 			CvMat *warp_mat = cvCreateMat(3, 3, CV_32FC1);
-			//cvBoxPoints(box, dstTri); //¼ÆËã¶þÎ¬ºÐ×Ó¶¥µã
+			//cvBoxPoints(box, dstTri); //ï¿½ï¿½ï¿½ï¿½ï¿½Î¬ï¿½ï¿½ï¿½Ó¶ï¿½ï¿½ï¿½
 
-			//¼ÆËã¾ØÕó·ÂÉä±ä»»
+			//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ä»»
 			if (box.size.width > box.size.height)
 			{
 				srcTri[1].x = 0;
 				srcTri[1].y = 0;
-				srcTri[2].x = temp->width - 1; //ËõÐ¡Ò»¸öÏñËØ
+				srcTri[2].x = temp->width - 1; //ï¿½ï¿½Ð¡Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 				srcTri[2].y = 0;
 				srcTri[3].x = temp->width - 1;
 				srcTri[3].y = temp->height - 1;
@@ -435,14 +435,14 @@ int process(IplImage *lpImg, IplImage *lpTargetImg, int argc, char *argv[])
 			{
 				srcTri[2].x = 0;
 				srcTri[2].y = 0;
-				srcTri[3].x = temp->width - 1; //ËõÐ¡Ò»¸öÏñËØ
+				srcTri[3].x = temp->width - 1; //ï¿½ï¿½Ð¡Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 				srcTri[3].y = 0;
 				srcTri[0].x = temp->width - 1;
 				srcTri[0].y = temp->height - 1;
 				srcTri[1].x = 0; //bot right
 				srcTri[1].y = temp->height - 1;
 			}
-			//¸Ä±äÄ¿±êÍ¼Ïñ´óÐ¡
+			//ï¿½Ä±ï¿½Ä¿ï¿½ï¿½Í¼ï¿½ï¿½ï¿½Ð¡
 			// dstTri[0].x =893;// temp->width * 0.05;
 			// dstTri[0].y =598;// temp->height * 0.33;
 			// dstTri[1].x =893;// temp->width * 0.9;
@@ -452,8 +452,8 @@ int process(IplImage *lpImg, IplImage *lpTargetImg, int argc, char *argv[])
 			// dstTri[3].x =1107;// temp->width * 0.8;
 			// dstTri[3].y =598;// temp->height * 0.9;
 
-			cvGetPerspectiveTransform(dstTri, srcTri, warp_mat);                                     //ÓÉÈý¶Ôµã¼ÆËã·ÂÉä±ä»»
-			cvWarpPerspective(temp, lpTargetImg, warp_mat, CV_INTER_LINEAR | (CV_WARP_INVERSE_MAP)); //¶ÔÍ¼Ïñ×ö·ÂÉä±ä»»
+			cvGetPerspectiveTransform(dstTri, srcTri, warp_mat);                                     //ï¿½ï¿½ï¿½ï¿½ï¿½Ôµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ä»»
+			cvWarpPerspective(temp, lpTargetImg, warp_mat, CV_INTER_LINEAR | (CV_WARP_INVERSE_MAP)); //ï¿½ï¿½Í¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ä»»
 		}
 	}
 
@@ -498,13 +498,13 @@ int process_v2(IplImage *lpImg, IplImage *lpTargetImg, int argc, char *argv[])
 
 			warp_mat = cvCreateMat(3, 3, CV_32FC1);
 
-			//ÅÅÐò
+			//ï¿½ï¿½ï¿½ï¿½
 			CvPoint pt;
-			for (int j = 0; j < 4; j++) /* ÆøÅÝ·¨ÒªÅÅÐòn´Î*/
+			for (int j = 0; j < 4; j++) /* ï¿½ï¿½ï¿½Ý·ï¿½Òªï¿½ï¿½ï¿½ï¿½nï¿½ï¿½*/
 			{
-				for (int i = 0; i < 4 - j; i++) /* Öµ±È½Ï´óµÄÔªËØ³ÁÏÂÈ¥ºó£¬Ö»°ÑÊ£ÏÂµÄÔªËØÖÐµÄ×î´óÖµÔÙ³ÁÏÂÈ¥¾Í¿ÉÒÔÀ² */
+				for (int i = 0; i < 4 - j; i++) /* Öµï¿½È½Ï´ï¿½ï¿½Ôªï¿½Ø³ï¿½ï¿½ï¿½È¥ï¿½ï¿½Ö»ï¿½ï¿½Ê£ï¿½Âµï¿½Ôªï¿½ï¿½ï¿½Ðµï¿½ï¿½ï¿½ï¿½Öµï¿½Ù³ï¿½ï¿½ï¿½È¥ï¿½Í¿ï¿½ï¿½ï¿½ï¿½ï¿½ */
 				{
-					if (box.pt[i].x > box.pt[i + 1].x) /* °ÑÖµ±È½Ï´óµÄÔªËØ³Áµ½µ× */
+					if (box.pt[i].x > box.pt[i + 1].x) /* ï¿½ï¿½Öµï¿½È½Ï´ï¿½ï¿½Ôªï¿½Ø³ï¿½ï¿½ï¿½ï¿½ï¿½ */
 					{
 						pt = box.pt[i];
 						box.pt[i] = box.pt[i + 1];
@@ -514,7 +514,7 @@ int process_v2(IplImage *lpImg, IplImage *lpTargetImg, int argc, char *argv[])
 			}
 			printf("after centerInfo:[%f,%f]:[%f,%f]\n", box.box.center.x, box.box.center.y, box.box.size.width, box.box.size.height);
 
-			//ÕÒp0µã
+			//ï¿½ï¿½p0ï¿½ï¿½
 			if (box.pt[0].y > box.pt[1].y)
 			{
 				p[0] = box.pt[0];
@@ -559,12 +559,12 @@ int process_v2(IplImage *lpImg, IplImage *lpTargetImg, int argc, char *argv[])
 
 				// cvCircle(lpTargetImg, pt, 4 + 4 * i, cvScalar(0, 0, 255), 1, 8, 0);
 			}
-			//¼ÆËã¾ØÕó·ÂÉä±ä»»
+			//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ä»»
 			if (box.box.size.width > box.box.size.height)
 			{
 				srcTri[1].x = 0;
 				srcTri[1].y = 0;
-				srcTri[2].x = temp->width - 1; //ËõÐ¡Ò»¸öÏñËØ
+				srcTri[2].x = temp->width - 1; //ï¿½ï¿½Ð¡Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 				srcTri[2].y = 0;
 				srcTri[3].x = temp->width - 1;
 				srcTri[3].y = temp->height - 1;
@@ -575,7 +575,7 @@ int process_v2(IplImage *lpImg, IplImage *lpTargetImg, int argc, char *argv[])
 			{
 				srcTri[1].x = 0;
 				srcTri[1].y = 0;
-				srcTri[2].x = temp->width - 1 + 1; //ËõÐ¡Ò»¸öÏñËØ
+				srcTri[2].x = temp->width - 1 + 1; //ï¿½ï¿½Ð¡Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 				srcTri[2].y = 0;
 				srcTri[3].x = temp->width - 1 + 1;
 				srcTri[3].y = temp->height - 1 + 1;
@@ -584,7 +584,7 @@ int process_v2(IplImage *lpImg, IplImage *lpTargetImg, int argc, char *argv[])
 
 				// srcTri[2].x = 0;
 				// srcTri[2].y = 0;
-				// srcTri[3].x = temp->width - 1; //ËõÐ¡Ò»¸öÏñËØ
+				// srcTri[3].x = temp->width - 1; //ï¿½ï¿½Ð¡Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 				// srcTri[3].y = 0;
 				// srcTri[0].x = temp->width - 1;
 				// srcTri[0].y = temp->height - 1;
@@ -592,8 +592,8 @@ int process_v2(IplImage *lpImg, IplImage *lpTargetImg, int argc, char *argv[])
 				// srcTri[1].y = temp->height - 1;
 			}
 
-			cvGetPerspectiveTransform(dstTri, srcTri, warp_mat);                                     //ÓÉÈý¶Ôµã¼ÆËã·ÂÉä±ä»»
-			cvWarpPerspective(temp, lpTargetImg, warp_mat, CV_INTER_LINEAR | (CV_WARP_INVERSE_MAP)); //¶ÔÍ¼Ïñ×ö·ÂÉä±ä»»
+			cvGetPerspectiveTransform(dstTri, srcTri, warp_mat);                                     //ï¿½ï¿½ï¿½ï¿½ï¿½Ôµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ä»»
+			cvWarpPerspective(temp, lpTargetImg, warp_mat, CV_INTER_LINEAR | (CV_WARP_INVERSE_MAP)); //ï¿½ï¿½Í¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ä»»
 		}
 	}
 	return iCount;
@@ -618,7 +618,7 @@ int main(int argc, char** args)
 	IplImage *lpCannyImg = cvCreateImage(cvGetSize(lpTargetImg), 8, 1);
 	IplImage *tmp = cvCreateImage(cvGetSize(lpTargetImg), 8, 1);
 	IplImage *lpDilateImg = cvCreateImage(cvGetSize(lpTargetImg), 8, 1);
-	cvSmooth(gray, tmp, CV_BILATERAL, 3, 3, 0, 0); //¸ßË¹ÂË²¨
+	cvSmooth(gray, tmp, CV_BILATERAL, 3, 3, 0, 0); //ï¿½ï¿½Ë¹ï¿½Ë²ï¿½
 	cvSaveImage("tmp.bmp", tmp);
 	printf("save\n");
 	if (NULL != lpCannyImg && NULL != lpDilateImg)
@@ -631,7 +631,7 @@ int main(int argc, char** args)
 
 		IplImage *pGrayImage = cvCreateImage(cvGetSize(lpTargetImg), IPL_DEPTH_8U, 1);
 		IplImage *pGrayEqualizeImage = cvCreateImage(cvGetSize(lpTargetImg), IPL_DEPTH_8U, 1);
-		cvSmooth(lpTargetImg, lpTargetImg, CV_GAUSSIAN, 3, 3, 0, 0); //¸ßË¹ÂË²¨
+		cvSmooth(lpTargetImg, lpTargetImg, CV_GAUSSIAN, 3, 3, 0, 0); //ï¿½ï¿½Ë¹ï¿½Ë²ï¿½
 		cvCvtColor(lpTargetImg, pGrayImage, CV_BGR2GRAY);
 		cvSaveImage("pGrayImage.bmp", pGrayImage);
 		//cvEqualizeHist(pGrayImage, pGrayEqualizeImage);
@@ -640,7 +640,7 @@ int main(int argc, char** args)
 		cvCanny(pGrayEqualizeImage, lpCannyImg, 0.5, 20, 3);
 		cvSaveImage("canny2.bmp", lpCannyImg);
 	}
-	//²éÕÒÄ¿±êÇøÓò
+	//ï¿½ï¿½ï¿½ï¿½Ä¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	IplImage *lpOutImg = cvCloneImage(lpTargetImg);
 	int iCunt = 0;
 	if (NULL != lpOutImg)
@@ -651,9 +651,9 @@ int main(int argc, char** args)
 		cvSaveImage(OutputPath, lpOutImg);
 	}
 
-	//Êä³ö¸öÊý
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	printf("%d\n", iCunt);
-	//ÊÍ·Å×ÊÔ´
+	//ï¿½Í·ï¿½ï¿½ï¿½Ô´
 	cvReleaseImage(&lpOutImg);
 	cvReleaseImage(&lpTargetImg);
 	cvReleaseImage(&lpDilateImg);
@@ -666,33 +666,33 @@ int main1(int argc, char **argv)
 {
 
 	IplImage *frame = NULL;
-	IplImage *laplace = NULL;    //À­ÆÕÀ­Ë¹×ª»»ºóµÄµ¥Í¨µÀÍ¼Ïñ
-	IplImage *ColorImage = NULL; //ÓÃÓÚÏÔÊ¾×îÖÕ×ª»»ºóµÄÍ¼Ïñ
+	IplImage *laplace = NULL;    //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë¹×ªï¿½ï¿½ï¿½ï¿½Äµï¿½Í¨ï¿½ï¿½Í¼ï¿½ï¿½
+	IplImage *ColorImage = NULL; //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ï¿½
 
 	frame = cvLoadImage(argv[1], 1);
 	IplImage *timg = cvCreateImage(cvGetSize(frame), IPL_DEPTH_8U, 3);
-	cvSmooth(frame, timg, CV_BILATERAL, 3, 3, 0, 0); //Ë«±ßÂË²¨
-	IplImage *panel[3];                              //Èý¸öÍ¨µÀ
+	cvSmooth(frame, timg, CV_BILATERAL, 3, 3, 0, 0); //Ë«ï¿½ï¿½ï¿½Ë²ï¿½
+	IplImage *panel[3];                              //ï¿½ï¿½ï¿½ï¿½Í¨ï¿½ï¿½
 
-	if (!laplace) //´´½¨ÐèÒª´´½¨µÄ±äÁ¿
+	if (!laplace) //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½ï¿½Ä±ï¿½ï¿½ï¿½
 	{
 		for (int i = 0; i < 3; i++)
 			panel[i] = cvCreateImage(cvGetSize(frame), IPL_DEPTH_8U, 1);
 		laplace = cvCreateImage(cvGetSize(frame), IPL_DEPTH_16S, 1);
 		ColorImage = cvCreateImage(cvGetSize(frame), IPL_DEPTH_8U, 3);
 	}
-	cvSplit(timg, panel[0], panel[1], panel[2], NULL); //·Ö¸îÍ¼Ïñµ½µ¥Í¨µÀ
+	cvSplit(timg, panel[0], panel[1], panel[2], NULL); //ï¿½Ö¸ï¿½Í¼ï¿½ñµ½µï¿½Í¨ï¿½ï¿½
 	for (int i = 0; i < 3; i++)
 	{
-		// cvLaplace(panel[i], laplace, 3);            //Ã¿Ò»¸öÍ¨µÀ×öÀ­ÆÕÀ­Ë¹±ä»»
-		cvConvertScaleAbs(laplace, panel[i], 1, 0); //×öÀàÐÍ×ª»»£¬×ª»»µ½8U
+		// cvLaplace(panel[i], laplace, 3);            //Ã¿Ò»ï¿½ï¿½Í¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë¹ï¿½ä»»
+		//cvConvertScaleAbs(laplace, panel[i], 1, 0); //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½ï¿½ï¿½8U
 	}
 
 	cvDilate(panel[0], panel[0], 0, 2);
 	cvDilate(panel[1], panel[1], 0, 2);
 	cvDilate(panel[2], panel[2], 0, 2);
-	cvMerge(panel[0], panel[1], panel[2], NULL, ColorImage); //ºÏ²¢Í¼ÏñÍ¨µÀ
-	ColorImage->origin = 0;                                  //0--ÕýÃæ¶ÔÉãÏñÍ·£»1--µ¹¹ýÀ´¶ÔÉãÏñÍ·
+	//cvMerge(panel[0], panel[1], panel[2], NULL, ColorImage); //ï¿½Ï²ï¿½Í¼ï¿½ï¿½Í¨ï¿½ï¿½
+	ColorImage->origin = 0;                                  //0--ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í·ï¿½ï¿½1--ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í·
 	cvShowImage("Laplace", ColorImage);
 	///cvWaitKey(0);
 

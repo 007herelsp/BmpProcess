@@ -1341,8 +1341,6 @@ public:
     Mat(const Mat& m, const Range* ranges);
     //! converts old-style CvMat to the new matrix; the data is not copied by default
     Mat(const CvMat* m, bool copyData=false);
-    //! converts old-style CvMatND to the new matrix; the data is not copied by default
-    Mat(const CvMatND* m, bool copyData=false);
     //! converts old-style IplImage to the new matrix; the data is not copied by default
     Mat(const IplImage* img, bool copyData=false);
     //! builds matrix from std::vector with or without copying the data
@@ -1471,8 +1469,6 @@ public:
 
     //! converts header to CvMat; no data is copied
     operator CvMat() const;
-    //! converts header to CvMatND; no data is copied
-    operator CvMatND() const;
     //! converts header to IplImage; no data is copied
     operator IplImage() const;
 
@@ -1793,9 +1789,6 @@ CV_EXPORTS_W void minMaxLoc(InputArray src, CV_OUT double* minVal,
 CV_EXPORTS void minMaxIdx(InputArray src, double* minVal, double* maxVal,
                           int* minIdx=0, int* maxIdx=0, InputArray mask=noArray());
 
-//! transforms 2D matrix to 1D row or column vector by taking sum, minimum, maximum or mean value over all the rows
-CV_EXPORTS_W void reduce(InputArray src, OutputArray dst, int dim, int rtype, int dtype=-1);
-
 //! makes multi-channel array out of several single-channel arrays
 CV_EXPORTS void merge(const Mat* mv, size_t count, OutputArray dst);
 CV_EXPORTS void merge(const vector<Mat>& mv, OutputArray dst );
@@ -1941,15 +1934,7 @@ CV_EXPORTS_W void sort(InputArray src, OutputArray dst, int flags);
 CV_EXPORTS_W void sortIdx(InputArray src, OutputArray dst, int flags);
 
 
-//! finds eigenvalues of a symmetric matrix
-CV_EXPORTS bool eigen(InputArray src, OutputArray eigenvalues, int lowindex=-1,
-                      int highindex=-1);
-//! finds eigenvalues and eigenvectors of a symmetric matrix
-CV_EXPORTS bool eigen(InputArray src, OutputArray eigenvalues,
-                      OutputArray eigenvectors,
-                      int lowindex=-1, int highindex=-1);
-CV_EXPORTS_W bool eigen(InputArray src, bool computeEigenvectors,
-                        OutputArray eigenvalues, OutputArray eigenvectors);
+
 
 enum
 {
@@ -1970,62 +1955,7 @@ CV_EXPORTS_W void calcCovarMatrix( InputArray samples, OutputArray covar,
 
 
 
-/*!
-    Singular Value Decomposition class
 
-    The class is used to compute Singular Value Decomposition of a floating-point matrix and then
-    use it to solve least-square problems, under-determined linear systems, invert matrices,
-    compute condition numbers etc.
-
-    For a bit faster operation you can pass flags=SVD::MODIFY_A|... to modify the decomposed matrix
-    when it is not necessarily to preserve it. If you want to compute condition number of a matrix
-    or absolute value of its determinant - you do not need SVD::u or SVD::vt,
-    so you can pass flags=SVD::NO_UV|... . Another flag SVD::FULL_UV indicates that the full-size SVD::u and SVD::vt
-    must be computed, which is not necessary most of the time.
-*/
-class CV_EXPORTS SVD
-{
-public:
-    enum { MODIFY_A=1, NO_UV=2, FULL_UV=4 };
-    //! the default constructor
-    SVD();
-    //! the constructor that performs SVD
-    SVD( InputArray src, int flags=0 );
-    //! the operator that performs SVD. The previously allocated SVD::u, SVD::w are SVD::vt are released.
-    SVD& operator ()( InputArray src, int flags=0 );
-
-    //! decomposes matrix and stores the results to user-provided matrices
-    static void compute( InputArray src, OutputArray w,
-                         OutputArray u, OutputArray vt, int flags=0 );
-    //! computes singular values of a matrix
-    static void compute( InputArray src, OutputArray w, int flags=0 );
-    //! performs back substitution
-    static void backSubst( InputArray w, InputArray u,
-                           InputArray vt, InputArray rhs,
-                           OutputArray dst );
-
-    template<typename _Tp, int m, int n, int nm> static void compute( const Matx<_Tp, m, n>& a,
-        Matx<_Tp, nm, 1>& w, Matx<_Tp, m, nm>& u, Matx<_Tp, n, nm>& vt );
-    template<typename _Tp, int m, int n, int nm> static void compute( const Matx<_Tp, m, n>& a,
-        Matx<_Tp, nm, 1>& w );
-    template<typename _Tp, int m, int n, int nm, int nb> static void backSubst( const Matx<_Tp, nm, 1>& w,
-        const Matx<_Tp, m, nm>& u, const Matx<_Tp, n, nm>& vt, const Matx<_Tp, m, nb>& rhs, Matx<_Tp, n, nb>& dst );
-
-    //! finds dst = arg min_{|dst|=1} |m*dst|
-    static void solveZ( InputArray src, OutputArray dst );
-    //! performs back substitution, so that dst is the solution or pseudo-solution of m*dst = rhs, where m is the decomposed matrix
-    void backSubst( InputArray rhs, OutputArray dst ) const;
-
-    Mat u, w, vt;
-};
-
-//! computes SVD of src
-CV_EXPORTS_W void SVDecomp( InputArray src, CV_OUT OutputArray w,
-    CV_OUT OutputArray u, CV_OUT OutputArray vt, int flags=0 );
-
-//! performs back substitution for the previously computed SVD
-CV_EXPORTS_W void SVBackSubst( InputArray w, InputArray u, InputArray vt,
-                               InputArray rhs, CV_OUT OutputArray dst );
 
 //! computes Mahalanobis distance between two vectors: sqrt((v1-v2)'*icovar*(v1-v2)), where icovar is the inverse covariation matrix
 CV_EXPORTS_W double Mahalanobis(InputArray v1, InputArray v2, InputArray icovar);
@@ -2035,9 +1965,7 @@ CV_EXPORTS double Mahalonobis(InputArray v1, InputArray v2, InputArray icovar);
 
 
 //! performs forward or inverse 1D or 2D Discrete Cosine Transformation
-CV_EXPORTS_W void dct(InputArray src, OutputArray dst, int flags=0);
-//! performs inverse 1D or 2D Discrete Cosine Transformation
-CV_EXPORTS_W void idct(InputArray src, OutputArray dst, int flags=0);
+
 //! computes element-wise product of the two Fourier spectrums. The second spectrum can optionally be conjugated before the multiplication
 CV_EXPORTS_W void mulSpectrums(InputArray a, InputArray b, OutputArray c,
                                int flags, bool conjB=false);
@@ -2881,311 +2809,7 @@ public:
 
 //////////////////////////////////////// XML & YAML I/O ////////////////////////////////////
 
-class CV_EXPORTS FileNode;
 
-/*!
- XML/YAML File Storage Class.
-
- The class describes an object associated with XML or YAML file.
- It can be used to store data to such a file or read and decode the data.
-
- The storage is organized as a tree of nested sequences (or lists) and mappings.
- Sequence is a heterogenious array, which elements are accessed by indices or sequentially using an iterator.
- Mapping is analogue of std::map or C structure, which elements are accessed by names.
- The most top level structure is a mapping.
- Leaves of the file storage tree are integers, floating-point numbers and text strings.
-
- For example, the following code:
-
- \code
- // open file storage for writing. Type of the file is determined from the extension
- FileStorage fs("test.yml", FileStorage::WRITE);
- fs << "test_int" << 5 << "test_real" << 3.1 << "test_string" << "ABCDEFGH";
- fs << "test_mat" << Mat::eye(3,3,CV_32F);
-
- fs << "test_list" << "[" << 0.0000000000001 << 2 << CV_PI << -3435345 << "2-502 2-029 3egegeg" <<
- "{:" << "month" << 12 << "day" << 31 << "year" << 1969 << "}" << "]";
- fs << "test_map" << "{" << "x" << 1 << "y" << 2 << "width" << 100 << "height" << 200 << "lbp" << "[:";
-
- const uchar arr[] = {0, 1, 1, 0, 1, 1, 0, 1};
- fs.writeRaw("u", arr, (int)(sizeof(arr)/sizeof(arr[0])));
-
- fs << "]" << "}";
- \endcode
-
- will produce the following file:
-
- \verbatim
- %YAML:1.0
- test_int: 5
- test_real: 3.1000000000000001e+00
- test_string: ABCDEFGH
- test_mat: !!opencv-matrix
-     rows: 3
-     cols: 3
-     dt: f
-     data: [ 1., 0., 0., 0., 1., 0., 0., 0., 1. ]
- test_list:
-     - 1.0000000000000000e-13
-     - 2
-     - 3.1415926535897931e+00
-     - -3435345
-     - "2-502 2-029 3egegeg"
-     - { month:12, day:31, year:1969 }
- test_map:
-     x: 1
-     y: 2
-     width: 100
-     height: 200
-     lbp: [ 0, 1, 1, 0, 1, 1, 0, 1 ]
- \endverbatim
-
- and to read the file above, the following code can be used:
-
- \code
- // open file storage for reading.
- // Type of the file is determined from the content, not the extension
- FileStorage fs("test.yml", FileStorage::READ);
- int test_int = (int)fs["test_int"];
- double test_real = (double)fs["test_real"];
- string test_string = (string)fs["test_string"];
-
- Mat M;
- fs["test_mat"] >> M;
-
- FileNode tl = fs["test_list"];
- CV_Assert(tl.type() == FileNode::SEQ && tl.size() == 6);
- double tl0 = (double)tl[0];
- int tl1 = (int)tl[1];
- double tl2 = (double)tl[2];
- int tl3 = (int)tl[3];
- string tl4 = (string)tl[4];
- CV_Assert(tl[5].type() == FileNode::MAP && tl[5].size() == 3);
-
- int month = (int)tl[5]["month"];
- int day = (int)tl[5]["day"];
- int year = (int)tl[5]["year"];
-
- FileNode tm = fs["test_map"];
-
- int x = (int)tm["x"];
- int y = (int)tm["y"];
- int width = (int)tm["width"];
- int height = (int)tm["height"];
-
- int lbp_val = 0;
- FileNodeIterator it = tm["lbp"].begin();
-
- for(int k = 0; k < 8; k++, ++it)
-    lbp_val |= ((int)*it) << k;
- \endcode
-*/
-class CV_EXPORTS_W FileStorage
-{
-public:
-    //! file storage mode
-    enum
-    {
-        READ=0, //! read mode
-        WRITE=1, //! write mode
-        APPEND=2, //! append mode
-        MEMORY=4,
-        FORMAT_MASK=(7<<3),
-        FORMAT_AUTO=0,
-        FORMAT_XML=(1<<3),
-        FORMAT_YAML=(2<<3)
-    };
-    enum
-    {
-        UNDEFINED=0,
-        VALUE_EXPECTED=1,
-        NAME_EXPECTED=2,
-        INSIDE_MAP=4
-    };
-    //! the default constructor
-    CV_WRAP FileStorage();
-    //! the full constructor that opens file storage for reading or writing
-    CV_WRAP FileStorage(const string& source, int flags, const string& encoding=string());
-    //! the constructor that takes pointer to the C FileStorage structure
-    FileStorage(CvFileStorage* fs);
-    //! the destructor. calls release()
-    virtual ~FileStorage();
-
-    //! opens file storage for reading or writing. The previous storage is closed with release()
-    CV_WRAP virtual bool open(const string& filename, int flags, const string& encoding=string());
-    //! returns true if the object is associated with currently opened file.
-    CV_WRAP virtual bool isOpened() const;
-    //! closes the file and releases all the memory buffers
-    CV_WRAP virtual void release();
-    //! closes the file, releases all the memory buffers and returns the text string
-    CV_WRAP string releaseAndGetString();
-
-    //! returns the first element of the top-level mapping
-    CV_WRAP FileNode getFirstTopLevelNode() const;
-    //! returns the top-level mapping. YAML supports multiple streams
-    CV_WRAP FileNode root(int streamidx=0) const;
-    //! returns the specified element of the top-level mapping
-    FileNode operator[](const string& nodename) const;
-    //! returns the specified element of the top-level mapping
-    CV_WRAP FileNode operator[](const char* nodename) const;
-
-    //! returns pointer to the underlying C FileStorage structure
-    CvFileStorage* operator *() { return fs; }
-    //! returns pointer to the underlying C FileStorage structure
-    const CvFileStorage* operator *() const { return fs; }
-    //! writes one or more numbers of the specified format to the currently written structure
-    void writeRaw( const string& fmt, const uchar* vec, size_t len );
-    //! writes the registered C structure (CvMat, CvMatND, CvSeq). See cvWrite()
-    void writeObj( const string& name, const void* obj );
-
-    //! returns the normalized object name for the specified file name
-    static string getDefaultObjectName(const string& filename);
-
-    Ptr<CvFileStorage> fs; //!< the underlying C FileStorage structure
-    string elname; //!< the currently written element
-    vector<char> structs; //!< the stack of written structures
-    int state; //!< the writer state
-};
-
-class CV_EXPORTS FileNodeIterator;
-
-/*!
- File Storage Node class
-
- The node is used to store each and every element of the file storage opened for reading -
- from the primitive objects, such as numbers and text strings, to the complex nodes:
- sequences, mappings and the registered objects.
-
- Note that file nodes are only used for navigating file storages opened for reading.
- When a file storage is opened for writing, no data is stored in memory after it is written.
-*/
-class CV_EXPORTS_W_SIMPLE FileNode
-{
-public:
-    //! type of the file storage node
-    enum
-    {
-        NONE=0, //!< empty node
-        INT=1, //!< an integer
-        REAL=2, //!< floating-point number
-        FLOAT=REAL, //!< synonym or REAL
-        STR=3, //!< text string in UTF-8 encoding
-        STRING=STR, //!< synonym for STR
-        REF=4, //!< integer of size size_t. Typically used for storing complex dynamic structures where some elements reference the others
-        SEQ=5, //!< sequence
-        MAP=6, //!< mapping
-        TYPE_MASK=7,
-        FLOW=8, //!< compact representation of a sequence or mapping. Used only by YAML writer
-        USER=16, //!< a registered object (e.g. a matrix)
-        EMPTY=32, //!< empty structure (sequence or mapping)
-        NAMED=64 //!< the node has a name (i.e. it is element of a mapping)
-    };
-    //! the default constructor
-    CV_WRAP FileNode();
-    //! the full constructor wrapping CvFileNode structure.
-    FileNode(const CvFileStorage* fs, const CvFileNode* node);
-    //! the copy constructor
-    FileNode(const FileNode& node);
-    //! returns element of a mapping node
-    FileNode operator[](const string& nodename) const;
-    //! returns element of a mapping node
-    CV_WRAP FileNode operator[](const char* nodename) const;
-    //! returns element of a sequence node
-    CV_WRAP FileNode operator[](int i) const;
-    //! returns type of the node
-    CV_WRAP int type() const;
-
-    //! returns true if the node is empty
-    CV_WRAP bool empty() const;
-    //! returns true if the node is a "none" object
-    CV_WRAP bool isNone() const;
-    //! returns true if the node is a sequence
-    CV_WRAP bool isSeq() const;
-    //! returns true if the node is a mapping
-    CV_WRAP bool isMap() const;
-    //! returns true if the node is an integer
-    CV_WRAP bool isInt() const;
-    //! returns true if the node is a floating-point number
-    CV_WRAP bool isReal() const;
-    //! returns true if the node is a text string
-    CV_WRAP bool isString() const;
-    //! returns true if the node has a name
-    CV_WRAP bool isNamed() const;
-    //! returns the node name or an empty string if the node is nameless
-    CV_WRAP string name() const;
-    //! returns the number of elements in the node, if it is a sequence or mapping, or 1 otherwise.
-    CV_WRAP size_t size() const;
-    //! returns the node content as an integer. If the node stores floating-point number, it is rounded.
-    operator int() const;
-    //! returns the node content as float
-    operator float() const;
-    //! returns the node content as double
-    operator double() const;
-    //! returns the node content as text string
-    operator string() const;
-
-    //! returns pointer to the underlying file node
-    CvFileNode* operator *();
-    //! returns pointer to the underlying file node
-    const CvFileNode* operator* () const;
-
-    //! returns iterator pointing to the first node element
-    FileNodeIterator begin() const;
-    //! returns iterator pointing to the element following the last node element
-    FileNodeIterator end() const;
-
-    //! reads node elements to the buffer with the specified format
-    void readRaw( const string& fmt, uchar* vec, size_t len ) const;
-    //! reads the registered object and returns pointer to it
-    void* readObj() const;
-
-    // do not use wrapper pointer classes for better efficiency
-    const CvFileStorage* fs;
-    const CvFileNode* node;
-};
-
-
-/*!
- File Node Iterator
-
- The class is used for iterating sequences (usually) and mappings.
- */
-class CV_EXPORTS FileNodeIterator
-{
-public:
-    //! the default constructor
-    FileNodeIterator();
-    //! the full constructor set to the ofs-th element of the node
-    FileNodeIterator(const CvFileStorage* fs, const CvFileNode* node, size_t ofs=0);
-    //! the copy constructor
-    FileNodeIterator(const FileNodeIterator& it);
-    //! returns the currently observed element
-    FileNode operator *() const;
-    //! accesses the currently observed element methods
-    FileNode operator ->() const;
-
-    //! moves iterator to the next node
-    FileNodeIterator& operator ++ ();
-    //! moves iterator to the next node
-    FileNodeIterator operator ++ (int);
-    //! moves iterator to the previous node
-    FileNodeIterator& operator -- ();
-    //! moves iterator to the previous node
-    FileNodeIterator operator -- (int);
-    //! moves iterator forward by the specified offset (possibly negative)
-    FileNodeIterator& operator += (int ofs);
-    //! moves iterator backward by the specified offset (possibly negative)
-    FileNodeIterator& operator -= (int ofs);
-
-    //! reads the next maxCount elements (or less, if the sequence/mapping last element occurs earlier) to the buffer with the specified format
-    FileNodeIterator& readRaw( const string& fmt, uchar* vec,
-                               size_t maxCount=(size_t)INT_MAX );
-
-    const CvFileStorage* fs;
-    const CvFileNode* container;
-    CvSeqReader reader;
-    size_t remaining;
-};
 
 ////////////// convenient wrappers for operating old-style dynamic structures //////////////
 
@@ -3390,8 +3014,6 @@ public:
     CV_WRAP void getParams(CV_OUT vector<string>& names) const;
 
 
-    virtual void write(FileStorage& fs) const;
-    virtual void read(const FileNode& fn);
 
     typedef Algorithm* (*Constructor)(void);
     typedef int (Algorithm::*Getter)() const;
@@ -3420,8 +3042,6 @@ public:
     int paramType(const char* name) const;
     void getParams(vector<string>& names) const;
 
-    void write(const Algorithm* algo, FileStorage& fs) const;
-    void read(Algorithm* algo, const FileNode& fn) const;
     string name() const;
 
     void addParam(Algorithm& algo, const char* name,

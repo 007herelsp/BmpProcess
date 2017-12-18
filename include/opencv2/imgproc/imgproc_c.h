@@ -175,30 +175,6 @@ CVAPI(int)  cvCheckContourConvexity( const CvArr* contour );
 
 
 
-
-
-
-/****************************************************************************************\
-*                                  Histogram functions                                   *
-\****************************************************************************************/
-
-
-
-/* Releases histogram */
-CVAPI(void)  cvReleaseHist( CvHistogram** hist );
-
-
-/* Normalizes histogram by dividing all bins by sum of the bins, multiplied by <factor>.
-   After that sum of histogram bins is equal to <factor> */
-CVAPI(void)  cvNormalizeHist( CvHistogram* hist, double factor );
-
-
-
-/* equalizes histogram of 8-bit single-channel image */
-CVAPI(void)  cvEqualizeHist( const CvArr* src, CvArr* dst );
-
-
-
 /* Applies fixed-level threshold to grayscale image.
    This is a basic operation applied before retrieving contours */
 CVAPI(double)  cvThreshold( const CvArr*  src, CvArr*  dst,

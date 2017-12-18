@@ -1262,7 +1262,6 @@ void magnitude(const float* x, const float* y, float* dst, int n)
 
 }
 
-CV_IMPL float cvCbrt(float value) { return cv::cubeRoot(value); }
 
 
 

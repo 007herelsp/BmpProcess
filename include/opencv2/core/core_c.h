@@ -1,46 +1,3 @@
-/*M///////////////////////////////////////////////////////////////////////////////////////
-//
-//  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.
-//
-//  By downloading, copying, installing or using the software you agree to this license.
-//  If you do not agree to this license, do not download, install,
-//  copy or use the software.
-//
-//
-//                           License Agreement
-//                For Open Source Computer Vision Library
-//
-// Copyright (C) 2000-2008, Intel Corporation, all rights reserved.
-// Copyright (C) 2009, Willow Garage Inc., all rights reserved.
-// Third party copyrights are property of their respective owners.
-//
-// Redistribution and use in source and binary forms, with or without modification,
-// are permitted provided that the following conditions are met:
-//
-//   * Redistribution's of source code must retain the above copyright notice,
-//     this list of conditions and the following disclaimer.
-//
-//   * Redistribution's in binary form must reproduce the above copyright notice,
-//     this list of conditions and the following disclaimer in the documentation
-//     and/or other materials provided with the distribution.
-//
-//   * The name of the copyright holders may not be used to endorse or promote products
-//     derived from this software without specific prior written permission.
-//
-// This software is provided by the copyright holders and contributors "as is" and
-// any express or implied warranties, including, but not limited to, the implied
-// warranties of merchantability and fitness for a particular purpose are disclaimed.
-// In no event shall the Intel Corporation or contributors be liable for any direct,
-// indirect, incidental, special, exemplary, or consequential damages
-// (including, but not limited to, procurement of substitute goods or services;
-// loss of use, data, or profits; or business interruption) however caused
-// and on any theory of liability, whether in contract, strict liability,
-// or tort (including negligence or otherwise) arising in any way out of
-// the use of this software, even if advised of the possibility of such damage.
-//
-//M*/
-
-
 #ifndef __OPENCV_CORE_C_H__
 #define __OPENCV_CORE_C_H__
 
@@ -134,109 +91,18 @@ CV_INLINE  void  cvDecRefData( CvArr* arr )
             cvFree( &mat->refcount );
         mat->refcount = NULL;
     }
-    else if( CV_IS_MATND( arr ))
-    {
-        CvMatND* mat = (CvMatND*)arr;
-        mat->data.ptr = NULL;
-        if( mat->refcount != NULL && --*mat->refcount == 0 )
-            cvFree( &mat->refcount );
-        mat->refcount = NULL;
-    }
+	else
+		{
+		assert("herelsp remove");
+		}
 }
 
-/* Increments CvMat data reference counter */
-CV_INLINE  int  cvIncRefData( CvArr* arr )
-{
-    int refcount = 0;
-    if( CV_IS_MAT( arr ))
-    {
-        CvMat* mat = (CvMat*)arr;
-        if( mat->refcount != NULL )
-            refcount = ++*mat->refcount;
-    }
-    else if( CV_IS_MATND( arr ))
-    {
-        CvMatND* mat = (CvMatND*)arr;
-        if( mat->refcount != NULL )
-            refcount = ++*mat->refcount;
-    }
-    return refcount;
-}
+
 
 
 /* Creates an exact copy of the input matrix (except, may be, step value) */
 CVAPI(CvMat*) cvCloneMat( const CvMat* mat );
 
-
-/* Makes a new matrix from <rect> subrectangle of input array.
-   No data is copied */
-CVAPI(CvMat*) cvGetSubRect( const CvArr* arr, CvMat* submat, CvRect rect );
-#define cvGetSubArr cvGetSubRect
-
-
-/* Select a diagonal of the input array.
-   (diag = 0 means the main diagonal, >0 means a diagonal above the main one,
-   <0 - below the main one).
-   The diagonal will be represented as a column (nx1 matrix). */
-CVAPI(CvMat*) cvGetDiag( const CvArr* arr, CvMat* submat,
-                            int diag CV_DEFAULT(0));
-
-/* low-level scalar <-> raw data conversion functions */
-CVAPI(void) cvScalarToRawData( const CvScalar* scalar, void* data, int type,
-                              int extend_to_12 CV_DEFAULT(0) );
-
-CVAPI(void) cvRawDataToScalar( const void* data, int type, CvScalar* scalar );
-
-/* Allocates and initializes CvMatND header */
-CVAPI(CvMatND*)  cvCreateMatNDHeader( int dims, const int* sizes, int type );
-
-/* Allocates and initializes CvMatND header and allocates data */
-CVAPI(CvMatND*)  cvCreateMatND( int dims, const int* sizes, int type );
-
-/* Initializes preallocated CvMatND header */
-CVAPI(CvMatND*)  cvInitMatNDHeader( CvMatND* mat, int dims, const int* sizes,
-                                    int type, void* data CV_DEFAULT(NULL) );
-
-/* Releases CvMatND */
-CV_INLINE  void  cvReleaseMatND( CvMatND** mat )
-{
-    cvReleaseMat( (CvMat**)mat );
-}
-
-/* Creates a copy of CvMatND (except, may be, steps) */
-CVAPI(CvMatND*) cvCloneMatND( const CvMatND* mat );
-
-/* Allocates and initializes CvSparseMat header and allocates data */
-CVAPI(CvSparseMat*)  cvCreateSparseMat( int dims, const int* sizes, int type );
-
-/* Releases CvSparseMat */
-CVAPI(void)  cvReleaseSparseMat( CvSparseMat** mat );
-
-/* Creates a copy of CvSparseMat (except, may be, zero items) */
-CVAPI(CvSparseMat*) cvCloneSparseMat( const CvSparseMat* mat );
-
-
-
-// returns next sparse array node (or NULL if there is no more nodes)
-CV_INLINE CvSparseNode* cvGetNextSparseNode( CvSparseMatIterator* mat_iterator )
-{
-    if( mat_iterator->node->next )
-        return mat_iterator->node = mat_iterator->node->next;
-    else
-    {
-        int idx;
-        for( idx = ++mat_iterator->curidx; idx < mat_iterator->mat->hashsize; idx++ )
-        {
-            CvSparseNode* node = (CvSparseNode*)mat_iterator->mat->hashtable[idx];
-            if( node )
-            {
-                mat_iterator->curidx = idx;
-                return mat_iterator->node = node;
-            }
-        }
-        return NULL;
-    }
-}
 
 /**************** matrix iterator: used for n-ary operations on dense arrays *********/
 
@@ -286,14 +152,7 @@ CVAPI(CvSize) cvGetSize( const CvArr* arr );
 CVAPI(void)  cvCopy( const CvArr* src, CvArr* dst,
                      const CvArr* mask CV_DEFAULT(NULL) );
 
-/* Sets all or "masked" elements of input array
-   to the same value*/
-CVAPI(void)  cvSet( CvArr* arr, CvScalar value,
-                    const CvArr* mask CV_DEFAULT(NULL) );
 
-/* Clears all the array elements (sets them to 0) */
-CVAPI(void)  cvSetZero( CvArr* arr );
-#define cvZero  cvSetZero
 
 
 /* Splits a multi-channel array into the set of single-channel arrays or
@@ -301,136 +160,11 @@ CVAPI(void)  cvSetZero( CvArr* arr );
 CVAPI(void)  cvSplit( const CvArr* src, CvArr* dst0, CvArr* dst1,
                       CvArr* dst2, CvArr* dst3 );
 
-/* Merges a set of single-channel arrays into the single multi-channel array
-   or inserts one particular [color] plane to the array */
-CVAPI(void)  cvMerge( const CvArr* src0, const CvArr* src1,
-                      const CvArr* src2, const CvArr* src3,
-                      CvArr* dst );
-
-/* Copies several channels from input arrays to
-   certain channels of output arrays */
-CVAPI(void)  cvMixChannels( const CvArr** src, int src_count,
-                            CvArr** dst, int dst_count,
-                            const int* from_to, int pair_count );
-
-/* Performs linear transformation on every source array element:
-   dst(x,y,c) = scale*src(x,y,c)+shift.
-   Arbitrary combination of input and output array depths are allowed
-   (number of channels must be the same), thus the function can be used
-   for type conversion */
-CVAPI(void)  cvConvertScale( const CvArr* src, CvArr* dst,
-                             double scale CV_DEFAULT(1),
-                             double shift CV_DEFAULT(0) );
-#define cvCvtScale cvConvertScale
-#define cvScale  cvConvertScale
-#define cvConvert( src, dst )  cvConvertScale( (src), (dst), 1, 0 )
 
 
-/* Performs linear transformation on every source array element,
-   stores absolute value of the result:
-   dst(x,y,c) = abs(scale*src(x,y,c)+shift).
-   destination array must have 8u type.
-   In other cases one may use cvConvertScale + cvAbsDiffS */
-CVAPI(void)  cvConvertScaleAbs( const CvArr* src, CvArr* dst,
-                                double scale CV_DEFAULT(1),
-                                double shift CV_DEFAULT(0) );
-#define cvCvtScaleAbs  cvConvertScaleAbs
 
 
-/* checks termination criteria validity and
-   sets eps to default_eps (if it is not set),
-   max_iter to default_max_iters (if it is not set)
-*/
-CVAPI(CvTermCriteria) cvCheckTermCriteria( CvTermCriteria criteria,
-                                           double default_eps,
-                                           int default_max_iters );
 
-/****************************************************************************************\
-*                   Arithmetic, logic and comparison operations                          *
-\****************************************************************************************/
-
-/* dst(mask) = src1(mask) + src2(mask) */
-CVAPI(void)  cvAdd( const CvArr* src1, const CvArr* src2, CvArr* dst,
-                    const CvArr* mask CV_DEFAULT(NULL));
-
-/* dst(mask) = src(mask) + value */
-CVAPI(void)  cvAddS( const CvArr* src, CvScalar value, CvArr* dst,
-                     const CvArr* mask CV_DEFAULT(NULL));
-
-/* dst(mask) = src1(mask) - src2(mask) */
-CVAPI(void)  cvSub( const CvArr* src1, const CvArr* src2, CvArr* dst,
-                    const CvArr* mask CV_DEFAULT(NULL));
-
-/* dst(mask) = src(mask) - value = src(mask) + (-value) */
-CV_INLINE  void  cvSubS( const CvArr* src, CvScalar value, CvArr* dst,
-                         const CvArr* mask CV_DEFAULT(NULL))
-{
-    cvAddS( src, cvScalar( -value.val[0], -value.val[1], -value.val[2], -value.val[3]),
-            dst, mask );
-}
-
-/* dst(mask) = value - src(mask) */
-CVAPI(void)  cvSubRS( const CvArr* src, CvScalar value, CvArr* dst,
-                      const CvArr* mask CV_DEFAULT(NULL));
-
-/* dst(idx) = src1(idx) * src2(idx) * scale
-   (scaled element-wise multiplication of 2 arrays) */
-CVAPI(void)  cvMul( const CvArr* src1, const CvArr* src2,
-                    CvArr* dst, double scale CV_DEFAULT(1) );
-
-/* element-wise division/inversion with scaling:
-    dst(idx) = src1(idx) * scale / src2(idx)
-    or dst(idx) = scale / src2(idx) if src1 == 0 */
-CVAPI(void)  cvDiv( const CvArr* src1, const CvArr* src2,
-                    CvArr* dst, double scale CV_DEFAULT(1));
-
-/* dst = src1 * scale + src2 */
-CVAPI(void)  cvScaleAdd( const CvArr* src1, CvScalar scale,
-                         const CvArr* src2, CvArr* dst );
-#define cvAXPY( A, real_scalar, B, C ) cvScaleAdd(A, cvRealScalar(real_scalar), B, C)
-
-/* dst = src1 * alpha + src2 * beta + gamma */
-CVAPI(void)  cvAddWeighted( const CvArr* src1, double alpha,
-                            const CvArr* src2, double beta,
-                            double gamma, CvArr* dst );
-
-/* result = sum_i(src1(i) * src2(i)) (results for all channels are accumulated together) */
-CVAPI(double)  cvDotProduct( const CvArr* src1, const CvArr* src2 );
-
-/* dst(idx) = src1(idx) & src2(idx) */
-CVAPI(void) cvAnd( const CvArr* src1, const CvArr* src2,
-                  CvArr* dst, const CvArr* mask CV_DEFAULT(NULL));
-
-/* dst(idx) = src(idx) & value */
-CVAPI(void) cvAndS( const CvArr* src, CvScalar value,
-                   CvArr* dst, const CvArr* mask CV_DEFAULT(NULL));
-
-/* dst(idx) = src1(idx) | src2(idx) */
-CVAPI(void) cvOr( const CvArr* src1, const CvArr* src2,
-                 CvArr* dst, const CvArr* mask CV_DEFAULT(NULL));
-
-/* dst(idx) = src(idx) | value */
-CVAPI(void) cvOrS( const CvArr* src, CvScalar value,
-                  CvArr* dst, const CvArr* mask CV_DEFAULT(NULL));
-
-/* dst(idx) = src1(idx) ^ src2(idx) */
-CVAPI(void) cvXor( const CvArr* src1, const CvArr* src2,
-                  CvArr* dst, const CvArr* mask CV_DEFAULT(NULL));
-
-/* dst(idx) = src(idx) ^ value */
-CVAPI(void) cvXorS( const CvArr* src, CvScalar value,
-                   CvArr* dst, const CvArr* mask CV_DEFAULT(NULL));
-
-/* dst(idx) = ~src(idx) */
-CVAPI(void) cvNot( const CvArr* src, CvArr* dst );
-
-/* dst(idx) = lower(idx) <= src(idx) < upper(idx) */
-CVAPI(void) cvInRange( const CvArr* src, const CvArr* lower,
-                      const CvArr* upper, CvArr* dst );
-
-/* dst(idx) = lower <= src(idx) < upper */
-CVAPI(void) cvInRangeS( const CvArr* src, CvScalar lower,
-                       CvScalar upper, CvArr* dst );
 
 #define CV_CMP_EQ   0
 #define CV_CMP_GT   1
@@ -438,26 +172,6 @@ CVAPI(void) cvInRangeS( const CvArr* src, CvScalar lower,
 #define CV_CMP_LT   3
 #define CV_CMP_LE   4
 #define CV_CMP_NE   5
-
-/* The comparison operation support single-channel arrays only.
-   Destination image should be 8uC1 or 8sC1 */
-
-/* dst(idx) = src1(idx) _cmp_op_ src2(idx) */
-CVAPI(void) cvCmp( const CvArr* src1, const CvArr* src2, CvArr* dst, int cmp_op );
-
-/* dst(idx) = src1(idx) _cmp_op_ value */
-CVAPI(void) cvCmpS( const CvArr* src, double value, CvArr* dst, int cmp_op );
-
-/* dst(idx) = min(src1(idx),src2(idx)) */
-CVAPI(void) cvMin( const CvArr* src1, const CvArr* src2, CvArr* dst );
-
-/* dst(idx) = max(src1(idx),src2(idx)) */
-CVAPI(void) cvMax( const CvArr* src1, const CvArr* src2, CvArr* dst );
-
-/* dst(idx) = min(src(idx),value) */
-CVAPI(void) cvMinS( const CvArr* src, double value, CvArr* dst );
-
-
 
 
 /****************************************************************************************\
@@ -474,63 +188,32 @@ CVAPI(void)  cvPow( const CvArr* src, CvArr* dst, double power );
 
 
 
-/* Fast cubic root calculation */
-CVAPI(float)  cvCbrt( float value );
-
 /* Checks array values for NaNs, Infs or simply for too large numbers
    (if CV_CHECK_RANGE is set). If CV_CHECK_QUIET is set,
    no runtime errors is raised (function returns zero value in case of "bad" values).
    Otherwise cvError is called */
 #define  CV_CHECK_RANGE    1
 #define  CV_CHECK_QUIET    2
-CVAPI(int)  cvCheckArr( const CvArr* arr, int flags CV_DEFAULT(0),
-                        double min_val CV_DEFAULT(0), double max_val CV_DEFAULT(0));
-
 
 #define CV_RAND_UNI      0
 #define CV_RAND_NORMAL   1
-CVAPI(void) cvRandArr( CvRNG* rng, CvArr* arr, int dist_type,
-                      CvScalar param1, CvScalar param2 );
 
-CVAPI(void) cvRandShuffle( CvArr* mat, CvRNG* rng,
-                           double iter_factor CV_DEFAULT(1.));
 
 #define CV_SORT_EVERY_ROW 0
 #define CV_SORT_EVERY_COLUMN 1
 #define CV_SORT_ASCENDING 0
 #define CV_SORT_DESCENDING 16
 
-CVAPI(void) cvSort( const CvArr* src, CvArr* dst CV_DEFAULT(NULL),
-                    CvArr* idxmat CV_DEFAULT(NULL),
-                    int flags CV_DEFAULT(0));
 
-/* Finds real roots of a cubic equation */
-CVAPI(int) cvSolveCubic( const CvMat* coeffs, CvMat* roots );
-
-/* Finds all real and complex roots of a polynomial equation */
-CVAPI(void) cvSolvePoly(const CvMat* coeffs, CvMat *roots2,
-      int maxiter CV_DEFAULT(20), int fig CV_DEFAULT(100));
 
 /****************************************************************************************\
 *                                Matrix operations                                       *
 \****************************************************************************************/
 
-/* Calculates cross product of two 3d vectors */
-CVAPI(void)  cvCrossProduct( const CvArr* src1, const CvArr* src2, CvArr* dst );
-
-/* Matrix transform: dst = A*B + C, C is optional */
-#define cvMatMulAdd( src1, src2, src3, dst ) cvGEMM( (src1), (src2), 1., (src3), 1., (dst), 0 )
-#define cvMatMul( src1, src2, dst )  cvMatMulAdd( (src1), (src2), NULL, (dst))
-
 #define CV_GEMM_A_T 1
 #define CV_GEMM_B_T 2
 #define CV_GEMM_C_T 4
-/* Extended matrix transform:
-   dst = alpha*op(A)*op(B) + beta*op(C), where op(X) is X or X^T */
-CVAPI(void)  cvGEMM( const CvArr* src1, const CvArr* src2, double alpha,
-                     const CvArr* src3, double beta, CvArr* dst,
-                     int tABC CV_DEFAULT(0));
-#define cvMatMulAddEx cvGEMM
+
 
 /* Transforms each element of source array and stores
    resultant vectors in destination array */
@@ -543,69 +226,19 @@ CVAPI(void)  cvTransform( const CvArr* src, CvArr* dst,
 CVAPI(void)  cvPerspectiveTransform( const CvArr* src, CvArr* dst,
                                      const CvMat* mat );
 
-/* Calculates (A-delta)*(A-delta)^T (order=0) or (A-delta)^T*(A-delta) (order=1) */
-CVAPI(void) cvMulTransposed( const CvArr* src, CvArr* dst, int order,
-                             const CvArr* delta CV_DEFAULT(NULL),
-                             double scale CV_DEFAULT(1.) );
-
-/* Tranposes matrix. Square matrices can be transposed in-place */
-CVAPI(void)  cvTranspose( const CvArr* src, CvArr* dst );
-#define cvT cvTranspose
-
-/* Completes the symmetric matrix from the lower (LtoR=0) or from the upper (LtoR!=0) part */
-CVAPI(void)  cvCompleteSymm( CvMat* matrix, int LtoR CV_DEFAULT(0) );
 
 
 
 
-
-#define CV_SVD_MODIFY_A   1
-#define CV_SVD_U_T        2
-#define CV_SVD_V_T        4
-
-/* Performs Singular Value Decomposition of a matrix */
-CVAPI(void)   cvSVD( CvArr* A, CvArr* W, CvArr* U CV_DEFAULT(NULL),
-                     CvArr* V CV_DEFAULT(NULL), int flags CV_DEFAULT(0));
-
-/* Performs Singular Value Back Substitution (solves A*X = B):
-   flags must be the same as in cvSVD */
-CVAPI(void)   cvSVBkSb( const CvArr* W, const CvArr* U,
-                        const CvArr* V, const CvArr* B,
-                        CvArr* X, int flags );
-
-#define CV_LU  0
-#define CV_SVD 1
 #define CV_SVD_SYM 2
 #define CV_CHOLESKY 3
 #define CV_QR  4
 #define CV_NORMAL 16
 
-/* Inverts matrix */
-CVAPI(double)  cvInvert( const CvArr* src, CvArr* dst,
-                         int method CV_DEFAULT(CV_LU));
-#define cvInv cvInvert
-
-/* Solves linear system (src1)*(dst) = (src2)
-   (returns 0 if src1 is a singular and CV_LU method is used) */
-CVAPI(int)  cvSolve( const CvArr* src1, const CvArr* src2, CvArr* dst,
-                     int method CV_DEFAULT(CV_LU));
-
-/* Calculates determinant of input matrix */
-CVAPI(double) cvDet( const CvArr* mat );
-
-/* Calculates trace of the matrix (sum of elements on the main diagonal) */
-CVAPI(CvScalar) cvTrace( const CvArr* mat );
 
 
-///* Finds selected eigen values and vectors of a symmetric matrix */
-//CVAPI(void)  cvSelectedEigenVV( CvArr* mat, CvArr* evects, CvArr* evals,
-//                                int lowindex, int highindex );
 
-/* Makes an identity matrix (mat_ij = i == j) */
-CVAPI(void)  cvSetIdentity( CvArr* mat, CvScalar value CV_DEFAULT(cvRealScalar(1)) );
 
-/* Fills matrix with given range of numbers */
-CVAPI(CvArr*)  cvRange( CvArr* mat, double start, double end );
 
 /* Calculates covariation matrix for a set of vectors */
 /* transpose([v1-avg, v2-avg,...]) * [v1-avg,v2-avg,...] */
@@ -632,28 +265,7 @@ CVAPI(CvArr*)  cvRange( CvArr* mat, double start, double end );
 
 
 
-/****************************************************************************************\
-*                                    Array Statistics                                    *
-\****************************************************************************************/
 
-/* Finds sum of array elements */
-CVAPI(CvScalar)  cvSum( const CvArr* arr );
-
-/* Calculates number of non-zero pixels */
-CVAPI(int)  cvCountNonZero( const CvArr* arr );
-
-/* Calculates mean value of array elements */
-CVAPI(CvScalar)  cvAvg( const CvArr* arr, const CvArr* mask CV_DEFAULT(NULL) );
-
-/* Calculates mean and standard deviation of pixel values */
-CVAPI(void)  cvAvgSdv( const CvArr* arr, CvScalar* mean, CvScalar* std_dev,
-                       const CvArr* mask CV_DEFAULT(NULL) );
-
-/* Finds global minimum, maximum and their positions */
-CVAPI(void)  cvMinMaxLoc( const CvArr* arr, double* min_val, double* max_val,
-                          CvPoint* min_loc CV_DEFAULT(NULL),
-                          CvPoint* max_loc CV_DEFAULT(NULL),
-                          const CvArr* mask CV_DEFAULT(NULL) );
 
 /* types of array norm */
 #define CV_C            1
@@ -671,42 +283,14 @@ CVAPI(void)  cvMinMaxLoc( const CvArr* arr, double* min_val, double* max_val,
 #define CV_RELATIVE_L1  (CV_RELATIVE | CV_L1)
 #define CV_RELATIVE_L2  (CV_RELATIVE | CV_L2)
 
-/* Finds norm, difference norm or relative difference norm for an array (or two arrays) */
-CVAPI(double)  cvNorm( const CvArr* arr1, const CvArr* arr2 CV_DEFAULT(NULL),
-                       int norm_type CV_DEFAULT(CV_L2),
-                       const CvArr* mask CV_DEFAULT(NULL) );
 
-CVAPI(void)  cvNormalize( const CvArr* src, CvArr* dst,
-                          double a CV_DEFAULT(1.), double b CV_DEFAULT(0.),
-                          int norm_type CV_DEFAULT(CV_L2),
-                          const CvArr* mask CV_DEFAULT(NULL) );
+
 
 
 #define CV_REDUCE_SUM 0
 #define CV_REDUCE_AVG 1
 #define CV_REDUCE_MAX 2
 #define CV_REDUCE_MIN 3
-
-CVAPI(void)  cvReduce( const CvArr* src, CvArr* dst, int dim CV_DEFAULT(-1),
-                       int op CV_DEFAULT(CV_REDUCE_SUM) );
-
-/****************************************************************************************\
-*                      Discrete Linear Transforms and Related Functions                  *
-\****************************************************************************************/
-
-#define CV_DXT_FORWARD  0
-#define CV_DXT_INVERSE  1
-#define CV_DXT_SCALE    2 /* divide result by size of array */
-#define CV_DXT_INV_SCALE (CV_DXT_INVERSE + CV_DXT_SCALE)
-#define CV_DXT_INVERSE_SCALE CV_DXT_INV_SCALE
-#define CV_DXT_ROWS     4 /* transform each row individually */
-#define CV_DXT_MUL_CONJ 8 /* conjugate the second argument of cvMulSpectrums */
-
-
-
-
-
-
 
 
 /****************************************************************************************\
@@ -747,9 +331,6 @@ CVAPI(void)  cvRestoreMemStoragePos( CvMemStorage* storage, CvMemStoragePos* pos
 /* Allocates continuous buffer of the specified size in the storage */
 CVAPI(void*) cvMemStorageAlloc( CvMemStorage* storage, size_t size );
 
-/* Allocates string in memory storage */
-CVAPI(CvString) cvMemStorageAllocString( CvMemStorage* storage, const char* ptr,
-                                         int len CV_DEFAULT(-1) );
 
 /* Creates new empty sequence that will reside in the specified storage */
 CVAPI(CvSeq*)  cvCreateSeq( int seq_flags, size_t header_size,
@@ -1082,158 +663,9 @@ typedef IplImage* (CV_STDCALL* Cv_iplCloneImage)(const IplImage*);
 
 
 
-
-/****************************************************************************************\
-*                                    Data Persistence                                    *
-\****************************************************************************************/
-
-/********************************** High-level functions ********************************/
-
-
-/* closes file storage and deallocates buffers */
-CVAPI(void) cvReleaseFileStorage( CvFileStorage** fs );
-
-/* returns attribute value or 0 (NULL) if there is no such attribute */
-CVAPI(const char*) cvAttrValue( const CvAttrList* attr, const char* attr_name );
-
-/* starts writing compound structure (map or sequence) */
-CVAPI(void) cvStartWriteStruct( CvFileStorage* fs, const char* name,
-                                int struct_flags, const char* type_name CV_DEFAULT(NULL),
-                                CvAttrList attributes CV_DEFAULT(cvAttrList()));
-
-/* finishes writing compound structure */
-CVAPI(void) cvEndWriteStruct( CvFileStorage* fs );
-
-/* writes an integer */
-CVAPI(void) cvWriteInt( CvFileStorage* fs, const char* name, int value );
-
-/* writes a floating-point number */
-CVAPI(void) cvWriteReal( CvFileStorage* fs, const char* name, double value );
-
-/* writes a string */
-CVAPI(void) cvWriteString( CvFileStorage* fs, const char* name,
-                           const char* str, int quote CV_DEFAULT(0) );
-
-/* writes a comment */
-CVAPI(void) cvWriteComment( CvFileStorage* fs, const char* comment,
-                            int eol_comment );
-
-/* writes instance of a standard type (matrix, image, sequence, graph etc.)
-   or user-defined type */
-CVAPI(void) cvWrite( CvFileStorage* fs, const char* name, const void* ptr,
-                         CvAttrList attributes CV_DEFAULT(cvAttrList()));
-
-/* starts the next stream */
-CVAPI(void) cvStartNextStream( CvFileStorage* fs );
-
-/* helper function: writes multiple integer or floating-point numbers */
-CVAPI(void) cvWriteRawData( CvFileStorage* fs, const void* src,
-                                int len, const char* dt );
-
-/* returns the hash entry corresponding to the specified literal key string or 0
-   if there is no such a key in the storage */
-CVAPI(CvStringHashNode*) cvGetHashedKey( CvFileStorage* fs, const char* name,
-                                        int len CV_DEFAULT(-1),
-                                        int create_missing CV_DEFAULT(0));
-
-/* returns file node with the specified key within the specified map
-   (collection of named nodes) */
-CVAPI(CvFileNode*) cvGetRootFileNode( const CvFileStorage* fs,
-                                     int stream_index CV_DEFAULT(0) );
-
-/* returns file node with the specified key within the specified map
-   (collection of named nodes) */
-CVAPI(CvFileNode*) cvGetFileNode( CvFileStorage* fs, CvFileNode* map,
-                                 const CvStringHashNode* key,
-                                 int create_missing CV_DEFAULT(0) );
-
-/* this is a slower version of cvGetFileNode that takes the key as a literal string */
-CVAPI(CvFileNode*) cvGetFileNodeByName( const CvFileStorage* fs,
-                                       const CvFileNode* map,
-                                       const char* name );
-
-CV_INLINE int cvReadInt( const CvFileNode* node, int default_value CV_DEFAULT(0) )
-{
-    return !node ? default_value :
-        CV_NODE_IS_INT(node->tag) ? node->data.i :
-        CV_NODE_IS_REAL(node->tag) ? cvRound(node->data.f) : 0x7fffffff;
-}
-
-
-CV_INLINE int cvReadIntByName( const CvFileStorage* fs, const CvFileNode* map,
-                         const char* name, int default_value CV_DEFAULT(0) )
-{
-    return cvReadInt( cvGetFileNodeByName( fs, map, name ), default_value );
-}
-
-
-CV_INLINE double cvReadReal( const CvFileNode* node, double default_value CV_DEFAULT(0.) )
-{
-    return !node ? default_value :
-        CV_NODE_IS_INT(node->tag) ? (double)node->data.i :
-        CV_NODE_IS_REAL(node->tag) ? node->data.f : 1e300;
-}
-
-
-CV_INLINE double cvReadRealByName( const CvFileStorage* fs, const CvFileNode* map,
-                        const char* name, double default_value CV_DEFAULT(0.) )
-{
-    return cvReadReal( cvGetFileNodeByName( fs, map, name ), default_value );
-}
-
-
-CV_INLINE const char* cvReadString( const CvFileNode* node,
-                        const char* default_value CV_DEFAULT(NULL) )
-{
-    return !node ? default_value : CV_NODE_IS_STRING(node->tag) ? node->data.str.ptr : 0;
-}
-
-
-CV_INLINE const char* cvReadStringByName( const CvFileStorage* fs, const CvFileNode* map,
-                        const char* name, const char* default_value CV_DEFAULT(NULL) )
-{
-    return cvReadString( cvGetFileNodeByName( fs, map, name ), default_value );
-}
-
-
-/* decodes standard or user-defined object and returns it */
-CVAPI(void*) cvRead( CvFileStorage* fs, CvFileNode* node,
-                        CvAttrList* attributes CV_DEFAULT(NULL));
-
-/* decodes standard or user-defined object and returns it */
-CV_INLINE void* cvReadByName( CvFileStorage* fs, const CvFileNode* map,
-                              const char* name, CvAttrList* attributes CV_DEFAULT(NULL) )
-{
-    return cvRead( fs, cvGetFileNodeByName( fs, map, name ), attributes );
-}
-
-
-/* starts reading data from sequence or scalar numeric node */
-CVAPI(void) cvStartReadRawData( const CvFileStorage* fs, const CvFileNode* src,
-                               CvSeqReader* reader );
-
-/* reads multiple numbers and stores them to array */
-CVAPI(void) cvReadRawDataSlice( const CvFileStorage* fs, CvSeqReader* reader,
-                               int count, void* dst, const char* dt );
-
-/* combination of two previous functions for easier reading of whole sequences */
-CVAPI(void) cvReadRawData( const CvFileStorage* fs, const CvFileNode* src,
-                          void* dst, const char* dt );
-
-/* writes a copy of file node to file storage */
-CVAPI(void) cvWriteFileNode( CvFileStorage* fs, const char* new_node_name,
-                            const CvFileNode* node, int embed );
-
-/* returns name of file node */
-CVAPI(const char*) cvGetFileNodeName( const CvFileNode* node );
-
 /*********************************** Adding own types ***********************************/
 
-CVAPI(void) cvRegisterType( const CvTypeInfo* info );
 CVAPI(void) cvUnregisterType( const char* type_name );
-CVAPI(CvTypeInfo*) cvFirstType(void);
-CVAPI(CvTypeInfo*) cvFindType( const char* type_name );
-CVAPI(CvTypeInfo*) cvTypeOf( const void* struct_ptr );
 
 /* universal functions */
 CVAPI(void) cvRelease( void** struct_ptr );
@@ -1391,17 +823,7 @@ static char cvFuncName[] = Name
 
 
 
-struct CV_EXPORTS CvType
-{
-    CvType( const char* type_name,
-            CvIsInstanceFunc is_instance, CvReleaseFunc release=0,
-            CvReadFunc read=0, CvWriteFunc write=0, CvCloneFunc clone=0 );
-    ~CvType();
-    CvTypeInfo* info;
 
-    static CvTypeInfo* first;
-    static CvTypeInfo* last;
-};
 
 #endif
 

@@ -339,34 +339,6 @@ Mat::Mat(const Mat& m, const Range* ranges) : size(&rows)
 }
 
 
-Mat::Mat(const CvMatND* m, bool copyData) : size(&rows)
-{
-    initEmpty();
-    if( !m )
-        return;
-    data = datastart = m->data.ptr;
-    flags |= CV_MAT_TYPE(m->type);
-    int _sizes[CV_MAX_DIM];
-    size_t _steps[CV_MAX_DIM];
-
-    int i, d = m->dims;
-    for( i = 0; i < d; i++ )
-    {
-        _sizes[i] = m->dim[i].size;
-        _steps[i] = m->dim[i].step;
-    }
-
-    setSize(*this, d, _sizes, _steps);
-    finalizeHdr(*this);
-
-    if( copyData )
-    {
-        Mat temp(*this);
-        temp.copyTo(*this);
-    }
-}
-
-
 Mat Mat::diag(int d) const
 {
     CV_Assert( dims <= 2 );
@@ -643,8 +615,6 @@ Mat cvarrToMat(const CvArr* arr, bool copyData,
         return Mat();
     if( CV_IS_MAT(arr) )
         return Mat((const CvMat*)arr, copyData );
-    if( CV_IS_MATND(arr) )
-        return Mat((const CvMatND*)arr, copyData );
     if( CV_IS_IMAGE(arr) )
     {
         const IplImage* iplimg = (const IplImage*)arr;
@@ -1900,7 +1870,6 @@ cv::Mat cv::Mat::cross(InputArray _m) const
 }
 
 
-////////////////////////////////////////// reduce ////////////////////////////////////////////
 
 namespace cv
 {
@@ -2038,150 +2007,6 @@ typedef void (*ReduceFunc)( const Mat& src, Mat& dst );
 #define reduceMinC32f reduceC_<float, float, OpMin<float> >
 #define reduceMinC64f reduceC_<double,double,OpMin<double> >
 
-void cv::reduce(InputArray _src, OutputArray _dst, int dim, int op, int dtype)
-{
-    Mat src = _src.getMat();
-    CV_Assert( src.dims <= 2 );
-    int op0 = op;
-    int stype = src.type(), sdepth = src.depth(), cn = src.channels();
-    if( dtype < 0 )
-        dtype = _dst.fixedType() ? _dst.type() : stype;
-    int ddepth = CV_MAT_DEPTH(dtype);
-
-    _dst.create(dim == 0 ? 1 : src.rows, dim == 0 ? src.cols : 1,
-                CV_MAKETYPE(dtype >= 0 ? dtype : stype, cn));
-    Mat dst = _dst.getMat(), temp = dst;
-
-    CV_Assert( op == CV_REDUCE_SUM || op == CV_REDUCE_MAX ||
-               op == CV_REDUCE_MIN || op == CV_REDUCE_AVG );
-    CV_Assert( src.channels() == dst.channels() );
-
-    if( op == CV_REDUCE_AVG )
-    {
-        op = CV_REDUCE_SUM;
-        if( sdepth < CV_32S && ddepth < CV_32S )
-        {
-            temp.create(dst.rows, dst.cols, CV_32SC(cn));
-            ddepth = CV_32S;
-        }
-    }
-
-    ReduceFunc func = 0;
-    if( dim == 0 )
-    {
-        if( op == CV_REDUCE_SUM )
-        {
-            if(sdepth == CV_8U && ddepth == CV_32S)
-                func = GET_OPTIMIZED(reduceSumR8u32s);
-            else if(sdepth == CV_8U && ddepth == CV_32F)
-                func = reduceSumR8u32f;
-            else if(sdepth == CV_8U && ddepth == CV_64F)
-                func = reduceSumR8u64f;
-            else if(sdepth == CV_16U && ddepth == CV_32F)
-                func = reduceSumR16u32f;
-            else if(sdepth == CV_16U && ddepth == CV_64F)
-                func = reduceSumR16u64f;
-            else if(sdepth == CV_16S && ddepth == CV_32F)
-                func = reduceSumR16s32f;
-            else if(sdepth == CV_16S && ddepth == CV_64F)
-                func = reduceSumR16s64f;
-            else if(sdepth == CV_32F && ddepth == CV_32F)
-                func = GET_OPTIMIZED(reduceSumR32f32f);
-            else if(sdepth == CV_32F && ddepth == CV_64F)
-                func = reduceSumR32f64f;
-            else if(sdepth == CV_64F && ddepth == CV_64F)
-                func = reduceSumR64f64f;
-        }
-        else if(op == CV_REDUCE_MAX)
-        {
-            if(sdepth == CV_8U && ddepth == CV_8U)
-                func = GET_OPTIMIZED(reduceMaxR8u);
-            else if(sdepth == CV_16U && ddepth == CV_16U)
-                func = reduceMaxR16u;
-            else if(sdepth == CV_16S && ddepth == CV_16S)
-                func = reduceMaxR16s;
-            else if(sdepth == CV_32F && ddepth == CV_32F)
-                func = GET_OPTIMIZED(reduceMaxR32f);
-            else if(sdepth == CV_64F && ddepth == CV_64F)
-                func = reduceMaxR64f;
-        }
-        else if(op == CV_REDUCE_MIN)
-        {
-            if(sdepth == CV_8U && ddepth == CV_8U)
-                func = GET_OPTIMIZED(reduceMinR8u);
-            else if(sdepth == CV_16U && ddepth == CV_16U)
-                func = reduceMinR16u;
-            else if(sdepth == CV_16S && ddepth == CV_16S)
-                func = reduceMinR16s;
-            else if(sdepth == CV_32F && ddepth == CV_32F)
-                func = GET_OPTIMIZED(reduceMinR32f);
-            else if(sdepth == CV_64F && ddepth == CV_64F)
-                func = reduceMinR64f;
-        }
-    }
-    else
-    {
-        if(op == CV_REDUCE_SUM)
-        {
-            if(sdepth == CV_8U && ddepth == CV_32S)
-                func = GET_OPTIMIZED(reduceSumC8u32s);
-            else if(sdepth == CV_8U && ddepth == CV_32F)
-                func = reduceSumC8u32f;
-            else if(sdepth == CV_8U && ddepth == CV_64F)
-                func = reduceSumC8u64f;
-            else if(sdepth == CV_16U && ddepth == CV_32F)
-                func = reduceSumC16u32f;
-            else if(sdepth == CV_16U && ddepth == CV_64F)
-                func = reduceSumC16u64f;
-            else if(sdepth == CV_16S && ddepth == CV_32F)
-                func = reduceSumC16s32f;
-            else if(sdepth == CV_16S && ddepth == CV_64F)
-                func = reduceSumC16s64f;
-            else if(sdepth == CV_32F && ddepth == CV_32F)
-                func = GET_OPTIMIZED(reduceSumC32f32f);
-            else if(sdepth == CV_32F && ddepth == CV_64F)
-                func = reduceSumC32f64f;
-            else if(sdepth == CV_64F && ddepth == CV_64F)
-                func = reduceSumC64f64f;
-        }
-        else if(op == CV_REDUCE_MAX)
-        {
-            if(sdepth == CV_8U && ddepth == CV_8U)
-                func = GET_OPTIMIZED(reduceMaxC8u);
-            else if(sdepth == CV_16U && ddepth == CV_16U)
-                func = reduceMaxC16u;
-            else if(sdepth == CV_16S && ddepth == CV_16S)
-                func = reduceMaxC16s;
-            else if(sdepth == CV_32F && ddepth == CV_32F)
-                func = GET_OPTIMIZED(reduceMaxC32f);
-            else if(sdepth == CV_64F && ddepth == CV_64F)
-                func = reduceMaxC64f;
-        }
-        else if(op == CV_REDUCE_MIN)
-        {
-            if(sdepth == CV_8U && ddepth == CV_8U)
-                func = GET_OPTIMIZED(reduceMinC8u);
-            else if(sdepth == CV_16U && ddepth == CV_16U)
-                func = reduceMinC16u;
-            else if(sdepth == CV_16S && ddepth == CV_16S)
-                func = reduceMinC16s;
-            else if(sdepth == CV_32F && ddepth == CV_32F)
-                func = GET_OPTIMIZED(reduceMinC32f);
-            else if(sdepth == CV_64F && ddepth == CV_64F)
-                func = reduceMinC64f;
-        }
-    }
-
-    if( !func )
-        CV_Error( CV_StsUnsupportedFormat,
-                  "Unsupported combination of input and output array formats" );
-
-    func( src, temp );
-
-    if( op0 == CV_REDUCE_AVG )
-        temp.convertTo(dst, dst.type(), 1./(dim == 0 ? src.rows : src.cols));
-}
-
 
 
 ////////////////////////////////////////// kmeans ////////////////////////////////////////////
@@ -2286,125 +2111,6 @@ private:
 }
 
 
-CV_IMPL void cvSetIdentity( CvArr* arr, CvScalar value )
-{
-    cv::Mat m = cv::cvarrToMat(arr);
-    cv::setIdentity(m, value);
-}
-
-
-
-CV_IMPL void cvTranspose( const CvArr* srcarr, CvArr* dstarr )
-{
-    cv::Mat src = cv::cvarrToMat(srcarr), dst = cv::cvarrToMat(dstarr);
-
-    CV_Assert( src.rows == dst.cols && src.cols == dst.rows && src.type() == dst.type() );
-    transpose( src, dst );
-}
-
-
-CV_IMPL void cvCompleteSymm( CvMat* matrix, int LtoR )
-{
-    cv::Mat m(matrix);
-    cv::completeSymm( m, LtoR != 0 );
-}
-
-
-CV_IMPL void cvCrossProduct( const CvArr* srcAarr, const CvArr* srcBarr, CvArr* dstarr )
-{
-    cv::Mat srcA = cv::cvarrToMat(srcAarr), dst = cv::cvarrToMat(dstarr);
-
-    CV_Assert( srcA.size() == dst.size() && srcA.type() == dst.type() );
-    srcA.cross(cv::cvarrToMat(srcBarr)).copyTo(dst);
-}
-
-
-CV_IMPL void
-cvReduce( const CvArr* srcarr, CvArr* dstarr, int dim, int op )
-{
-    cv::Mat src = cv::cvarrToMat(srcarr), dst = cv::cvarrToMat(dstarr);
-
-    if( dim < 0 )
-        dim = src.rows > dst.rows ? 0 : src.cols > dst.cols ? 1 : dst.cols == 1;
-
-    if( dim > 1 )
-        CV_Error( CV_StsOutOfRange, "The reduced dimensionality index is out of range" );
-
-    if( (dim == 0 && (dst.cols != src.cols || dst.rows != 1)) ||
-        (dim == 1 && (dst.rows != src.rows || dst.cols != 1)) )
-        CV_Error( CV_StsBadSize, "The output array size is incorrect" );
-
-    if( src.channels() != dst.channels() )
-        CV_Error( CV_StsUnmatchedFormats, "Input and output arrays must have the same number of channels" );
-
-    cv::reduce(src, dst, dim, op, dst.type());
-}
-
-
-CV_IMPL CvArr*
-cvRange( CvArr* arr, double start, double end )
-{
-    int ok = 0;
-
-    CvMat stub, *mat = (CvMat*)arr;
-    double delta;
-    int type, step;
-    double val = start;
-    int i, j;
-    int rows, cols;
-
-    if( !CV_IS_MAT(mat) )
-        mat = cvGetMat( mat, &stub);
-
-    rows = mat->rows;
-    cols = mat->cols;
-    type = CV_MAT_TYPE(mat->type);
-    delta = (end-start)/(rows*cols);
-
-    if( CV_IS_MAT_CONT(mat->type) )
-    {
-        cols *= rows;
-        rows = 1;
-        step = 1;
-    }
-    else
-        step = mat->step / CV_ELEM_SIZE(type);
-
-    if( type == CV_32SC1 )
-    {
-        int* idata = mat->data.i;
-        int ival = cvRound(val), idelta = cvRound(delta);
-
-        if( fabs(val - ival) < DBL_EPSILON &&
-            fabs(delta - idelta) < DBL_EPSILON )
-        {
-            for( i = 0; i < rows; i++, idata += step )
-                for( j = 0; j < cols; j++, ival += idelta )
-                    idata[j] = ival;
-        }
-        else
-        {
-            for( i = 0; i < rows; i++, idata += step )
-                for( j = 0; j < cols; j++, val += delta )
-                    idata[j] = cvRound(val);
-        }
-    }
-    else if( type == CV_32FC1 )
-    {
-        float* fdata = mat->data.fl;
-        for( i = 0; i < rows; i++, fdata += step )
-            for( j = 0; j < cols; j++, val += delta )
-                fdata[j] = (float)val;
-    }
-    else
-        CV_Error( CV_StsUnsupportedFormat, "The function only supports 32sC1 and 32fC1 datatypes" );
-
-    ok = 1;
-    return ok ? arr : 0;
-}
-
-
-
 
 ///////////////////////////// n-dimensional matrices ////////////////////////////
 
@@ -2426,16 +2132,6 @@ Mat Mat::reshape(int _cn, int _newndims, const int* _newsz) const
     return Mat();
 }
 
-Mat::operator CvMatND() const
-{
-    CvMatND mat;
-    cvInitMatNDHeader( &mat, dims, size, type(), data );
-    int i, d = dims;
-    for( i = 0; i < d; i++ )
-        mat.dim[i].step = (int)step[i];
-    mat.type |= flags & CONTINUOUS_FLAG;
-    return mat;
-}
 
 NAryMatIterator::NAryMatIterator()
     : arrays(0), planes(0), ptrs(0), narrays(0), nplanes(0), size(0), iterdepth(0), idx(0)
