@@ -253,8 +253,7 @@ CV_EXPORTS_W void copyMakeBorder( InputArray src, OutputArray dst,
                                 int top, int bottom, int left, int right,
                                 int borderType, const Scalar& value=Scalar() );
 
-//! smooths the image using median filter.
-CV_EXPORTS_W void medianBlur( InputArray src, OutputArray dst, int ksize );
+
 //! smooths the image using Gaussian filter.
 CV_EXPORTS_W void GaussianBlur( InputArray src,
                                                OutputArray dst, Size ksize,

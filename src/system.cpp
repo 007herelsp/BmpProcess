@@ -29,141 +29,6 @@ void Exception::formatMessage()
         msg = format("%s:%d: error: (%d) %s\n", file.c_str(), line, code, err.c_str());
 }
 
-struct HWFeatures
-{
-    enum { MAX_FEATURE = CV_HARDWARE_MAX_FEATURE };
-
-    HWFeatures(void)
-     {
-        memset( have, 0, sizeof(have) );
-        x86_family = 0;
-    }
-
-    static HWFeatures initialize(void)
-    {
-        HWFeatures f;
-        int cpuid_data[4] = { 0, 0, 0, 0 };
-
-    #if defined _MSC_VER && (defined _M_IX86 || defined _M_X64)
-        __cpuid(cpuid_data, 1);
-    #elif defined __GNUC__ && (defined __i386__ || defined __x86_64__)
-        #ifdef __x86_64__
-        asm __volatile__
-        (
-         "movl $1, %%eax\n\t"
-         "cpuid\n\t"
-         :[eax]"=a"(cpuid_data[0]),[ebx]"=b"(cpuid_data[1]),[ecx]"=c"(cpuid_data[2]),[edx]"=d"(cpuid_data[3])
-         :
-         : "cc"
-        );
-        #else
-        asm volatile
-        (
-         "pushl %%ebx\n\t"
-         "movl $1,%%eax\n\t"
-         "cpuid\n\t"
-         "popl %%ebx\n\t"
-         : "=a"(cpuid_data[0]), "=c"(cpuid_data[2]), "=d"(cpuid_data[3])
-         :
-         : "cc"
-        );
-        #endif
-    #endif
-
-        f.x86_family = (cpuid_data[0] >> 8) & 15;
-        if( f.x86_family >= 6 )
-        {
-            f.have[CV_CPU_MMX]    = (cpuid_data[3] & (1 << 23)) != 0;
-            f.have[CV_CPU_SSE]    = (cpuid_data[3] & (1<<25)) != 0;
-            f.have[CV_CPU_SSE2]   = (cpuid_data[3] & (1<<26)) != 0;
-            f.have[CV_CPU_SSE3]   = (cpuid_data[2] & (1<<0)) != 0;
-            f.have[CV_CPU_SSSE3]  = (cpuid_data[2] & (1<<9)) != 0;
-            f.have[CV_CPU_SSE4_1] = (cpuid_data[2] & (1<<19)) != 0;
-            f.have[CV_CPU_SSE4_2] = (cpuid_data[2] & (1<<20)) != 0;
-            f.have[CV_CPU_POPCNT] = (cpuid_data[2] & (1<<23)) != 0;
-            f.have[CV_CPU_AVX]    = (((cpuid_data[2] & (1<<28)) != 0)&&((cpuid_data[2] & (1<<27)) != 0));//OS uses XSAVE_XRSTORE and CPU support AVX
-        }
-
-    #if defined _MSC_VER && (defined _M_IX86 || defined _M_X64)
-        __cpuidex(cpuid_data, 7, 0);
-    #elif defined __GNUC__ && (defined __i386__ || defined __x86_64__)
-        #ifdef __x86_64__
-        asm __volatile__
-        (
-         "movl $7, %%eax\n\t"
-         "movl $0, %%ecx\n\t"
-         "cpuid\n\t"
-         :[eax]"=a"(cpuid_data[0]),[ebx]"=b"(cpuid_data[1]),[ecx]"=c"(cpuid_data[2]),[edx]"=d"(cpuid_data[3])
-         :
-         : "cc"
-        );
-        #else
-        // We need to preserve ebx since we are compiling PIC code.
-        // This means we cannot use "=b" for the 2nd output register.
-        asm volatile
-        (
-         "pushl %%ebx\n\t"
-         "movl $7,%%eax\n\t"
-         "movl $0,%%ecx\n\t"
-         "cpuid\n\t"
-         "movl %%ebx,%1\n\t"
-         "popl %%ebx\n\t"
-         : "=a"(cpuid_data[0]), "=r"(cpuid_data[1]), "=c"(cpuid_data[2]), "=d"(cpuid_data[3])
-         :
-         : "cc"
-        );
-        #endif
-    #endif
-
-        if( f.x86_family >= 6 )
-        {
-            f.have[CV_CPU_AVX2] = (cpuid_data[1] & (1<<5)) != 0;
-        }
-
-        return f;
-    }
-
-    int x86_family;
-    bool have[MAX_FEATURE+1];
-};
-
-static HWFeatures  featuresEnabled = HWFeatures::initialize(), featuresDisabled = HWFeatures();
-static HWFeatures* currentFeatures = &featuresEnabled;
-
-
-
-
-volatile bool useOptimizedFlag = true;
-
-volatile bool USE_SSE2 = featuresEnabled.have[CV_CPU_SSE2];
-volatile bool USE_SSE4_2 = featuresEnabled.have[CV_CPU_SSE4_2];
-volatile bool USE_AVX = featuresEnabled.have[CV_CPU_AVX];
-
-void setUseOptimized( bool flag )
-{
-    useOptimizedFlag = flag;
-    currentFeatures = flag ? &featuresEnabled : &featuresDisabled;
-    USE_SSE2 = currentFeatures->have[CV_CPU_SSE2];
-}
-
-bool useOptimized(void)
-{
-    return useOptimizedFlag;
-}
-
-int64 getTickCount(void)
-{
-	return 0;
-}
-
-double getTickFrequency(void)
-{
-	return 0;
-}
-
-
-
-
 
 string format( const char* fmt, ... )
 {
@@ -179,12 +44,6 @@ static CvErrorCallback customErrorCallback = 0;
 static void* customErrorCallbackData = 0;
 static bool breakOnError = false;
 
-bool setBreakOnError(bool value)
-{
-    bool prevVal = breakOnError;
-    breakOnError = value;
-    return prevVal;
-}
 
 void error( const Exception& exc )
 {
@@ -213,69 +72,9 @@ void error( const Exception& exc )
     throw exc;
 }
 
-CvErrorCallback
-redirectError( CvErrorCallback errCallback, void* userdata, void** prevUserdata)
-{
-    if( prevUserdata )
-        *prevUserdata = customErrorCallbackData;
-
-    CvErrorCallback prevCallback = customErrorCallback;
-
-    customErrorCallback     = errCallback;
-    customErrorCallbackData = userdata;
-
-    return prevCallback;
-}
-
 }
 
 
-
-CV_IMPL int cvUseOptimized( int flag )
-{
-    int prevMode = cv::useOptimizedFlag;
-    cv::setUseOptimized( flag != 0 );
-    return prevMode;
-}
-
-CV_IMPL int64  cvGetTickCount(void)
-{
-    return cv::getTickCount();
-}
-
-CV_IMPL double cvGetTickFrequency(void)
-{
-    return cv::getTickFrequency()*1e-6;
-}
-
-CV_IMPL CvErrorCallback
-cvRedirectError( CvErrorCallback errCallback, void* userdata, void** prevUserdata)
-{
-    return cv::redirectError(errCallback, userdata, prevUserdata);
-}
-
-CV_IMPL int cvNulDevReport( int, const char*, const char*,
-                            const char*, int, void* )
-{
-    return 0;
-}
-
-CV_IMPL int cvStdErrReport( int, const char*, const char*,
-                            const char*, int, void* )
-{
-    return 0;
-}
-
-CV_IMPL int cvGuiBoxReport( int, const char*, const char*,
-                            const char*, int, void* )
-{
-    return 0;
-}
-
-CV_IMPL int cvGetErrInfo( const char**, const char**, const char**, int* )
-{
-    return 0;
-}
 
 
 CV_IMPL const char* cvErrorStr( int status )
@@ -347,38 +146,6 @@ CV_IMPL void cvError( int code, const char* func_name,
                       const char* file_name, int line )
 {
     cv::error(cv::Exception(code, err_msg, func_name, file_name, line));
-}
-
-/* function, which converts int to int */
-CV_IMPL int
-cvErrorFromIppStatus( int status )
-{
-    switch (status)
-    {
-    case CV_BADSIZE_ERR:               return CV_StsBadSize;
-    case CV_BADMEMBLOCK_ERR:           return CV_StsBadMemBlock;
-    case CV_NULLPTR_ERR:               return CV_StsNullPtr;
-    case CV_DIV_BY_ZERO_ERR:           return CV_StsDivByZero;
-    case CV_BADSTEP_ERR:               return CV_BadStep;
-    case CV_OUTOFMEM_ERR:              return CV_StsNoMem;
-    case CV_BADARG_ERR:                return CV_StsBadArg;
-    case CV_NOTDEFINED_ERR:            return CV_StsError;
-    case CV_INPLACE_NOT_SUPPORTED_ERR: return CV_StsInplaceNotSupported;
-    case CV_NOTFOUND_ERR:              return CV_StsObjectNotFound;
-    case CV_BADCONVERGENCE_ERR:        return CV_StsNoConv;
-    case CV_BADDEPTH_ERR:              return CV_BadDepth;
-    case CV_UNMATCHED_FORMATS_ERR:     return CV_StsUnmatchedFormats;
-    case CV_UNSUPPORTED_COI_ERR:       return CV_BadCOI;
-    case CV_UNSUPPORTED_CHANNELS_ERR:  return CV_BadNumChannels;
-    case CV_BADFLAG_ERR:               return CV_StsBadFlag;
-    case CV_BADRANGE_ERR:              return CV_StsBadArg;
-    case CV_BADCOEF_ERR:               return CV_StsBadArg;
-    case CV_BADFACTOR_ERR:             return CV_StsBadArg;
-    case CV_BADPOINT_ERR:              return CV_StsBadPoint;
-
-    default:
-      return CV_StsError;
-    }
 }
 
 

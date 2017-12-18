@@ -157,60 +157,13 @@ void MatOp::diag(const MatExpr& expr, int d, MatExpr& e) const
 }
 
 
-void MatOp::augAssignAdd(const MatExpr& expr, Mat& m) const
-{
-    Mat temp;
-    expr.op->assign(expr, temp);
-    m += temp;
-}
 
 
-void MatOp::augAssignSubtract(const MatExpr& expr, Mat& m) const
-{
-    Mat temp;
-    expr.op->assign(expr, temp);
-    m -= temp;
-}
 
 
-void MatOp::augAssignMultiply(const MatExpr& expr, Mat& m) const
-{
-    Mat temp;
-    expr.op->assign(expr, temp);
-    m *= temp;
-}
 
 
-void MatOp::augAssignDivide(const MatExpr& expr, Mat& m) const
-{
-    Mat temp;
-    expr.op->assign(expr, temp);
-    m /= temp;
-}
 
-
-void MatOp::augAssignAnd(const MatExpr& expr, Mat& m) const
-{
-    Mat temp;
-    expr.op->assign(expr, temp);
-    m &= temp;
-}
-
-
-void MatOp::augAssignOr(const MatExpr& expr, Mat& m) const
-{
-    Mat temp;
-    expr.op->assign(expr, temp);
-    m |= temp;
-}
-
-
-void MatOp::augAssignXor(const MatExpr& expr, Mat& m) const
-{
-    Mat temp;
-    expr.op->assign(expr, temp);
-    m ^= temp;
-}
 
 
 void MatOp::add(const MatExpr& e1, const MatExpr& e2, MatExpr& res) const

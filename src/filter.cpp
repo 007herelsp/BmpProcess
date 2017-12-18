@@ -94,7 +94,8 @@ void cv::crossCorr( const Mat& img, const Mat& _templ, Mat& corr,
             Mat part(dst, Range(0, templ.rows), Range(templ.cols, dst.cols));
             part = Scalar::all(0);
         }
-        dft(dst, dst, 0, templ.rows);
+        //dft(dst, dst, 0, templ.rows);
+		assert("herelsp remove" && 0);
     }
 
     int tileCountX = (corr.cols + blocksize.width - 1)/blocksize.width;
@@ -149,12 +150,12 @@ void cv::crossCorr( const Mat& img, const Mat& _templ, Mat& corr,
             if( x2 - x1 < dsz.width || y2 - y1 < dsz.height )
                 copyMakeBorder(dst1, dst, y1-y0, dst.rows-dst1.rows-(y1-y0),
                                x1-x0, dst.cols-dst1.cols-(x1-x0), borderType);
-
-            dft( dftImg, dftImg, 0, dsz.height );
+			assert("herelsp remove" && 0);
+            //dft( dftImg, dftImg, 0, dsz.height );
             Mat dftTempl1(dftTempl, Rect(0, tcn > 1 ? k*dftsize.height : 0,
                                          dftsize.width, dftsize.height));
             mulSpectrums(dftImg, dftTempl1, dftImg, 0, true);
-            dft( dftImg, dftImg, DFT_INVERSE + DFT_SCALE, bsz.height );
+            assert("herelsp remove" && 0);//dft( dftImg, dftImg, DFT_INVERSE + DFT_SCALE, bsz.height );
 
             src = dftImg(Rect(0, 0, bsz.width, bsz.height));
 

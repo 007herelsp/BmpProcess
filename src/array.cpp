@@ -249,130 +249,6 @@ cvCloneMatND( const CvMatND* src )
 
 
 
-
-
-
-/****************************************************************************************\
-*                            CvSparseMat creation and basic operations                   *
-\****************************************************************************************/
-
-
-// Creates CvMatND and underlying data
-CV_IMPL CvSparseMat*
-cvCreateSparseMat( int dims, const int* sizes, int type )
-{
-    type = CV_MAT_TYPE( type );
-    int pix_size1 = CV_ELEM_SIZE1(type);
-    int pix_size = pix_size1*CV_MAT_CN(type);
-    int i, size;
-    CvMemStorage* storage;
-
-    if( pix_size == 0 )
-        CV_Error( CV_StsUnsupportedFormat, "invalid array data type" );
-
-    if( dims <= 0 || dims > CV_MAX_DIM_HEAP )
-        CV_Error( CV_StsOutOfRange, "bad number of dimensions" );
-
-    if( !sizes )
-        CV_Error( CV_StsNullPtr, "NULL <sizes> pointer" );
-
-    for( i = 0; i < dims; i++ )
-    {
-        if( sizes[i] <= 0 )
-            CV_Error( CV_StsBadSize, "one of dimesion sizes is non-positive" );
-    }
-
-    CvSparseMat* arr = (CvSparseMat*)cvAlloc(sizeof(*arr)+MAX(0,dims-CV_MAX_DIM)*sizeof(arr->size[0]));
-
-    arr->type = CV_SPARSE_MAT_MAGIC_VAL | type;
-    arr->dims = dims;
-    arr->refcount = 0;
-    arr->hdr_refcount = 1;
-    memcpy( arr->size, sizes, dims*sizeof(sizes[0]));
-
-    arr->valoffset = (int)cvAlign(sizeof(CvSparseNode), pix_size1);
-    arr->idxoffset = (int)cvAlign(arr->valoffset + pix_size, sizeof(int));
-    size = (int)cvAlign(arr->idxoffset + dims*sizeof(int), sizeof(CvSetElem));
-
-    storage = cvCreateMemStorage( CV_SPARSE_MAT_BLOCK );
-    arr->heap = cvCreateSet( 0, sizeof(CvSet), size, storage );
-
-    arr->hashsize = CV_SPARSE_HASH_SIZE0;
-    size = arr->hashsize*sizeof(arr->hashtable[0]);
-
-    arr->hashtable = (void**)cvAlloc( size );
-    memset( arr->hashtable, 0, size );
-
-    return arr;
-}
-
-
-// Creates CvMatND and underlying data
-CV_IMPL void
-cvReleaseSparseMat( CvSparseMat** array )
-{
-    if( !array )
-        CV_Error( CV_HeaderIsNull, "" );
-
-    if( *array )
-    {
-        CvSparseMat* arr = *array;
-
-        if( !CV_IS_SPARSE_MAT_HDR(arr) )
-            CV_Error( CV_StsBadFlag, "" );
-
-        *array = 0;
-
-        CvMemStorage* storage = arr->heap->storage;
-        cvReleaseMemStorage( &storage );
-        cvFree( &arr->hashtable );
-        cvFree( &arr );
-    }
-}
-
-
-// Creates CvMatND and underlying data
-CV_IMPL CvSparseMat*
-cvCloneSparseMat( const CvSparseMat* src )
-{
-    if( !CV_IS_SPARSE_MAT_HDR(src) )
-        CV_Error( CV_StsBadArg, "Invalid sparse array header" );
-
-    CvSparseMat* dst = cvCreateSparseMat( src->dims, src->size, src->type );
-    cvCopy( src, dst );
-    return dst;
-}
-
-
-CvSparseNode*
-cvInitSparseMatIterator( const CvSparseMat* mat, CvSparseMatIterator* iterator )
-{
-    CvSparseNode* node = 0;
-    int idx;
-
-    if( !CV_IS_SPARSE_MAT( mat ))
-        CV_Error( CV_StsBadArg, "Invalid sparse matrix header" );
-
-    if( !iterator )
-        CV_Error( CV_StsNullPtr, "NULL iterator pointer" );
-
-    iterator->mat = (CvSparseMat*)mat;
-    iterator->node = 0;
-
-    for( idx = 0; idx < mat->hashsize; idx++ )
-        if( mat->hashtable[idx] )
-        {
-            node = iterator->node = (CvSparseNode*)mat->hashtable[idx];
-            break;
-        }
-
-    iterator->curidx = idx;
-    return node;
-}
-
-
-
-
 /****************************************************************************************\
 *                          Common for multiple array types operations                    *
 \****************************************************************************************/
@@ -1390,8 +1266,6 @@ template<> void Ptr<IplImage>::delete_obj()
 template<> void Ptr<CvMatND>::delete_obj()
 { cvReleaseMatND(&obj); }
 
-template<> void Ptr<CvSparseMat>::delete_obj()
-{ cvReleaseSparseMat(&obj); }
 
 template<> void Ptr<CvMemStorage>::delete_obj()
 { cvReleaseMemStorage(&obj); }

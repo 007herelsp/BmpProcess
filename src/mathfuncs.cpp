@@ -1218,7 +1218,6 @@ void sqrt(InputArray a, OutputArray b)
 /************************** CheckArray for NaN's, Inf's *********************************/
 
 
-
 void patchNaNs( InputOutputArray _a, double _val )
 {
     Mat a = _a.getMat();

@@ -56,11 +56,9 @@
 #include <limits.h>
 #include <float.h>
 
-#ifdef HAVE_TEGRA_OPTIMIZATION
-#include "opencv2/imgproc/imgproc_tegra.hpp"
-#else
+
 #define GET_OPTIMIZED(func) (func)
-#endif
+
 
 /* helper tables */
 extern const uchar icvSaturate8u_cv[];
@@ -97,16 +95,6 @@ void crossCorr( const Mat& src, const Mat& templ, Mat& dst,
 
 }
 
-typedef struct CvPyramid
-{
-    uchar **ptr;
-    CvSize *sz;
-    double *rate;
-    int *step;
-    uchar *state;
-    int level;
-}
-CvPyramid;
 
 #define  CV_COPY( dst, src, len, idx ) \
     for( (idx) = 0; (idx) < (len); (idx)++) (dst)[idx] = (src)[idx]
@@ -144,6 +132,5 @@ CvStatus CV_STDCALL icvGetQuadrangleSubPix_32f_C1R
 ( const float* src, int src_step, CvSize src_size,
   float* dst, int dst_step, CvSize win_size, const float *matrix );
 
-#include "_geom.h"
 
 #endif /*__OPENCV_CV_INTERNAL_H_*/

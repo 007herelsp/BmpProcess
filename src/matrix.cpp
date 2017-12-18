@@ -1700,37 +1700,6 @@ void cv::setIdentity( InputOutputArray _m, const Scalar& s )
     }
 }
 
-//////////////////////////////////////////// trace ///////////////////////////////////////////
-
-cv::Scalar cv::trace( InputArray _m )
-{
-    Mat m = _m.getMat();
-    CV_Assert( m.dims <= 2 );
-    int i, type = m.type();
-    int nm = std::min(m.rows, m.cols);
-
-    if( type == CV_32FC1 )
-    {
-        const float* ptr = (const float*)m.data;
-        size_t step = m.step/sizeof(ptr[0]) + 1;
-        double _s = 0;
-        for( i = 0; i < nm; i++ )
-            _s += ptr[i*step];
-        return _s;
-    }
-
-    if( type == CV_64FC1 )
-    {
-        const double* ptr = (const double*)m.data;
-        size_t step = m.step/sizeof(ptr[0]) + 1;
-        double _s = 0;
-        for( i = 0; i < nm; i++ )
-            _s += ptr[i*step];
-        return _s;
-    }
-
-    return cv::sum(m.diag());
-}
 
 ////////////////////////////////////// transpose /////////////////////////////////////////
 
@@ -2214,147 +2183,6 @@ void cv::reduce(InputArray _src, OutputArray _dst, int dim, int op, int dtype)
 }
 
 
-//////////////////////////////////////// sort ///////////////////////////////////////////
-
-namespace cv
-{
-
-template<typename T> static void sort_( const Mat& src, Mat& dst, int flags )
-{
-    AutoBuffer<T> buf;
-    T* bptr;
-    int i, j, n, len;
-    bool sortRows = (flags & 1) == CV_SORT_EVERY_ROW;
-    bool inplace = src.data == dst.data;
-    bool sortDescending = (flags & CV_SORT_DESCENDING) != 0;
-
-    if( sortRows )
-        n = src.rows, len = src.cols;
-    else
-    {
-        n = src.cols, len = src.rows;
-        buf.allocate(len);
-    }
-    bptr = (T*)buf;
-
-    for( i = 0; i < n; i++ )
-    {
-        T* ptr = bptr;
-        if( sortRows )
-        {
-            T* dptr = (T*)(dst.data + dst.step*i);
-            if( !inplace )
-            {
-                const T* sptr = (const T*)(src.data + src.step*i);
-                for( j = 0; j < len; j++ )
-                    dptr[j] = sptr[j];
-            }
-            ptr = dptr;
-        }
-        else
-        {
-            for( j = 0; j < len; j++ )
-                ptr[j] = ((const T*)(src.data + src.step*j))[i];
-        }
-        std::sort( ptr, ptr + len, LessThan<T>() );
-        if( sortDescending )
-            for( j = 0; j < len/2; j++ )
-                std::swap(ptr[j], ptr[len-1-j]);
-        if( !sortRows )
-            for( j = 0; j < len; j++ )
-                ((T*)(dst.data + dst.step*j))[i] = ptr[j];
-    }
-}
-
-
-template<typename T> static void sortIdx_( const Mat& src, Mat& dst, int flags )
-{
-    AutoBuffer<T> buf;
-    AutoBuffer<int> ibuf;
-    T* bptr;
-    int* _iptr;
-    int i, j, n, len;
-    bool sortRows = (flags & 1) == CV_SORT_EVERY_ROW;
-    bool sortDescending = (flags & CV_SORT_DESCENDING) != 0;
-
-    CV_Assert( src.data != dst.data );
-
-    if( sortRows )
-        n = src.rows, len = src.cols;
-    else
-    {
-        n = src.cols, len = src.rows;
-        buf.allocate(len);
-        ibuf.allocate(len);
-    }
-    bptr = (T*)buf;
-    _iptr = (int*)ibuf;
-
-    for( i = 0; i < n; i++ )
-    {
-        T* ptr = bptr;
-        int* iptr = _iptr;
-
-        if( sortRows )
-        {
-            ptr = (T*)(src.data + src.step*i);
-            iptr = (int*)(dst.data + dst.step*i);
-        }
-        else
-        {
-            for( j = 0; j < len; j++ )
-                ptr[j] = ((const T*)(src.data + src.step*j))[i];
-        }
-        for( j = 0; j < len; j++ )
-            iptr[j] = j;
-        std::sort( iptr, iptr + len, LessThanIdx<T>(ptr) );
-        if( sortDescending )
-            for( j = 0; j < len/2; j++ )
-                std::swap(iptr[j], iptr[len-1-j]);
-        if( !sortRows )
-            for( j = 0; j < len; j++ )
-                ((int*)(dst.data + dst.step*j))[i] = iptr[j];
-    }
-}
-
-typedef void (*SortFunc)(const Mat& src, Mat& dst, int flags);
-
-}
-
-void cv::sort( InputArray _src, OutputArray _dst, int flags )
-{
-    static SortFunc tab[] =
-    {
-        sort_<uchar>, sort_<schar>, sort_<ushort>, sort_<short>,
-        sort_<int>, sort_<float>, sort_<double>, 0
-    };
-    Mat src = _src.getMat();
-    SortFunc func = tab[src.depth()];
-    CV_Assert( src.dims <= 2 && src.channels() == 1 && func != 0 );
-    _dst.create( src.size(), src.type() );
-    Mat dst = _dst.getMat();
-    func( src, dst, flags );
-}
-
-void cv::sortIdx( InputArray _src, OutputArray _dst, int flags )
-{
-    static SortFunc tab[] =
-    {
-        sortIdx_<uchar>, sortIdx_<schar>, sortIdx_<ushort>, sortIdx_<short>,
-        sortIdx_<int>, sortIdx_<float>, sortIdx_<double>, 0
-    };
-    Mat src = _src.getMat();
-    SortFunc func = tab[src.depth()];
-    CV_Assert( src.dims <= 2 && src.channels() == 1 && func != 0 );
-
-    Mat dst = _dst.getMat();
-    if( dst.data == src.data )
-        _dst.release();
-    _dst.create( src.size(), CV_32S );
-    dst = _dst.getMat();
-    func( src, dst, flags );
-}
-
 
 ////////////////////////////////////////// kmeans ////////////////////////////////////////////
 
@@ -2464,11 +2292,6 @@ CV_IMPL void cvSetIdentity( CvArr* arr, CvScalar value )
     cv::setIdentity(m, value);
 }
 
-
-CV_IMPL CvScalar cvTrace( const CvArr* arr )
-{
-    return cv::trace(cv::cvarrToMat(arr));
-}
 
 
 CV_IMPL void cvTranspose( const CvArr* srcarr, CvArr* dstarr )
@@ -2581,28 +2404,6 @@ cvRange( CvArr* arr, double start, double end )
 }
 
 
-CV_IMPL void
-cvSort( const CvArr* _src, CvArr* _dst, CvArr* _idx, int flags )
-{
-    cv::Mat src = cv::cvarrToMat(_src);
-
-    if( _idx )
-    {
-        cv::Mat idx0 = cv::cvarrToMat(_idx), idx = idx0;
-        CV_Assert( src.size() == idx.size() && idx.type() == CV_32S && src.data != idx.data );
-        cv::sortIdx( src, idx, flags );
-        CV_Assert( idx0.data == idx.data );
-    }
-
-    if( _dst )
-    {
-        cv::Mat dst0 = cv::cvarrToMat(_dst), dst = dst0;
-        CV_Assert( src.size() == dst.size() && src.type() == dst.type() );
-        cv::sort( src, dst, flags );
-        CV_Assert( dst0.data == dst.data );
-    }
-}
-
 
 
 ///////////////////////////// n-dimensional matrices ////////////////////////////
@@ -2639,6 +2440,7 @@ Mat::operator CvMatND() const
 NAryMatIterator::NAryMatIterator()
     : arrays(0), planes(0), ptrs(0), narrays(0), nplanes(0), size(0), iterdepth(0), idx(0)
 {
+    int i=0;
 }
 
 NAryMatIterator::NAryMatIterator(const Mat** _arrays, Mat* _planes, int _narrays)

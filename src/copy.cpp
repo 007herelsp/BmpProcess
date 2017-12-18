@@ -476,41 +476,6 @@ Mat repeat(const Mat& src, int ny, int nx)
 CV_IMPL void
 cvCopy( const void* srcarr, void* dstarr, const void* maskarr )
 {
-    if( CV_IS_SPARSE_MAT(srcarr) && CV_IS_SPARSE_MAT(dstarr))
-    {
-        CV_Assert( maskarr == 0 );
-        CvSparseMat* src1 = (CvSparseMat*)srcarr;
-        CvSparseMat* dst1 = (CvSparseMat*)dstarr;
-        CvSparseMatIterator iterator;
-        CvSparseNode* node;
-
-        dst1->dims = src1->dims;
-        memcpy( dst1->size, src1->size, src1->dims*sizeof(src1->size[0]));
-        dst1->valoffset = src1->valoffset;
-        dst1->idxoffset = src1->idxoffset;
-        cvClearSet( dst1->heap );
-
-        if( src1->heap->active_count >= dst1->hashsize*CV_SPARSE_HASH_RATIO )
-        {
-            cvFree( &dst1->hashtable );
-            dst1->hashsize = src1->hashsize;
-            dst1->hashtable =
-                (void**)cvAlloc( dst1->hashsize*sizeof(dst1->hashtable[0]));
-        }
-
-        memset( dst1->hashtable, 0, dst1->hashsize*sizeof(dst1->hashtable[0]));
-
-        for( node = cvInitSparseMatIterator( src1, &iterator );
-             node != 0; node = cvGetNextSparseNode( &iterator ))
-        {
-            CvSparseNode* node_copy = (CvSparseNode*)cvSetNew( dst1->heap );
-            int tabidx = node->hashval & (dst1->hashsize - 1);
-            memcpy( node_copy, node, dst1->heap->elem_size );
-            node_copy->next = (CvSparseNode*)dst1->hashtable[tabidx];
-            dst1->hashtable[tabidx] = node_copy;
-        }
-        return;
-    }
     cv::Mat src = cv::cvarrToMat(srcarr, false, true, 1), dst = cv::cvarrToMat(dstarr, false, true, 1);
     CV_Assert( src.depth() == dst.depth() && src.size == dst.size );
 

@@ -215,10 +215,7 @@ CVAPI(void)  cvReleaseSparseMat( CvSparseMat** mat );
 /* Creates a copy of CvSparseMat (except, may be, zero items) */
 CVAPI(CvSparseMat*) cvCloneSparseMat( const CvSparseMat* mat );
 
-/* Initializes sparse array iterator
-   (returns the first node or NULL if the array is empty) */
-CVAPI(CvSparseNode*) cvInitSparseMatIterator( const CvSparseMat* mat,
-                                              CvSparseMatIterator* mat_iterator );
+
 
 // returns next sparse array node (or NULL if there is no more nodes)
 CV_INLINE CvSparseNode* cvGetNextSparseNode( CvSparseMatIterator* mat_iterator )
@@ -1248,7 +1245,6 @@ CVAPI(void*) cvClone( const void* struct_ptr );
 
 /* helper functions for RNG initialization and accurate time measurement:
    uses internal clock counter on x86 */
-CVAPI(int64)  cvGetTickCount( void );
 CVAPI(double) cvGetTickFrequency( void );
 
 /*********************************** CPU capabilities ***********************************/
@@ -1303,35 +1299,14 @@ CVAPI(void) cvError( int status, const char* func_name,
 /* Retrieves textual description of the error given its code */
 CVAPI(const char*) cvErrorStr( int status );
 
-/* Retrieves detailed information about the last error occured */
-CVAPI(int) cvGetErrInfo( const char** errcode_desc, const char** description,
-                        const char** filename, int* line );
 
-/* Maps IPP error codes to the counterparts from OpenCV */
-CVAPI(int) cvErrorFromIppStatus( int ipp_status );
 
 typedef int (CV_CDECL *CvErrorCallback)( int status, const char* func_name,
                                         const char* err_msg, const char* file_name, int line, void* userdata );
 
-/* Assigns a new error-handling function */
-CVAPI(CvErrorCallback) cvRedirectError( CvErrorCallback error_handler,
-                                       void* userdata CV_DEFAULT(NULL),
-                                       void** prev_userdata CV_DEFAULT(NULL) );
 
-/*
- Output to:
- cvNulDevReport - nothing
- cvStdErrReport - console(fprintf(stderr,...))
- cvGuiBoxReport - MessageBox(WIN32)
- */
-CVAPI(int) cvNulDevReport( int status, const char* func_name, const char* err_msg,
-                          const char* file_name, int line, void* userdata );
 
-CVAPI(int) cvStdErrReport( int status, const char* func_name, const char* err_msg,
-                          const char* file_name, int line, void* userdata );
 
-CVAPI(int) cvGuiBoxReport( int status, const char* func_name, const char* err_msg,
-                          const char* file_name, int line, void* userdata );
 
 #define OPENCV_ERROR(status,func,context)                           \
 cvError((status),(func),(context),__FILE__,__LINE__)

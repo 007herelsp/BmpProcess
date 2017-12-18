@@ -42,11 +42,6 @@ template<typename _Tp, int m, int n> class Matx;
 typedef std::string String;
 
 class Mat;
-typedef Mat MatND;
-
-
-
-
 class CV_EXPORTS MatExpr;
 class CV_EXPORTS MatOp_Base;
 class CV_EXPORTS MatArg;
@@ -57,12 +52,6 @@ template<typename _Tp> class MatIterator_;
 template<typename _Tp> class MatConstIterator_;
 template<typename _Tp> class MatCommaInitializer_;
 
-#if !defined(ANDROID) || (defined(_GLIBCXX_USE_WCHAR_T) && _GLIBCXX_USE_WCHAR_T)
-typedef std::basic_string<wchar_t> WString;
-
-CV_EXPORTS string fromUtf16(const WString& str);
-CV_EXPORTS WString toUtf16(const string& str);
-#endif
 
 CV_EXPORTS string format( const char* fmt, ... );
 
@@ -121,33 +110,11 @@ public:
  */
 CV_EXPORTS void error( const Exception& exc );
 
-//! Sets/resets the break-on-error mode.
 
-/*!
-  When the break-on-error mode is set, the default error handler
-  issues a hardware exception, which can make debugging more convenient.
-
-  \return the previous state
- */
-CV_EXPORTS bool setBreakOnError(bool flag);
-
-typedef int (CV_CDECL *ErrorCallback)( int status, const char* func_name,
-                                       const char* err_msg, const char* file_name,
-                                       int line, void* userdata );
 
 //! Sets the new error handler and the optional user data.
 
-/*!
-  The function sets the new error handler, called from cv::error().
 
-  \param errCallback the new error handler. If NULL, the default error handler is used.
-  \param userdata the optional user data pointer, passed to the callback.
-  \param prevUserdata the optional output parameter where the previous user data pointer is stored
-
-  \return the previous error handler
-*/
-CV_EXPORTS ErrorCallback redirectError( ErrorCallback errCallback,
-                                        void* userdata=0, void** prevUserdata=0);
 
 
 #if defined __GNUC__
@@ -168,51 +135,7 @@ CV_EXPORTS ErrorCallback redirectError( ErrorCallback errCallback,
 #define CV_DbgAssert(expr)
 #endif
 
-CV_EXPORTS void glob(String pattern, std::vector<String>& result, bool recursive = false);
 
-CV_EXPORTS_W void setNumThreads(int nthreads);
-CV_EXPORTS_W int getNumThreads();
-CV_EXPORTS_W int getThreadNum();
-
-CV_EXPORTS_W const string& getBuildInformation();
-
-//! Returns the number of ticks.
-
-/*!
-  The function returns the number of ticks since the certain event (e.g. when the machine was turned on).
-  It can be used to initialize cv::RNG or to measure a function execution time by reading the tick count
-  before and after the function call. The granularity of ticks depends on the hardware and OS used. Use
-  cv::getTickFrequency() to convert ticks to seconds.
-*/
-CV_EXPORTS_W int64 getTickCount();
-
-/*!
-  Returns the number of ticks per seconds.
-
-  The function returns the number of ticks (as returned by cv::getTickCount()) per second.
-  The following code computes the execution time in milliseconds:
-
-  \code
-  double exec_time = (double)getTickCount();
-  // do something ...
-  exec_time = ((double)getTickCount() - exec_time)*1000./getTickFrequency();
-  \endcode
-*/
-CV_EXPORTS_W double getTickFrequency();
-
-/*!
-  Returns the number of CPU ticks.
-
-  On platforms where the feature is available, the function returns the number of CPU ticks
-  since the certain event (normally, the system power-on moment). Using this function
-  one can accurately measure the execution time of very small code fragments,
-  for which cv::getTickCount() granularity is not enough.
-*/
-CV_EXPORTS_W int64 getCPUTickCount();
-
-
-//! returns the number of CPUs (including hyper-threading)
-CV_EXPORTS_W int getNumberOfCPUs();
 
 /*!
   Allocates memory buffer
@@ -266,23 +189,8 @@ static inline size_t alignSize(size_t sz, int n)
     return (sz + n-1) & -n;
 }
 
-/*!
-  Turns on/off available optimization
 
-  The function turns on or off the optimized code in OpenCV. Some optimization can not be enabled
-  or disabled, but, for example, most of SSE code in OpenCV can be temporarily turned on or off this way.
 
-  \note{Since optimization may imply using special data structures, it may be unsafe
-  to call this function anywhere in the code. Instead, call it somewhere at the top level.}
-*/
-CV_EXPORTS_W void setUseOptimized(bool onoff);
-
-/*!
-  Returns the current optimization status
-
-  The function returns the current optimization status, which is controlled by cv::setUseOptimized().
-*/
-CV_EXPORTS_W bool useOptimized();
 
 /*!
   The STL-compilant memory Allocator based on cv::fastMalloc() and cv::fastFree()
@@ -2124,10 +2032,8 @@ CV_EXPORTS_W double Mahalanobis(InputArray v1, InputArray v2, InputArray icovar)
 //! a synonym for Mahalanobis
 CV_EXPORTS double Mahalonobis(InputArray v1, InputArray v2, InputArray icovar);
 
-//! performs forward or inverse 1D or 2D Discrete Fourier Transformation
-CV_EXPORTS_W void dft(InputArray src, OutputArray dst, int flags=0, int nonzeroRows=0);
-//! performs inverse 1D or 2D Discrete Fourier Transformation
-CV_EXPORTS_W void idft(InputArray src, OutputArray dst, int flags=0, int nonzeroRows=0);
+
+
 //! performs forward or inverse 1D or 2D Discrete Cosine Transformation
 CV_EXPORTS_W void dct(InputArray src, OutputArray dst, int flags=0);
 //! performs inverse 1D or 2D Discrete Cosine Transformation
@@ -3708,112 +3614,6 @@ template<> struct ParamType<uchar>
     enum { type = Param::UCHAR };
 };
 
-/*!
-"\nThe CommandLineParser class is designed for command line arguments parsing\n"
-           "Keys map: \n"
-           "Before you start to work with CommandLineParser you have to create a map for keys.\n"
-           "    It will look like this\n"
-           "    const char* keys =\n"
-           "    {\n"
-           "        {    s|  string|  123asd |string parameter}\n"
-           "        {    d|  digit |  100    |digit parameter }\n"
-           "        {    c|noCamera|false    |without camera  }\n"
-           "        {    1|        |some text|help            }\n"
-           "        {    2|        |333      |another help    }\n"
-           "    };\n"
-           "Usage syntax: \n"
-           "    \"{\" - start of parameter string.\n"
-           "    \"}\" - end of parameter string\n"
-           "    \"|\" - separator between short name, full name, default value and help\n"
-           "Supported syntax: \n"
-           "    --key1=arg1  <If a key with '--' must has an argument\n"
-           "                  you have to assign it through '=' sign.> \n"
-           "<If the key with '--' doesn't have any argument, it means that it is a bool key>\n"
-           "    -key2=arg2   <If a key with '-' must has an argument \n"
-           "                  you have to assign it through '=' sign.> \n"
-           "If the key with '-' doesn't have any argument, it means that it is a bool key\n"
-           "    key3                 <This key can't has any parameter> \n"
-           "Usage: \n"
-           "      Imagine that the input parameters are next:\n"
-           "                -s=string_value --digit=250 --noCamera lena.jpg 10000\n"
-           "    CommandLineParser parser(argc, argv, keys) - create a parser object\n"
-           "    parser.get<string>(\"s\" or \"string\") will return you first parameter value\n"
-           "    parser.get<string>(\"s\", false or \"string\", false) will return you first parameter value\n"
-           "                                                                without spaces in end and begin\n"
-           "    parser.get<int>(\"d\" or \"digit\") will return you second parameter value.\n"
-           "                    It also works with 'unsigned int', 'double', and 'float' types>\n"
-           "    parser.get<bool>(\"c\" or \"noCamera\") will return you true .\n"
-           "                                If you enter this key in commandline>\n"
-           "                                It return you false otherwise.\n"
-           "    parser.get<string>(\"1\") will return you the first argument without parameter (lena.jpg) \n"
-           "    parser.get<int>(\"2\") will return you the second argument without parameter (10000)\n"
-           "                          It also works with 'unsigned int', 'double', and 'float' types \n"
-*/
-class CV_EXPORTS CommandLineParser
-{
-    public:
-
-    //! the default constructor
-      CommandLineParser(int argc, const char* const argv[], const char* key_map);
-
-    //! get parameter, you can choose: delete spaces in end and begin or not
-    template<typename _Tp>
-    _Tp get(const std::string& name, bool space_delete=true)
-    {
-        if (!has(name))
-        {
-            return _Tp();
-        }
-        std::string str = getString(name);
-        return analyzeValue<_Tp>(str, space_delete);
-    }
-
-    //! print short name, full name, current value and help for all params
-    void printParams();
-
-    protected:
-    std::map<std::string, std::vector<std::string> > data;
-    std::string getString(const std::string& name);
-
-    bool has(const std::string& keys);
-
-    template<typename _Tp>
-    _Tp analyzeValue(const std::string& str, bool space_delete=false);
-
-    template<typename _Tp>
-    static _Tp getData(const std::string& str)
-    {
-        _Tp res = _Tp();
-        std::stringstream s1(str);
-        s1 >> res;
-        return res;
-    }
-
-    template<typename _Tp>
-     _Tp fromStringNumber(const std::string& str);//the default conversion function for numbers
-
-    };
-
-template<> CV_EXPORTS
-bool CommandLineParser::get<bool>(const std::string& name, bool space_delete);
-
-template<> CV_EXPORTS
-std::string CommandLineParser::analyzeValue<std::string>(const std::string& str, bool space_delete);
-
-template<> CV_EXPORTS
-int CommandLineParser::analyzeValue<int>(const std::string& str, bool space_delete);
-
-template<> CV_EXPORTS
-unsigned int CommandLineParser::analyzeValue<unsigned int>(const std::string& str, bool space_delete);
-
-template<> CV_EXPORTS
-uint64 CommandLineParser::analyzeValue<uint64>(const std::string& str, bool space_delete);
-
-template<> CV_EXPORTS
-float CommandLineParser::analyzeValue<float>(const std::string& str, bool space_delete);
-
-template<> CV_EXPORTS
-double CommandLineParser::analyzeValue<double>(const std::string& str, bool space_delete);
 
 
 /////////////////////////////// Parallel Primitives //////////////////////////////////
