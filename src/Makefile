@@ -13,7 +13,8 @@ OBJS = $(patsubst %.cpp, $(OUT_DIR)/%.o, $(notdir ${SRCS}))
 SRC_DIR = ./src/
 TARGET = main.exe  
  
-.PHONY: all install clean  
+.PHONY: all install clean 
+rebuild: clean all 
 BIN_TARGET = ${OUT_DIR}/${TARGET}
 all: $(BIN_TARGET)
 $(BIN_TARGET): $(OBJS)

@@ -1387,7 +1387,6 @@ CV_EXPORTS_W void divide(double scale, InputArray src2,
                          OutputArray dst, int dtype=-1);
 
 //! computes sum of array elements
-CV_EXPORTS_AS(sumElems) Scalar sum(InputArray src);
 //! computes the number of nonzero array elements
 CV_EXPORTS_W int countNonZero( InputArray src );
 

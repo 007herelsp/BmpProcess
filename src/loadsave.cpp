@@ -38,10 +38,9 @@ static Size validateInputImageSize(const Size& size)
 enum { LOAD_CVMAT=0, LOAD_IMAGE=1, LOAD_MAT=2 };
 
 static void*
-imread_( const string& filename, int flags, int hdrtype, Mat* mat=0 )
+imread_( const string& filename, int flags, int hdrtype )
 {
     IplImage* image = 0;
-    CvMat *matrix = 0;
     Mat temp, *data = &temp;
 
     ImageDecoder decoder =new BmpDecoder();
@@ -82,20 +81,7 @@ imread_( const string& filename, int flags, int hdrtype, Mat* mat=0 )
             type = CV_MAKETYPE(CV_MAT_DEPTH(type), 1);
     }
 
-    if( hdrtype == LOAD_CVMAT || hdrtype == LOAD_MAT )
-    {
-        if( hdrtype == LOAD_CVMAT )
-        {
-            matrix = cvCreateMat( size.height, size.width, type );
-            temp = cvarrToMat(matrix);
-        }
-        else
-        {
-            mat->create( size.height, size.width, type );
-            data = mat;
-        }
-    }
-    else
+    assert("load image" && (hdrtype == LOAD_IMAGE));
     {
         image = cvCreateImage( size, cvIplDepth(type), CV_MAT_CN(type) );
         temp = cvarrToMat(image);
@@ -118,14 +104,10 @@ imread_( const string& filename, int flags, int hdrtype, Mat* mat=0 )
     if (!success)
     {
         cvReleaseImage( &image );
-        cvReleaseMat( &matrix );
-        if( mat )
-            mat->release();
         return 0;
     }
 
-    return hdrtype == LOAD_CVMAT ? (void*)matrix :
-        hdrtype == LOAD_IMAGE ? (void*)image : (void*)mat;
+    return (void*)image;
 }
 
 static bool imwrite_( const string& filename, const Mat& image,

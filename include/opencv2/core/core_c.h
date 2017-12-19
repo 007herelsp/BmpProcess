@@ -46,17 +46,6 @@ CVAPI(void)  cvReleaseImage( IplImage** image );
 /* Creates a copy of IPL image (widthStep may differ) */
 CVAPI(IplImage*) cvCloneImage( const IplImage* image );
 
-/* Sets a Channel Of Interest (only a few functions support COI) -
-   use cvCopy to extract the selected channel and/or put it back */
-
-/* Retrieves image Channel Of Interest */
-
-/* Sets image ROI (region of interest) (COI is not changed) */
-
-/* Resets image ROI and COI */
-
-/* Retrieves image ROI */
-
 /* Allocates and initializes CvMat header */
 CVAPI(CvMat*)  cvCreateMatHeader( int rows, int cols, int type );
 
@@ -92,20 +81,6 @@ CV_INLINE  void  cvDecRefData( CvArr* arr )
 		}
 }
 
-
-
-
-/**************** matrix iterator: used for n-ary operations on dense arrays *********/
-
-#define CV_MAX_ARR 10
-
-#define CV_NO_DEPTH_CHECK     1
-#define CV_NO_CN_CHECK        2
-#define CV_NO_SIZE_CHECK      4
-
-
-
-
 /* Converts CvArr (IplImage or CvMat,...) to CvMat.
    If the last parameter is non-zero, function can
    convert multi(>2)-dimensional array to CvMat as long as
@@ -132,28 +107,6 @@ CVAPI(void)  cvSetData( CvArr* arr, void* data, int step );
 /* Returns width and height of array in elements */
 CVAPI(CvSize) cvGetSize( const CvArr* arr );
 
-
-
-
-/* Splits a multi-channel array into the set of single-channel arrays or
-   extracts particular [color] plane */
-CVAPI(void)  cvSplit( const CvArr* src, CvArr* dst0, CvArr* dst1,
-                      CvArr* dst2, CvArr* dst3 );
-
-
-
-
-
-
-
-#define CV_CMP_EQ   0
-#define CV_CMP_GT   1
-#define CV_CMP_GE   2
-#define CV_CMP_LT   3
-#define CV_CMP_LE   4
-#define CV_CMP_NE   5
-
-
 /****************************************************************************************\
 *                                Math operations                                         *
 \****************************************************************************************/
@@ -162,77 +115,6 @@ CVAPI(void)  cvSplit( const CvArr* src, CvArr* dst0, CvArr* dst1,
 
 /* Does powering: dst(idx) = src(idx)^power */
 CVAPI(void)  cvPow( const CvArr* src, CvArr* dst, double power );
-
-
-
-
-
-
-/* Checks array values for NaNs, Infs or simply for too large numbers
-   (if CV_CHECK_RANGE is set). If CV_CHECK_QUIET is set,
-   no runtime errors is raised (function returns zero value in case of "bad" values).
-   Otherwise cvError is called */
-#define  CV_CHECK_RANGE    1
-#define  CV_CHECK_QUIET    2
-
-#define CV_RAND_UNI      0
-#define CV_RAND_NORMAL   1
-
-
-#define CV_SORT_EVERY_ROW 0
-#define CV_SORT_EVERY_COLUMN 1
-#define CV_SORT_ASCENDING 0
-#define CV_SORT_DESCENDING 16
-
-
-
-/****************************************************************************************\
-*                                Matrix operations                                       *
-\****************************************************************************************/
-
-#define CV_GEMM_A_T 1
-#define CV_GEMM_B_T 2
-#define CV_GEMM_C_T 4
-
-
-/* Transforms each element of source array and stores
-   resultant vectors in destination array */
-CVAPI(void)  cvTransform( const CvArr* src, CvArr* dst,
-                          const CvMat* transmat,
-                          const CvMat* shiftvec CV_DEFAULT(NULL));
-#define cvMatMulAddS cvTransform
-
-/* Does perspective transform on every element of input array */
-CVAPI(void)  cvPerspectiveTransform( const CvArr* src, CvArr* dst,
-                                     const CvMat* mat );
-
-
-
-/* types of array norm */
-#define CV_C            1
-#define CV_L1           2
-#define CV_L2           4
-#define CV_NORM_MASK    7
-#define CV_RELATIVE     8
-#define CV_DIFF         16
-#define CV_MINMAX       32
-
-#define CV_DIFF_C       (CV_DIFF | CV_C)
-#define CV_DIFF_L1      (CV_DIFF | CV_L1)
-#define CV_DIFF_L2      (CV_DIFF | CV_L2)
-#define CV_RELATIVE_C   (CV_RELATIVE | CV_C)
-#define CV_RELATIVE_L1  (CV_RELATIVE | CV_L1)
-#define CV_RELATIVE_L2  (CV_RELATIVE | CV_L2)
-
-
-
-
-
-#define CV_REDUCE_SUM 0
-#define CV_REDUCE_AVG 1
-#define CV_REDUCE_MAX 2
-#define CV_REDUCE_MIN 3
-
 
 /****************************************************************************************\
 *                              Dynamic data structures                                   *
@@ -298,8 +180,6 @@ CVAPI(void)  cvSeqPop( CvSeq* seq, void* element CV_DEFAULT(NULL));
 CVAPI(void)  cvSeqPopFront( CvSeq* seq, void* element CV_DEFAULT(NULL));
 
 
-#define CV_FRONT 1
-#define CV_BACK 0
 
 
 /* Removes several elements from the end of sequence and optionally saves them */
@@ -377,11 +257,6 @@ CVAPI(void*)  cvCvtSeqToArray( const CvSeq* seq, void* elements,
 CVAPI(CvSeq*) cvMakeSeqHeaderForArray( int seq_type, int header_size,
                                        int elem_size, void* elements, int total,
                                        CvSeq* seq, CvSeqBlock* block );
-
-
-/* a < b ? -1 : a > b ? 1 : 0 */
-typedef int (CV_CDECL* CvCmpFunc)(const void* a, const void* b, void* userdata );
-
 
 /* Reverses order of sequence elements in-place */
 CVAPI(void) cvSeqInvert( CvSeq* seq );
@@ -486,14 +361,11 @@ CVAPI(void)  cvClearSet( CvSet* set_header );
    then added contour will have null pointer to parent. */
 CVAPI(void) cvInsertNodeIntoTree( void* node, void* parent, void* frame );
 
-typedef void* (CV_CDECL *CvAllocFunc)(size_t size, void* userdata);
-typedef int (CV_CDECL *CvFreeFunc)(void* pptr, void* userdata);
 typedef IplImage* (CV_STDCALL* Cv_iplCreateImageHeader)
                             (int,int,int,char*,char*,int,int,int,int,int,
-                            IplROI*,IplImage*,void*,IplTileInfo*);
+                            IplImage*,void*,IplTileInfo*);
 typedef void (CV_STDCALL* Cv_iplAllocateImageData)(IplImage*,int,int);
 typedef void (CV_STDCALL* Cv_iplDeallocate)(IplImage*,int);
-typedef IplROI* (CV_STDCALL* Cv_iplCreateROI)(int,int,int,int,int);
 typedef IplImage* (CV_STDCALL* Cv_iplCloneImage)(const IplImage*);
 
 

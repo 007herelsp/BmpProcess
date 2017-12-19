@@ -1,63 +1,5 @@
-/*M///////////////////////////////////////////////////////////////////////////////////////
-//
-//  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.
-//
-//  By downloading, copying, installing or using the software you agree to this license.
-//  If you do not agree to this license, do not download, install,
-//  copy or use the software.
-//
-//
-//                          License Agreement
-//                For Open Source Computer Vision Library
-//
-// Copyright (C) 2000-2008, Intel Corporation, all rights reserved.
-// Copyright (C) 2009, Willow Garage Inc., all rights reserved.
-// Third party copyrights are property of their respective owners.
-//
-// Redistribution and use in source and binary forms, with or without modification,
-// are permitted provided that the following conditions are met:
-//
-//   * Redistribution's of source code must retain the above copyright notice,
-//     this list of conditions and the following disclaimer.
-//
-//   * Redistribution's in binary form must reproduce the above copyright notice,
-//     this list of conditions and the following disclaimer in the documentation
-//     and/or other materials provided with the distribution.
-//
-//   * The name of the copyright holders may not be used to endorse or promote products
-//     derived from this software without specific prior written permission.
-//
-// This software is provided by the copyright holders and contributors "as is" and
-// any express or implied warranties, including, but not limited to, the implied
-// warranties of merchantability and fitness for a particular purpose are disclaimed.
-// In no event shall the Intel Corporation or contributors be liable for any direct,
-// indirect, incidental, special, exemplary, or consequential damages
-// (including, but not limited to, procurement of substitute goods or services;
-// loss of use, data, or profits; or business interruption) however caused
-// and on any theory of liability, whether in contract, strict liability,
-// or tort (including negligence or otherwise) arising in any way out of
-// the use of this software, even if advised of the possibility of such damage.
-//
-//M*/
-
 #ifndef __OPENCV_CORE_TYPES_H__
 #define __OPENCV_CORE_TYPES_H__
-
-#if defined(__GNUC__) && !defined(COMPILER_ICC)
-# define CV_ATTR_UNUSED __attribute__((unused))
-# define CV_ATTR_USED __attribute__((used))
-#else
-# define CV_ATTR_UNUSED
-# define CV_ATTR_USED
-#endif
-
-
-#if !defined _CRT_SECURE_NO_DEPRECATE && defined _MSC_VER
-#  if _MSC_VER > 1300
-#    define _CRT_SECURE_NO_DEPRECATE /* to avoid multiple Visual Studio 2005 warnings */
-#  endif
-#endif
-
 
 #ifndef SKIP_INCLUDES
 
@@ -70,50 +12,15 @@
 #  include <stdint.h>
 #endif
 
-#if defined __ICL
-#  define CV_ICC   __ICL
-#elif defined __ICC
-#  define CV_ICC   __ICC
-#elif defined __ECL
-#  define CV_ICC   __ECL
-#elif defined __ECC
-#  define CV_ICC   __ECC
-#elif defined __INTEL_COMPILER
-#  define CV_ICC   __INTEL_COMPILER
-#endif
-
-#if defined CV_ICC && !defined CV_ENABLE_UNROLLED
-#  define CV_ENABLE_UNROLLED 0
-#else
-#  define CV_ENABLE_UNROLLED 1
-#endif
 
 #if (defined _M_X64 && defined _MSC_VER && _MSC_VER >= 1400) || (__GNUC__ >= 4 && defined __x86_64__)
 #  if defined WIN32
 #    include <intrin.h>
 #  endif
-#  if defined __SSE2__ || !defined __GNUC__
-#    include <emmintrin.h>
-#  endif
 #endif
 
-#if defined __BORLANDC__
-#  include <fastmath.h>
-#else
 #  include <math.h>
-#endif
 
-#ifdef HAVE_IPL
-#  ifndef __IPL_H__
-#    if defined WIN32 || defined _WIN32
-#      include <ipl.h>
-#    else
-#      include <ipl/ipl.h>
-#    endif
-#  endif
-#elif defined __IPL_H__
-#  define HAVE_IPL
-#endif
 
 #endif // SKIP_INCLUDES
 
@@ -163,7 +70,7 @@
 #  define CVAPI(rettype) CV_EXTERN_C CV_EXPORTS rettype CV_CDECL
 #endif
 
-#if defined _MSC_VER || defined __BORLANDC__
+#if defined _MSC_VER
    typedef __int64 int64;
    typedef unsigned __int64 uint64;
 #  define CV_BIG_INT(n)   n##I64
@@ -175,27 +82,14 @@
 #  define CV_BIG_UINT(n)  n##ULL
 #endif
 
-#ifndef HAVE_IPL
    typedef unsigned char uchar;
    typedef unsigned short ushort;
-#endif
+
 
 typedef signed char schar;
 
 /* special informative macros for wrapper generators */
-#define CV_CARRAY(counter)
-#define CV_CUSTOM_CARRAY(args)
 #define CV_EXPORTS_W CV_EXPORTS
-#define CV_EXPORTS_W_SIMPLE CV_EXPORTS
-#define CV_EXPORTS_AS(synonym) CV_EXPORTS
-#define CV_EXPORTS_W_MAP CV_EXPORTS
-#define CV_IN_OUT
-#define CV_OUT
-#define CV_PROP
-#define CV_PROP_RW
-#define CV_WRAP
-#define CV_WRAP_AS(synonym)
-#define CV_WRAP_DEFAULT(value)
 
 /* CvArr* is used to pass arbitrary
  * array-like data structures
@@ -514,8 +408,6 @@ typedef struct _IplImage
                                OpenCV ignores it and uses widthStep instead.    */
     int  width;             /* Image width in pixels.                           */
     int  height;            /* Image height in pixels.                          */
-    struct _IplROI *roi;    /* Image ROI. If NULL, the whole image is selected. */
-    struct _IplImage *maskROI;      /* Must be NULL. */
     void  *imageId;                 /* "           " */
     struct _IplTileInfo *tileInfo;  /* "           " */
     int  imageSize;         /* Image data size in bytes
@@ -532,16 +424,6 @@ typedef struct _IplImage
 IplImage;
 
 typedef struct _IplTileInfo IplTileInfo;
-
-typedef struct _IplROI
-{
-    int  coi; /* 0 - no COI (all channels are selected), 1 - 0th channel is selected ...*/
-    int  xOffset;
-    int  yOffset;
-    int  width;
-    int  height;
-}
-IplROI;
 
 typedef struct _IplConvKernel
 {
@@ -887,23 +769,6 @@ CV_INLINE  CvRect  cvRect( int x, int y, int width, int height )
 }
 
 
-CV_INLINE  IplROI  cvRectToROI( CvRect rect, int coi )
-{
-    IplROI roi;
-    roi.xOffset = rect.x;
-    roi.yOffset = rect.y;
-    roi.width = rect.width;
-    roi.height = rect.height;
-    roi.coi = coi;
-
-    return roi;
-}
-
-
-CV_INLINE  CvRect  cvROIToRect( IplROI roi )
-{
-    return cvRect( roi.xOffset, roi.yOffset, roi.width, roi.height );
-}
 
 /*********************************** CvTermCriteria *************************************/
 

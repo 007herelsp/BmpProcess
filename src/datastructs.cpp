@@ -1459,14 +1459,6 @@ CvSeqReaderPos;
     (reader).block_max = (pos).block_max;   \
 }
 
-inline schar*
-icvMed3( schar* a, schar* b, schar* c, CvCmpFunc cmp_func, void* aux )
-{
-    return cmp_func(a, b, aux) < 0 ?
-      (cmp_func(b, c, aux) < 0 ? b : cmp_func(a, c, aux) < 0 ? c : a)
-     :(cmp_func(b, c, aux) > 0 ? b : cmp_func(a, c, aux) < 0 ? a : c);
-}
-
 
 CV_IMPL void
 cvSeqInvert( CvSeq* seq )

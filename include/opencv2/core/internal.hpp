@@ -70,30 +70,9 @@
 #define  CV_ORN(a, b)   (~(a) | (b))
 #define  CV_SQR(a)      ((a) * (a))
 
-#define  CV_LT(a, b)    ((a) < (b))
-#define  CV_LE(a, b)    ((a) <= (b))
-#define  CV_EQ(a, b)    ((a) == (b))
-#define  CV_NE(a, b)    ((a) != (b))
-#define  CV_GT(a, b)    ((a) > (b))
-#define  CV_GE(a, b)    ((a) >= (b))
-
-#define  CV_NONZERO(a)      ((a) != 0)
-#define  CV_NONZERO_FLT(a)  (((a)+(a)) != 0)
 
 /* general-purpose saturation macros */
-#define  CV_CAST_8U(t)  (uchar)(!((t) & ~255) ? (t) : (t) > 0 ? 255 : 0)
-#define  CV_CAST_8S(t)  (schar)(!(((t)+128) & ~255) ? (t) : (t) > 0 ? 127 : -128)
-#define  CV_CAST_16U(t) (ushort)(!((t) & ~65535) ? (t) : (t) > 0 ? 65535 : 0)
-#define  CV_CAST_16S(t) (short)(!(((t)+32768) & ~65535) ? (t) : (t) > 0 ? 32767 : -32768)
-#define  CV_CAST_32S(t) (int)(t)
-#define  CV_CAST_64S(t) (int64)(t)
 #define  CV_CAST_32F(t) (float)(t)
-#define  CV_CAST_64F(t) (double)(t)
-
-
-
-
-
 
 CV_INLINE void* cvAlignPtr( const void* ptr, int align CV_DEFAULT(32) )
 {
@@ -116,7 +95,6 @@ CV_INLINE  CvSize  cvGetMatSize( const CvMat* mat )
 }
 
 #define  CV_DESCALE(x,n)     (((x) + (1 << ((n)-1))) >> (n))
-#define  CV_FLT_TO_FIX(x,n)  cvRound((x)*(1<<(n)))
 
 #define CV_IMPLEMENT_QSORT_EX( func_name, T, LT, user_data_type )                   \
 void func_name( T *array, size_t total, user_data_type aux )                        \

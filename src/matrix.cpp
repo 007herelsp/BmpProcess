@@ -364,25 +364,14 @@ Mat::Mat(const IplImage* img, bool copyData) : size(&rows)
     size_t esz;
     step[0] = img->widthStep;
 
-    if(!img->roi)
-    {
+
         CV_Assert(img->dataOrder == IPL_DATA_ORDER_PIXEL);
         flags = MAGIC_VAL + CV_MAKETYPE(imgdepth, img->nChannels);
         rows = img->height; cols = img->width;
         datastart = data = (uchar*)img->imageData;
         esz = CV_ELEM_SIZE(flags);
-    }
-    else
-    {
-        CV_Assert(img->dataOrder == IPL_DATA_ORDER_PIXEL || img->roi->coi != 0);
-        bool selectedPlane = img->roi->coi && img->dataOrder == IPL_DATA_ORDER_PLANE;
-        flags = MAGIC_VAL + CV_MAKETYPE(imgdepth, selectedPlane ? 1 : img->nChannels);
-        rows = img->roi->height; cols = img->roi->width;
-        esz = CV_ELEM_SIZE(flags);
-        data = datastart = (uchar*)img->imageData +
-            (selectedPlane ? (img->roi->coi - 1)*step*img->height : 0) +
-            img->roi->yOffset*step[0] + img->roi->xOffset*esz;
-    }
+
+
     datalimit = datastart + step.p[0]*rows;
     dataend = datastart + step.p[0]*(rows-1) + esz*cols;
     flags |= (cols*esz == step.p[0] || rows == 1 ? CONTINUOUS_FLAG : 0);
@@ -392,15 +381,9 @@ Mat::Mat(const IplImage* img, bool copyData) : size(&rows)
     {
         Mat m = *this;
         release();
-        if( !img->roi || !img->roi->coi ||
-            img->dataOrder == IPL_DATA_ORDER_PLANE)
+        if( img->dataOrder == IPL_DATA_ORDER_PLANE)
             m.copyTo(*this);
-        else
-        {
-            int ch[] = {img->roi->coi - 1, 0};
-            create(m.rows, m.cols, m.type());
-            mixChannels(&m, 1, this, 1, ch, 1);
-        }
+
     }
 }
 
@@ -478,8 +461,6 @@ Mat cvarrToMat(const CvArr* arr, bool copyData,
     if( CV_IS_IMAGE(arr) )
     {
         const IplImage* iplimg = (const IplImage*)arr;
-        if( coiMode == 0 && iplimg->roi && iplimg->roi->coi > 0 )
-            CV_Error(CV_BadCOI, "COI is not supported by the function");
         return Mat(iplimg, copyData);
     }
     if( CV_IS_SEQ(arr) )

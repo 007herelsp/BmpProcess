@@ -5,7 +5,6 @@ static struct
     Cv_iplCreateImageHeader createHeader;
     Cv_iplAllocateImageData allocateData;
     Cv_iplDeallocate deallocate;
-    Cv_iplCreateROI createROI;
     Cv_iplCloneImage cloneImage;
 } CvIPL;
 
@@ -289,16 +288,8 @@ cvGetSize(const CvArr *arr)
     {
         IplImage *img = (IplImage *)arr;
 
-        if (img->roi)
-        {
-            size.width = img->roi->width;
-            size.height = img->roi->height;
-        }
-        else
-        {
             size.width = img->width;
             size.height = img->height;
-        }
     }
     else
         CV_Error(CV_StsBadArg, "Array should be CvMat or IplImage");
@@ -343,39 +334,6 @@ cvGetMat(const CvArr *array, CvMat *mat,
 
         order = img->dataOrder & (img->nChannels > 1 ? -1 : 0);
 
-        if (img->roi)
-        {
-            if (order == IPL_DATA_ORDER_PLANE)
-            {
-                int type = depth;
-
-                if (img->roi->coi == 0)
-                    CV_Error(CV_StsBadFlag,
-                             "Images with planar data layout should be used with COI selected");
-
-                cvInitMatHeader(mat, img->roi->height,
-                                img->roi->width, type,
-                                img->imageData + (img->roi->coi - 1) * img->imageSize +
-                                    img->roi->yOffset * img->widthStep +
-                                    img->roi->xOffset * CV_ELEM_SIZE(type),
-                                img->widthStep);
-            }
-            else /* pixel order */
-            {
-                int type = CV_MAKETYPE(depth, img->nChannels);
-                coi = img->roi->coi;
-
-                if (img->nChannels > CV_CN_MAX)
-                    CV_Error(CV_BadNumChannels,
-                             "The image is interleaved and has over CV_CN_MAX channels");
-
-                cvInitMatHeader(mat, img->roi->height, img->roi->width,
-                                type, img->imageData + img->roi->yOffset * img->widthStep + img->roi->xOffset * CV_ELEM_SIZE(type),
-                                img->widthStep);
-            }
-        }
-        else
-        {
             int type = CV_MAKETYPE(depth, img->nChannels);
 
             if (order != IPL_DATA_ORDER_PIXEL)
@@ -383,7 +341,6 @@ cvGetMat(const CvArr *array, CvMat *mat,
 
             cvInitMatHeader(mat, img->height, img->width, type,
                             img->imageData, img->widthStep);
-        }
 
         result = mat;
     }
@@ -397,30 +354,7 @@ cvGetMat(const CvArr *array, CvMat *mat,
     return result;
 }
 
-/****************************************************************************************\
-*                               IplImage-specific functions                              *
-\****************************************************************************************/
 
-static IplROI *icvCreateROI(int coi, int xOffset, int yOffset, int width, int height)
-{
-    IplROI *roi = 0;
-    if (!CvIPL.createROI)
-    {
-        roi = (IplROI *)cvAlloc(sizeof(*roi));
-
-        roi->coi = coi;
-        roi->xOffset = xOffset;
-        roi->yOffset = yOffset;
-        roi->width = width;
-        roi->height = height;
-    }
-    else
-    {
-        roi = CvIPL.createROI(coi, xOffset, yOffset, width, height);
-    }
-
-    return roi;
-}
 
 static void
 icvGetColorModel(int nchannels, const char **colorModel, const char **channelSeq)
@@ -463,7 +397,7 @@ cvCreateImageHeader(CvSize size, int depth, int channels)
         img = CvIPL.createHeader(channels, 0, depth, (char *)colorModel, (char *)channelSeq,
                                  IPL_DATA_ORDER_PIXEL, IPL_ORIGIN_TL,
                                  CV_DEFAULT_IMAGE_ROW_ALIGN,
-                                 size.width, size.height, 0, 0, 0, 0);
+                                 size.width, size.height,  0, 0, 0);
     }
 
     return img;
@@ -515,14 +449,6 @@ cvInitImageHeader(IplImage *image, CvSize size, int depth,
     image->width = size.width;
     image->height = size.height;
 
-    if (image->roi)
-    {
-        image->roi->coi = 0;
-        image->roi->xOffset = image->roi->yOffset = 0;
-        image->roi->width = size.width;
-        image->roi->height = size.height;
-    }
-
     image->nChannels = MAX(channels, 1);
     image->depth = depth;
     image->align = align;
@@ -551,7 +477,6 @@ cvReleaseImageHeader(IplImage **image)
 
         if (!CvIPL.deallocate)
         {
-            cvFree(&img->roi);
             cvFree(&img);
         }
         else
@@ -591,14 +516,6 @@ cvCloneImage(const IplImage *src)
 
         memcpy(dst, src, sizeof(*src));
         dst->imageData = dst->imageDataOrigin = 0;
-        dst->roi = 0;
-
-        if (src->roi)
-        {
-            dst->roi = icvCreateROI(src->roi->coi, src->roi->xOffset,
-                                    src->roi->yOffset, src->roi->width, src->roi->height);
-        }
-
         if (src->imageData)
         {
             int size = src->imageSize;
