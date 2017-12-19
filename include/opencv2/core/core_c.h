@@ -419,20 +419,10 @@ CVAPI(void)  cvSeqInsertSlice( CvSeq* seq, int before_index, const CvArr* from_a
 /* a < b ? -1 : a > b ? 1 : 0 */
 typedef int (CV_CDECL* CvCmpFunc)(const void* a, const void* b, void* userdata );
 
-/* Sorts sequence in-place given element comparison function */
-CVAPI(void) cvSeqSort( CvSeq* seq, CvCmpFunc func, void* userdata CV_DEFAULT(NULL) );
-
-/* Finds element in a [sorted] sequence */
-CVAPI(schar*) cvSeqSearch( CvSeq* seq, const void* elem, CvCmpFunc func,
-                           int is_sorted, int* elem_idx,
-                           void* userdata CV_DEFAULT(NULL) );
 
 /* Reverses order of sequence elements in-place */
 CVAPI(void) cvSeqInvert( CvSeq* seq );
 
-/* Splits sequence into one or more equivalence classes using the specified criteria */
-CVAPI(int)  cvSeqPartition( const CvSeq* seq, CvMemStorage* storage,
-                            CvSeq** labels, CvCmpFunc is_equal, void* userdata );
 
 /************ Internal sequence functions ************/
 CVAPI(void)  cvChangeSeqBlock( void* reader, int direction );
@@ -549,18 +539,7 @@ CVAPI(void)  cvClearSet( CvSet* set_header );
 
 
 /******************* Iteration through the sequence tree *****************/
-typedef struct CvTreeNodeIterator
-{
-    const void* node;
-    int level;
-    int max_level;
-}
-CvTreeNodeIterator;
 
-CVAPI(void) cvInitTreeNodeIterator( CvTreeNodeIterator* tree_iterator,
-                                   const void* first, int max_level );
-CVAPI(void*) cvNextTreeNode( CvTreeNodeIterator* tree_iterator );
-CVAPI(void*) cvPrevTreeNode( CvTreeNodeIterator* tree_iterator );
 
 /* Inserts sequence into tree with specified "parent" sequence.
    If parent is equal to frame (e.g. the most external contour),

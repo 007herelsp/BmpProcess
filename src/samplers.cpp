@@ -484,16 +484,6 @@ cvGetRectSubPix(const void *srcarr, void *dstarr, CvPoint2D32f center)
 
     //if( dst_size.width > src_size.width || dst_size.height > src_size.height )
     //    CV_ERROR( CV_StsBadSize, "destination ROI must be smaller than source ROI" );
-#if defined(HAVE_IPP) && (IPP_VERSION_MAJOR >= 7)
-    CvPoint minpt, maxpt;
-    int srctype = CV_MAT_TYPE(src->type), dsttype = CV_MAT_TYPE(dst->type);
-    CvIPPGetRectSubPixFunc ippfunc =
-        srctype == CV_8UC1 && dsttype == CV_8UC1 ? (CvIPPGetRectSubPixFunc)ippiCopySubpixIntersect_8u_C1R : srctype == CV_8UC1 && dsttype == CV_32FC1 ? (CvIPPGetRectSubPixFunc)ippiCopySubpixIntersect_8u32f_C1R : srctype == CV_32FC1 && dsttype == CV_32FC1 ? (CvIPPGetRectSubPixFunc)ippiCopySubpixIntersect_32f_C1R : 0;
-
-    if (ippfunc && ippfunc(src->data.ptr, src->step, src_size, dst->data.ptr,
-                           dst->step, dst_size, center, &minpt, &maxpt) >= 0)
-        return;
-#endif
 
     if (CV_ARE_DEPTHS_EQ(src, dst))
     {

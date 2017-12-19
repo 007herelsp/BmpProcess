@@ -153,19 +153,6 @@ static const void* initInterTab2D( int method, bool fixpt )
             }
         tab -= INTER_TAB_SIZE2*ksize*ksize;
         itab -= INTER_TAB_SIZE2*ksize*ksize;
-#if CV_SSE2
-        if( method == INTER_LINEAR )
-        {
-            for( i = 0; i < INTER_TAB_SIZE2; i++ )
-                for( j = 0; j < 4; j++ )
-                {
-                    BilinearTab_iC4[i][0][j*2] = BilinearTab_i[i][0][0];
-                    BilinearTab_iC4[i][0][j*2+1] = BilinearTab_i[i][0][1];
-                    BilinearTab_iC4[i][1][j*2] = BilinearTab_i[i][1][0];
-                    BilinearTab_iC4[i][1][j*2+1] = BilinearTab_i[i][1][1];
-                }
-        }
-#endif
         inittab[method] = true;
     }
     return fixpt ? (const void*)itab : (const void*)tab;
@@ -1252,35 +1239,7 @@ void cv::resize( InputArray _src, OutputArray _dst, Size dsize,
     int depth = src.depth(), cn = src.channels();
     double scale_x = 1./inv_scale_x, scale_y = 1./inv_scale_y;
     int k, sx, sy, dx, dy;
-/*
-#if defined (HAVE_IPP) && (IPP_VERSION_MAJOR >= 7)
-    int mode = interpolation == INTER_LINEAR ? IPPI_INTER_LINEAR : 0;
-    int type = src.type();
-    ippiResizeSqrPixelFunc ippFunc =
-        type == CV_8UC1 ? (ippiResizeSqrPixelFunc)ippiResizeSqrPixel_8u_C1R :
-        type == CV_8UC3 ? (ippiResizeSqrPixelFunc)ippiResizeSqrPixel_8u_C3R :
-        type == CV_8UC4 ? (ippiResizeSqrPixelFunc)ippiResizeSqrPixel_8u_C4R :
-        type == CV_16UC1 ? (ippiResizeSqrPixelFunc)ippiResizeSqrPixel_16u_C1R :
-        type == CV_16UC3 ? (ippiResizeSqrPixelFunc)ippiResizeSqrPixel_16u_C3R :
-        type == CV_16UC4 ? (ippiResizeSqrPixelFunc)ippiResizeSqrPixel_16u_C4R :
-        type == CV_16SC1 ? (ippiResizeSqrPixelFunc)ippiResizeSqrPixel_16s_C1R :
-        type == CV_16SC3 ? (ippiResizeSqrPixelFunc)ippiResizeSqrPixel_16s_C3R :
-        type == CV_16SC4 ? (ippiResizeSqrPixelFunc)ippiResizeSqrPixel_16s_C4R :
-        type == CV_32FC1 ? (ippiResizeSqrPixelFunc)ippiResizeSqrPixel_32f_C1R :
-        type == CV_32FC3 ? (ippiResizeSqrPixelFunc)ippiResizeSqrPixel_32f_C3R :
-        type == CV_32FC4 ? (ippiResizeSqrPixelFunc)ippiResizeSqrPixel_32f_C4R :
-        0;
-    if( ippFunc && mode != 0 )
-    {
-        bool ok;
-        Range range(0, src.rows);
-        IPPresizeInvoker invoker(src, dst, inv_scale_x, inv_scale_y, mode, ippFunc, &ok);
-        parallel_for_(range, invoker, dst.total()/(double)(1<<16));
-        if( ok )
-            return;
-    }
-#endif
-*/
+
     if( interpolation == INTER_NEAREST )
     {
         resizeNN( src, dst, inv_scale_x, inv_scale_y );
@@ -2265,98 +2224,6 @@ void cv::remap( InputArray _src, OutputArray _dst,
                          borderType, borderValue, planar_input, nnfunc, ifunc,
                          ctab);
     parallel_for_(Range(0, dst.rows), invoker, dst.total()/(double)(1<<16));
-}
-
-
-
-namespace cv
-{
-
-class warpAffineInvoker :
-    public ParallelLoopBody
-{
-public:
-    warpAffineInvoker(const Mat &_src, Mat &_dst, int _interpolation, int _borderType,
-                      const Scalar &_borderValue, int *_adelta, int *_bdelta, double *_M) :
-        ParallelLoopBody(), src(_src), dst(_dst), interpolation(_interpolation),
-        borderType(_borderType), borderValue(_borderValue), adelta(_adelta), bdelta(_bdelta),
-        M(_M)
-    {
-    }
-
-    virtual void operator() (const Range& range) const
-    {
-        const int BLOCK_SZ = 64;
-        short XY[BLOCK_SZ*BLOCK_SZ*2], A[BLOCK_SZ*BLOCK_SZ];
-        const int AB_BITS = MAX(10, (int)INTER_BITS);
-        const int AB_SCALE = 1 << AB_BITS;
-        int round_delta = interpolation == INTER_NEAREST ? AB_SCALE/2 : AB_SCALE/INTER_TAB_SIZE/2, x, y, x1, y1;
-
-
-        int bh0 = std::min(BLOCK_SZ/2, dst.rows);
-        int bw0 = std::min(BLOCK_SZ*BLOCK_SZ/bh0, dst.cols);
-        bh0 = std::min(BLOCK_SZ*BLOCK_SZ/bw0, dst.rows);
-
-        for( y = range.start; y < range.end; y += bh0 )
-        {
-            for( x = 0; x < dst.cols; x += bw0 )
-            {
-                int bw = std::min( bw0, dst.cols - x);
-                int bh = std::min( bh0, range.end - y);
-
-                Mat _XY(bh, bw, CV_16SC2, XY), matA;
-                Mat dpart(dst, Rect(x, y, bw, bh));
-
-                for( y1 = 0; y1 < bh; y1++ )
-                {
-                    short* xy = XY + y1*bw*2;
-                    int X0 = saturate_cast<int>((M[1]*(y + y1) + M[2])*AB_SCALE) + round_delta;
-                    int Y0 = saturate_cast<int>((M[4]*(y + y1) + M[5])*AB_SCALE) + round_delta;
-
-                    if( interpolation == INTER_NEAREST )
-                        for( x1 = 0; x1 < bw; x1++ )
-                        {
-                            int X = (X0 + adelta[x+x1]) >> AB_BITS;
-                            int Y = (Y0 + bdelta[x+x1]) >> AB_BITS;
-                            xy[x1*2] = saturate_cast<short>(X);
-                            xy[x1*2+1] = saturate_cast<short>(Y);
-                        }
-                    else
-                    {
-                        short* alpha = A + y1*bw;
-                        x1 = 0;
-                        for( ; x1 < bw; x1++ )
-                        {
-                            int X = (X0 + adelta[x+x1]) >> (AB_BITS - INTER_BITS);
-                            int Y = (Y0 + bdelta[x+x1]) >> (AB_BITS - INTER_BITS);
-                            xy[x1*2] = saturate_cast<short>(X >> INTER_BITS);
-                            xy[x1*2+1] = saturate_cast<short>(Y >> INTER_BITS);
-                            alpha[x1] = (short)((Y & (INTER_TAB_SIZE-1))*INTER_TAB_SIZE +
-                                    (X & (INTER_TAB_SIZE-1)));
-                        }
-                    }
-                }
-
-                if( interpolation == INTER_NEAREST )
-                    remap( src, dpart, _XY, Mat(), interpolation, borderType, borderValue );
-                else
-                {
-                    Mat _matA(bh, bw, CV_16U, A);
-                    remap( src, dpart, _XY, _matA, interpolation, borderType, borderValue );
-                }
-            }
-        }
-    }
-
-private:
-    Mat src;
-    Mat dst;
-    int interpolation, borderType;
-    Scalar borderValue;
-    int *adelta, *bdelta;
-    double *M;
-};
-
 }
 
 

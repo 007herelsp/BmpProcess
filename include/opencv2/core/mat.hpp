@@ -584,35 +584,6 @@ template<typename _Tp, int n> inline const _Tp& Mat::at(const Vec<int, n>& idx) 
     return *(const _Tp*)ptr(idx.val);
 }
 
-
-template<typename _Tp> inline MatConstIterator_<_Tp> Mat::begin() const
-{
-    CV_DbgAssert( elemSize() == sizeof(_Tp) );
-    return MatConstIterator_<_Tp>((const Mat_<_Tp>*)this);
-}
-
-template<typename _Tp> inline MatConstIterator_<_Tp> Mat::end() const
-{
-    CV_DbgAssert( elemSize() == sizeof(_Tp) );
-    MatConstIterator_<_Tp> it((const Mat_<_Tp>*)this);
-    it += total();
-    return it;
-}
-
-template<typename _Tp> inline MatIterator_<_Tp> Mat::begin()
-{
-    CV_DbgAssert( elemSize() == sizeof(_Tp) );
-    return MatIterator_<_Tp>((Mat_<_Tp>*)this);
-}
-
-template<typename _Tp> inline MatIterator_<_Tp> Mat::end()
-{
-    CV_DbgAssert( elemSize() == sizeof(_Tp) );
-    MatIterator_<_Tp> it((Mat_<_Tp>*)this);
-    it += total();
-    return it;
-}
-
 template<typename _Tp> inline Mat::operator vector<_Tp>() const
 {
     vector<_Tp> v;
@@ -665,10 +636,7 @@ template<typename _Tp> inline void Mat::push_back(const _Tp& elem)
         push_back_(&elem);
 }
 
-template<typename _Tp> inline void Mat::push_back(const Mat_<_Tp>& m)
-{
-    push_back((const Mat&)m);
-}
+
 
 inline Mat::MSize::MSize(int* _p) : p(_p) {}
 inline Size Mat::MSize::operator()() const
@@ -715,336 +683,6 @@ inline Mat::MStep& Mat::MStep::operator = (size_t s)
     return *this;
 }
 
-static inline Mat cvarrToMatND(const CvArr* arr, bool copyData=false, int coiMode=0)
-{
-    return cvarrToMat(arr, copyData, true, coiMode);
-}
-
-
-
-///////////////////////////////// Mat_<_Tp> ////////////////////////////////////
-
-template<typename _Tp> inline Mat_<_Tp>::Mat_()
-    : Mat() { flags = (flags & ~CV_MAT_TYPE_MASK) | DataType<_Tp>::type; }
-
-template<typename _Tp> inline Mat_<_Tp>::Mat_(int _rows, int _cols)
-    : Mat(_rows, _cols, DataType<_Tp>::type) {}
-
-template<typename _Tp> inline Mat_<_Tp>::Mat_(int _rows, int _cols, const _Tp& value)
-    : Mat(_rows, _cols, DataType<_Tp>::type) { *this = value; }
-
-template<typename _Tp> inline Mat_<_Tp>::Mat_(Size _sz)
-    : Mat(_sz.height, _sz.width, DataType<_Tp>::type) {}
-
-template<typename _Tp> inline Mat_<_Tp>::Mat_(Size _sz, const _Tp& value)
-    : Mat(_sz.height, _sz.width, DataType<_Tp>::type) { *this = value; }
-
-template<typename _Tp> inline Mat_<_Tp>::Mat_(int _dims, const int* _sz)
-    : Mat(_dims, _sz, DataType<_Tp>::type) {}
-
-template<typename _Tp> inline Mat_<_Tp>::Mat_(int _dims, const int* _sz, const _Tp& _s)
-    : Mat(_dims, _sz, DataType<_Tp>::type, Scalar(_s)) {}
-
-template<typename _Tp> inline Mat_<_Tp>::Mat_(int _dims, const int* _sz, _Tp* _data, const size_t* _steps)
-    : Mat(_dims, _sz, DataType<_Tp>::type, _data, _steps) {}
-
-template<typename _Tp> inline Mat_<_Tp>::Mat_(const Mat_<_Tp>& m, const Range* ranges)
-    : Mat(m, ranges) {}
-
-template<typename _Tp> inline Mat_<_Tp>::Mat_(const Mat& m)
-    : Mat() { flags = (flags & ~CV_MAT_TYPE_MASK) | DataType<_Tp>::type; *this = m; }
-
-template<typename _Tp> inline Mat_<_Tp>::Mat_(const Mat_& m)
-    : Mat(m) {}
-
-template<typename _Tp> inline Mat_<_Tp>::Mat_(int _rows, int _cols, _Tp* _data, size_t steps)
-    : Mat(_rows, _cols, DataType<_Tp>::type, _data, steps) {}
-
-template<typename _Tp> inline Mat_<_Tp>::Mat_(const Mat_& m, const Range& _rowRange, const Range& _colRange)
-    : Mat(m, _rowRange, _colRange) {}
-
-template<typename _Tp> inline Mat_<_Tp>::Mat_(const Mat_& m, const Rect& roi)
-    : Mat(m, roi) {}
-
-template<typename _Tp> template<int n> inline
-    Mat_<_Tp>::Mat_(const Vec<typename DataType<_Tp>::channel_type, n>& vec, bool copyData)
-    : Mat(n/DataType<_Tp>::channels, 1, DataType<_Tp>::type, (void*)&vec)
-{
-    CV_Assert(n%DataType<_Tp>::channels == 0);
-    if( copyData )
-        *this = clone();
-}
-
-template<typename _Tp> template<int m, int n> inline
-    Mat_<_Tp>::Mat_(const Matx<typename DataType<_Tp>::channel_type,m,n>& M, bool copyData)
-    : Mat(m, n/DataType<_Tp>::channels, DataType<_Tp>::type, (void*)&M)
-{
-    CV_Assert(n % DataType<_Tp>::channels == 0);
-    if( copyData )
-        *this = clone();
-}
-
-template<typename _Tp> inline Mat_<_Tp>::Mat_(const Point_<typename DataType<_Tp>::channel_type>& pt, bool copyData)
-    : Mat(2/DataType<_Tp>::channels, 1, DataType<_Tp>::type, (void*)&pt)
-{
-    CV_Assert(2 % DataType<_Tp>::channels == 0);
-    if( copyData )
-        *this = clone();
-}
-
-template<typename _Tp> inline Mat_<_Tp>::Mat_(const Point3_<typename DataType<_Tp>::channel_type>& pt, bool copyData)
-    : Mat(3/DataType<_Tp>::channels, 1, DataType<_Tp>::type, (void*)&pt)
-{
-    CV_Assert(3 % DataType<_Tp>::channels == 0);
-    if( copyData )
-        *this = clone();
-}
-
-template<typename _Tp> inline Mat_<_Tp>::Mat_(const MatCommaInitializer_<_Tp>& commaInitializer)
-    : Mat(commaInitializer) {}
-
-template<typename _Tp> inline Mat_<_Tp>::Mat_(const vector<_Tp>& vec, bool copyData)
-    : Mat(vec, copyData) {}
-
-template<typename _Tp> inline Mat_<_Tp>& Mat_<_Tp>::operator = (const Mat& m)
-{
-    if( DataType<_Tp>::type == m.type() )
-    {
-        Mat::operator = (m);
-        return *this;
-    }
-    if( DataType<_Tp>::depth == m.depth() )
-    {
-        return (*this = m.reshape(DataType<_Tp>::channels, m.dims, 0));
-    }
-    CV_DbgAssert(DataType<_Tp>::channels == m.channels());
-    m.convertTo(*this, type());
-    return *this;
-}
-
-template<typename _Tp> inline Mat_<_Tp>& Mat_<_Tp>::operator = (const Mat_& m)
-{
-    Mat::operator=(m);
-    return *this;
-}
-
-template<typename _Tp> inline Mat_<_Tp>& Mat_<_Tp>::operator = (const _Tp& s)
-{
-    typedef typename DataType<_Tp>::vec_type VT;
-    Mat::operator=(Scalar((const VT&)s));
-    return *this;
-}
-
-template<typename _Tp> inline void Mat_<_Tp>::create(int _rows, int _cols)
-{
-    Mat::create(_rows, _cols, DataType<_Tp>::type);
-}
-
-template<typename _Tp> inline void Mat_<_Tp>::create(Size _sz)
-{
-    Mat::create(_sz, DataType<_Tp>::type);
-}
-
-template<typename _Tp> inline void Mat_<_Tp>::create(int _dims, const int* _sz)
-{
-    Mat::create(_dims, _sz, DataType<_Tp>::type);
-}
-
-
-template<typename _Tp> inline Mat_<_Tp> Mat_<_Tp>::cross(const Mat_& m) const
-{ return Mat_<_Tp>(Mat::cross(m)); }
-
-template<typename _Tp> template<typename T2> inline Mat_<_Tp>::operator Mat_<T2>() const
-{ return Mat_<T2>(*this); }
-
-template<typename _Tp> inline Mat_<_Tp> Mat_<_Tp>::row(int y) const
-{ return Mat_(*this, Range(y, y+1), Range::all()); }
-template<typename _Tp> inline Mat_<_Tp> Mat_<_Tp>::col(int x) const
-{ return Mat_(*this, Range::all(), Range(x, x+1)); }
-template<typename _Tp> inline Mat_<_Tp> Mat_<_Tp>::diag(int d) const
-{ return Mat_(Mat::diag(d)); }
-template<typename _Tp> inline Mat_<_Tp> Mat_<_Tp>::clone() const
-{ return Mat_(Mat::clone()); }
-
-template<typename _Tp> inline size_t Mat_<_Tp>::elemSize() const
-{
-    CV_DbgAssert( Mat::elemSize() == sizeof(_Tp) );
-    return sizeof(_Tp);
-}
-
-template<typename _Tp> inline size_t Mat_<_Tp>::elemSize1() const
-{
-    CV_DbgAssert( Mat::elemSize1() == sizeof(_Tp)/DataType<_Tp>::channels );
-    return sizeof(_Tp)/DataType<_Tp>::channels;
-}
-template<typename _Tp> inline int Mat_<_Tp>::type() const
-{
-    CV_DbgAssert( Mat::type() == DataType<_Tp>::type );
-    return DataType<_Tp>::type;
-}
-template<typename _Tp> inline int Mat_<_Tp>::depth() const
-{
-    CV_DbgAssert( Mat::depth() == DataType<_Tp>::depth );
-    return DataType<_Tp>::depth;
-}
-template<typename _Tp> inline int Mat_<_Tp>::channels() const
-{
-    CV_DbgAssert( Mat::channels() == DataType<_Tp>::channels );
-    return DataType<_Tp>::channels;
-}
-template<typename _Tp> inline size_t Mat_<_Tp>::stepT(int i) const { return step.p[i]/elemSize(); }
-template<typename _Tp> inline size_t Mat_<_Tp>::step1(int i) const { return step.p[i]/elemSize1(); }
-
-template<typename _Tp> inline Mat_<_Tp>& Mat_<_Tp>::adjustROI( int dtop, int dbottom, int dleft, int dright )
-{ return (Mat_<_Tp>&)(Mat::adjustROI(dtop, dbottom, dleft, dright));  }
-
-template<typename _Tp> inline Mat_<_Tp> Mat_<_Tp>::operator()( const Range& _rowRange, const Range& _colRange ) const
-{ return Mat_<_Tp>(*this, _rowRange, _colRange); }
-
-template<typename _Tp> inline Mat_<_Tp> Mat_<_Tp>::operator()( const Rect& roi ) const
-{ return Mat_<_Tp>(*this, roi); }
-
-template<typename _Tp> inline Mat_<_Tp> Mat_<_Tp>::operator()( const Range* ranges ) const
-{ return Mat_<_Tp>(*this, ranges); }
-
-template<typename _Tp> inline _Tp* Mat_<_Tp>::operator [](int y)
-{ return (_Tp*)ptr(y); }
-template<typename _Tp> inline const _Tp* Mat_<_Tp>::operator [](int y) const
-{ return (const _Tp*)ptr(y); }
-
-template<typename _Tp> inline _Tp& Mat_<_Tp>::operator ()(int i0, int i1)
-{
-    CV_DbgAssert( dims <= 2 && data &&
-                  (unsigned)i0 < (unsigned)size.p[0] &&
-                  (unsigned)i1 < (unsigned)size.p[1] &&
-                  type() == DataType<_Tp>::type );
-    return ((_Tp*)(data + step.p[0]*i0))[i1];
-}
-
-template<typename _Tp> inline const _Tp& Mat_<_Tp>::operator ()(int i0, int i1) const
-{
-    CV_DbgAssert( dims <= 2 && data &&
-                  (unsigned)i0 < (unsigned)size.p[0] &&
-                  (unsigned)i1 < (unsigned)size.p[1] &&
-                  type() == DataType<_Tp>::type );
-    return ((const _Tp*)(data + step.p[0]*i0))[i1];
-}
-
-template<typename _Tp> inline _Tp& Mat_<_Tp>::operator ()(Point pt)
-{
-    CV_DbgAssert( dims <= 2 && data &&
-                  (unsigned)pt.y < (unsigned)size.p[0] &&
-                  (unsigned)pt.x < (unsigned)size.p[1] &&
-                  type() == DataType<_Tp>::type );
-    return ((_Tp*)(data + step.p[0]*pt.y))[pt.x];
-}
-
-template<typename _Tp> inline const _Tp& Mat_<_Tp>::operator ()(Point pt) const
-{
-    CV_DbgAssert( dims <= 2 && data &&
-                  (unsigned)pt.y < (unsigned)size.p[0] &&
-                  (unsigned)pt.x < (unsigned)size.p[1] &&
-                 type() == DataType<_Tp>::type );
-    return ((const _Tp*)(data + step.p[0]*pt.y))[pt.x];
-}
-
-template<typename _Tp> inline _Tp& Mat_<_Tp>::operator ()(const int* idx)
-{
-    return Mat::at<_Tp>(idx);
-}
-
-template<typename _Tp> inline const _Tp& Mat_<_Tp>::operator ()(const int* idx) const
-{
-    return Mat::at<_Tp>(idx);
-}
-
-template<typename _Tp> template<int n> inline _Tp& Mat_<_Tp>::operator ()(const Vec<int, n>& idx)
-{
-    return Mat::at<_Tp>(idx);
-}
-
-template<typename _Tp> template<int n> inline const _Tp& Mat_<_Tp>::operator ()(const Vec<int, n>& idx) const
-{
-    return Mat::at<_Tp>(idx);
-}
-
-template<typename _Tp> inline _Tp& Mat_<_Tp>::operator ()(int i0)
-{
-    return this->at<_Tp>(i0);
-}
-
-template<typename _Tp> inline const _Tp& Mat_<_Tp>::operator ()(int i0) const
-{
-    return this->at<_Tp>(i0);
-}
-
-template<typename _Tp> inline _Tp& Mat_<_Tp>::operator ()(int i0, int i1, int i2)
-{
-    return this->at<_Tp>(i0, i1, i2);
-}
-
-template<typename _Tp> inline const _Tp& Mat_<_Tp>::operator ()(int i0, int i1, int i2) const
-{
-    return this->at<_Tp>(i0, i1, i2);
-}
-
-
-template<typename _Tp> inline Mat_<_Tp>::operator vector<_Tp>() const
-{
-    vector<_Tp> v;
-    copyTo(v);
-    return v;
-}
-
-template<typename _Tp> template<int n> inline Mat_<_Tp>::operator Vec<typename DataType<_Tp>::channel_type, n>() const
-{
-    CV_Assert(n % DataType<_Tp>::channels == 0);
-    return this->Mat::operator Vec<typename DataType<_Tp>::channel_type, n>();
-}
-
-template<typename _Tp> template<int m, int n> inline Mat_<_Tp>::operator Matx<typename DataType<_Tp>::channel_type, m, n>() const
-{
-    CV_Assert(n % DataType<_Tp>::channels == 0);
-
-    Matx<typename DataType<_Tp>::channel_type, m, n> res = this->Mat::operator Matx<typename DataType<_Tp>::channel_type, m, n>();
-    return res;
-}
-
-template<typename T1, typename T2, typename Op> inline void
-process( const Mat_<T1>& m1, Mat_<T2>& m2, Op op )
-{
-    int y, x, rows = m1.rows, cols = m1.cols;
-
-    CV_DbgAssert( m1.size() == m2.size() );
-
-    for( y = 0; y < rows; y++ )
-    {
-        const T1* src = m1[y];
-        T2* dst = m2[y];
-
-        for( x = 0; x < cols; x++ )
-            dst[x] = op(src[x]);
-    }
-}
-
-template<typename T1, typename T2, typename T3, typename Op> inline void
-process( const Mat_<T1>& m1, const Mat_<T2>& m2, Mat_<T3>& m3, Op op )
-{
-    int y, x, rows = m1.rows, cols = m1.cols;
-
-    CV_DbgAssert( m1.size() == m2.size() );
-
-    for( y = 0; y < rows; y++ )
-    {
-        const T1* src1 = m1[y];
-        const T2* src2 = m2[y];
-        T3* dst = m3[y];
-
-        for( x = 0; x < cols; x++ )
-            dst[x] = op( src1[x], src2[x] );
-    }
-}
-
 
 /////////////////////////////// Input/Output Arrays /////////////////////////////////
 
@@ -1054,8 +692,7 @@ template<typename _Tp> inline _InputArray::_InputArray(const vector<_Tp>& vec)
 template<typename _Tp> inline _InputArray::_InputArray(const vector<vector<_Tp> >& vec)
     : flags(FIXED_TYPE + STD_VECTOR_VECTOR + DataType<_Tp>::type), obj((void*)&vec) {}
 
-template<typename _Tp> inline _InputArray::_InputArray(const vector<Mat_<_Tp> >& vec)
-    : flags(FIXED_TYPE + STD_VECTOR_MAT + DataType<_Tp>::type), obj((void*)&vec) {}
+
 
 template<typename _Tp, int m, int n> inline _InputArray::_InputArray(const Matx<_Tp, m, n>& mtx)
     : flags(FIXED_TYPE + FIXED_SIZE + MATX + DataType<_Tp>::type), obj((void*)&mtx), sz(n, m) {}
@@ -1066,17 +703,12 @@ template<typename _Tp> inline _InputArray::_InputArray(const _Tp* vec, int n)
 inline _InputArray::_InputArray(const Scalar& s)
     : flags(FIXED_TYPE + FIXED_SIZE + MATX + CV_64F), obj((void*)&s), sz(1, 4) {}
 
-template<typename _Tp> inline _InputArray::_InputArray(const Mat_<_Tp>& m)
-    : flags(FIXED_TYPE + MAT + DataType<_Tp>::type), obj((void*)&m) {}
 
 template<typename _Tp> inline _OutputArray::_OutputArray(vector<_Tp>& vec)
     : _InputArray(vec) {}
 template<typename _Tp> inline _OutputArray::_OutputArray(vector<vector<_Tp> >& vec)
     : _InputArray(vec) {}
-template<typename _Tp> inline _OutputArray::_OutputArray(vector<Mat_<_Tp> >& vec)
-    : _InputArray(vec) {}
-template<typename _Tp> inline _OutputArray::_OutputArray(Mat_<_Tp>& m)
-    : _InputArray(m) {}
+
 template<typename _Tp, int m, int n> inline _OutputArray::_OutputArray(Matx<_Tp, m, n>& mtx)
     : _InputArray(mtx) {}
 template<typename _Tp> inline _OutputArray::_OutputArray(_Tp* vec, int n)
@@ -1086,11 +718,8 @@ template<typename _Tp> inline _OutputArray::_OutputArray(const vector<_Tp>& vec)
     : _InputArray(vec) {flags |= FIXED_SIZE;}
 template<typename _Tp> inline _OutputArray::_OutputArray(const vector<vector<_Tp> >& vec)
     : _InputArray(vec) {flags |= FIXED_SIZE;}
-template<typename _Tp> inline _OutputArray::_OutputArray(const vector<Mat_<_Tp> >& vec)
-    : _InputArray(vec) {flags |= FIXED_SIZE;}
 
-template<typename _Tp> inline _OutputArray::_OutputArray(const Mat_<_Tp>& m)
-    : _InputArray(m) {flags |= FIXED_SIZE;}
+
 template<typename _Tp, int m, int n> inline _OutputArray::_OutputArray(const Matx<_Tp, m, n>& mtx)
     : _InputArray(mtx) {}
 template<typename _Tp> inline _OutputArray::_OutputArray(const _Tp* vec, int n)
@@ -1109,37 +738,6 @@ public:
 
    
 };
-
-
-template<typename _Tp> static inline void min(const Mat_<_Tp>& a, const Mat_<_Tp>& b, Mat_<_Tp>& c)
-{
-    cv::min((const Mat&)a, (const Mat&)b, (Mat&)c);
-}
-
-template<typename _Tp> static inline void min(const Mat_<_Tp>& a, double s, Mat_<_Tp>& c)
-{
-    cv::min((const Mat&)a, s, (Mat&)c);
-}
-
-template<typename _Tp> static inline void min(double s, const Mat_<_Tp>& a, Mat_<_Tp>& c)
-{
-    cv::min((const Mat&)a, s, (Mat&)c);
-}
-
-template<typename _Tp> static inline void max(const Mat_<_Tp>& a, const Mat_<_Tp>& b, Mat_<_Tp>& c)
-{
-    cv::max((const Mat&)a, (const Mat&)b, (Mat&)c);
-}
-
-template<typename _Tp> static inline void max(const Mat_<_Tp>& a, double s, Mat_<_Tp>& c)
-{
-    cv::max((const Mat&)a, s, (Mat&)c);
-}
-
-template<typename _Tp> static inline void max(double s, const Mat_<_Tp>& a, Mat_<_Tp>& c)
-{
-    cv::max((const Mat&)a, s, (Mat&)c);
-}
 
 
 
@@ -1265,190 +863,6 @@ inline MatConstIterator MatConstIterator::operator ++(int)
     *this += 1;
     return b;
 }
-
-template<typename _Tp> inline MatConstIterator_<_Tp>::MatConstIterator_() {}
-
-template<typename _Tp> inline MatConstIterator_<_Tp>::MatConstIterator_(const Mat_<_Tp>* _m)
-    : MatConstIterator(_m) {}
-
-template<typename _Tp> inline MatConstIterator_<_Tp>::
-    MatConstIterator_(const Mat_<_Tp>* _m, int _row, int _col)
-    : MatConstIterator(_m, _row, _col) {}
-
-template<typename _Tp> inline MatConstIterator_<_Tp>::
-    MatConstIterator_(const Mat_<_Tp>* _m, Point _pt)
-    : MatConstIterator(_m, _pt) {}
-
-template<typename _Tp> inline MatConstIterator_<_Tp>::
-    MatConstIterator_(const MatConstIterator_& it)
-    : MatConstIterator(it) {}
-
-template<typename _Tp> inline MatConstIterator_<_Tp>&
-    MatConstIterator_<_Tp>::operator = (const MatConstIterator_& it )
-{
-    MatConstIterator::operator = (it);
-    return *this;
-}
-
-template<typename _Tp> inline _Tp MatConstIterator_<_Tp>::operator *() const { return *(_Tp*)(this->ptr); }
-
-template<typename _Tp> inline MatConstIterator_<_Tp>& MatConstIterator_<_Tp>::operator += (ptrdiff_t ofs)
-{
-    MatConstIterator::operator += (ofs);
-    return *this;
-}
-
-template<typename _Tp> inline MatConstIterator_<_Tp>& MatConstIterator_<_Tp>::operator -= (ptrdiff_t ofs)
-{ return (*this += -ofs); }
-
-template<typename _Tp> inline MatConstIterator_<_Tp>& MatConstIterator_<_Tp>::operator --()
-{
-    MatConstIterator::operator --();
-    return *this;
-}
-
-template<typename _Tp> inline MatConstIterator_<_Tp> MatConstIterator_<_Tp>::operator --(int)
-{
-    MatConstIterator_ b = *this;
-    MatConstIterator::operator --();
-    return b;
-}
-
-template<typename _Tp> inline MatConstIterator_<_Tp>& MatConstIterator_<_Tp>::operator ++()
-{
-    MatConstIterator::operator ++();
-    return *this;
-}
-
-template<typename _Tp> inline MatConstIterator_<_Tp> MatConstIterator_<_Tp>::operator ++(int)
-{
-    MatConstIterator_ b = *this;
-    MatConstIterator::operator ++();
-    return b;
-}
-
-template<typename _Tp> inline MatIterator_<_Tp>::MatIterator_() : MatConstIterator_<_Tp>() {}
-
-template<typename _Tp> inline MatIterator_<_Tp>::MatIterator_(Mat_<_Tp>* _m)
-    : MatConstIterator_<_Tp>(_m) {}
-
-template<typename _Tp> inline MatIterator_<_Tp>::MatIterator_(Mat_<_Tp>* _m, int _row, int _col)
-    : MatConstIterator_<_Tp>(_m, _row, _col) {}
-
-template<typename _Tp> inline MatIterator_<_Tp>::MatIterator_(const Mat_<_Tp>* _m, Point _pt)
-    : MatConstIterator_<_Tp>(_m, _pt) {}
-
-template<typename _Tp> inline MatIterator_<_Tp>::MatIterator_(const Mat_<_Tp>* _m, const int* _idx)
-    : MatConstIterator_<_Tp>(_m, _idx) {}
-
-template<typename _Tp> inline MatIterator_<_Tp>::MatIterator_(const MatIterator_& it)
-    : MatConstIterator_<_Tp>(it) {}
-
-template<typename _Tp> inline MatIterator_<_Tp>& MatIterator_<_Tp>::operator = (const MatIterator_<_Tp>& it )
-{
-    MatConstIterator::operator = (it);
-    return *this;
-}
-
-template<typename _Tp> inline _Tp& MatIterator_<_Tp>::operator *() const { return *(_Tp*)(this->ptr); }
-
-template<typename _Tp> inline MatIterator_<_Tp>& MatIterator_<_Tp>::operator += (ptrdiff_t ofs)
-{
-    MatConstIterator::operator += (ofs);
-    return *this;
-}
-
-template<typename _Tp> inline MatIterator_<_Tp>& MatIterator_<_Tp>::operator -= (ptrdiff_t ofs)
-{
-    MatConstIterator::operator += (-ofs);
-    return *this;
-}
-
-template<typename _Tp> inline MatIterator_<_Tp>& MatIterator_<_Tp>::operator --()
-{
-    MatConstIterator::operator --();
-    return *this;
-}
-
-template<typename _Tp> inline MatIterator_<_Tp> MatIterator_<_Tp>::operator --(int)
-{
-    MatIterator_ b = *this;
-    MatConstIterator::operator --();
-    return b;
-}
-
-template<typename _Tp> inline MatIterator_<_Tp>& MatIterator_<_Tp>::operator ++()
-{
-    MatConstIterator::operator ++();
-    return *this;
-}
-
-template<typename _Tp> inline MatIterator_<_Tp> MatIterator_<_Tp>::operator ++(int)
-{
-    MatIterator_ b = *this;
-    MatConstIterator::operator ++();
-    return b;
-}
-
-template<typename _Tp> inline Point MatConstIterator_<_Tp>::pos() const
-{
-    if( !m )
-        return Point();
-    CV_DbgAssert( m->dims <= 2 );
-    if( m->isContinuous() )
-    {
-        ptrdiff_t ofs = (const _Tp*)ptr - (const _Tp*)m->data;
-        int y = (int)(ofs / m->cols), x = (int)(ofs - (ptrdiff_t)y*m->cols);
-        return Point(x, y);
-    }
-    else
-    {
-        ptrdiff_t ofs = (uchar*)ptr - m->data;
-        int y = (int)(ofs / m->step), x = (int)((ofs - y*m->step)/sizeof(_Tp));
-        return Point(x, y);
-    }
-}
-
-static inline bool
-operator == (const MatConstIterator& a, const MatConstIterator& b)
-{ return a.m == b.m && a.ptr == b.ptr; }
-
-template<typename _Tp> static inline bool
-operator != (const MatConstIterator& a, const MatConstIterator& b)
-{ return !(a == b); }
-
-template<typename _Tp> static inline bool
-operator == (const MatConstIterator_<_Tp>& a, const MatConstIterator_<_Tp>& b)
-{ return a.m == b.m && a.ptr == b.ptr; }
-
-template<typename _Tp> static inline bool
-operator != (const MatConstIterator_<_Tp>& a, const MatConstIterator_<_Tp>& b)
-{ return a.m != b.m || a.ptr != b.ptr; }
-
-template<typename _Tp> static inline bool
-operator == (const MatIterator_<_Tp>& a, const MatIterator_<_Tp>& b)
-{ return a.m == b.m && a.ptr == b.ptr; }
-
-template<typename _Tp> static inline bool
-operator != (const MatIterator_<_Tp>& a, const MatIterator_<_Tp>& b)
-{ return a.m != b.m || a.ptr != b.ptr; }
-
-static inline bool
-operator < (const MatConstIterator& a, const MatConstIterator& b)
-{ return a.ptr < b.ptr; }
-
-static inline bool
-operator > (const MatConstIterator& a, const MatConstIterator& b)
-{ return a.ptr > b.ptr; }
-
-static inline bool
-operator <= (const MatConstIterator& a, const MatConstIterator& b)
-{ return a.ptr <= b.ptr; }
-
-static inline bool
-operator >= (const MatConstIterator& a, const MatConstIterator& b)
-{ return a.ptr >= b.ptr; }
-
 
 
 

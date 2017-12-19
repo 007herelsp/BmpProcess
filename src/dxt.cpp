@@ -59,60 +59,6 @@ template<typename T> struct DFT_VecR4
 };
 
 
-#ifdef USE_IPP_DFT
-static void ippsDFTFwd_CToC( const Complex<float>* src, Complex<float>* dst,
-                             const void* spec, uchar* buf)
-{
-    ippsDFTFwd_CToC_32fc( (const Ipp32fc*)src, (Ipp32fc*)dst,
-                          (const IppsDFTSpec_C_32fc*)spec, buf);
-}
-
-static void ippsDFTFwd_CToC( const Complex<double>* src, Complex<double>* dst,
-                             const void* spec, uchar* buf)
-{
-    ippsDFTFwd_CToC_64fc( (const Ipp64fc*)src, (Ipp64fc*)dst,
-                          (const IppsDFTSpec_C_64fc*)spec, buf);
-}
-
-static void ippsDFTInv_CToC( const Complex<float>* src, Complex<float>* dst,
-                             const void* spec, uchar* buf)
-{
-    ippsDFTInv_CToC_32fc( (const Ipp32fc*)src, (Ipp32fc*)dst,
-                          (const IppsDFTSpec_C_32fc*)spec, buf);
-}
-
-static void ippsDFTInv_CToC( const Complex<double>* src, Complex<double>* dst,
-                             const void* spec, uchar* buf)
-{
-    ippsDFTInv_CToC_64fc( (const Ipp64fc*)src, (Ipp64fc*)dst,
-                          (const IppsDFTSpec_C_64fc*)spec, buf);
-}
-
-static void ippsDFTFwd_RToPack( const float* src, float* dst,
-                                const void* spec, uchar* buf)
-{
-    ippsDFTFwd_RToPack_32f( src, dst, (const IppsDFTSpec_R_32f*)spec, buf);
-}
-
-static void ippsDFTFwd_RToPack( const double* src, double* dst,
-                                const void* spec, uchar* buf)
-{
-    ippsDFTFwd_RToPack_64f( src, dst, (const IppsDFTSpec_R_64f*)spec, buf);
-}
-
-static void ippsDFTInv_PackToR( const float* src, float* dst,
-                                const void* spec, uchar* buf)
-{
-    ippsDFTInv_PackToR_32f( src, dst, (const IppsDFTSpec_R_32f*)spec, buf);
-}
-
-static void ippsDFTInv_PackToR( const double* src, double* dst,
-                                const void* spec, uchar* buf)
-{
-    ippsDFTInv_PackToR_64f( src, dst, (const IppsDFTSpec_R_64f*)spec, buf);
-}
-#endif
-
 enum { DFT_NO_PERMUTE=256, DFT_COMPLEX_INPUT_OR_OUTPUT=512 };
 
 // mixed-radix complex discrete Fourier transform: double-precision version

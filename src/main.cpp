@@ -618,7 +618,7 @@ int main(int argc, char** args)
 	IplImage *lpCannyImg = cvCreateImage(cvGetSize(lpTargetImg), 8, 1);
 	IplImage *tmp = cvCreateImage(cvGetSize(lpTargetImg), 8, 1);
 	IplImage *lpDilateImg = cvCreateImage(cvGetSize(lpTargetImg), 8, 1);
-	cvSmooth(gray, tmp, CV_BILATERAL, 3, 3, 0, 0); //��˹�˲�
+	cvSmooth(gray, tmp, CV_GAUSSIAN, 3, 3, 0, 0); //��˹�˲�
 	cvSaveImage("tmp.bmp", tmp);
 	printf("save\n");
 	if (NULL != lpCannyImg && NULL != lpDilateImg)
@@ -658,43 +658,6 @@ int main(int argc, char** args)
 	cvReleaseImage(&lpTargetImg);
 	cvReleaseImage(&lpDilateImg);
 	cvReleaseImage(&lpCannyImg);
-
-	return 0;
-}
-
-int main1(int argc, char **argv)
-{
-
-	IplImage *frame = NULL;
-	IplImage *laplace = NULL;    //������˹ת����ĵ�ͨ��ͼ��
-	IplImage *ColorImage = NULL; //������ʾ����ת�����ͼ��
-
-	frame = cvLoadImage(argv[1], 1);
-	IplImage *timg = cvCreateImage(cvGetSize(frame), IPL_DEPTH_8U, 3);
-	cvSmooth(frame, timg, CV_BILATERAL, 3, 3, 0, 0); //˫���˲�
-	IplImage *panel[3];                              //����ͨ��
-
-	if (!laplace) //������Ҫ�����ı���
-	{
-		for (int i = 0; i < 3; i++)
-			panel[i] = cvCreateImage(cvGetSize(frame), IPL_DEPTH_8U, 1);
-		laplace = cvCreateImage(cvGetSize(frame), IPL_DEPTH_16S, 1);
-		ColorImage = cvCreateImage(cvGetSize(frame), IPL_DEPTH_8U, 3);
-	}
-	cvSplit(timg, panel[0], panel[1], panel[2], NULL); //�ָ�ͼ�񵽵�ͨ��
-	for (int i = 0; i < 3; i++)
-	{
-		// cvLaplace(panel[i], laplace, 3);            //ÿһ��ͨ����������˹�任
-		//cvConvertScaleAbs(laplace, panel[i], 1, 0); //������ת����ת����8U
-	}
-
-	cvDilate(panel[0], panel[0], 0, 2);
-	cvDilate(panel[1], panel[1], 0, 2);
-	cvDilate(panel[2], panel[2], 0, 2);
-	//cvMerge(panel[0], panel[1], panel[2], NULL, ColorImage); //�ϲ�ͼ��ͨ��
-	ColorImage->origin = 0;                                  //0--���������ͷ��1--������������ͷ
-	cvShowImage("Laplace", ColorImage);
-	///cvWaitKey(0);
 
 	return 0;
 }

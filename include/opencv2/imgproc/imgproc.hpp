@@ -259,15 +259,6 @@ CV_EXPORTS_W void GaussianBlur( InputArray src,
                                                OutputArray dst, Size ksize,
                                                double sigmaX, double sigmaY=0,
                                                int borderType=BORDER_DEFAULT );
-//! smooths the image using bilateral filter
-CV_EXPORTS_W void bilateralFilter( InputArray src, OutputArray dst, int d,
-                                   double sigmaColor, double sigmaSpace,
-                                   int borderType=BORDER_DEFAULT );
-//! smooths the image using adaptive bilateral filter
-CV_EXPORTS_W void adaptiveBilateralFilter( InputArray src, OutputArray dst, Size ksize,
-                                           double sigmaSpace, double maxSigmaColor = 20.0, Point anchor=Point(-1, -1),
-                                           int borderType=BORDER_DEFAULT );
-
 
 
 //! applies non-separable 2D linear filter to the image

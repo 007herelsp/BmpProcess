@@ -336,7 +336,7 @@ cvMinAreaRect2( const CvArr* array, CvMemStorage* storage )
     }
     else
     {
-  CV_Error( CV_StsBadArg, "Unsupported sequence type" );
+  		CV_Error( CV_StsBadArg, "Unsupported sequence type" );
     }
 
     if( storage )

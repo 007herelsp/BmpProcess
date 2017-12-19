@@ -714,21 +714,6 @@ template<typename _Tp> struct Matx_DetOp<_Tp, 3>
     }
 };
 
-template<typename _Tp, int m> static inline
-double determinant(const Matx<_Tp, m, m>& a)
-{
-    return Matx_DetOp<_Tp, m>()(a);
-}
-
-
-template<typename _Tp, int m, int n> static inline
-double trace(const Matx<_Tp, m, n>& a)
-{
-    _Tp s = 0;
-    for( int i = 0; i < std::min(m, n); i++ )
-        s += a(i,i);
-    return s;
-}
 
 
 template<typename _Tp, int m, int n> inline
@@ -736,230 +721,6 @@ Matx<_Tp, n, m> Matx<_Tp, m, n>::t() const
 {
     return Matx<_Tp, n, m>(*this, Matx_TOp());
 }
-
-
-
-
-template<typename _Tp, int m, int n> struct Matx_FastSolveOp
-{
-    bool operator()(const Matx<_Tp, m, m>& a, const Matx<_Tp, m, n>& b,
-                    Matx<_Tp, m, n>& x, int method) const
-    {
-        Matx<_Tp, m, m> temp = a;
-        x = b;
-        if( method == DECOMP_CHOLESKY )
-            return Cholesky(temp.val, m*sizeof(_Tp), m, x.val, n*sizeof(_Tp), n);
-
-        return LU(temp.val, m*sizeof(_Tp), m, x.val, n*sizeof(_Tp), n) != 0;
-    }
-};
-
-
-template<typename _Tp> struct Matx_FastSolveOp<_Tp, 2, 1>
-{
-    bool operator()(const Matx<_Tp, 2, 2>& a, const Matx<_Tp, 2, 1>& b,
-                    Matx<_Tp, 2, 1>& x, int) const
-    {
-        _Tp d = determinant(a);
-        if( d == 0 )
-            return false;
-        d = 1/d;
-        x(0) = (b(0)*a(1,1) - b(1)*a(0,1))*d;
-        x(1) = (b(1)*a(0,0) - b(0)*a(1,0))*d;
-        return true;
-    }
-};
-
-
-template<typename _Tp> struct Matx_FastSolveOp<_Tp, 3, 1>
-{
-    bool operator()(const Matx<_Tp, 3, 3>& a, const Matx<_Tp, 3, 1>& b,
-                    Matx<_Tp, 3, 1>& x, int) const
-    {
-        _Tp d = (_Tp)determinant(a);
-        if( d == 0 )
-            return false;
-        d = 1/d;
-        x(0) = d*(b(0)*(a(1,1)*a(2,2) - a(1,2)*a(2,1)) -
-                a(0,1)*(b(1)*a(2,2) - a(1,2)*b(2)) +
-                a(0,2)*(b(1)*a(2,1) - a(1,1)*b(2)));
-
-        x(1) = d*(a(0,0)*(b(1)*a(2,2) - a(1,2)*b(2)) -
-                b(0)*(a(1,0)*a(2,2) - a(1,2)*a(2,0)) +
-                a(0,2)*(a(1,0)*b(2) - b(1)*a(2,0)));
-
-        x(2) = d*(a(0,0)*(a(1,1)*b(2) - b(1)*a(2,1)) -
-                a(0,1)*(a(1,0)*b(2) - b(1)*a(2,0)) +
-                b(0)*(a(1,0)*a(2,1) - a(1,1)*a(2,0)));
-        return true;
-    }
-};
-
-
-template<typename _Tp, int m, int n> template<int l> inline
-Matx<_Tp, n, l> Matx<_Tp, m, n>::solve(const Matx<_Tp, m, l>& rhs, int method) const
-{
-    Matx<_Tp, n, l> x;
-    bool ok;
-    if( method == DECOMP_LU || method == DECOMP_CHOLESKY )
-        ok = Matx_FastSolveOp<_Tp, m, l>()(*this, rhs, x, method);
-    else
-    {
-        Mat A(*this, false), B(rhs, false), X(x, false);
-        ok = cv::solve(A, B, X, method);
-    }
-
-    return ok ? x : Matx<_Tp, n, l>::zeros();
-}
-
-template<typename _Tp, int m, int n> inline
-Vec<_Tp, n> Matx<_Tp, m, n>::solve(const Vec<_Tp, m>& rhs, int method) const
-{
-    Matx<_Tp, n, 1> x = solve(reinterpret_cast<const Matx<_Tp, m, 1>&>(rhs), method);
-    return reinterpret_cast<Vec<_Tp, n>&>(x);
-}
-
-template<typename _Tp, typename _AccTp> static inline
-_AccTp normL2Sqr(const _Tp* a, int n)
-{
-    _AccTp s = 0;
-    int i=0;
- #if CV_ENABLE_UNROLLED
-    for( ; i <= n - 4; i += 4 )
-    {
-        _AccTp v0 = a[i], v1 = a[i+1], v2 = a[i+2], v3 = a[i+3];
-        s += v0*v0 + v1*v1 + v2*v2 + v3*v3;
-    }
-#endif
-    for( ; i < n; i++ )
-    {
-        _AccTp v = a[i];
-        s += v*v;
-    }
-    return s;
-}
-
-
-template<typename _Tp, typename _AccTp> static inline
-_AccTp normL1(const _Tp* a, int n)
-{
-    _AccTp s = 0;
-    int i = 0;
-#if CV_ENABLE_UNROLLED
-    for(; i <= n - 4; i += 4 )
-    {
-        s += (_AccTp)fast_abs(a[i]) + (_AccTp)fast_abs(a[i+1]) +
-            (_AccTp)fast_abs(a[i+2]) + (_AccTp)fast_abs(a[i+3]);
-    }
-#endif
-    for( ; i < n; i++ )
-        s += fast_abs(a[i]);
-    return s;
-}
-
-
-template<typename _Tp, typename _AccTp> static inline
-_AccTp normInf(const _Tp* a, int n)
-{
-    _AccTp s = 0;
-    for( int i = 0; i < n; i++ )
-        s = std::max(s, (_AccTp)fast_abs(a[i]));
-    return s;
-}
-
-
-template<typename _Tp, typename _AccTp> static inline
-_AccTp normL2Sqr(const _Tp* a, const _Tp* b, int n)
-{
-    _AccTp s = 0;
-    int i= 0;
-#if CV_ENABLE_UNROLLED
-    for(; i <= n - 4; i += 4 )
-    {
-        _AccTp v0 = _AccTp(a[i] - b[i]), v1 = _AccTp(a[i+1] - b[i+1]), v2 = _AccTp(a[i+2] - b[i+2]), v3 = _AccTp(a[i+3] - b[i+3]);
-        s += v0*v0 + v1*v1 + v2*v2 + v3*v3;
-    }
-#endif
-    for( ; i < n; i++ )
-    {
-        _AccTp v = _AccTp(a[i] - b[i]);
-        s += v*v;
-    }
-    return s;
-}
-
-CV_EXPORTS float normL2Sqr_(const float* a, const float* b, int n);
-CV_EXPORTS float normL1_(const float* a, const float* b, int n);
-CV_EXPORTS int normL1_(const uchar* a, const uchar* b, int n);
-CV_EXPORTS int normHamming(const uchar* a, const uchar* b, int n);
-CV_EXPORTS int normHamming(const uchar* a, const uchar* b, int n, int cellSize);
-
-template<> inline float normL2Sqr(const float* a, const float* b, int n)
-{
-    if( n >= 8 )
-        return normL2Sqr_(a, b, n);
-    float s = 0;
-    for( int i = 0; i < n; i++ )
-    {
-        float v = a[i] - b[i];
-        s += v*v;
-    }
-    return s;
-}
-
-
-template<typename _Tp, typename _AccTp> static inline
-_AccTp normL1(const _Tp* a, const _Tp* b, int n)
-{
-    _AccTp s = 0;
-    int i= 0;
-#if CV_ENABLE_UNROLLED
-    for(; i <= n - 4; i += 4 )
-    {
-        _AccTp v0 = _AccTp(a[i] - b[i]), v1 = _AccTp(a[i+1] - b[i+1]), v2 = _AccTp(a[i+2] - b[i+2]), v3 = _AccTp(a[i+3] - b[i+3]);
-        s += std::abs(v0) + std::abs(v1) + std::abs(v2) + std::abs(v3);
-    }
-#endif
-    for( ; i < n; i++ )
-    {
-        _AccTp v = _AccTp(a[i] - b[i]);
-        s += std::abs(v);
-    }
-    return s;
-}
-
-template<> inline float normL1(const float* a, const float* b, int n)
-{
-    if( n >= 8 )
-        return normL1_(a, b, n);
-    float s = 0;
-    for( int i = 0; i < n; i++ )
-    {
-        float v = a[i] - b[i];
-        s += std::abs(v);
-    }
-    return s;
-}
-
-template<> inline int normL1(const uchar* a, const uchar* b, int n)
-{
-    return normL1_(a, b, n);
-}
-
-template<typename _Tp, typename _AccTp> static inline
-_AccTp normInf(const _Tp* a, const _Tp* b, int n)
-{
-    _AccTp s = 0;
-    for( int i = 0; i < n; i++ )
-    {
-        _AccTp v0 = a[i] - b[i];
-        s = std::max(s, std::abs(v0));
-    }
-    return s;
-}
-
-
-
 
 
 template<typename _Tp, int m, int n> static inline
@@ -1325,19 +1086,7 @@ template<typename _Tp> inline Vec<_Tp, 4>& operator *= (Vec<_Tp, 4>& v1, const V
     return v1;
 }
 
-template<> inline Vec<float, 3> Vec<float, 3>::cross(const Vec<float, 3>& v) const
-{
-    return Vec<float,3>(val[1]*v.val[2] - val[2]*v.val[1],
-                     val[2]*v.val[0] - val[0]*v.val[2],
-                     val[0]*v.val[1] - val[1]*v.val[0]);
-}
 
-template<> inline Vec<double, 3> Vec<double, 3>::cross(const Vec<double, 3>& v) const
-{
-    return Vec<double,3>(val[1]*v.val[2] - val[2]*v.val[1],
-                     val[2]*v.val[0] - val[0]*v.val[2],
-                     val[0]*v.val[1] - val[1]*v.val[0]);
-}
 
 
 
@@ -1510,8 +1259,7 @@ template<typename _Tp> inline _Tp Point_<_Tp>::dot(const Point_& pt) const
 template<typename _Tp> inline double Point_<_Tp>::ddot(const Point_& pt) const
 { return (double)x*pt.x + (double)y*pt.y; }
 
-template<typename _Tp> inline double Point_<_Tp>::cross(const Point_& pt) const
-{ return (double)x*pt.y - (double)y*pt.x; }
+
 
 template<typename _Tp> static inline Point_<_Tp>&
 operator += (Point_<_Tp>& a, const Point_<_Tp>& b)
@@ -1616,10 +1364,7 @@ template<typename _Tp> inline _Tp Point3_<_Tp>::dot(const Point3_& pt) const
 template<typename _Tp> inline double Point3_<_Tp>::ddot(const Point3_& pt) const
 { return (double)x*pt.x + (double)y*pt.y + (double)z*pt.z; }
 
-template<typename _Tp> inline Point3_<_Tp> Point3_<_Tp>::cross(const Point3_<_Tp>& pt) const
-{
-    return Point3_<_Tp>(y*pt.z - z*pt.y, z*pt.x - x*pt.z, x*pt.y - y*pt.x);
-}
+
 
 template<typename _Tp> static inline Point3_<_Tp>&
 operator += (Point3_<_Tp>& a, const Point3_<_Tp>& b)
@@ -2869,8 +2614,6 @@ public:
 //////////////////////////////////////////////////////////////////////////////
 
 // bridge C++ => C Seq API
-CV_EXPORTS schar*  seqPush( CvSeq* seq, const void* element=0);
-CV_EXPORTS schar*  seqPushFront( CvSeq* seq, const void* element=0);
 CV_EXPORTS void  seqPop( CvSeq* seq, void* element=0);
 CV_EXPORTS void  seqPopFront( CvSeq* seq, void* element=0);
 CV_EXPORTS void  seqPopMulti( CvSeq* seq, void* elements,

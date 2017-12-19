@@ -131,24 +131,13 @@ struct NoVec
     size_t operator()(const void*, const void*, void*, size_t) const { return 0; }
 };
 
-extern volatile bool USE_SSE2;
-extern volatile bool USE_SSE4_2;
-extern volatile bool USE_AVX;
-
 enum { BLOCK_SIZE = 1024 };
 
-#ifdef HAVE_IPP
-static inline IppiSize ippiSize(int width, int height) { IppiSize sz = { width, height}; return sz; }
-static inline IppiSize ippiSize(Size _sz)              { IppiSize sz = { _sz.width, _sz.height}; return sz; }
-#endif
 
-#if defined HAVE_IPP && (IPP_VERSION_MAJOR >= 7)
-#define ARITHM_USE_IPP 1
-#define IF_IPP(then_call, else_call) then_call
-#else
+
+
 #define ARITHM_USE_IPP 0
 #define IF_IPP(then_call, else_call) else_call
-#endif
 
 inline bool checkScalar(const Mat& sc, int atype, int sckind, int akind)
 {
