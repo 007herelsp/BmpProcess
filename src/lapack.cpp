@@ -551,19 +551,6 @@ MatrAXPY( int m, int n, const T1* x, int dx,
     {
         T2 s = a[i*inca];
         j=0;
-         #if CV_ENABLE_UNROLLED
-        for(; j <= n - 4; j += 4 )
-        {
-            T3 t0 = (T3)(y[j]   + s*x[j]);
-            T3 t1 = (T3)(y[j+1] + s*x[j+1]);
-            y[j]   = t0;
-            y[j+1] = t1;
-            t0 = (T3)(y[j+2] + s*x[j+2]);
-            t1 = (T3)(y[j+3] + s*x[j+3]);
-            y[j+2] = t0;
-            y[j+3] = t1;
-        }
-        #endif
         for( ; j < n; j++ )
             y[j] = (T3)(y[j] + s*x[j]);
     }

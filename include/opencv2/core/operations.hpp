@@ -863,12 +863,10 @@ template<typename _Tp> inline Size_<_Tp>::Size_(const CvSize2D32f& sz)
     : width(saturate_cast<_Tp>(sz.width)), height(saturate_cast<_Tp>(sz.height)) {}
 template<typename _Tp> inline Size_<_Tp>::Size_(const Point_<_Tp>& pt) : width(pt.x), height(pt.y) {}
 
-template<typename _Tp> template<typename _Tp2> inline Size_<_Tp>::operator Size_<_Tp2>() const
-{ return Size_<_Tp2>(saturate_cast<_Tp2>(width), saturate_cast<_Tp2>(height)); }
+
 template<typename _Tp> inline Size_<_Tp>::operator CvSize() const
 { return cvSize(saturate_cast<int>(width), saturate_cast<int>(height)); }
-template<typename _Tp> inline Size_<_Tp>::operator CvSize2D32f() const
-{ return cvSize2D32f((float)width, (float)height); }
+
 
 template<typename _Tp> inline Size_<_Tp>& Size_<_Tp>::operator = (const Size_<_Tp>& sz)
 { width = sz.width; height = sz.height; return *this; }
@@ -1558,76 +1556,12 @@ template<typename _Tp> inline Ptr<_Tp>::operator const _Tp*() const { return obj
 
 template<typename _Tp> inline bool Ptr<_Tp>::empty() const { return obj == 0; }
 
-template<typename _Tp> template<typename _Tp2> Ptr<_Tp>::Ptr(const Ptr<_Tp2>& p)
-    : obj(0), refcount(0)
-{
-    if (p.empty())
-        return;
-
-    _Tp* p_casted = dynamic_cast<_Tp*>(p.obj);
-    if (!p_casted)
-        return;
-
-    obj = p_casted;
-    refcount = p.refcount;
-    addref();
-}
-
-template<typename _Tp> template<typename _Tp2> inline Ptr<_Tp2> Ptr<_Tp>::ptr()
-{
-    Ptr<_Tp2> p;
-    if( !obj )
-        return p;
-
-    _Tp2* obj_casted = dynamic_cast<_Tp2*>(obj);
-    if (!obj_casted)
-        return p;
-
-    if( refcount )
-        CV_XADD(refcount, 1);
-
-    p.obj = obj_casted;
-    p.refcount = refcount;
-    return p;
-}
-
-template<typename _Tp> template<typename _Tp2> inline const Ptr<_Tp2> Ptr<_Tp>::ptr() const
-{
-    Ptr<_Tp2> p;
-    if( !obj )
-        return p;
-
-    _Tp2* obj_casted = dynamic_cast<_Tp2*>(obj);
-    if (!obj_casted)
-        return p;
-
-    if( refcount )
-        CV_XADD(refcount, 1);
-
-    p.obj = obj_casted;
-    p.refcount = refcount;
-    return p;
-}
-
 
 //// specializied implementations of Ptr::delete_obj() for classic OpenCV types
 
 template<> CV_EXPORTS void Ptr<CvMat>::delete_obj();
 template<> CV_EXPORTS void Ptr<IplImage>::delete_obj();
 template<> CV_EXPORTS void Ptr<CvMemStorage>::delete_obj();
-
-//////////////////////////////////////// XML & YAML I/O ////////////////////////////////////
-
-
-
-
-
-
-
-
-
-
-
 
 }
 

@@ -10,10 +10,6 @@ template<typename T>
 static int countNonZero_(const T* src, int len )
 {
     int i=0, nz = 0;
-    #if CV_ENABLE_UNROLLED
-    for(; i <= len - 4; i += 4 )
-        nz += (src[i] != 0) + (src[i+1] != 0) + (src[i+2] != 0) + (src[i+3] != 0);
-    #endif
     for( ; i < len; i++ )
         nz += src[i] != 0;
     return nz;

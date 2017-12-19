@@ -66,22 +66,6 @@ thresh_8u( const Mat& _src, Mat& _dst, uchar thresh, uchar maxval, int type )
             const uchar* src = (const uchar*)(_src.data + _src.step*i);
             uchar* dst = (uchar*)(_dst.data + _dst.step*i);
             j = j_scalar;
-#if CV_ENABLE_UNROLLED
-            for( ; j <= roi.width - 4; j += 4 )
-            {
-                uchar t0 = tab[src[j]];
-                uchar t1 = tab[src[j+1]];
-
-                dst[j] = t0;
-                dst[j+1] = t1;
-
-                t0 = tab[src[j+2]];
-                t1 = tab[src[j+3]];
-
-                dst[j+2] = t0;
-                dst[j+3] = t1;
-            }
-#endif
             for( ; j < roi.width; j++ )
                 dst[j] = tab[src[j]];
         }
@@ -268,15 +252,6 @@ getThreshVal_Otsu_8u( const Mat& _src )
     {
         const uchar* src = _src.data + _src.step*i;
         j = 0;
-        #if CV_ENABLE_UNROLLED
-        for( ; j <= size.width - 4; j += 4 )
-        {
-            int v0 = src[j], v1 = src[j+1];
-            h[v0]++; h[v1]++;
-            v0 = src[j+2]; v1 = src[j+3];
-            h[v0]++; h[v1]++;
-        }
-        #endif
         for( ; j < size.width; j++ )
             h[src[j]]++;
     }

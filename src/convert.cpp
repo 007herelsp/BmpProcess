@@ -213,18 +213,6 @@ cvtScaleAbs_( const T* src, size_t sstep,
     for( ; size.height--; src += sstep, dst += dstep )
     {
         int x = 0;
-        #if CV_ENABLE_UNROLLED
-        for( ; x <= size.width - 4; x += 4 )
-        {
-            DT t0, t1;
-            t0 = saturate_cast<DT>(std::abs(src[x]*scale + shift));
-            t1 = saturate_cast<DT>(std::abs(src[x+1]*scale + shift));
-            dst[x] = t0; dst[x+1] = t1;
-            t0 = saturate_cast<DT>(std::abs(src[x+2]*scale + shift));
-            t1 = saturate_cast<DT>(std::abs(src[x+3]*scale + shift));
-            dst[x+2] = t0; dst[x+3] = t1;
-        }
-        #endif
         for( ; x < size.width; x++ )
             dst[x] = saturate_cast<DT>(std::abs(src[x]*scale + shift));
     }
@@ -242,18 +230,6 @@ cvtScale_( const T* src, size_t sstep,
     for( ; size.height--; src += sstep, dst += dstep )
     {
         int x = 0;
-        #if CV_ENABLE_UNROLLED
-        for( ; x <= size.width - 4; x += 4 )
-        {
-            DT t0, t1;
-            t0 = saturate_cast<DT>(src[x]*scale + shift);
-            t1 = saturate_cast<DT>(src[x+1]*scale + shift);
-            dst[x] = t0; dst[x+1] = t1;
-            t0 = saturate_cast<DT>(src[x+2]*scale + shift);
-            t1 = saturate_cast<DT>(src[x+3]*scale + shift);
-            dst[x+2] = t0; dst[x+3] = t1;
-        }
-        #endif
 
         for( ; x < size.width; x++ )
             dst[x] = saturate_cast<DT>(src[x]*scale + shift);
@@ -304,18 +280,6 @@ cvt_( const T* src, size_t sstep,
     for( ; size.height--; src += sstep, dst += dstep )
     {
         int x = 0;
-        #if CV_ENABLE_UNROLLED
-        for( ; x <= size.width - 4; x += 4 )
-        {
-            DT t0, t1;
-            t0 = saturate_cast<DT>(src[x]);
-            t1 = saturate_cast<DT>(src[x+1]);
-            dst[x] = t0; dst[x+1] = t1;
-            t0 = saturate_cast<DT>(src[x+2]);
-            t1 = saturate_cast<DT>(src[x+3]);
-            dst[x+2] = t0; dst[x+3] = t1;
-        }
-        #endif
         for( ; x < size.width; x++ )
             dst[x] = saturate_cast<DT>(src[x]);
     }

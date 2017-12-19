@@ -500,11 +500,10 @@ public:
     _Tp area() const;
 
     //! conversion of another data type.
-    template<typename _Tp2> operator Size_<_Tp2>() const;
+
 
     //! conversion to the old-style OpenCV types
     operator CvSize() const;
-    operator CvSize2D32f() const;
 
     _Tp width, height; // the width and the height
 };
@@ -1343,9 +1342,7 @@ public:
     operator float();
     operator double();
 
-    void fill( InputOutputArray mat, int distType, InputArray a, InputArray b, bool saturateRange=false );
     //! returns Gaussian random variate with mean zero.
-    double gaussian(double sigma);
 
     uint64 state;
 };
