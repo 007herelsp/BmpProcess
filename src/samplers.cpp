@@ -447,62 +447,6 @@ typedef CvStatus(CV_STDCALL *CvIPPGetRectSubPixFunc)(const void *src, int src_st
                                                      CvPoint2D32f center,
                                                      CvPoint *minpt, CvPoint *maxpt);
 
-CV_IMPL void
-cvGetRectSubPix(const void *srcarr, void *dstarr, CvPoint2D32f center)
-{
-    static CvFuncTable gr_tab[2];
-    static int inittab = 0;
-
-    CvMat srcstub, *src = (CvMat *)srcarr;
-    CvMat dststub, *dst = (CvMat *)dstarr;
-    CvSize src_size, dst_size;
-    CvGetRectSubPixFunc func;
-    int cn, src_step, dst_step;
-
-    if (!inittab)
-    {
-        icvInitGetRectSubPixC1RTable(gr_tab + 0);
-        icvInitGetRectSubPixC3RTable(gr_tab + 1);
-        inittab = 1;
-    }
-
-    if (!CV_IS_MAT(src))
-        src = cvGetMat(src, &srcstub);
-
-    if (!CV_IS_MAT(dst))
-        dst = cvGetMat(dst, &dststub);
-
-    cn = CV_MAT_CN(src->type);
-
-    if ((cn != 1 && cn != 3) || !CV_ARE_CNS_EQ(src, dst))
-        CV_Error(CV_StsUnsupportedFormat, "");
-
-    src_size = cvGetMatSize(src);
-    dst_size = cvGetMatSize(dst);
-    src_step = src->step ? src->step : CV_STUB_STEP;
-    dst_step = dst->step ? dst->step : CV_STUB_STEP;
-
-    //if( dst_size.width > src_size.width || dst_size.height > src_size.height )
-    //    CV_ERROR( CV_StsBadSize, "destination ROI must be smaller than source ROI" );
-
-    if (CV_ARE_DEPTHS_EQ(src, dst))
-    {
-        func = (CvGetRectSubPixFunc)(gr_tab[cn != 1].fn_2d[CV_MAT_DEPTH(src->type)]);
-    }
-    else
-    {
-        if (CV_MAT_DEPTH(src->type) != CV_8U || CV_MAT_DEPTH(dst->type) != CV_32F)
-            CV_Error(CV_StsUnsupportedFormat, "");
-
-        func = (CvGetRectSubPixFunc)(gr_tab[cn != 1].fn_2d[1]);
-    }
-
-    if (!func)
-        CV_Error(CV_StsUnsupportedFormat, "");
-
-    func(src->data.ptr, src_step, src_size,
-                   dst->data.ptr, dst_step, dst_size, center);
-}
 
 #define ICV_32F8U(x) ((uchar)cvRound(x))
 

@@ -1,58 +1,11 @@
-/*M///////////////////////////////////////////////////////////////////////////////////////
-//
-//  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.
-//
-//  By downloading, copying, installing or using the software you agree to this license.
-//  If you do not agree to this license, do not download, install,
-//  copy or use the software.
-//
-//
-//                           License Agreement
-//                For Open Source Computer Vision Library
-//
-// Copyright (C) 2000-2008, Intel Corporation, all rights reserved.
-// Copyright (C) 2009, Willow Garage Inc., all rights reserved.
-// Third party copyrights are property of their respective owners.
-//
-// Redistribution and use in source and binary forms, with or without modification,
-// are permitted provided that the following conditions are met:
-//
-//   * Redistribution's of source code must retain the above copyright notice,
-//     this list of conditions and the following disclaimer.
-//
-//   * Redistribution's in binary form must reproduce the above copyright notice,
-//     this list of conditions and the following disclaimer in the documentation
-//     and/or other materials provided with the distribution.
-//
-//   * The name of the copyright holders may not be used to endorse or promote products
-//     derived from this software without specific prior written permission.
-//
-// This software is provided by the copyright holders and contributors "as is" and
-// any express or implied warranties, including, but not limited to, the implied
-// warranties of merchantability and fitness for a particular purpose are disclaimed.
-// In no event shall the Intel Corporation or contributors be liable for any direct,
-// indirect, incidental, special, exemplary, or consequential damages
-// (including, but not limited to, procurement of substitute goods or services;
-// loss of use, data, or profits; or business interruption) however caused
-// and on any theory of liability, whether in contract, strict liability,
-// or tort (including negligence or otherwise) arising in any way out of
-// the use of this software, even if advised of the possibility of such damage.
-//
-//M*/
 
-/* The header is for internal use and it is likely to change.
-   It contains some macro definitions that are used in cxcore, cv, cvaux
-   and, probably, other libraries. If you need some of this functionality,
-   the safe way is to copy it into your code and rename the macros.
-*/
 #ifndef __OPENCV_CORE_INTERNAL_HPP__
 #define __OPENCV_CORE_INTERNAL_HPP__
-
-#include <vector>
 
 #include "opencv2/core/core.hpp"
 #include "opencv2/core/types_c.h"
 
+#include <vector>
 
 #ifndef FALSE
 #  define FALSE 0
@@ -195,68 +148,6 @@ CV_INLINE  CvSize  cvGetMatSize( const CvMat* mat )
 
 #define  CV_DESCALE(x,n)     (((x) + (1 << ((n)-1))) >> (n))
 #define  CV_FLT_TO_FIX(x,n)  cvRound((x)*(1<<(n)))
-
-/****************************************************************************************\
-
-  Generic implementation of QuickSort algorithm.
-  ----------------------------------------------
-  Using this macro user can declare customized sort function that can be much faster
-  than built-in qsort function because of lower overhead on elements
-  comparison and exchange. The macro takes less_than (or LT) argument - a macro or function
-  that takes 2 arguments returns non-zero if the first argument should be before the second
-  one in the sorted sequence and zero otherwise.
-
-  Example:
-
-    Suppose that the task is to sort points by ascending of y coordinates and if
-    y's are equal x's should ascend.
-
-    The code is:
-    ------------------------------------------------------------------------------
-           #define cmp_pts( pt1, pt2 ) \
-               ((pt1).y < (pt2).y || ((pt1).y < (pt2).y && (pt1).x < (pt2).x))
-
-           [static] CV_IMPLEMENT_QSORT( icvSortPoints, CvPoint, cmp_pts )
-    ------------------------------------------------------------------------------
-
-    After that the function "void icvSortPoints( CvPoint* array, size_t total, int aux );"
-    is available to user.
-
-  aux is an additional parameter, which can be used when comparing elements.
-  The current implementation was derived from *BSD system qsort():
-
-    * Copyright (c) 1992, 1993
-    *  The Regents of the University of California.  All rights reserved.
-    *
-    * Redistribution and use in source and binary forms, with or without
-    * modification, are permitted provided that the following conditions
-    * are met:
-    * 1. Redistributions of source code must retain the above copyright
-    *    notice, this list of conditions and the following disclaimer.
-    * 2. Redistributions in binary form must reproduce the above copyright
-    *    notice, this list of conditions and the following disclaimer in the
-    *    documentation and/or other materials provided with the distribution.
-    * 3. All advertising materials mentioning features or use of this software
-    *    must display the following acknowledgement:
-    *  This product includes software developed by the University of
-    *  California, Berkeley and its contributors.
-    * 4. Neither the name of the University nor the names of its contributors
-    *    may be used to endorse or promote products derived from this software
-    *    without specific prior written permission.
-    *
-    * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
-    * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-    * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-    * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
-    * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-    * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-    * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-    * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-    * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
-    * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
-    * SUCH DAMAGE.
-
-\****************************************************************************************/
 
 #define CV_IMPLEMENT_QSORT_EX( func_name, T, LT, user_data_type )                   \
 void func_name( T *array, size_t total, user_data_type aux )                        \

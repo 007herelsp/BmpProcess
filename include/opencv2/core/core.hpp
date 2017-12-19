@@ -42,11 +42,6 @@ template<typename _Tp, int m, int n> class Matx;
 typedef std::string String;
 
 class Mat;
-class CV_EXPORTS MatOp_Base;
-class CV_EXPORTS MatArg;
-class CV_EXPORTS MatConstIterator;
-
-template<typename _Tp> class MatCommaInitializer_;
 
 
 CV_EXPORTS string format( const char* fmt, ... );
@@ -1193,7 +1188,6 @@ public:
     _InputArray(const Scalar& s);
     _InputArray(const double& val);
     virtual Mat getMat(int i=-1) const;
-    virtual void getMatVector(vector<Mat>& mv) const;
 
 
 
@@ -1343,7 +1337,6 @@ public:
     //! builds matrix from a 3D point
     template<typename _Tp> explicit Mat(const Point3_<_Tp>& pt, bool copyData=true);
     //! builds matrix from comma initializer
-    template<typename _Tp> explicit Mat(const MatCommaInitializer_<_Tp>& commaInitializer);
 
 
 
@@ -1700,19 +1693,6 @@ CV_EXPORTS_W double norm(InputArray src1, int normType=NORM_L2, InputArray mask=
 CV_EXPORTS_W double norm(InputArray src1, InputArray src2,
                          int normType=NORM_L2, InputArray mask=noArray());
 
-//! makes multi-channel array out of several single-channel arrays
-CV_EXPORTS void merge(const Mat* mv, size_t count, OutputArray dst);
-CV_EXPORTS void merge(const vector<Mat>& mv, OutputArray dst );
-
-//! makes multi-channel array out of several single-channel arrays
-CV_EXPORTS_W void merge(InputArrayOfArrays mv, OutputArray dst);
-
-//! copies each plane of a multi-channel array to a dedicated array
-CV_EXPORTS void split(const Mat& src, Mat* mvbegin);
-CV_EXPORTS void split(const Mat& m, vector<Mat>& mv );
-
-//! copies each plane of a multi-channel array to a dedicated array
-CV_EXPORTS_W void split(InputArray m, OutputArrayOfArrays mv);
 
 //! copies selected channels from the input arrays to the selected channels of the output arrays
 CV_EXPORTS void mixChannels(const Mat* src, size_t nsrcs, Mat* dst, size_t ndsts,
@@ -1759,12 +1739,10 @@ CV_EXPORTS_W void pow(InputArray src, double power, OutputArray dst);
 //! computes exponent of each matrix element (dst = e**src)
 CV_EXPORTS_W void exp(InputArray src, OutputArray dst);
 //! computes natural logarithm of absolute value of each matrix element: dst = log(abs(src))
-CV_EXPORTS_W void log(InputArray src, OutputArray dst);
 //! computes cube root of the argument
 //! computes the angle in degrees (0..360) of the vector (x,y)
 
 CV_EXPORTS void exp(const float* src, float* dst, int n);
-CV_EXPORTS void log(const float* src, float* dst, int n);
 
 //! converts NaN's to the given number
 
@@ -1977,76 +1955,6 @@ enum
     FONT_ITALIC = 16
 };
 
-//! renders text string in the image
-CV_EXPORTS_W void putText( Mat& img, const string& text, Point org,
-                         int fontFace, double fontScale, Scalar color,
-                         int thickness=1, int lineType=8,
-                         bool bottomLeftOrigin=false );
-
-//! returns bounding box of the text string
-CV_EXPORTS_W Size getTextSize(const string& text, int fontFace,
-                            double fontScale, int thickness,
-                            CV_OUT int* baseLine);
-
-
-//////////// Iterators & Comma initializers //////////////////
-
-class CV_EXPORTS MatConstIterator
-{
-public:
-    typedef uchar* value_type;
-    typedef ptrdiff_t difference_type;
-    typedef const uchar** pointer;
-    typedef uchar* reference;
-    typedef std::random_access_iterator_tag iterator_category;
-
-    //! default constructor
-    MatConstIterator();
-    //! constructor that sets the iterator to the beginning of the matrix
-    MatConstIterator(const Mat* _m);
-    //! constructor that sets the iterator to the specified element of the matrix
-    MatConstIterator(const Mat* _m, int _row, int _col=0);
-    //! constructor that sets the iterator to the specified element of the matrix
-    MatConstIterator(const Mat* _m, Point _pt);
-    //! constructor that sets the iterator to the specified element of the matrix
-    MatConstIterator(const Mat* _m, const int* _idx);
-    //! copy constructor
-    MatConstIterator(const MatConstIterator& it);
-
-    //! copy operator
-    MatConstIterator& operator = (const MatConstIterator& it);
-    //! returns the current matrix element
-    uchar* operator *() const;
-    //! returns the i-th matrix element, relative to the current
-    uchar* operator [](ptrdiff_t i) const;
-
-    //! shifts the iterator forward by the specified number of elements
-    MatConstIterator& operator += (ptrdiff_t ofs);
-    //! shifts the iterator backward by the specified number of elements
-    MatConstIterator& operator -= (ptrdiff_t ofs);
-    //! decrements the iterator
-    MatConstIterator& operator --();
-    //! decrements the iterator
-    MatConstIterator operator --(int);
-    //! increments the iterator
-    MatConstIterator& operator ++();
-    //! increments the iterator
-    MatConstIterator operator ++(int);
-    //! returns the current iterator position
-    Point pos() const;
-    //! returns the current iterator position
-    void pos(int* _idx) const;
-    ptrdiff_t lpos() const;
-    void seek(ptrdiff_t ofs, bool relative=false);
-    void seek(const int* _idx, bool relative=false);
-
-    const Mat* m;
-    size_t elemSize;
-    uchar* ptr;
-    uchar* sliceStart;
-    uchar* sliceEnd;
-};
-
 
 
 /*!
@@ -2062,15 +1970,6 @@ public:
  Mat R = (Mat_<double>(2,2) << a, -b, b, a);
  \endcode
 */
-template<typename _Tp> class MatCommaInitializer_
-{
-public:
-    //! the constructor, created by "matrix << firstValue" operator, where matrix is cv::Mat
-    //! the operator that takes the next value and put it to the matrix
-    template<typename T2> MatCommaInitializer_<_Tp>& operator , (T2 v);
-    //! another form of conversion operator
-protected:
-};
 
 
 template<typename _Tp, int m, int n> class MatxCommaInitializer
@@ -2409,7 +2308,6 @@ public:
     CV_WRAP bool getBool(const string& name) const;
     CV_WRAP string getString(const string& name) const;
     CV_WRAP Mat getMat(const string& name) const;
-    CV_WRAP vector<Mat> getMatVector(const string& name) const;
     CV_WRAP Ptr<Algorithm> getAlgorithm(const string& name) const;
 
     void set(const string& name, int value);

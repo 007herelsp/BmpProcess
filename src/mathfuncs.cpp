@@ -850,30 +850,6 @@ static void Log_64f( const double *x, double *y, int n )
 }
 
 
-void log( InputArray _src, OutputArray _dst )
-{
-    Mat src = _src.getMat();
-    int type = src.type(), depth = src.depth(), cn = src.channels();
-
-    _dst.create( src.dims, src.size, type );
-    Mat dst = _dst.getMat();
-
-    CV_Assert( depth == CV_32F || depth == CV_64F );
-
-    const Mat* arrays[] = {&src, &dst, 0};
-    uchar* ptrs[2];
-    NAryMatIterator it(arrays, ptrs);
-    int len = (int)(it.size*cn);
-
-    for( size_t i = 0; i < it.nplanes; i++, ++it )
-    {
-        if( depth == CV_32F )
-            Log_32f( (const float*)ptrs[0], (float*)ptrs[1], len );
-        else
-            Log_64f( (const double*)ptrs[0], (double*)ptrs[1], len );
-    }
-}
-
 /****************************************************************************************\
 *                                    P O W E R                                           *
 \****************************************************************************************/

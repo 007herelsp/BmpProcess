@@ -31,144 +31,6 @@ double angle(CvPoint *pt1, CvPoint *pt2, CvPoint *pt0)
 	return (dx1 * dx2 + dy1 * dy2) / sqrt((dx1 * dx1 + dy1 * dy1) * (dx2 * dx2 + dy2 * dy2) + 1e-10);
 }
 
-//drawSquares��������������ͼ�����ҵ�����������������
-void drawSquares(IplImage *img, CvSeq *squares)
-{
-	CvSeqReader reader;
-	IplImage *cpy = cvCloneImage(img);
-	int i;
-	cvStartReadSeq(squares, &reader, 0);
-	printf("total = %d\n", squares->total);
-	// read 4 sequence elements at a time (all vertices of a square)
-
-	for (i = 0; i < squares->total; i += 4)
-	{
-		CvPoint pt[4], *rect = pt;
-		int count = 4;
-
-		// read 4 vertices
-		CV_READ_SEQ_ELEM(pt[0], reader);
-		CV_READ_SEQ_ELEM(pt[1], reader);
-		CV_READ_SEQ_ELEM(pt[2], reader);
-		CV_READ_SEQ_ELEM(pt[3], reader);
-
-		// draw the square as a closed polyline
-		// cvPolyLine(cpy, &rect, &count, 1, 1, CV_RGB(0, 0, 255), 2, CV_AA, 0);
-	}
-
-	cvShowImage("xx", cpy);
-	/*const char* filename = "111111111111111111111.jpg";
-	const CvArr* image = cpy;
-	int cvSaveImage("1111111111111111111111.jpg",image);*/
-	char *filename2 = "rsult.bmp"; //ͼ����
-	cvSaveImage(filename2, cpy);   //��ͼ��д���ļ�
-
-	//Mat mtx(cpy);
-
-	cvReleaseImage(&cpy);
-}
-//��תͼ�����ݲ��䣬�ߴ���Ӧ���
-IplImage *rotateImage2(IplImage *img, IplImage *img_rotate, int degree)
-{
-	double angle = degree * CV_PI / 180.;
-	double a = sin(angle), b = cos(angle);
-	int width = img->width, height = img->height;
-	//��ת�����ͼ�ߴ�
-	int width_rotate = int(height * fabs(a) + width * fabs(b));
-	int height_rotate = int(width * fabs(a) + height * fabs(b));
-	//IplImage *img_rotate = cvCreateImage(cvSize(width_rotate, height_rotate), img->depth, img->nChannels);
-	//cvZero(img_rotate);
-	//��֤ԭͼ��������Ƕ���ת����С�ߴ�
-	int tempLength = sqrt((double)width * width + (double)height * height) + 10;
-	int tempX = (tempLength + 1) / 2 - width / 2;
-	int tempY = (tempLength + 1) / 2 - height / 2;
-	IplImage *temp = cvCreateImage(cvSize(tempLength, tempLength), img->depth, img->nChannels);
-	//cvZero(temp);
-	//��ԭͼ���Ƶ���ʱͼ��tmp����
-	//cvSetImageROI(img_rotate, cvRect(tempX, tempY, width, height));
-	// cvCopy(img, temp, NULL);
-
-	//��ת����map
-	// [ m0  m1  m2 ] ===>  [ A11  A12   b1 ]
-	// [ m3  m4  m5 ] ===>  [ A21  A22   b2 ]
-	float m[6];
-	int w = img->width;
-	int h = img->height;
-	m[0] = b;
-	m[1] = a;
-	m[3] = -m[1];
-	m[4] = m[0];
-	// ����ת��������ͼ���м�
-	m[2] = w * 0.5f;
-	m[5] = h * 0.5f;
-	CvMat M = cvMat(2, 3, CV_32F, m);
-	//cvGetQuadrangleSubPix(img, img_rotate, &M);
-	cvReleaseImage(&temp);
-	cvResetImageROI(img_rotate);
-	return img_rotate;
-}
-
-IplImage *rotateImage3(IplImage *img, IplImage *img_rotate, float degree)
-{
-	double angle = degree * CV_PI / 180.;
-	double a = sin(angle), b = cos(angle);
-	int width = img->width, height = img->height;
-	//��ת�����ͼ�ߴ�
-	int width_rotate = int(height * fabs(a) + width * fabs(b));
-	int height_rotate = int(width * fabs(a) + height * fabs(b));
-	//IplImage *img_rotate = cvCreateImage(cvSize(width_rotate, height_rotate), img->depth, img->nChannels);
-	//cvZero(img_rotate);
-	//��֤ԭͼ��������Ƕ���ת����С�ߴ�
-	int tempLength = sqrt((double)width * width + (double)height * height) + 10;
-	int tempX = (tempLength + 1) / 2 - width / 2;
-	int tempY = (tempLength + 1) / 2 - height / 2;
-	IplImage *temp = cvCreateImage(cvSize(tempLength, tempLength), img->depth, img->nChannels);
-	//cvZero(temp);
-	//��ԭͼ���Ƶ���ʱͼ��tmp����
-	cvSetImageROI(temp, cvRect(tempX, tempY, width, height));
-	cvCopy(img, temp, NULL);
-	cvResetImageROI(temp);
-	//��ת����map
-	// [ m0  m1  m2 ] ===>  [ A11  A12   b1 ]
-	// [ m3  m4  m5 ] ===>  [ A21  A22   b2 ]
-	float m[6];
-	int w = temp->width;
-	int h = temp->height;
-	m[0] = b;
-	m[1] = a;
-	m[3] = -m[1];
-	m[4] = m[0];
-	// ����ת��������ͼ���м�
-	m[2] = w * 0.5f;
-	m[5] = h * 0.5f;
-	CvMat M = cvMat(2, 3, CV_32F, m);
-	//cvGetQuadrangleSubPix(temp, img_rotate, &M);
-	cvReleaseImage(&temp);
-	return img_rotate;
-}
-
-IplImage *protc(IplImage *imgin, IplImage *imgin2, float theta)
-{
-	int x;
-	int y;
-
-	for (int i = 0; i < imgin->height; i++)
-	{
-		for (int j = 0; j < imgin->width; j++)
-		{
-			float fy = (float(j) * cos(theta) + float(i) * sin(theta)) + 200;
-			float fx = (float(-j) * sin(theta) + float(i) * cos(theta)) + 200;
-			x = (int)(fx + 1);
-			y = (int)(fy + 1);
-			imgin2->imageData[(x * imgin2->widthStep + 3 * y) + 0] = imgin->imageData[(i * imgin->widthStep + 3 * j) + 0];
-			imgin2->imageData[(x * imgin2->widthStep + 3 * y) + 1] = imgin->imageData[(i * imgin->widthStep + 3 * j) + 1];
-			imgin2->imageData[(x * imgin2->widthStep + 3 * y) + 2] = imgin->imageData[(i * imgin->widthStep + 3 * j) + 2];
-		}
-	}
-
-	return imgin2;
-}
-
 struct SymCmp
 {
 	bool operator()(const CvBox2D &x, const CvBox2D &y) const
@@ -333,7 +195,7 @@ set<Box, SymUBoxCmp> SearchProcess_v2(IplImage *lpSrcImg)
 				{
 					End_Rage2D = cvMinAreaRect2(contours);
 					s = 0;
-					Box box;
+					Box box = { 0 };
 					box.box = End_Rage2D;
 					for (index = 2; index < 5; index++)
 					{
@@ -389,7 +251,6 @@ set<Box, SymUBoxCmp> SearchProcess_v2(IplImage *lpSrcImg)
 	return std::move(lstRes);
 }
 
-IplImage *protc2(IplImage *imgin, IplImage *imgin2, float theta);
 int process(IplImage *lpImg, IplImage *lpTargetImg, int argc, char *argv[])
 {
 	set<CvBox2D, SymCmp> lstRes = SearchProcess(lpImg);

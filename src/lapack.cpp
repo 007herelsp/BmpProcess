@@ -895,12 +895,14 @@ bool cv::solve( InputArray _src, InputArray _src2arg, OutputArray _dst, int meth
     {
         // a'*b
         if( method == DECOMP_LU || method == DECOMP_CHOLESKY )
-            gemm( src, src2, 1, Mat(), 0, dst, GEMM_1_T );
+        	{
+            assert("herelsp remove"&&0);//gemm( src, src2, 1, Mat(), 0, dst, GEMM_1_T );
+        	}
         else
         {
             Mat tmp(n, nb, type, ptr);
             ptr += n*nb*esz;
-            gemm( src, src2, 1, Mat(), 0, tmp, GEMM_1_T );
+            assert("herelsp remove"&&0);// gemm( src, src2, 1, Mat(), 0, tmp, GEMM_1_T );
             src2 = tmp;
         }
     }

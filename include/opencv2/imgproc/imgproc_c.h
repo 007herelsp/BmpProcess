@@ -73,20 +73,6 @@ CVAPI(void)  cvDilate( const CvArr* src, CvArr* dst,
 /*********************************** data sampling **************************************/
 
 
-/* Retrieves the rectangular image region with specified center from the input array.
- dst(x,y) <- src(x + center.x - dst_width/2, y + center.y - dst_height/2).
- Values of pixels with fractional coordinates are retrieved using bilinear interpolation*/
-CVAPI(void)  cvGetRectSubPix( const CvArr* src, CvArr* dst, CvPoint2D32f center );
-
-
-/* Retrieves quadrangle from the input array.
-    matrixarr = ( a11  a12 | b1 )   dst(x,y) <- src(A[x y]' + b)
-                ( a21  a22 | b2 )   (bilinear interpolation is used to retrieve pixels
-                                     with fractional coordinates)
-*/
-CVAPI(void)  cvGetQuadrangleSubPix( const CvArr* src, CvArr* dst,
-                                    const CvMat* map_matrix );
-
 
 /****************************************************************************************\
 *                              Contours retrieving                                       *
@@ -180,17 +166,6 @@ CVAPI(int)  cvCheckContourConvexity( const CvArr* contour );
 CVAPI(double)  cvThreshold( const CvArr*  src, CvArr*  dst,
                             double  threshold, double  max_value,
                             int threshold_type );
-
-/* Applies adaptive threshold to grayscale image.
-   The two parameters for methods CV_ADAPTIVE_THRESH_MEAN_C and
-   CV_ADAPTIVE_THRESH_GAUSSIAN_C are:
-   neighborhood size (3, 5, 7 etc.),
-   and a constant subtracted from mean (...,-3,-2,-1,0,1,2,3,...) */
-CVAPI(void)  cvAdaptiveThreshold( const CvArr* src, CvArr* dst, double max_value,
-                                  int adaptive_method CV_DEFAULT(CV_ADAPTIVE_THRESH_MEAN_C),
-                                  int threshold_type CV_DEFAULT(CV_THRESH_BINARY),
-                                  int block_size CV_DEFAULT(3),
-                                  double param1 CV_DEFAULT(5));
 
 
 

@@ -2,7 +2,6 @@
 #ifndef __OPENCV_PRECOMP_H__
 #define __OPENCV_PRECOMP_H__
 
-#include "cvconfig.h"
 
 #include "opencv2/core/core.hpp"
 #include "opencv2/core/core_c.h"
@@ -31,18 +30,10 @@ extern const float g_8x32fTab[];
 extern const ushort g_8x16uSqrTab[];
 #define CV_SQR_8U(x)  cv::g_8x16uSqrTab[(x)+255]
 
-extern const char* g_HersheyGlyphs[];
-
 extern const uchar g_Saturate8u[];
 #define CV_FAST_CAST_8U(t)   (assert(-256 <= (t) && (t) <= 512), cv::g_Saturate8u[(t)+256])
 #define CV_MIN_8U(a,b)       ((a) - CV_FAST_CAST_8U((a) - (b)))
 #define CV_MAX_8U(a,b)       ((a) + CV_FAST_CAST_8U((b) - (a)))
-
-
-#if defined WIN32 || defined _WIN32
-void deleteThreadAllocData();
-void deleteThreadRNGData();
-#endif
 
 template<typename T1, typename T2=T1, typename T3=T1> struct OpAdd
 {
