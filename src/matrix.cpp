@@ -163,9 +163,6 @@ void Mat::create(int d, const int* _sizes, int _type)
 
     if( total() > 0 )
     {
-#ifdef HAVE_TGPU
-        if( !allocator || allocator == tegra::getAllocator() ) allocator = tegra::getAllocator(d, _sizes, _type);
-#endif
         if( !allocator )
         {
             size_t totalsize = alignSize(step.p[0]*size.p[0], (int)sizeof(*refcount));
@@ -175,23 +172,8 @@ void Mat::create(int d, const int* _sizes, int _type)
         }
         else
         {
-#ifdef HAVE_TGPU
-           try
-            {
-                allocator->allocate(dims, size, _type, refcount, datastart, data, step.p);
-                CV_Assert( step[dims-1] == (size_t)CV_ELEM_SIZE(flags) );
-            }catch(...)
-            {
-                allocator = 0;
-                size_t totalSize = alignSize(step.p[0]*size.p[0], (int)sizeof(*refcount));
-                data = datastart = (uchar*)fastMalloc(totalSize + (int)sizeof(*refcount));
-                refcount = (int*)(data + totalSize);
-                *refcount = 1;
-            }
-#else
             allocator->allocate(dims, size, _type, refcount, datastart, data, step.p);
             CV_Assert( step[dims-1] == (size_t)CV_ELEM_SIZE(flags) );
-#endif
         }
     }
 
@@ -467,41 +449,6 @@ Mat::operator IplImage() const
     return img;
 }
 
-
-void Mat::pop_back(size_t nelems)
-{
-    CV_Assert( nelems <= (size_t)size.p[0] );
-
-    if( isSubmatrix() )
-        *this = rowRange(0, size.p[0] - (int)nelems);
-    else
-    {
-        size.p[0] -= (int)nelems;
-        dataend -= nelems*step.p[0];
-        /*if( size.p[0] <= 1 )
-        {
-            if( dims <= 2 )
-                flags |= CONTINUOUS_FLAG;
-            else
-                updateContinuityFlag(*this);
-        }*/
-    }
-}
-
-
-void Mat::push_back_(const void* elem)
-{
-    int r = size.p[0];
-    if( isSubmatrix() || dataend + step.p[0] > datalimit )
-        reserve( std::max(r + 1, (r*3+1)/2) );
-
-    size_t esz = elemSize();
-    memcpy(data + r*step.p[0], elem, esz);
-    size.p[0] = r + 1;
-    dataend += step.p[0];
-    if( esz < step.p[0] )
-        flags &= ~CONTINUOUS_FLAG;
-}
 
 void Mat::reserve(size_t nelems)
 {
@@ -1796,47 +1743,6 @@ NAryMatIterator NAryMatIterator::operator ++(int)
 }
 
 
-
-////////////////////// RotatedRect //////////////////////
-
-void RotatedRect::points(Point2f pt[]) const
-{
-    double _angle = angle*CV_PI/180.;
-    float b = (float)cos(_angle)*0.5f;
-    float a = (float)sin(_angle)*0.5f;
-
-    pt[0].x = center.x - a*size.height - b*size.width;
-    pt[0].y = center.y + b*size.height - a*size.width;
-    pt[1].x = center.x + a*size.height - b*size.width;
-    pt[1].y = center.y - b*size.height - a*size.width;
-    pt[2].x = 2*center.x - pt[0].x;
-    pt[2].y = 2*center.y - pt[0].y;
-    pt[3].x = 2*center.x - pt[1].x;
-    pt[3].y = 2*center.y - pt[1].y;
-}
-
-Rect RotatedRect::boundingRect() const
-{
-    Point2f pt[4];
-    points(pt);
-    Rect r(cvFloor(min(min(min(pt[0].x, pt[1].x), pt[2].x), pt[3].x)),
-           cvFloor(min(min(min(pt[0].y, pt[1].y), pt[2].y), pt[3].y)),
-           cvCeil(max(max(max(pt[0].x, pt[1].x), pt[2].x), pt[3].x)),
-           cvCeil(max(max(max(pt[0].y, pt[1].y), pt[2].y), pt[3].y)));
-    r.width -= r.x - 1;
-    r.height -= r.y - 1;
-    return r;
-}
-
-
-Rect_<float> RotatedRect::boundingRect2f() const
-{
-    Point2f pt[4];
-    points(pt);
-    Rect_<float> r(Point_<float>(min(min(min(pt[0].x, pt[1].x), pt[2].x), pt[3].x), min(min(min(pt[0].y, pt[1].y), pt[2].y), pt[3].y)),
-                   Point_<float>(max(max(max(pt[0].x, pt[1].x), pt[2].x), pt[3].x), max(max(max(pt[0].y, pt[1].y), pt[2].y), pt[3].y)));
-    return r;
-}
 
 }
 

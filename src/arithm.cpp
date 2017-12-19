@@ -329,11 +329,6 @@ static void sub64f( const double* src1, size_t step1,
     vBinOp64f<OpSub<double>, IF_SIMD(_VSub64f)>(src1, step1, src2, step2, dst, step, sz);
 }
 
-template<> inline uchar OpMin<uchar>::operator ()(uchar a, uchar b) const { return CV_MIN_8U(a, b); }
-template<> inline uchar OpMax<uchar>::operator ()(uchar a, uchar b) const { return CV_MAX_8U(a, b); }
-
-
-
 
 /****************************************************************************************\
 *                                   logical operations                                   *

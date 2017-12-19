@@ -55,12 +55,6 @@ template<> struct ColorChannel<float>
     static float half() { return 0.5f; }
 };
 
-/*template<> struct ColorChannel<double>
-{
-    typedef double worktype_f;
-    static double max() { return 1.; }
-    static double half() { return 0.5; }
-};*/
 
 
 ///////////////////////////// Top-level template function ////////////////////////////////
@@ -143,74 +137,6 @@ template<typename _Tp> struct RGB2RGB
     int srccn, dstcn, blueIdx;
 };
 
-/////////// Transforming 16-bit (565 or 555) RGB to/from 24/32-bit (888[8]) RGB //////////
-
-struct RGB5x52RGB
-{
-    typedef uchar channel_type;
-
-    RGB5x52RGB(int _dstcn, int _blueIdx, int _greenBits)
-        : dstcn(_dstcn), blueIdx(_blueIdx), greenBits(_greenBits) {}
-
-    void operator()(const uchar* src, uchar* dst, int n) const
-    {
-        int dcn = dstcn, bidx = blueIdx;
-        if( greenBits == 6 )
-            for( int i = 0; i < n; i++, dst += dcn )
-            {
-                unsigned t = ((const ushort*)src)[i];
-                dst[bidx] = (uchar)(t << 3);
-                dst[1] = (uchar)((t >> 3) & ~3);
-                dst[bidx ^ 2] = (uchar)((t >> 8) & ~7);
-                if( dcn == 4 )
-                    dst[3] = 255;
-            }
-        else
-            for( int i = 0; i < n; i++, dst += dcn )
-            {
-                unsigned t = ((const ushort*)src)[i];
-                dst[bidx] = (uchar)(t << 3);
-                dst[1] = (uchar)((t >> 2) & ~7);
-                dst[bidx ^ 2] = (uchar)((t >> 7) & ~7);
-                if( dcn == 4 )
-                    dst[3] = t & 0x8000 ? 255 : 0;
-            }
-    }
-
-    int dstcn, blueIdx, greenBits;
-};
-
-
-struct RGB2RGB5x5
-{
-    typedef uchar channel_type;
-
-    RGB2RGB5x5(int _srccn, int _blueIdx, int _greenBits)
-        : srccn(_srccn), blueIdx(_blueIdx), greenBits(_greenBits) {}
-
-    void operator()(const uchar* src, uchar* dst, int n) const
-    {
-        int scn = srccn, bidx = blueIdx;
-        if( greenBits == 6 )
-            for( int i = 0; i < n; i++, src += scn )
-            {
-                ((ushort*)dst)[i] = (ushort)((src[bidx] >> 3)|((src[1]&~3) << 3)|((src[bidx^2]&~7) << 8));
-            }
-        else if( scn == 3 )
-            for( int i = 0; i < n; i++, src += 3 )
-            {
-                ((ushort*)dst)[i] = (ushort)((src[bidx] >> 3)|((src[1]&~7) << 2)|((src[bidx^2]&~7) << 7));
-            }
-        else
-            for( int i = 0; i < n; i++, src += 4 )
-            {
-                ((ushort*)dst)[i] = (ushort)((src[bidx] >> 3)|((src[1]&~7) << 2)|
-                    ((src[bidx^2]&~7) << 7)|(src[3] ? 0x8000 : 0));
-            }
-    }
-
-    int srccn, blueIdx, greenBits;
-};
 
 ///////////////////////////////// Color to/from Grayscale ////////////////////////////////
 
@@ -242,29 +168,6 @@ struct Gray2RGB
 };
 
 
-struct Gray2RGB5x5
-{
-    typedef uchar channel_type;
-
-    Gray2RGB5x5(int _greenBits) : greenBits(_greenBits) {}
-    void operator()(const uchar* src, uchar* dst, int n) const
-    {
-        if( greenBits == 6 )
-            for( int i = 0; i < n; i++ )
-            {
-                int t = src[i];
-                ((ushort*)dst)[i] = (ushort)((t >> 3)|((t & ~3) << 3)|((t & ~7) << 8));
-            }
-        else
-            for( int i = 0; i < n; i++ )
-            {
-                int t = src[i] >> 3;
-                ((ushort*)dst)[i] = (ushort)(t|(t << 5)|(t << 10));
-            }
-    }
-    int greenBits;
-};
-
 
 #undef R2Y
 #undef G2Y
@@ -280,33 +183,6 @@ enum
     BLOCK_SIZE = 256
 };
 
-
-struct RGB5x52Gray
-{
-    typedef uchar channel_type;
-
-    RGB5x52Gray(int _greenBits) : greenBits(_greenBits) {}
-    void operator()(const uchar* src, uchar* dst, int n) const
-    {
-        if( greenBits == 6 )
-            for( int i = 0; i < n; i++ )
-            {
-                int t = ((ushort*)src)[i];
-                dst[i] = (uchar)CV_DESCALE(((t << 3) & 0xf8)*B2Y +
-                                           ((t >> 3) & 0xfc)*G2Y +
-                                           ((t >> 8) & 0xf8)*R2Y, yuv_shift);
-            }
-        else
-            for( int i = 0; i < n; i++ )
-            {
-                int t = ((ushort*)src)[i];
-                dst[i] = (uchar)CV_DESCALE(((t << 3) & 0xf8)*B2Y +
-                                           ((t >> 2) & 0xf8)*G2Y +
-                                           ((t >> 7) & 0xf8)*R2Y, yuv_shift);
-            }
-    }
-    int greenBits;
-};
 
 
 template<typename _Tp> struct RGB2Gray
@@ -406,12 +282,12 @@ void cv::cvtColor( InputArray _src, OutputArray _dst, int code, int dcn )
     switch( code )
     {
 
-        case CV_BGR2GRAY: case CV_BGRA2GRAY: case CV_RGB2GRAY: case CV_RGBA2GRAY:
+        case CV_BGR2GRAY: case CV_RGB2GRAY: 
             CV_Assert( scn == 3 || scn == 4 );
             _dst.create(sz, CV_MAKETYPE(depth, 1));
             dst = _dst.getMat();
 
-            bidx = code == CV_BGR2GRAY || code == CV_BGRA2GRAY ? 0 : 2;
+            bidx = code == CV_BGR2GRAY ? 0 : 2;
 
             if( depth == CV_8U )
             {
@@ -426,8 +302,8 @@ void cv::cvtColor( InputArray _src, OutputArray _dst, int code, int dcn )
 
 
 
-        case CV_GRAY2BGR: case CV_GRAY2BGRA:
-            if( dcn <= 0 ) dcn = (code==CV_GRAY2BGRA) ? 4 : 3;
+        case CV_GRAY2BGR: 
+            if( dcn <= 0 ) dcn = 3;
             CV_Assert( scn == 1 && (dcn == 3 || dcn == 4));
             _dst.create(sz, CV_MAKETYPE(depth, dcn));
             dst = _dst.getMat();

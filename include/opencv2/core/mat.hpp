@@ -467,28 +467,6 @@ inline const _Tp &Mat::at(const int *idx) const
 }
 
 
-template <typename _Tp>
-inline void Mat::push_back(const _Tp &elem)
-{
-    if (!data)
-    {
-        CV_Assert((type() == 0) || (DataType<_Tp>::type == type()));
-
-        *this = Mat(1, 1, DataType<_Tp>::type, (void *)&elem).clone();
-        return;
-    }
-    CV_Assert(DataType<_Tp>::type == type() && cols == 1
-              /* && dims == 2 (cols == 1 implies dims == 2) */);
-    uchar *tmp = dataend + step[0];
-    if (!isSubmatrix() && isContinuous() && tmp <= datalimit)
-    {
-        *(_Tp *)(data + (size.p[0]++) * step.p[0]) = elem;
-        dataend = tmp;
-    }
-    else
-        push_back_(&elem);
-}
-
 inline Mat::MSize::MSize(int *_p) : p(_p) {}
 inline Size Mat::MSize::operator()() const
 {
@@ -546,11 +524,7 @@ inline Mat::MStep &Mat::MStep::operator=(size_t s)
 
 ////////////////////////////// Augmenting algebraic operations //////////////////////////////////
 
-static inline Mat &operator*=(const Mat &a, const Mat &b)
-{
-    gemm(a, b, 1, Mat(), 0, (Mat &)a, 0);
-    return (Mat &)a;
-}
+
 
 static inline Mat &operator*=(const Mat &a, double s)
 {

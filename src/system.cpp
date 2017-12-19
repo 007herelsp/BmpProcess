@@ -121,24 +121,7 @@ CV_IMPL const char* cvErrorStr( int status )
     return buf;
 }
 
-CV_IMPL int cvGetErrMode(void)
-{
-    return 0;
-}
 
-CV_IMPL int cvSetErrMode(int)
-{
-    return 0;
-}
-
-CV_IMPL int cvGetErrStatus(void)
-{
-    return 0;
-}
-
-CV_IMPL void cvSetErrStatus(int)
-{
-}
 
 
 CV_IMPL void cvError( int code, const char* func_name,

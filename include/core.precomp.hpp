@@ -59,21 +59,7 @@ template<typename T1, typename T2=T1, typename T3=T1> struct OpRSub
     T3 operator ()(const T1 a, const T2 b) const { return saturate_cast<T3>(b - a); }
 };
 
-template<typename T> struct OpMin
-{
-    typedef T type1;
-    typedef T type2;
-    typedef T rtype;
-    T operator ()(const T a, const T b) const { return std::min(a, b); }
-};
 
-template<typename T> struct OpMax
-{
-    typedef T type1;
-    typedef T type2;
-    typedef T rtype;
-    T operator ()(const T a, const T b) const { return std::max(a, b); }
-};
 
 inline Size getContinuousSize_(int flags, int cols, int rows, int widthScale)
 {

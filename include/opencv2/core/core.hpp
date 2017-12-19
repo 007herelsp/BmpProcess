@@ -505,38 +505,6 @@ typedef Vec<double, 4> Vec4d;
 typedef Vec<double, 6> Vec6d;
 
 
-//////////////////////////////// Complex //////////////////////////////
-
-/*!
-  A complex number class.
-
-  The template class is similar and compatible with std::complex, however it provides slightly
-  more convenient access to the real and imaginary parts using through the simple field access, as opposite
-  to std::complex::real() and std::complex::imag().
-*/
-template<typename _Tp> class Complex
-{
-public:
-
-    //! constructors
-    Complex();
-    Complex( _Tp _re, _Tp _im=0 );
-    Complex( const std::complex<_Tp>& c );
-
-    //! conversion to another data type
-    template<typename T2> operator Complex<T2>() const;
-    //! conjugation
-    Complex conj() const;
-    //! conversion to std::complex
-    operator std::complex<_Tp>() const;
-
-    _Tp re, im; //< the real and the imaginary parts
-};
-
-
-typedef Complex<float> Complexf;
-typedef Complex<double> Complexd;
-
 
 //////////////////////////////// Point_ ////////////////////////////////
 
@@ -973,17 +941,6 @@ public:
     typedef Vec<channel_type, channels> vec_type;
 };
 
-template<typename _Tp> class DataType<Complex<_Tp> >
-{
-public:
-    typedef Complex<_Tp> value_type;
-    typedef value_type work_type;
-    typedef _Tp channel_type;
-    enum { generic_type = 0, depth = DataDepth<channel_type>::value, channels = 2,
-           fmt = ((channels-1)<<8) + DataDepth<channel_type>::fmt,
-           type = CV_MAKETYPE(depth, channels) };
-    typedef Vec<channel_type, channels> vec_type;
-};
 
 template<typename _Tp> class DataType<Point_<_Tp> >
 {

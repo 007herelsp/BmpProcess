@@ -400,18 +400,6 @@ CVAPI(CvSeq*) cvMakeSeqHeaderForArray( int seq_type, int header_size,
                                        int elem_size, void* elements, int total,
                                        CvSeq* seq, CvSeqBlock* block );
 
-/* Extracts sequence slice (with or without copying sequence elements) */
-CVAPI(CvSeq*) cvSeqSlice( const CvSeq* seq, CvSlice slice,
-                         CvMemStorage* storage CV_DEFAULT(NULL),
-                         int copy_data CV_DEFAULT(0));
-
-CV_INLINE CvSeq* cvCloneSeq( const CvSeq* seq, CvMemStorage* storage CV_DEFAULT(NULL))
-{
-    return cvSeqSlice( seq, CV_WHOLE_SEQ, storage, 1 );
-}
-
-/* Removes sequence slice */
-CVAPI(void)  cvSeqRemoveSlice( CvSeq* seq, CvSlice slice );
 
 /* Inserts a sequence or array into another sequence */
 CVAPI(void)  cvSeqInsertSlice( CvSeq* seq, int before_index, const CvArr* from_arr );
@@ -575,22 +563,6 @@ typedef IplImage* (CV_STDCALL* Cv_iplCloneImage)(const IplImage*);
 
 
 
-/*********************************** Adding own types ***********************************/
-
-CVAPI(void) cvUnregisterType( const char* type_name );
-
-/* universal functions */
-CVAPI(void) cvRelease( void** struct_ptr );
-CVAPI(void*) cvClone( const void* struct_ptr );
-
-
-
-/*********************************** Measuring Execution Time ***************************/
-
-/* helper functions for RNG initialization and accurate time measurement:
-   uses internal clock counter on x86 */
-CVAPI(double) cvGetTickFrequency( void );
-
 /*********************************** CPU capabilities ***********************************/
 
 #define CV_CPU_NONE    0
@@ -607,36 +579,7 @@ CVAPI(double) cvGetTickFrequency( void );
 #define CV_HARDWARE_MAX_FEATURE 255
 
 
-/*********************************** Multi-Threading ************************************/
 
-/* retrieve/set the number of threads used in OpenMP implementations */
-CVAPI(int)  cvGetNumThreads( void );
-CVAPI(void) cvSetNumThreads( int threads CV_DEFAULT(0) );
-/* get index of the thread being executed */
-CVAPI(int)  cvGetThreadNum( void );
-
-
-/********************************** Error Handling **************************************/
-
-/* Get current OpenCV error status */
-CVAPI(int) cvGetErrStatus( void );
-
-/* Sets error status silently */
-CVAPI(void) cvSetErrStatus( int status );
-
-#define CV_ErrModeLeaf     0   /* Print error and exit program */
-#define CV_ErrModeParent   1   /* Print error and continue */
-#define CV_ErrModeSilent   2   /* Don't print and continue */
-
-/* Retrives current error processing mode */
-CVAPI(int)  cvGetErrMode( void );
-
-/* Sets error processing mode, returns previously used mode */
-CVAPI(int) cvSetErrMode( int mode );
-
-/* Sets error status and performs some additonal actions (displaying message box,
- writing message to stderr, terminating application etc.)
- depending on the current error mode */
 CVAPI(void) cvError( int status, const char* func_name,
                     const char* err_msg, const char* file_name, int line );
 
@@ -655,15 +598,11 @@ typedef int (CV_CDECL *CvErrorCallback)( int status, const char* func_name,
 #define OPENCV_ERROR(status,func,context)                           \
 cvError((status),(func),(context),__FILE__,__LINE__)
 
-#define OPENCV_ERRCHK(func,context)                                 \
-{if (cvGetErrStatus() >= 0)                         \
-{OPENCV_ERROR(CV_StsBackTrace,(func),(context));}}
 
 #define OPENCV_ASSERT(expr,func,context)                            \
 {if (! (expr))                                      \
 {OPENCV_ERROR(CV_StsInternal,(func),(context));}}
 
-#define OPENCV_RSTERR() (cvSetErrStatus(CV_StsOk))
 
 #define OPENCV_CALL( Func )                                         \
 {                                                                   \
@@ -695,28 +634,8 @@ static char cvFuncName[] = Name
 #define CV_ERROR_FROM_CODE( code )   \
     CV_ERROR( code, "" )
 
-/*
- CV_CHECK macro checks error status after CV (or IPL)
- function call. If error detected, control will be transferred to the exit
- label.
- */
-#define CV_CHECK()                                                  \
-{                                                                   \
-    if( cvGetErrStatus() < 0 )                                      \
-        CV_ERROR( CV_StsBackTrace, "Inner function failed." );      \
-}
 
 
-/*
- CV_CALL macro calls CV (or IPL) function, checks error status and
- signals a error if the function failed. Useful in "parent node"
- error procesing mode
- */
-#define CV_CALL( Func )                                             \
-{                                                                   \
-    Func;                                                           \
-    CV_CHECK();                                                     \
-}
 
 
 /* Runtime assertion macro */
