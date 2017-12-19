@@ -8,38 +8,6 @@
 
 namespace cv {
 
-void swap( Mat& a, Mat& b )
-{
-    std::swap(a.flags, b.flags);
-    std::swap(a.dims, b.dims);
-    std::swap(a.rows, b.rows);
-    std::swap(a.cols, b.cols);
-    std::swap(a.data, b.data);
-    std::swap(a.refcount, b.refcount);
-    std::swap(a.datastart, b.datastart);
-    std::swap(a.dataend, b.dataend);
-    std::swap(a.datalimit, b.datalimit);
-    std::swap(a.allocator, b.allocator);
-
-    std::swap(a.size.p, b.size.p);
-    std::swap(a.step.p, b.step.p);
-    std::swap(a.step.buf[0], b.step.buf[0]);
-    std::swap(a.step.buf[1], b.step.buf[1]);
-
-    if( a.step.p == b.step.buf )
-    {
-        a.step.p = a.step.buf;
-        a.size.p = &a.rows;
-    }
-
-    if( b.step.p == a.step.buf )
-    {
-        b.step.p = b.step.buf;
-        b.size.p = &b.rows;
-    }
-}
-
-
 static inline void setSize( Mat& m, int _dims, const int* _sz,
                             const size_t* _steps, bool autoSteps=false )
 {
@@ -284,15 +252,6 @@ Mat::Mat(const Mat& m, const Rect& roi)
     }
 }
 
-
-Mat::Mat(int _dims, const int* _sizes, int _type, void* _data, const size_t* _steps) : size(&rows)
-{
-    initEmpty();
-    flags |= CV_MAT_TYPE(_type);
-    data = datastart = (uchar*)_data;
-    setSize(*this, _dims, _sizes, _steps, true);
-    finalizeHdr(*this);
-}
 
 
 Mat::Mat(const Mat& m, const Range* ranges) : size(&rows)
@@ -1282,25 +1241,6 @@ void cv::transpose( InputArray _src, OutputArray _dst )
 }
 
 
-////////////////////////////////////// completeSymm /////////////////////////////////////////
-
-void cv::completeSymm( InputOutputArray _m, bool LtoR )
-{
-    Mat m = _m.getMat();
-    size_t step = m.step, esz = m.elemSize();
-    CV_Assert( m.dims <= 2 && m.rows == m.cols );
-
-    int rows = m.rows;
-    int j0 = 0, j1 = rows;
-
-    uchar* data = m.data;
-    for( int i = 0; i < rows; i++ )
-    {
-        if( !LtoR ) j1 = i; else j0 = i+1;
-        for( int j = j0; j < j1; j++ )
-            memcpy(data + (i*step + j*esz), data + (j*step + i*esz), esz);
-    }
-}
 
 
 

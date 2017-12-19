@@ -111,7 +111,7 @@ imread_( const string& filename, int flags, int hdrtype )
 }
 
 static bool imwrite_( const string& filename, const Mat& image,
-                      const vector<int>& params, bool flipv )
+                      const vector<int>& params )
 {
     Mat temp;
     const Mat* pimage = &image;
@@ -127,11 +127,6 @@ static bool imwrite_( const string& filename, const Mat& image,
         pimage = &temp;
     }
 
-    if( flipv )
-    {
-        flip(*pimage, temp, 0);
-        pimage = &temp;
-    }
 
     encoder->setDestination( filename );
     CV_Assert(params.size() <= CV_IO_MAX_IMAGE_PARAMS*2);
@@ -163,8 +158,7 @@ cvSaveImage( const char* filename, const CvArr* arr, const int* _params )
             CV_Assert(i < CV_IO_MAX_IMAGE_PARAMS*2); // Limit number of params for security reasons
     }
     return cv::imwrite_(filename, cv::cvarrToMat(arr),
-        i > 0 ? cv::vector<int>(_params, _params+i) : cv::vector<int>(),
-        CV_IS_IMAGE(arr) && ((const IplImage*)arr)->origin == IPL_ORIGIN_BL );
+        i > 0 ? cv::vector<int>(_params, _params+i) : cv::vector<int>());
 }
 
 

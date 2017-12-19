@@ -3,220 +3,11 @@
 
 
 /****************************************************************************************\
-*                       Generalized split/merge: mixing channels                         *
-\****************************************************************************************/
-
-namespace cv
-{
-
-template<typename T> static void
-mixChannels_( const T** src, const int* sdelta,
-              T** dst, const int* ddelta,
-              int len, int npairs )
-{
-    int i, k;
-    for( k = 0; k < npairs; k++ )
-    {
-        const T* s = src[k];
-        T* d = dst[k];
-        int ds = sdelta[k], dd = ddelta[k];
-        if( s )
-        {
-            for( i = 0; i <= len - 2; i += 2, s += ds*2, d += dd*2 )
-            {
-                T t0 = s[0], t1 = s[ds];
-                d[0] = t0; d[dd] = t1;
-            }
-            if( i < len )
-                d[0] = s[0];
-        }
-        else
-        {
-            for( i = 0; i <= len - 2; i += 2, d += dd*2 )
-                d[0] = d[dd] = 0;
-            if( i < len )
-                d[0] = 0;
-        }
-    }
-}
-
-
-static void mixChannels8u( const uchar** src, const int* sdelta,
-                           uchar** dst, const int* ddelta,
-                           int len, int npairs )
-{
-    mixChannels_(src, sdelta, dst, ddelta, len, npairs);
-}
-
-static void mixChannels16u( const ushort** src, const int* sdelta,
-                            ushort** dst, const int* ddelta,
-                            int len, int npairs )
-{
-    mixChannels_(src, sdelta, dst, ddelta, len, npairs);
-}
-
-static void mixChannels32s( const int** src, const int* sdelta,
-                            int** dst, const int* ddelta,
-                            int len, int npairs )
-{
-    mixChannels_(src, sdelta, dst, ddelta, len, npairs);
-}
-
-static void mixChannels64s( const int64** src, const int* sdelta,
-                            int64** dst, const int* ddelta,
-                            int len, int npairs )
-{
-    mixChannels_(src, sdelta, dst, ddelta, len, npairs);
-}
-
-typedef void (*MixChannelsFunc)( const uchar** src, const int* sdelta,
-        uchar** dst, const int* ddelta, int len, int npairs );
-
-static MixChannelsFunc getMixchFunc(int depth)
-{
-    static MixChannelsFunc mixchTab[] =
-    {
-        (MixChannelsFunc)mixChannels8u, (MixChannelsFunc)mixChannels8u, (MixChannelsFunc)mixChannels16u,
-        (MixChannelsFunc)mixChannels16u, (MixChannelsFunc)mixChannels32s, (MixChannelsFunc)mixChannels32s,
-        (MixChannelsFunc)mixChannels64s, 0
-    };
-
-    return mixchTab[depth];
-}
-
-}
-
-void cv::mixChannels( const Mat* src, size_t nsrcs, Mat* dst, size_t ndsts, const int* fromTo, size_t npairs )
-{
-    if( npairs == 0 )
-        return;
-    CV_Assert( src && nsrcs > 0 && dst && ndsts > 0 && fromTo && npairs > 0 );
-
-    size_t i, j, k, esz1 = dst[0].elemSize1();
-    int depth = dst[0].depth();
-
-    AutoBuffer<uchar> buf((nsrcs + ndsts + 1)*(sizeof(Mat*) + sizeof(uchar*)) + npairs*(sizeof(uchar*)*2 + sizeof(int)*6));
-    const Mat** arrays = (const Mat**)(uchar*)buf;
-    uchar** ptrs = (uchar**)(arrays + nsrcs + ndsts);
-    const uchar** srcs = (const uchar**)(ptrs + nsrcs + ndsts + 1);
-    uchar** dsts = (uchar**)(srcs + npairs);
-    int* tab = (int*)(dsts + npairs);
-    int *sdelta = (int*)(tab + npairs*4), *ddelta = sdelta + npairs;
-
-    for( i = 0; i < nsrcs; i++ )
-        arrays[i] = &src[i];
-    for( i = 0; i < ndsts; i++ )
-        arrays[i + nsrcs] = &dst[i];
-    ptrs[nsrcs + ndsts] = 0;
-
-    for( i = 0; i < npairs; i++ )
-    {
-        int i0 = fromTo[i*2], i1 = fromTo[i*2+1];
-        if( i0 >= 0 )
-        {
-            for( j = 0; j < nsrcs; i0 -= src[j].channels(), j++ )
-                if( i0 < src[j].channels() )
-                    break;
-            CV_Assert(j < nsrcs && src[j].depth() == depth);
-            tab[i*4] = (int)j; tab[i*4+1] = (int)(i0*esz1);
-            sdelta[i] = src[j].channels();
-        }
-        else
-        {
-            tab[i*4] = (int)(nsrcs + ndsts); tab[i*4+1] = 0;
-            sdelta[i] = 0;
-        }
-
-        for( j = 0; j < ndsts; i1 -= dst[j].channels(), j++ )
-            if( i1 < dst[j].channels() )
-                break;
-        CV_Assert(i1 >= 0 && j < ndsts && dst[j].depth() == depth);
-        tab[i*4+2] = (int)(j + nsrcs); tab[i*4+3] = (int)(i1*esz1);
-        ddelta[i] = dst[j].channels();
-    }
-
-    NAryMatIterator it(arrays, ptrs, (int)(nsrcs + ndsts));
-    int total = (int)it.size, blocksize = std::min(total, (int)((BLOCK_SIZE + esz1-1)/esz1));
-    MixChannelsFunc func = getMixchFunc(depth);
-
-    for( i = 0; i < it.nplanes; i++, ++it )
-    {
-        for( k = 0; k < npairs; k++ )
-        {
-            srcs[k] = ptrs[tab[k*4]] + tab[k*4+1];
-            dsts[k] = ptrs[tab[k*4+2]] + tab[k*4+3];
-        }
-
-        for( int t = 0; t < total; t += blocksize )
-        {
-            int bsz = std::min(total - t, blocksize);
-            func( srcs, sdelta, dsts, ddelta, bsz, (int)npairs );
-
-            if( t + blocksize < total )
-                for( k = 0; k < npairs; k++ )
-                {
-                    srcs[k] += blocksize*sdelta[k]*esz1;
-                    dsts[k] += blocksize*ddelta[k]*esz1;
-                }
-        }
-    }
-}
-
-
-void cv::mixChannels(const vector<Mat>& src, vector<Mat>& dst,
-                 const int* fromTo, size_t npairs)
-{
-    mixChannels(!src.empty() ? &src[0] : 0, src.size(),
-                !dst.empty() ? &dst[0] : 0, dst.size(), fromTo, npairs);
-}
-
-void cv::mixChannels(InputArrayOfArrays src, InputArrayOfArrays dst,
-                     const vector<int>& fromTo)
-{
-    if(fromTo.empty())
-        return;
-    bool src_is_mat = src.kind() != _InputArray::STD_VECTOR_MAT &&
-                      src.kind() != _InputArray::STD_VECTOR_VECTOR;
-    bool dst_is_mat = dst.kind() != _InputArray::STD_VECTOR_MAT &&
-                      dst.kind() != _InputArray::STD_VECTOR_VECTOR;
-    int i;
-    int nsrc = src_is_mat ? 1 : (int)src.total();
-    int ndst = dst_is_mat ? 1 : (int)dst.total();
-
-    CV_Assert(fromTo.size()%2 == 0 && nsrc > 0 && ndst > 0);
-    cv::AutoBuffer<Mat> _buf(nsrc + ndst);
-    Mat* buf = _buf;
-    for( i = 0; i < nsrc; i++ )
-        buf[i] = src.getMat(src_is_mat ? -1 : i);
-    for( i = 0; i < ndst; i++ )
-        buf[nsrc + i] = dst.getMat(dst_is_mat ? -1 : i);
-    mixChannels(&buf[0], nsrc, &buf[nsrc], ndst, &fromTo[0], fromTo.size()/2);
-}
-
-
-
-/****************************************************************************************\
 *                                convertScale[Abs]                                       *
 \****************************************************************************************/
 
 namespace cv
 {
-
-template<typename T, typename DT, typename WT> static void
-cvtScaleAbs_( const T* src, size_t sstep,
-              DT* dst, size_t dstep, Size size,
-              WT scale, WT shift )
-{
-    sstep /= sizeof(src[0]);
-    dstep /= sizeof(dst[0]);
-
-    for( ; size.height--; src += sstep, dst += dstep )
-    {
-        int x = 0;
-        for( ; x < size.width; x++ )
-            dst[x] = saturate_cast<DT>(std::abs(src[x]*scale + shift));
-    }
-}
 
 
 template<typename T, typename DT, typename WT> static void
@@ -313,12 +104,6 @@ cpy_( const T* src, size_t sstep, T* dst, size_t dstep, Size size )
         memcpy(dst, src, size.width*sizeof(src[0]));
 }
 
-#define DEF_CVT_SCALE_ABS_FUNC(suffix, tfunc, stype, dtype, wtype) \
-static void cvtScaleAbs##suffix( const stype* src, size_t sstep, const uchar*, size_t, \
-                         dtype* dst, size_t dstep, Size size, double* scale) \
-{ \
-    tfunc(src, sstep, dst, dstep, size, (wtype)scale[0], (wtype)scale[1]); \
-}
 
 #define DEF_CVT_SCALE_FUNC(suffix, stype, dtype, wtype) \
 static void cvtScale##suffix( const stype* src, size_t sstep, const uchar*, size_t, \
@@ -342,14 +127,6 @@ stype* dst, size_t dstep, Size size, double*) \
     cpy_(src, sstep, dst, dstep, size); \
 }
 
-
-DEF_CVT_SCALE_ABS_FUNC(8u, cvtScaleAbs_, uchar, uchar, float)
-DEF_CVT_SCALE_ABS_FUNC(8s8u, cvtScaleAbs_, schar, uchar, float)
-DEF_CVT_SCALE_ABS_FUNC(16u8u, cvtScaleAbs_, ushort, uchar, float)
-DEF_CVT_SCALE_ABS_FUNC(16s8u, cvtScaleAbs_, short, uchar, float)
-DEF_CVT_SCALE_ABS_FUNC(32s8u, cvtScaleAbs_, int, uchar, float)
-DEF_CVT_SCALE_ABS_FUNC(32f8u, cvtScaleAbs_, float, uchar, float)
-DEF_CVT_SCALE_ABS_FUNC(64f8u, cvtScaleAbs_, double, uchar, float)
 
 DEF_CVT_SCALE_FUNC(8u,     uchar, uchar, float)
 DEF_CVT_SCALE_FUNC(8s8u,   schar, uchar, float)

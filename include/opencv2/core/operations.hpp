@@ -136,12 +136,6 @@ template<typename _Tp, int m, int n> inline Matx<_Tp, m, n>::Matx(const _Tp* val
     for( int i = 0; i < channels; i++ ) val[i] = values[i];
 }
 
-template<typename _Tp, int m, int n> inline Matx<_Tp, m, n> Matx<_Tp, m, n>::all(_Tp alpha)
-{
-    Matx<_Tp, m, n> M;
-    for( int i = 0; i < m*n; i++ ) M.val[i] = alpha;
-    return M;
-}
 
 template<typename _Tp, int m, int n> inline
 Matx<_Tp,m,n> Matx<_Tp,m,n>::zeros()
@@ -440,60 +434,6 @@ Scalar operator * (const Matx<double, 4, 4>& a, const Scalar& b)
     return static_cast<const Scalar&>(c);
 }
 
-
-
-
-CV_EXPORTS int LU(float* A, size_t astep, int m, float* b, size_t bstep, int n);
-CV_EXPORTS int LU(double* A, size_t astep, int m, double* b, size_t bstep, int n);
-CV_EXPORTS bool Cholesky(float* A, size_t astep, int m, float* b, size_t bstep, int n);
-CV_EXPORTS bool Cholesky(double* A, size_t astep, int m, double* b, size_t bstep, int n);
-
-
-template<typename _Tp, int m> struct Matx_DetOp
-{
-    double operator ()(const Matx<_Tp, m, m>& a) const
-    {
-        Matx<_Tp, m, m> temp = a;
-        double p = LU(temp.val, m*sizeof(_Tp), m, 0, 0, 0);
-        if( p == 0 )
-            return p;
-        for( int i = 0; i < m; i++ )
-            p *= temp(i, i);
-        return 1./p;
-    }
-};
-
-
-template<typename _Tp> struct Matx_DetOp<_Tp, 1>
-{
-    double operator ()(const Matx<_Tp, 1, 1>& a) const
-    {
-        return a(0,0);
-    }
-};
-
-
-template<typename _Tp> struct Matx_DetOp<_Tp, 2>
-{
-    double operator ()(const Matx<_Tp, 2, 2>& a) const
-    {
-        return a(0,0)*a(1,1) - a(0,1)*a(1,0);
-    }
-};
-
-
-template<typename _Tp> struct Matx_DetOp<_Tp, 3>
-{
-    double operator ()(const Matx<_Tp, 3, 3>& a) const
-    {
-        return a(0,0)*(a(1,1)*a(2,2) - a(2,1)*a(1,2)) -
-            a(0,1)*(a(1,0)*a(2,2) - a(2,0)*a(1,2)) +
-            a(0,2)*(a(1,0)*a(2,1) - a(2,0)*a(1,1));
-    }
-};
-
-
-
 template<typename _Tp, int m, int n> inline
 Matx<_Tp, n, m> Matx<_Tp, m, n>::t() const
 {
@@ -541,19 +481,6 @@ template<typename _Tp, int cn> inline Vec<_Tp, cn>::Vec(const _Tp* values)
 template<typename _Tp, int cn> inline Vec<_Tp, cn>::Vec(const Vec<_Tp, cn>& m)
     : Matx<_Tp, cn, 1>(m.val)
 {}
-
-
-
-
-template<typename _Tp> Vec<_Tp, 2> conjugate(const Vec<_Tp, 2>& v)
-{
-    return Vec<_Tp, 2>(v[0], -v[1]);
-}
-
-template<typename _Tp> Vec<_Tp, 4> conjugate(const Vec<_Tp, 4>& v)
-{
-    return Vec<_Tp, 4>(v[0], -v[1], -v[2], -v[3]);
-}
 
 
 template<typename _Tp, int cn> template<typename T2>
@@ -753,23 +680,10 @@ template<typename _Tp> inline Vec<_Tp, 4>& operator *= (Vec<_Tp, 4>& v1, const V
 
 template<typename _Tp> inline Point_<_Tp>::Point_() : x(0), y(0) {}
 template<typename _Tp> inline Point_<_Tp>::Point_(_Tp _x, _Tp _y) : x(_x), y(_y) {}
-template<typename _Tp> inline Point_<_Tp>::Point_(const Point_& pt) : x(pt.x), y(pt.y) {}
-template<typename _Tp> inline Point_<_Tp>::Point_(const CvPoint& pt) : x((_Tp)pt.x), y((_Tp)pt.y) {}
-template<typename _Tp> inline Point_<_Tp>::Point_(const CvPoint2D32f& pt)
-    : x(saturate_cast<_Tp>(pt.x)), y(saturate_cast<_Tp>(pt.y)) {}
-template<typename _Tp> inline Point_<_Tp>::Point_(const Size_<_Tp>& sz) : x(sz.width), y(sz.height) {}
-template<typename _Tp> inline Point_<_Tp>::Point_(const Vec<_Tp,2>& v) : x(v[0]), y(v[1]) {}
+
 template<typename _Tp> inline Point_<_Tp>& Point_<_Tp>::operator = (const Point_& pt)
 { x = pt.x; y = pt.y; return *this; }
 
-template<typename _Tp> template<typename _Tp2> inline Point_<_Tp>::operator Point_<_Tp2>() const
-{ return Point_<_Tp2>(saturate_cast<_Tp2>(x), saturate_cast<_Tp2>(y)); }
-template<typename _Tp> inline Point_<_Tp>::operator CvPoint() const
-{ return cvPoint(saturate_cast<int>(x), saturate_cast<int>(y)); }
-template<typename _Tp> inline Point_<_Tp>::operator CvPoint2D32f() const
-{ return cvPoint2D32f((float)x, (float)y); }
-template<typename _Tp> inline Point_<_Tp>::operator Vec<_Tp, 2>() const
-{ return Vec<_Tp, 2>(x, y); }
 
 
 
@@ -855,13 +769,6 @@ template<typename _Tp> inline Size_<_Tp>::Size_()
     : width(0), height(0) {}
 template<typename _Tp> inline Size_<_Tp>::Size_(_Tp _width, _Tp _height)
     : width(_width), height(_height) {}
-template<typename _Tp> inline Size_<_Tp>::Size_(const Size_& sz)
-    : width(sz.width), height(sz.height) {}
-template<typename _Tp> inline Size_<_Tp>::Size_(const CvSize& sz)
-    : width(saturate_cast<_Tp>(sz.width)), height(saturate_cast<_Tp>(sz.height)) {}
-template<typename _Tp> inline Size_<_Tp>::Size_(const CvSize2D32f& sz)
-    : width(saturate_cast<_Tp>(sz.width)), height(saturate_cast<_Tp>(sz.height)) {}
-template<typename _Tp> inline Size_<_Tp>::Size_(const Point_<_Tp>& pt) : width(pt.x), height(pt.y) {}
 
 
 template<typename _Tp> inline Size_<_Tp>::operator CvSize() const
@@ -894,19 +801,10 @@ template<typename _Tp> static inline bool operator != (const Size_<_Tp>& a, cons
 template<typename _Tp> inline Rect_<_Tp>::Rect_() : x(0), y(0), width(0), height(0) {}
 template<typename _Tp> inline Rect_<_Tp>::Rect_(_Tp _x, _Tp _y, _Tp _width, _Tp _height) : x(_x), y(_y), width(_width), height(_height) {}
 template<typename _Tp> inline Rect_<_Tp>::Rect_(const Rect_<_Tp>& r) : x(r.x), y(r.y), width(r.width), height(r.height) {}
-template<typename _Tp> inline Rect_<_Tp>::Rect_(const CvRect& r) : x((_Tp)r.x), y((_Tp)r.y), width((_Tp)r.width), height((_Tp)r.height) {}
-template<typename _Tp> inline Rect_<_Tp>::Rect_(const Point_<_Tp>& org, const Size_<_Tp>& sz) :
-    x(org.x), y(org.y), width(sz.width), height(sz.height) {}
-template<typename _Tp> inline Rect_<_Tp>::Rect_(const Point_<_Tp>& pt1, const Point_<_Tp>& pt2)
-{
-    x = std::min(pt1.x, pt2.x); y = std::min(pt1.y, pt2.y);
-    width = std::max(pt1.x, pt2.x) - x; height = std::max(pt1.y, pt2.y) - y;
-}
+
+
 template<typename _Tp> inline Rect_<_Tp>& Rect_<_Tp>::operator = ( const Rect_<_Tp>& r )
 { x = r.x; y = r.y; width = r.width; height = r.height; return *this; }
-
-template<typename _Tp> inline Point_<_Tp> Rect_<_Tp>::tl() const { return Point_<_Tp>(x,y); }
-template<typename _Tp> inline Point_<_Tp> Rect_<_Tp>::br() const { return Point_<_Tp>(x+width, y+height); }
 
 template<typename _Tp> static inline Rect_<_Tp>& operator += ( Rect_<_Tp>& a, const Point_<_Tp>& b )
 { a.x += b.x; a.y += b.y; return a; }
@@ -1101,15 +999,6 @@ template<typename _Tp> static inline Scalar_<_Tp> operator - (const Scalar_<_Tp>
 }
 
 
-template<typename _Tp> static inline Scalar_<_Tp>
-operator * (const Scalar_<_Tp>& a, const Scalar_<_Tp>& b)
-{
-    return Scalar_<_Tp>(saturate_cast<_Tp>(a[0]*b[0] - a[1]*b[1] - a[2]*b[2] - a[3]*b[3]),
-                        saturate_cast<_Tp>(a[0]*b[1] + a[1]*b[0] + a[2]*b[3] - a[3]*b[2]),
-                        saturate_cast<_Tp>(a[0]*b[2] - a[1]*b[3] + a[2]*b[0] + a[3]*b[1]),
-                        saturate_cast<_Tp>(a[0]*b[3] + a[1]*b[2] - a[2]*b[1] + a[3]*b[0]));
-}
-
 template<typename _Tp> static inline Scalar_<_Tp>&
 operator *= (Scalar_<_Tp>& a, const Scalar_<_Tp>& b)
 {
@@ -1123,50 +1012,6 @@ template<typename _Tp> inline bool Scalar_<_Tp>::isReal() const
     return this->val[1] == 0 && this->val[2] == 0 && this->val[3] == 0;
 }
 
-template<typename _Tp> static inline
-Scalar_<_Tp> operator / (const Scalar_<_Tp>& a, _Tp alpha)
-{
-    return Scalar_<_Tp>(saturate_cast<_Tp>(a.val[0] / alpha),
-                        saturate_cast<_Tp>(a.val[1] / alpha),
-                        saturate_cast<_Tp>(a.val[2] / alpha),
-                        saturate_cast<_Tp>(a.val[3] / alpha));
-}
-
-template<typename _Tp> static inline
-Scalar_<float> operator / (const Scalar_<float>& a, float alpha)
-{
-    float s = 1/alpha;
-    return Scalar_<float>(a.val[0]*s, a.val[1]*s, a.val[2]*s, a.val[3]*s);
-}
-
-template<typename _Tp> static inline
-Scalar_<double> operator / (const Scalar_<double>& a, double alpha)
-{
-    double s = 1/alpha;
-    return Scalar_<double>(a.val[0]*s, a.val[1]*s, a.val[2]*s, a.val[3]*s);
-}
-
-template<typename _Tp> static inline
-Scalar_<_Tp>& operator /= (Scalar_<_Tp>& a, _Tp alpha)
-{
-    a = a/alpha;
-    return a;
-}
-
-
-
-template<typename _Tp> static inline
-Scalar_<_Tp> operator / (const Scalar_<_Tp>& a, const Scalar_<_Tp>& b)
-{
-    return a*((_Tp)1/b);
-}
-
-template<typename _Tp> static inline
-Scalar_<_Tp>& operator /= (Scalar_<_Tp>& a, const Scalar_<_Tp>& b)
-{
-    a = a/b;
-    return a;
-}
 
 //////////////////////////////// Range /////////////////////////////////
 
@@ -1222,196 +1067,6 @@ static inline Range operator - (const Range& r1, int delta)
 inline Range::operator CvSlice() const
 { return *this != Range::all() ? cvSlice(start, end) : CV_WHOLE_SEQ; }
 
-
-
-//////////////////////////////// Vector ////////////////////////////////
-
-// template vector class. It is similar to STL's vector,
-// with a few important differences:
-//   1) it can be created on top of user-allocated data w/o copying it
-//   2) vector b = a means copying the header,
-//      not the underlying data (use clone() to make a deep copy)
-template <typename _Tp> class Vector
-{
-public:
-    typedef _Tp value_type;
-    typedef _Tp* iterator;
-    typedef const _Tp* const_iterator;
-    typedef _Tp& reference;
-    typedef const _Tp& const_reference;
-
-    struct Hdr
-    {
-        Hdr() : data(0), datastart(0), refcount(0), size(0), capacity(0) {};
-        _Tp* data;
-        _Tp* datastart;
-        int* refcount;
-        size_t size;
-        size_t capacity;
-    };
-
-    Vector() {}
-    Vector(size_t _size)  { resize(_size); }
-    Vector(size_t _size, const _Tp& val)
-    {
-        resize(_size);
-        for(size_t i = 0; i < _size; i++)
-            hdr.data[i] = val;
-    }
-    Vector(_Tp* _data, size_t _size, bool _copyData=false)
-    { set(_data, _size, _copyData); }
-
-    template<int n> Vector(const Vec<_Tp, n>& vec)
-    { set((_Tp*)&vec.val[0], n, true); }
-
-    Vector(const std::vector<_Tp>& vec, bool _copyData=false)
-    { set(!vec.empty() ? (_Tp*)&vec[0] : 0, vec.size(), _copyData); }
-
-    Vector(const Vector& d) { *this = d; }
-
-    Vector(const Vector& d, const Range& r_)
-    {
-        Range r = r_ == Range::all() ? Range(0, d.size()) : r_;
-        /*if( r == Range::all() )
-            r = Range(0, d.size());*/
-        if( r.size() > 0 && r.start >= 0 && r.end <= d.size() )
-        {
-            if( d.hdr.refcount )
-                CV_XADD(d.hdr.refcount, 1);
-            hdr.refcount = d.hdr.refcount;
-            hdr.datastart = d.hdr.datastart;
-            hdr.data = d.hdr.data + r.start;
-            hdr.capacity = hdr.size = r.size();
-        }
-    }
-
-    Vector<_Tp>& operator = (const Vector& d)
-    {
-        if( this != &d )
-        {
-            if( d.hdr.refcount )
-                CV_XADD(d.hdr.refcount, 1);
-            release();
-            hdr = d.hdr;
-        }
-        return *this;
-    }
-
-    ~Vector()  { release(); }
-
-    Vector<_Tp> clone() const
-    { return hdr.data ? Vector<_Tp>(hdr.data, hdr.size, true) : Vector<_Tp>(); }
-
-    void copyTo(Vector<_Tp>& vec) const
-    {
-        size_t i, sz = size();
-        vec.resize(sz);
-        const _Tp* src = hdr.data;
-        _Tp* dst = vec.hdr.data;
-        for( i = 0; i < sz; i++ )
-            dst[i] = src[i];
-    }
-
-    void copyTo(std::vector<_Tp>& vec) const
-    {
-        size_t i, sz = size();
-        vec.resize(sz);
-        const _Tp* src = hdr.data;
-        _Tp* dst = sz ? &vec[0] : 0;
-        for( i = 0; i < sz; i++ )
-            dst[i] = src[i];
-    }
-
-    operator CvMat() const
-    { return cvMat((int)size(), 1, type(), (void*)hdr.data); }
-
-    _Tp& operator [] (size_t i) { CV_DbgAssert( i < size() ); return hdr.data[i]; }
-    const _Tp& operator [] (size_t i) const { CV_DbgAssert( i < size() ); return hdr.data[i]; }
-    Vector operator() (const Range& r) const { return Vector(*this, r); }
-    _Tp& back() { CV_DbgAssert(!empty()); return hdr.data[hdr.size-1]; }
-    const _Tp& back() const { CV_DbgAssert(!empty()); return hdr.data[hdr.size-1]; }
-    _Tp& front() { CV_DbgAssert(!empty()); return hdr.data[0]; }
-    const _Tp& front() const { CV_DbgAssert(!empty()); return hdr.data[0]; }
-
-    _Tp* begin() { return hdr.data; }
-    _Tp* end() { return hdr.data + hdr.size; }
-    const _Tp* begin() const { return hdr.data; }
-    const _Tp* end() const { return hdr.data + hdr.size; }
-
-    void addref() { if( hdr.refcount ) CV_XADD(hdr.refcount, 1); }
-    void release()
-    {
-        if( hdr.refcount && CV_XADD(hdr.refcount, -1) == 1 )
-        {
-            delete[] hdr.datastart;
-            delete hdr.refcount;
-        }
-        hdr = Hdr();
-    }
-
-    void set(_Tp* _data, size_t _size, bool _copyData=false)
-    {
-        if( !_copyData )
-        {
-            release();
-            hdr.data = hdr.datastart = _data;
-            hdr.size = hdr.capacity = _size;
-            hdr.refcount = 0;
-        }
-        else
-        {
-            reserve(_size);
-            for( size_t i = 0; i < _size; i++ )
-                hdr.data[i] = _data[i];
-            hdr.size = _size;
-        }
-    }
-
-    void reserve(size_t newCapacity)
-    {
-        _Tp* newData;
-        int* newRefcount;
-        size_t i, oldSize = hdr.size;
-        if( (!hdr.refcount || *hdr.refcount == 1) && hdr.capacity >= newCapacity )
-            return;
-        newCapacity = std::max(newCapacity, oldSize);
-        newData = new _Tp[newCapacity];
-        newRefcount = new int(1);
-        for( i = 0; i < oldSize; i++ )
-            newData[i] = hdr.data[i];
-        release();
-        hdr.data = hdr.datastart = newData;
-        hdr.capacity = newCapacity;
-        hdr.size = oldSize;
-        hdr.refcount = newRefcount;
-    }
-
-    void resize(size_t newSize)
-    {
-        size_t i;
-        newSize = std::max(newSize, (size_t)0);
-        if( (!hdr.refcount || *hdr.refcount == 1) && hdr.size == newSize )
-            return;
-        if( newSize > hdr.capacity )
-            reserve(std::max(newSize, std::max((size_t)4, hdr.capacity*2)));
-        for( i = hdr.size; i < newSize; i++ )
-            hdr.data[i] = _Tp();
-        hdr.size = newSize;
-    }
-
-
-
-
-
-    size_t size() const { return hdr.size; }
-    size_t capacity() const { return hdr.capacity; }
-    bool empty() const { return hdr.size == 0; }
-    void clear() { resize(0); }
-    int type() const { return DataType<_Tp>::type; }
-
-protected:
-    Hdr hdr;
-};
 
 
 

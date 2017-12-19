@@ -172,10 +172,6 @@ inline Mat Mat::rowRange(const Range &r) const
 {
     return Mat(*this, r, Range::all());
 }
-inline Mat Mat::colRange(int startcol, int endcol) const
-{
-    return Mat(*this, Range::all(), Range(startcol, endcol));
-}
 inline Mat Mat::colRange(const Range &r) const
 {
     return Mat(*this, Range::all(), r);
@@ -238,11 +234,6 @@ inline void Mat::release()
     refcount = 0;
 }
 
-inline Mat Mat::operator()(Range _rowRange, Range _colRange) const
-{
-    return Mat(*this, _rowRange, _colRange);
-}
-
 inline Mat Mat::operator()(const Rect &roi) const
 {
     return Mat(*this, roi);
@@ -251,15 +242,6 @@ inline Mat Mat::operator()(const Rect &roi) const
 inline Mat Mat::operator()(const Range *ranges) const
 {
     return Mat(*this, ranges);
-}
-
-inline Mat::operator CvMat() const
-{
-    CV_DbgAssert(dims <= 2);
-    CvMat m = cvMat(rows, dims == 1 ? 1 : cols, type(), data);
-    m.step = (int)step[0];
-    m.type = (m.type & ~CONTINUOUS_FLAG) | (flags & CONTINUOUS_FLAG);
-    return m;
 }
 
 inline bool Mat::isContinuous() const

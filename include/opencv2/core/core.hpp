@@ -296,7 +296,6 @@ public:
     template<int l> Matx<_Tp, n, l> solve(const Matx<_Tp, m, l>& rhs, int flags=DECOMP_LU) const;
     Vec<_Tp, n> solve(const Vec<_Tp, m>& rhs, int method) const;
 
-    //! multiply two matrices element-wise
     //! element access
     const _Tp& operator ()(int i, int j) const;
     _Tp& operator ()(int i, int j);
@@ -449,25 +448,9 @@ public:
     // various constructors
     Point_();
     Point_(_Tp _x, _Tp _y);
-    Point_(const Point_& pt);
-    Point_(const CvPoint& pt);
-    Point_(const CvPoint2D32f& pt);
-    Point_(const Size_<_Tp>& sz);
-    Point_(const Vec<_Tp, 2>& v);
+   
 
     Point_& operator = (const Point_& pt);
-    //! conversion to another data type
-    template<typename _Tp2> operator Point_<_Tp2>() const;
-
-    //! conversion to the old-style C structures
-    operator CvPoint() const;
-    operator CvPoint2D32f() const;
-    operator Vec<_Tp, 2>() const;
-
-    //! dot product
-    //! dot product computed in double-precision arithmetics
-    //! cross-product
-    //! checks whether the point is inside the specified rectangle
     bool inside(const Rect_<_Tp>& r) const;
 
     _Tp x, y; //< the point coordinates
@@ -490,10 +473,7 @@ public:
     //! various constructors
     Size_();
     Size_(_Tp _width, _Tp _height);
-    Size_(const Size_& sz);
-    Size_(const CvSize& sz);
-    Size_(const CvSize2D32f& sz);
-    Size_(const Point_<_Tp>& pt);
+
 
     Size_& operator = (const Size_& sz);
     //! the area (width*height)
@@ -525,15 +505,10 @@ public:
     Rect_();
     Rect_(_Tp _x, _Tp _y, _Tp _width, _Tp _height);
     Rect_(const Rect_& r);
-    Rect_(const CvRect& r);
-    Rect_(const Point_<_Tp>& org, const Size_<_Tp>& sz);
-    Rect_(const Point_<_Tp>& pt1, const Point_<_Tp>& pt2);
+
 
     Rect_& operator = ( const Rect_& r );
-    //! the top-left corner
-    Point_<_Tp> tl() const;
-    //! the bottom-right corner
-    Point_<_Tp> br() const;
+    
 
     //! size (width, height) of the rectangle
     Size_<_Tp> size() const;
@@ -998,9 +973,7 @@ public:
 typedef const _InputArray& InputArray;
 typedef InputArray InputArrayOfArrays;
 typedef const _OutputArray& OutputArray;
-typedef OutputArray OutputArrayOfArrays;
 typedef OutputArray InputOutputArray;
-typedef OutputArray InputOutputArrayOfArrays;
 
 CV_EXPORTS OutputArray noArray();
 
@@ -1083,7 +1056,6 @@ public:
     Mat rowRange(int startrow, int endrow) const;
     Mat rowRange(const Range& r) const;
     //! ... for the specified column span
-    Mat colRange(int startcol, int endcol) const;
     Mat colRange(const Range& r) const;
     //! ... for the specified diagonal
     // (d=0 - the main diagonal,
@@ -1097,7 +1069,6 @@ public:
     // It calls m.create(this->size(), this->type()).
     void copyTo( OutputArray m ) const;
     //! copies those matrix elements to "m" that are marked with non-zero mask elements.
-    void copyTo( OutputArray m, InputArray mask ) const;
     //! converts matrix to another datatype with optional scalng. See cvConvertScale.
     void convertTo( OutputArray m, int rtype, double alpha=1, double beta=0 ) const;
 
@@ -1107,17 +1078,6 @@ public:
     Mat& operator = (const Scalar& s);
     //! sets some of the matrix elements to s, according to the mask
     Mat& setTo(InputArray value, InputArray mask=noArray());
-    //! creates alternative matrix header for the same data, with different
-    // number of channels and/or different number of rows. see cvReshape.
-
-    //! matrix transposition by means of matrix expressions
-    //! matrix inversion by means of matrix expressions
-    //! per-element matrix multiplication by means of matrix expressions
-
-    //! computes cross-product of 2 3D vectors
-    //! computes dot-product
-
-    //! Matlab-style matrix initialization
 
     //! allocates new matrix data unless the matrix already has specified size and type.
     // previous data is unreferenced if needed.
@@ -1156,13 +1116,7 @@ public:
     Mat operator()( const Rect& roi ) const;
     Mat operator()( const Range* ranges ) const;
 
-    //! converts header to CvMat; no data is copied
-    operator CvMat() const;
-    //! converts header to IplImage; no data is copied
-
-    template<typename _Tp> operator vector<_Tp>() const;
-    template<typename _Tp, int n> operator Vec<_Tp, n>() const;
-    template<typename _Tp, int m, int n> operator Matx<_Tp, m, n>() const;
+   
 
     //! returns true iff the matrix data is continuous
     // (i.e. when there are no gaps between successive rows).
@@ -1367,47 +1321,11 @@ CV_EXPORTS Mat cvarrToMat(const CvArr* arr, bool copyData=false,
                           bool allowND=true, int coiMode=0);
 
 
-//! subtracts one matrix from another (dst = src1 - src2)
-CV_EXPORTS_W void subtract(InputArray src1, InputArray src2, OutputArray dst,
-                           InputArray mask=noArray(), int dtype=-1);
 
-//! computes element-wise weighted product of the two arrays (dst = scale*src1*src2)
-CV_EXPORTS_W void multiply(InputArray src1, InputArray src2,
-                           OutputArray dst, double scale=1, int dtype=-1);
-
-//! computes element-wise weighted quotient of the two arrays (dst = scale*src1/src2)
-CV_EXPORTS_W void divide(InputArray src1, InputArray src2, OutputArray dst,
-                         double scale=1, int dtype=-1);
-
-//! computes element-wise weighted reciprocal of an array (dst = scale/src2)
-CV_EXPORTS_W void divide(double scale, InputArray src2,
-                         OutputArray dst, int dtype=-1);
 
 //! computes sum of array elements
 //! computes the number of nonzero array elements
 CV_EXPORTS_W int countNonZero( InputArray src );
-
-//! copies selected channels from the input arrays to the selected channels of the output arrays
-CV_EXPORTS void mixChannels(const Mat* src, size_t nsrcs, Mat* dst, size_t ndsts,
-                            const int* fromTo, size_t npairs);
-CV_EXPORTS void mixChannels(const vector<Mat>& src, vector<Mat>& dst,
-                            const int* fromTo, size_t npairs);
-CV_EXPORTS_W void mixChannels(InputArrayOfArrays src, InputArrayOfArrays dst,
-                              const vector<int>& fromTo);
-
-//! extracts a single channel from src (coi is 0-based index)
-
-//! inserts a single channel to dst (coi is 0-based index)
-
-//! reverses the order of the rows, columns or both in a matrix
-CV_EXPORTS_W void flip(InputArray src, OutputArray dst, int flipCode);
-
-//! replicates the input matrix the specified number of times in the horizontal and/or vertical direction
-CV_EXPORTS_W void repeat(InputArray src, int ny, int nx, OutputArray dst);
-CV_EXPORTS Mat repeat(const Mat& src, int ny, int nx);
-
-
-
 
 //! computes per-element minimum of two arrays (dst = min(src1, src2))
 CV_EXPORTS_W void min(InputArray src1, InputArray src2, OutputArray dst);
@@ -1428,30 +1346,14 @@ CV_EXPORTS_W void sqrt(InputArray src, OutputArray dst);
 //! raises the input matrix elements to the specified power (b = a**power)
 CV_EXPORTS_W void pow(InputArray src, double power, OutputArray dst);
 //! computes exponent of each matrix element (dst = e**src)
-CV_EXPORTS_W void exp(InputArray src, OutputArray dst);
 //! computes natural logarithm of absolute value of each matrix element: dst = log(abs(src))
 //! computes cube root of the argument
 //! computes the angle in degrees (0..360) of the vector (x,y)
 
-CV_EXPORTS void exp(const float* src, float* dst, int n);
 
-//! converts NaN's to the given number
 
-//! implements generalized matrix product algorithm GEMM from BLAS
-CV_EXPORTS_W void gemm(InputArray src1, InputArray src2, double alpha,
-                       InputArray src3, double beta, OutputArray dst, int flags=0);
-//! multiplies matrix by its transposition from the left or from the right
-CV_EXPORTS_W void mulTransposed( InputArray src, OutputArray dst, bool aTa,
-                                 InputArray delta=noArray(),
-                                 double scale=1, int dtype=-1 );
 //! transposes the matrix
 CV_EXPORTS_W void transpose(InputArray src, OutputArray dst);
-//! performs affine transformation of each element of multi-channel input matrix
-//! performs perspective transformation of each element of multi-channel input matrix
-
-//! extends the symmetrical matrix from the lower half or from the upper half
-CV_EXPORTS_W void completeSymm(InputOutputArray mtx, bool lowerToUpper=false);
-//! initializes scaled identity matrix
 
 //! computes inverse or pseudo-inverse matrix
 CV_EXPORTS_W double invert(InputArray src, OutputArray dst, int flags=DECOMP_LU);

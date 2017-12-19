@@ -381,21 +381,9 @@ typedef struct _IplConvKernelFP
 
 #define CV_32SC1 CV_MAKETYPE(CV_32S, 1)
 #define CV_32SC2 CV_MAKETYPE(CV_32S, 2)
-#define CV_32SC3 CV_MAKETYPE(CV_32S, 3)
-#define CV_32SC4 CV_MAKETYPE(CV_32S, 4)
-#define CV_32SC(n) CV_MAKETYPE(CV_32S, (n))
 
 #define CV_32FC1 CV_MAKETYPE(CV_32F, 1)
 #define CV_32FC2 CV_MAKETYPE(CV_32F, 2)
-#define CV_32FC3 CV_MAKETYPE(CV_32F, 3)
-#define CV_32FC4 CV_MAKETYPE(CV_32F, 4)
-#define CV_32FC(n) CV_MAKETYPE(CV_32F, (n))
-
-#define CV_64FC1 CV_MAKETYPE(CV_64F, 1)
-#define CV_64FC2 CV_MAKETYPE(CV_64F, 2)
-#define CV_64FC3 CV_MAKETYPE(CV_64F, 3)
-#define CV_64FC4 CV_MAKETYPE(CV_64F, 4)
-#define CV_64FC(n) CV_MAKETYPE(CV_64F, (n))
 
 #define CV_MAT_CN_MASK ((CV_CN_MAX - 1) << CV_CN_SHIFT)
 #define CV_MAT_CN(flags) ((((flags)&CV_MAT_CN_MASK) >> CV_CN_SHIFT) + 1)
@@ -411,7 +399,6 @@ typedef struct _IplConvKernelFP
 
 #define CV_MAGIC_MASK 0xFFFF0000
 #define CV_MAT_MAGIC_VAL 0x42420000
-#define CV_TYPE_NAME_MAT "opencv-matrix"
 
 typedef struct CvMat
 {
@@ -463,20 +450,6 @@ typedef struct CvMat
 #define CV_IS_MASK_ARR(mat) \
     (((mat)->type & (CV_MAT_TYPE_MASK & ~CV_8SC1)) == 0)
 
-#define CV_ARE_TYPES_EQ(mat1, mat2) \
-    ((((mat1)->type ^ (mat2)->type) & CV_MAT_TYPE_MASK) == 0)
-
-#define CV_ARE_CNS_EQ(mat1, mat2) \
-    ((((mat1)->type ^ (mat2)->type) & CV_MAT_CN_MASK) == 0)
-
-#define CV_ARE_DEPTHS_EQ(mat1, mat2) \
-    ((((mat1)->type ^ (mat2)->type) & CV_MAT_DEPTH_MASK) == 0)
-
-#define CV_ARE_SIZES_EQ(mat1, mat2) \
-    ((mat1)->rows == (mat2)->rows && (mat1)->cols == (mat2)->cols)
-
-#define CV_IS_MAT_CONST(mat) \
-    (((mat)->rows | (mat)->cols) == 1)
 
 /* Size of each channel item,
    0x124489 = 1000 0100 0100 0010 0010 0001 0001 ~ array of sizeof(arr_type_elem) */
@@ -515,17 +488,6 @@ CV_INLINE CvMat cvMat(int rows, int cols, int type, void *data CV_DEFAULT(NULL))
     return m;
 }
 
-#define CV_MAT_ELEM_PTR_FAST(mat, row, col, pix_size) \
-    (assert((unsigned)(row) < (unsigned)(mat).rows && \
-            (unsigned)(col) < (unsigned)(mat).cols),  \
-     (mat).data.ptr + (size_t)(mat).step * (row) + (pix_size) * (col))
-
-#define CV_MAT_ELEM_PTR(mat, row, col) \
-    CV_MAT_ELEM_PTR_FAST(mat, row, col, CV_ELEM_SIZE((mat).type))
-
-#define CV_MAT_ELEM(mat, elemtype, row, col) \
-    (*(elemtype *)CV_MAT_ELEM_PTR_FAST(mat, row, col, sizeof(elemtype)))
-
 CV_INLINE int cvIplDepth(int type)
 {
     int depth = CV_MAT_DEPTH(type);
@@ -536,56 +498,7 @@ CV_INLINE int cvIplDepth(int type)
 }
 
 #define CV_MAX_DIM 32
-#define CV_MAX_DIM_HEAP 1024
 
-    /****************************************************************************************\
-*                      Multi-dimensional sparse array (CvSparseMat)                      *
-\****************************************************************************************/
-
-#define CV_SPARSE_MAT_MAGIC_VAL 0x42440000
-#define CV_TYPE_NAME_SPARSE_MAT "opencv-sparse-matrix"
-
-struct CvSet;
-
-typedef struct CvSparseMat
-{
-    int type;
-    int dims;
-    int *refcount;
-    int hdr_refcount;
-
-    struct CvSet *heap;
-    void **hashtable;
-    int hashsize;
-    int valoffset;
-    int idxoffset;
-    int size[CV_MAX_DIM];
-} CvSparseMat;
-
-#define CV_IS_SPARSE_MAT_HDR(mat) \
-    ((mat) != NULL &&             \
-     (((const CvSparseMat *)(mat))->type & CV_MAGIC_MASK) == CV_SPARSE_MAT_MAGIC_VAL)
-
-#define CV_IS_SPARSE_MAT(mat) \
-    CV_IS_SPARSE_MAT_HDR(mat)
-
-/**************** iteration through a sparse array *****************/
-
-typedef struct CvSparseNode
-{
-    unsigned hashval;
-    struct CvSparseNode *next;
-} CvSparseNode;
-
-typedef struct CvSparseMatIterator
-{
-    CvSparseMat *mat;
-    CvSparseNode *node;
-    int curidx;
-} CvSparseMatIterator;
-
-#define CV_NODE_VAL(mat, node) ((void *)((uchar *)(node) + (mat)->valoffset))
-#define CV_NODE_IDX(mat, node) ((int *)((uchar *)(node) + (mat)->idxoffset))
 
 /****************************************************************************************\
 *                      Other supplementary data type definitions                         *
@@ -742,13 +655,6 @@ CV_INLINE CvScalar cvScalar(double val0, double val1 CV_DEFAULT(0),
     return scalar;
 }
 
-CV_INLINE CvScalar cvRealScalar(double val0)
-{
-    CvScalar scalar;
-    scalar.val[0] = val0;
-    scalar.val[1] = scalar.val[2] = scalar.val[3] = 0;
-    return scalar;
-}
 
 CV_INLINE CvScalar cvScalarAll(double val0123)
 {
@@ -869,66 +775,7 @@ typedef struct CvSet
 /* Checks whether the element pointed by ptr belongs to a set or not */
 #define CV_IS_SET_ELEM(ptr) (((CvSetElem *)(ptr))->flags >= 0)
 
-/************************************* Graph ********************************************/
 
-/*
-  We represent a graph as a set of vertices.
-  Vertices contain their adjacency lists (more exactly, pointers to first incoming or
-  outcoming edge (or 0 if isolated vertex)). Edges are stored in another set.
-  There is a singly-linked list of incoming/outcoming edges for each vertex.
-
-  Each edge consists of
-
-     o   Two pointers to the starting and ending vertices
-         (vtx[0] and vtx[1] respectively).
-
-   A graph may be oriented or not. In the latter case, edges between
-   vertex i to vertex j are not distinguished during search operations.
-
-     o   Two pointers to next edges for the starting and ending vertices, where
-         next[0] points to the next edge in the vtx[0] adjacency list and
-         next[1] points to the next edge in the vtx[1] adjacency list.
-*/
-#define CV_GRAPH_EDGE_FIELDS()   \
-    int flags;                   \
-    float weight;                \
-    struct CvGraphEdge *next[2]; \
-    struct CvGraphVtx *vtx[2];
-
-#define CV_GRAPH_VERTEX_FIELDS() \
-    int flags;                   \
-    struct CvGraphEdge *first;
-
-typedef struct CvGraphEdge
-{
-    CV_GRAPH_EDGE_FIELDS()
-} CvGraphEdge;
-
-typedef struct CvGraphVtx
-{
-    CV_GRAPH_VERTEX_FIELDS()
-} CvGraphVtx;
-
-typedef struct CvGraphVtx2D
-{
-    CV_GRAPH_VERTEX_FIELDS()
-    CvPoint2D32f *ptr;
-} CvGraphVtx2D;
-
-/*
-   Graph is "derived" from the set (this is set a of vertices)
-   and includes another set (edges)
-*/
-#define CV_GRAPH_FIELDS() \
-    CV_SET_FIELDS()       \
-    CvSet *edges;
-
-typedef struct CvGraph
-{
-    CV_GRAPH_FIELDS()
-} CvGraph;
-
-#define CV_TYPE_NAME_GRAPH "opencv-graph"
 
 /*********************************** Chain/Countour *************************************/
 
@@ -977,7 +824,6 @@ typedef CvContour CvPoint2DSeq;
 #define CV_SEQ_ELTYPE_GRAPH_VERTEX 0           /* first_edge, &(x,y) */
 #define CV_SEQ_ELTYPE_TRIAN_ATR 0              /* vertex of the binary tree   */
 #define CV_SEQ_ELTYPE_CONNECTED_COMP 0         /* connected component  */
-#define CV_SEQ_ELTYPE_POINT3D CV_32FC3         /* (x,y,z)  */
 
 #define CV_SEQ_KIND_BITS 2
 #define CV_SEQ_KIND_MASK (((1 << CV_SEQ_KIND_BITS) - 1) << CV_SEQ_ELTYPE_BITS)
@@ -999,29 +845,18 @@ typedef CvContour CvPoint2DSeq;
 #define CV_SEQ_FLAG_CONVEX (0 << CV_SEQ_FLAG_SHIFT)
 #define CV_SEQ_FLAG_HOLE (2 << CV_SEQ_FLAG_SHIFT)
 
-/* flags for graphs */
-#define CV_GRAPH_FLAG_ORIENTED (1 << CV_SEQ_FLAG_SHIFT)
-
-#define CV_GRAPH CV_SEQ_KIND_GRAPH
-#define CV_ORIENTED_GRAPH (CV_SEQ_KIND_GRAPH | CV_GRAPH_FLAG_ORIENTED)
-
 /* point sets */
 #define CV_SEQ_POINT_SET (CV_SEQ_KIND_GENERIC | CV_SEQ_ELTYPE_POINT)
-#define CV_SEQ_POINT3D_SET (CV_SEQ_KIND_GENERIC | CV_SEQ_ELTYPE_POINT3D)
 #define CV_SEQ_POLYLINE (CV_SEQ_KIND_CURVE | CV_SEQ_ELTYPE_POINT)
 #define CV_SEQ_POLYGON (CV_SEQ_FLAG_CLOSED | CV_SEQ_POLYLINE)
-#define CV_SEQ_CONTOUR CV_SEQ_POLYGON
-#define CV_SEQ_SIMPLE_POLYGON (CV_SEQ_FLAG_SIMPLE | CV_SEQ_POLYGON)
 
 /* chain-coded curves */
 #define CV_SEQ_CHAIN (CV_SEQ_KIND_CURVE | CV_SEQ_ELTYPE_CODE)
 #define CV_SEQ_CHAIN_CONTOUR (CV_SEQ_FLAG_CLOSED | CV_SEQ_CHAIN)
 
 /* binary tree for the contour */
-#define CV_SEQ_POLYGON_TREE (CV_SEQ_KIND_BIN_TREE | CV_SEQ_ELTYPE_TRIAN_ATR)
 
 /* sequence of the connected components */
-#define CV_SEQ_CONNECTED_COMP (CV_SEQ_KIND_GENERIC | CV_SEQ_ELTYPE_CONNECTED_COMP)
 
 /* sequence of the integer numbers */
 #define CV_SEQ_INDEX (CV_SEQ_KIND_GENERIC | CV_SEQ_ELTYPE_INDEX)
@@ -1030,21 +865,14 @@ typedef CvContour CvPoint2DSeq;
 #define CV_SEQ_KIND(seq) ((seq)->flags & CV_SEQ_KIND_MASK)
 
 /* flag checking */
-#define CV_IS_SEQ_INDEX(seq) ((CV_SEQ_ELTYPE(seq) == CV_SEQ_ELTYPE_INDEX) && \
-                              (CV_SEQ_KIND(seq) == CV_SEQ_KIND_GENERIC))
 
-#define CV_IS_SEQ_CURVE(seq) (CV_SEQ_KIND(seq) == CV_SEQ_KIND_CURVE)
 #define CV_IS_SEQ_CLOSED(seq) (((seq)->flags & CV_SEQ_FLAG_CLOSED) != 0)
-#define CV_IS_SEQ_CONVEX(seq) 0
 #define CV_IS_SEQ_HOLE(seq) (((seq)->flags & CV_SEQ_FLAG_HOLE) != 0)
 #define CV_IS_SEQ_SIMPLE(seq) 1
 
 /* type checking macros */
 #define CV_IS_SEQ_POINT_SET(seq) \
     ((CV_SEQ_ELTYPE(seq) == CV_32SC2 || CV_SEQ_ELTYPE(seq) == CV_32FC2))
-
-#define CV_IS_SEQ_POINT_SUBSET(seq) \
-    (CV_IS_SEQ_INDEX(seq) || CV_SEQ_ELTYPE(seq) == CV_SEQ_ELTYPE_PPOINT)
 
 #define CV_IS_SEQ_POLYLINE(seq) \
     (CV_SEQ_KIND(seq) == CV_SEQ_KIND_CURVE && CV_IS_SEQ_POINT_SET(seq))
@@ -1055,24 +883,6 @@ typedef CvContour CvPoint2DSeq;
 #define CV_IS_SEQ_CHAIN(seq) \
     (CV_SEQ_KIND(seq) == CV_SEQ_KIND_CURVE && (seq)->elem_size == 1)
 
-#define CV_IS_SEQ_CONTOUR(seq) \
-    (CV_IS_SEQ_CLOSED(seq) && (CV_IS_SEQ_POLYLINE(seq) || CV_IS_SEQ_CHAIN(seq)))
-
-#define CV_IS_SEQ_CHAIN_CONTOUR(seq) \
-    (CV_IS_SEQ_CHAIN(seq) && CV_IS_SEQ_CLOSED(seq))
-
-#define CV_IS_SEQ_POLYGON_TREE(seq)                   \
-    (CV_SEQ_ELTYPE(seq) == CV_SEQ_ELTYPE_TRIAN_ATR && \
-     CV_SEQ_KIND(seq) == CV_SEQ_KIND_BIN_TREE)
-
-#define CV_IS_GRAPH(seq) \
-    (CV_IS_SET(seq) && CV_SEQ_KIND((CvSet *)(seq)) == CV_SEQ_KIND_GRAPH)
-
-#define CV_IS_GRAPH_ORIENTED(seq) \
-    (((seq)->flags & CV_GRAPH_FLAG_ORIENTED) != 0)
-
-#define CV_IS_SUBDIV2D(seq) \
-    (CV_IS_SET(seq) && CV_SEQ_KIND((CvSet *)(seq)) == CV_SEQ_KIND_SUBDIV2D)
 
 /****************************************************************************************/
 /*                            Sequence writer & reader                                  */
