@@ -123,16 +123,16 @@ typedef struct stBox
 
 bool isEqu(float x1, float x2)
 {
-	return (abs(x1 - x2) <= MAX_P);
+    return (fabs(x1 - x2) <= MAX_P);
 }
 
 struct SymBoxCmp
 {
 	bool operator()(const Box &x, const Box &y) const
 	{
-		if (abs(x.box.center.x - y.box.center.x) <= MAX_P && abs(x.box.center.y - y.box.center.y) <= MAX_P)
+        if (fabs(x.box.center.x - y.box.center.x) <= MAX_P && fabs(x.box.center.y - y.box.center.y) <= MAX_P)
 		{
-			if (abs(x.box.size.width - y.box.size.width) <= MAX_P && abs(x.box.size.height - y.box.size.height) <= MAX_P)
+            if (fabs(x.box.size.width - y.box.size.width) <= MAX_P && fabs(x.box.size.height - y.box.size.height) <= MAX_P)
 			{
 				return false;
 			}
@@ -155,9 +155,9 @@ struct SymUBoxCmp
 {
 	bool operator()(const Box &x, const Box &y) const
 	{
-		if (abs(x.box.center.x - y.box.center.x) <= MAX_P && abs(x.box.center.y - y.box.center.y) <= MAX_P)
+        if (fabs(x.box.center.x - y.box.center.x) <= MAX_P && fabs(x.box.center.y - y.box.center.y) <= MAX_P)
 		{
-			if (abs(x.box.size.width - y.box.size.width) <= MAX_P && abs(x.box.size.height - y.box.size.height) <= MAX_P)
+            if (fabs(x.box.size.width - y.box.size.width) <= MAX_P && fabs(x.box.size.height - y.box.size.height) <= MAX_P)
 			{
 				return false;
 			}
