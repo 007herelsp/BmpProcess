@@ -164,10 +164,6 @@ template<typename _Tp, int cn> inline _Tp& Vec<_Tp, cn>::operator ()(int i)
     return this->val[i];
 }
 
-
-
-
-
 //////////////////////////////// 2D Point ////////////////////////////////
 
 template<typename _Tp> inline Point_<_Tp>::Point_() : x(0), y(0) {}
@@ -215,10 +211,6 @@ template<typename _Tp> inline Rect_<_Tp>& Rect_<_Tp>::operator = ( const Rect_<_
 
 template<typename _Tp> inline Size_<_Tp> Rect_<_Tp>::size() const { return Size_<_Tp>(width, height); }
 template<typename _Tp> inline _Tp Rect_<_Tp>::area() const { return width*height; }
-
-template<typename _Tp> template<typename _Tp2> inline Rect_<_Tp>::operator Rect_<_Tp2>() const
-{ return Rect_<_Tp2>(saturate_cast<_Tp2>(x), saturate_cast<_Tp2>(y),
-                     saturate_cast<_Tp2>(width), saturate_cast<_Tp2>(height)); }
 
 
 template<typename _Tp> inline bool Rect_<_Tp>::contains(const Point_<_Tp>& pt) const
@@ -293,13 +285,6 @@ template<typename _Tp> static inline bool operator != ( const Scalar_<_Tp>& a, c
         a.val[2] != b.val[2] || a.val[3] != b.val[3];
 }
 
-
-template<typename _Tp> inline bool Scalar_<_Tp>::isReal() const
-{
-    return this->val[1] == 0 && this->val[2] == 0 && this->val[3] == 0;
-}
-
-
 //////////////////////////////// Range /////////////////////////////////
 
 inline Range::Range() : start(0), end(0) {}
@@ -334,21 +319,6 @@ inline unsigned RNG::next()
     return (unsigned)state;
 }
 
-inline RNG::operator uchar() { return (uchar)next(); }
-inline RNG::operator schar() { return (schar)next(); }
-inline RNG::operator ushort() { return (ushort)next(); }
-inline RNG::operator short() { return (short)next(); }
-inline RNG::operator unsigned() { return next(); }
-
-inline unsigned RNG::operator ()() {return next();}
-inline RNG::operator int() { return (int)next(); }
-// * (2^32-1)^-1
-inline RNG::operator float() { return next()*2.3283064365386962890625e-10f; }
-inline RNG::operator double()
-{
-    unsigned t = next();
-    return (((uint64)t << 32) | next())*5.4210108624275221700372640043497e-20;
-}
 
 
 /////////////////////////////// AutoBuffer ////////////////////////////////////////

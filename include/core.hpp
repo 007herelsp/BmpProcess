@@ -90,22 +90,7 @@ public:
 };
 
 
-//! Signals an error and raises the exception.
-
-/*!
-  By default the function prints information about the error to stderr,
-  then it either stops if setBreakOnError() had been called before or raises the exception.
-  It is possible to alternate error processing by using redirectError().
-
-  \param exc the exception raisen.
- */
 CV_EXPORTS void error( const Exception& exc );
-
-
-
-//! Sets the new error handler and the optional user data.
-
-
 
 
 #if defined __GNUC__
@@ -126,26 +111,8 @@ CV_EXPORTS void error( const Exception& exc );
 #define CV_DbgAssert(expr)
 #endif
 
-
-
-/*!
-  Allocates memory buffer
-
-  This is specialized OpenCV memory allocation function that returns properly aligned memory buffers.
-  The usage is identical to malloc(). The allocated buffers must be freed with cv::fastFree().
-  If there is not enough memory, the function calls cv::error(), which raises an exception.
-
-  \param bufSize buffer size in bytes
-  \return the allocated memory buffer.
-*/
 CV_EXPORTS void* fastMalloc(size_t bufSize);
 
-/*!
-  Frees the memory allocated with cv::fastMalloc
-
-  This is the corresponding deallocation function for cv::fastMalloc().
-  When ptr==NULL, the function has no effect.
-*/
 CV_EXPORTS void fastFree(void* ptr);
 
 template<typename _Tp> static inline _Tp* allocate(size_t n)
@@ -158,22 +125,11 @@ template<typename _Tp> static inline void deallocate(_Tp* ptr, size_t)
     delete[] ptr;
 }
 
-/*!
-  Aligns pointer by the certain number of bytes
-
-  This small inline function aligns the pointer by the certian number of bytes by shifting
-  it forward by 0 or a positive offset.
-*/
 template<typename _Tp> static inline _Tp* alignPtr(_Tp* ptr, int n=(int)sizeof(_Tp))
 {
     return (_Tp*)(((size_t)ptr + n-1) & -n);
 }
 
-/*!
-  Aligns buffer size by the certain number of bytes
-
-  This small inline function aligns a buffer size by the certian number of bytes by enlarging it.
-*/
 static inline size_t alignSize(size_t sz, int n)
 {
     assert((n & (n - 1)) == 0); // n is a power of 2
@@ -183,12 +139,6 @@ static inline size_t alignSize(size_t sz, int n)
 
 /////////////////////// Vec (used as element of multi-channel images /////////////////////
 
-/*!
-  A helper class for cv::DataType
-
-  The class is specialized for each fundamental numerical data type supported by OpenCV.
-  It provides DataDepth<T>::value constant.
-*/
 template<typename _Tp> class DataDepth { public: enum { value = -1, fmt = 0 }; };
 
 template<> class DataDepth<bool> { public: enum { value = CV_8U, fmt=(int)'u' }; };
@@ -202,59 +152,24 @@ template<> class DataDepth<int> { public: enum { value = CV_32S, fmt=(int)'i' };
 template<> class DataDepth<unsigned> { public: enum { value = CV_32S, fmt=(int)'i' }; };
 template<> class DataDepth<float> { public: enum { value = CV_32F, fmt=(int)'f' }; };
 template<> class DataDepth<double> { public: enum { value = CV_64F, fmt=(int)'d' }; };
+
 template<typename _Tp> class DataDepth<_Tp*> { public: enum { value = CV_USRTYPE1, fmt=(int)'r' }; };
 
 
 ////////////////////////////// Small Matrix ///////////////////////////
-
-/*!
- A short numerical vector.
-
- This template class represents short numerical vectors (of 1, 2, 3, 4 ... elements)
- on which you can perform basic arithmetical operations, access individual elements using [] operator etc.
- The vectors are allocated on stack, as opposite to std::valarray, std::vector, cv::Mat etc.,
- which elements are dynamically allocated in the heap.
-
- The template takes 2 parameters:
- -# _Tp element type
- -# cn the number of elements
-
- In addition to the universal notation like Vec<float, 3>, you can use shorter aliases
- for the most popular specialized variants of Vec, e.g. Vec3f ~ Vec<float, 3>.
- */
-
-struct CV_EXPORTS Matx_AddOp {};
-struct CV_EXPORTS Matx_SubOp {};
-struct CV_EXPORTS Matx_ScaleOp {};
-struct CV_EXPORTS Matx_MulOp {};
-struct CV_EXPORTS Matx_MatMulOp {};
-struct CV_EXPORTS Matx_TOp {};
-
 template<typename _Tp, int m, int n> class Matx
 {
 public:
     typedef _Tp value_type;
-    typedef Matx<_Tp, (m < n ? m : n), 1> diag_type;
-    typedef Matx<_Tp, m, n> mat_type;
     enum { depth = DataDepth<_Tp>::value, rows = m, cols = n, channels = rows*cols,
            type = CV_MAKETYPE(depth, channels) };
 
     //! default constructor
     Matx();
-
-
     
     explicit Matx(const _Tp* vals); //!< initialize from a plain array
 
     static Matx all(_Tp alpha);
-
-    //! dot product computed with the default precision
-
-    //! dot product computed in double-precision arithmetics
-
-    //! conversion to another data type
-    template<typename T2> operator Matx<T2, m, n>() const;
-
 
     //! extract the matrix row
     Matx<_Tp, 1, n> row(int i) const;
@@ -264,52 +179,13 @@ public:
 
     //! extract the matrix diagonal
 
-    //! transpose the matrix
-    Matx<_Tp, n, m> t() const;
 
-    //! invert matrix the matrix
-    Matx<_Tp, n, m> inv(int method=DECOMP_LU) const;
+   
 
-    //! solve linear system
-    template<int l> Matx<_Tp, n, l> solve(const Matx<_Tp, m, l>& rhs, int flags=DECOMP_LU) const;
-    Vec<_Tp, n> solve(const Vec<_Tp, m>& rhs, int method) const;
-
-    //! element access
-    const _Tp& operator ()(int i, int j) const;
-    _Tp& operator ()(int i, int j);
-
-    //! 1D element access
-    const _Tp& operator ()(int i) const;
-    _Tp& operator ()(int i);
-
-    Matx(const Matx<_Tp, m, n>& a, const Matx<_Tp, m, n>& b, Matx_AddOp);
-    Matx(const Matx<_Tp, m, n>& a, const Matx<_Tp, m, n>& b, Matx_SubOp);
-    template<typename _T2> Matx(const Matx<_Tp, m, n>& a, _T2 alpha, Matx_ScaleOp);
-    Matx(const Matx<_Tp, m, n>& a, const Matx<_Tp, m, n>& b, Matx_MulOp);
-    template<int l> Matx(const Matx<_Tp, m, l>& a, const Matx<_Tp, l, n>& b, Matx_MatMulOp);
-    Matx(const Matx<_Tp, n, m>& a, Matx_TOp);
 
     _Tp val[m*n]; //< matrix elements
 };
 
-
-
-
-/*!
-  A short numerical vector.
-
-  This template class represents short numerical vectors (of 1, 2, 3, 4 ... elements)
-  on which you can perform basic arithmetical operations, access individual elements using [] operator etc.
-  The vectors are allocated on stack, as opposite to std::valarray, std::vector, cv::Mat etc.,
-  which elements are dynamically allocated in the heap.
-
-  The template takes 2 parameters:
-  -# _Tp element type
-  -# cn the number of elements
-
-  In addition to the universal notation like Vec<float, 3>, you can use shorter aliases
-  for the most popular specialized variants of Vec, e.g. Vec3f ~ Vec<float, 3>.
-*/
 template<typename _Tp, int cn> class Vec : public Matx<_Tp, cn, 1>
 {
 public:
@@ -326,35 +202,17 @@ public:
 
     Vec(const Vec<_Tp, cn>& v);
 
-   
-
-    //! per-element multiplication
-
-    //! conjugation (makes sense for complex numbers and quaternions)
-
-    /*!
-      cross product of the two 3D vectors.
-
-      For other dimensionalities the exception is raised
-    */
-    //! conversion to another data type
+  
     template<typename T2> operator Vec<T2, cn>() const;
-    //! conversion to 4-element CvScalar.
-
-    /*! element access */
+  
     const _Tp& operator [](int i) const;
     _Tp& operator[](int i);
     const _Tp& operator ()(int i) const;
     _Tp& operator ()(int i);
 
- 
 };
 
 
-/* \typedef
-
-   Shorter aliases for the most popular specializations of Vec<T,n>
-*/
 typedef Vec<uchar, 2> Vec2b;
 typedef Vec<uchar, 3> Vec3b;
 typedef Vec<uchar, 4> Vec4b;
@@ -373,14 +231,6 @@ typedef Vec<int, 8> Vec8i;
 
 
 //////////////////////////////// Point_ ////////////////////////////////
-
-/*!
-  template 2D point class.
-
-  The class defines a point in 2D space. Data type of the point coordinates is specified
-  as a template parameter. There are a few shorter aliases available for user convenience.
-  See cv::Point, cv::Point2i, cv::Point2f and cv::Point2d.
-*/
 template<typename _Tp> class Point_
 {
 public:
@@ -400,12 +250,6 @@ public:
 
 //////////////////////////////// Size_ ////////////////////////////////
 
-/*!
-  The 2D size class
-
-  The class represents the size of a 2D rectangle, image size, matrix size etc.
-  Normally, cv::Size ~ cv::Size_<int> is used.
-*/
 template<typename _Tp> class Size_
 {
 public:
@@ -431,12 +275,6 @@ public:
 
 //////////////////////////////// Rect_ ////////////////////////////////
 
-/*!
-  The 2D up-right rectangle class
-
-  The class represents a 2D rectangle with coordinates of the specified data type.
-  Normally, cv::Rect ~ cv::Rect_<int> is used.
-*/
 template<typename _Tp> class Rect_
 {
 public:
@@ -447,25 +285,18 @@ public:
     Rect_(_Tp _x, _Tp _y, _Tp _width, _Tp _height);
     Rect_(const Rect_& r);
 
-
     Rect_& operator = ( const Rect_& r );
-    
 
-    //! size (width, height) of the rectangle
     Size_<_Tp> size() const;
-    //! area (width*height) of the rectangle
+
     _Tp area() const;
 
-    //! conversion to another data type
     template<typename _Tp2> operator Rect_<_Tp2>() const;
-    //! conversion to the old-style CvRect
 
-    //! checks whether the rectangle contains the point
     bool contains(const Point_<_Tp>& pt) const;
 
     _Tp x, y, width, height; //< the top-left corner, as well as width and height of the rectangle
 };
-
 
 typedef Point_<int> Point2i;
 typedef Point2i Point;
@@ -478,34 +309,17 @@ typedef Point_<float> Point2f;
 
 //////////////////////////////// Scalar_ ///////////////////////////////
 
-/*!
-   The template scalar class.
-
-   This is partially specialized cv::Vec class with the number of elements = 4, i.e. a short vector of four elements.
-   Normally, cv::Scalar ~ cv::Scalar_<double> is used.
-*/
 template<typename _Tp> class Scalar_ : public Vec<_Tp, 4>
 {
 public:
-    //! various constructors
     Scalar_();
     Scalar_(_Tp v0, _Tp v1, _Tp v2=0, _Tp v3=0);
     Scalar_(const CvScalar& s);
     Scalar_(_Tp v0);
 
-    //! returns a scalar with all elements set to v0
     static Scalar_<_Tp> all(_Tp v0);
-    //! conversion to the old-style CvScalar
 
-    //! conversion to another data type
     template<typename T2> operator Scalar_<T2>() const;
-
-    //! per-element product
-
-    // returns (v0, -v1, -v2, -v3)
-
-    // returns true iff v1 == v2 == v3 == 0
-    bool isReal() const;
 };
 
 typedef Scalar_<double> Scalar;
@@ -514,11 +328,6 @@ CV_EXPORTS void scalarToRawData(const Scalar& s, void* buf, int type, int unroll
 
 //////////////////////////////// Range /////////////////////////////////
 
-/*!
-   The 2D range class
-
-   This is the class used to specify a continuous subsequence, i.e. part of a contour, or a column span in a matrix.
-*/
 class CV_EXPORTS Range
 {
 public:
@@ -532,8 +341,6 @@ public:
 };
 
 /////////////////////////////// DataType ////////////////////////////////
-
-
 template<typename _Tp> class DataType
 {
 public:
@@ -752,7 +559,6 @@ public:
 
 //////////////////// generic_type ref-counting pointer class for C/C++ objects ////////////////////////
 
-
 template<typename _Tp> class Ptr
 {
 public:
@@ -793,9 +599,6 @@ public:
 
 //////////////////////// Input/Output Array Arguments /////////////////////////////////
 
-/*!
- Proxy datatype for passing Mat's and vector<>'s as input parameters
- */
 class CV_EXPORTS _InputArray
 {
 public:
@@ -828,9 +631,6 @@ public:
     _InputArray(const Scalar& s);
     _InputArray(const double& val);
     virtual Mat getMat(int i=-1) const;
-
-
-
     virtual int kind() const;
     virtual Size size(int i=-1) const;
     virtual size_t total(int i=-1) const;
@@ -848,7 +648,6 @@ public:
     Size sz;
 };
 
-
 enum
 {
     DEPTH_MASK_8U = 1 << CV_8U,
@@ -863,36 +662,26 @@ enum
     DEPTH_MASK_FLT = DEPTH_MASK_32F + DEPTH_MASK_64F
 };
 
-
-/*!
- Proxy datatype for passing Mat's and vector<>'s as input parameters
- */
 class CV_EXPORTS _OutputArray : public _InputArray
 {
 public:
     _OutputArray();
-
     _OutputArray(Mat& m);
     template<typename _Tp> _OutputArray(vector<_Tp>& vec);
     template<typename _Tp> _OutputArray(vector<vector<_Tp> >& vec);
     _OutputArray(vector<Mat>& vec);
     template<typename _Tp, int m, int n> _OutputArray(Matx<_Tp, m, n>& matx);
     template<typename _Tp> _OutputArray(_Tp* vec, int n);
-
     _OutputArray(const Mat& m);
     template<typename _Tp> _OutputArray(const vector<_Tp>& vec);
     template<typename _Tp> _OutputArray(const vector<vector<_Tp> >& vec);
     _OutputArray(const vector<Mat>& vec);
     template<typename _Tp, int m, int n> _OutputArray(const Matx<_Tp, m, n>& matx);
     template<typename _Tp> _OutputArray(const _Tp* vec, int n);
-
-
     virtual bool fixedSize() const;
     virtual bool fixedType() const;
     virtual bool needed() const;
     virtual Mat& getMatRef(int i=-1) const;
-
-
     virtual void create(Size sz, int type, int i=-1, bool allowTransposed=false, int fixedDepthMask=0) const;
     virtual void create(int rows, int cols, int type, int i=-1, bool allowTransposed=false, int fixedDepthMask=0) const;
     virtual void create(int dims, const int* size, int type, int i=-1, bool allowTransposed=false, int fixedDepthMask=0) const;
@@ -917,10 +706,6 @@ enum { MAGIC_MASK=0xFFFF0000, TYPE_MASK=0x00000FFF, DEPTH_MASK=7 };
 
 static inline size_t getElemSize(int type) { return CV_ELEM_SIZE(type); }
 
-/*!
-   Custom array allocator
-
-*/
 class CV_EXPORTS MatAllocator
 {
 public:
@@ -930,7 +715,6 @@ public:
                           uchar*& datastart, uchar*& data, size_t* step) = 0;
     virtual void deallocate(int* refcount, uchar* datastart, uchar* data) = 0;
 };
-
 
 class CV_EXPORTS Mat
 {
@@ -972,12 +756,7 @@ public:
     template<typename _Tp, int m, int n> explicit Mat(const Matx<_Tp, m, n>& mtx, bool copyData=true);
     //! builds matrix from a 2D point
     template<typename _Tp> explicit Mat(const Point_<_Tp>& pt, bool copyData=true);
-    //! builds matrix from a 3D point
-    //! builds matrix from comma initializer
 
-
-
-    //! destructor - calls release()
     ~Mat();
     //! assignment operators
     Mat& operator = (const Mat& m);
@@ -991,76 +770,41 @@ public:
     Mat rowRange(const Range& r) const;
     //! ... for the specified column span
     Mat colRange(const Range& r) const;
-    //! ... for the specified diagonal
-    // (d=0 - the main diagonal,
-    //  >0 - a diagonal from the lower half,
-    //  <0 - a diagonal from the upper half)
-    //! constructs a square diagonal matrix which main diagonal is vector "d"
-
-    //! returns deep copy of the matrix, i.e. the data is copied
     Mat clone() const;
-    //! copies the matrix content to "m".
-    // It calls m.create(this->size(), this->type()).
     void copyTo( OutputArray m ) const;
-    //! copies those matrix elements to "m" that are marked with non-zero mask elements.
-    //! converts matrix to another datatype with optional scalng. See cvConvertScale.
     void convertTo( OutputArray m, int rtype, double alpha=1, double beta=0 ) const;
-
     void assignTo( Mat& m, int type=-1 ) const;
-
     //! sets every matrix element to s
     Mat& operator = (const Scalar& s);
     //! sets some of the matrix elements to s, according to the mask
     Mat& setTo(InputArray value, InputArray mask=noArray());
-
-    //! allocates new matrix data unless the matrix already has specified size and type.
-    // previous data is unreferenced if needed.
     void create(int rows, int cols, int type);
     void create(Size size, int type);
     void create(int ndims, const int* sizes, int type);
-
     //! increases the reference counter; use with care to avoid memleaks
     void addref();
-    //! decreases reference counter;
     // deallocates the data when reference counter reaches 0.
     void release();
-
     //! deallocates the matrix data
     void deallocate();
     //! internal use function; properly re-allocates _size, _step arrays
     void copySize(const Mat& m);
-
     //! reserves enough space to fit sz hyper-planes
     void reserve(size_t sz);
     //! resizes matrix to the specified number of hyper-planes
     void resize(size_t sz);
     //! resizes matrix to the specified number of hyper-planes; initializes the newly added elements
     void resize(size_t sz, const Scalar& s);
-    //! internal function
-    //! adds element to the end of 1d matrix (or possibly multiple elements when _Tp=Mat)
-    //! removes several hyper-planes from bottom of the matrix
-
     //! locates matrix header within a parent matrix. See below
     void locateROI( Size& wholeSize, Point& ofs ) const;
     //! moves/resizes the current matrix ROI inside the parent matrix.
     Mat& adjustROI( int dtop, int dbottom, int dleft, int dright );
-    //! extracts a rectangular sub-matrix
-    // (this is a generalized form of row, rowRange etc.)
     Mat operator()( Range rowRange, Range colRange ) const;
     Mat operator()( const Rect& roi ) const;
     Mat operator()( const Range* ranges ) const;
-
-   
-
-    //! returns true iff the matrix data is continuous
-    // (i.e. when there are no gaps between successive rows).
-    // similar to CV_IS_MAT_CONT(cvmat->type)
     bool isContinuous() const;
-
     //! returns true if the matrix is a submatrix of another matrix
     bool isSubmatrix() const;
-
-    //! returns element size in bytes,
     // similar to CV_ELEM_SIZE(cvmat->type)
     size_t elemSize() const;
     //! returns the size of element channel in bytes.
@@ -1077,57 +821,35 @@ public:
     bool empty() const;
     //! returns the total number of matrix elements
     size_t total() const;
-
-    //! returns N if the matrix is 1-channel (N x ptdim) or ptdim-channel (1 x N) or (N x 1); negative number otherwise
-
     //! returns pointer to i0-th submatrix along the dimension #0
     uchar* ptr(int i0=0);
     const uchar* ptr(int i0=0) const;
-
     //! returns pointer to (i0,i1) submatrix along the dimensions #0 and #1
     uchar* ptr(int i0, int i1);
     const uchar* ptr(int i0, int i1) const;
-
     //! returns pointer to (i0,i1,i3) submatrix along the dimensions #0, #1, #2
     uchar* ptr(int i0, int i1, int i2);
     const uchar* ptr(int i0, int i1, int i2) const;
-
     //! returns pointer to the matrix element
     uchar* ptr(const int* idx);
     //! returns read-only pointer to the matrix element
     const uchar* ptr(const int* idx) const;
-
     template<int n> uchar* ptr(const Vec<int, n>& idx);
     template<int n> const uchar* ptr(const Vec<int, n>& idx) const;
-
     //! template version of the above method
     template<typename _Tp> _Tp* ptr(int i0=0);
     template<typename _Tp> const _Tp* ptr(int i0=0) const;
-
     template<typename _Tp> _Tp* ptr(int i0, int i1);
     template<typename _Tp> const _Tp* ptr(int i0, int i1) const;
-
     template<typename _Tp> _Tp* ptr(int i0, int i1, int i2);
     template<typename _Tp> const _Tp* ptr(int i0, int i1, int i2) const;
-
     template<typename _Tp> _Tp* ptr(const int* idx);
     template<typename _Tp> const _Tp* ptr(const int* idx) const;
-
     template<typename _Tp, int n> _Tp* ptr(const Vec<int, n>& idx);
     template<typename _Tp, int n> const _Tp* ptr(const Vec<int, n>& idx) const;
-
-
-    //! template methods for iteration over matrix elements.
     // the iterators take care of skipping gaps in the end of rows (if any)
 
     enum { MAGIC_VAL=0x42FF0000, AUTO_STEP=0, CONTINUOUS_FLAG=CV_MAT_CONT_FLAG, SUBMATRIX_FLAG=CV_SUBMAT_FLAG };
-
-    /*! includes several bit-fields:
-         - the magic signature
-         - continuity flag
-         - depth
-         - number of channels
-     */
     int flags;
     //! the matrix dimensionality, >= 2
     int dims;
@@ -1135,16 +857,11 @@ public:
     int rows, cols;
     //! pointer to the data
     uchar* data;
-
-    //! pointer to the reference counter;
-    // when matrix points to user-allocated data, the pointer is NULL
     int* refcount;
-
     //! helper fields used in locateROI and adjustROI
     uchar* datastart;
     uchar* dataend;
     uchar* datalimit;
-
     //! custom allocator
     MatAllocator* allocator;
 
@@ -1183,12 +900,6 @@ protected:
     void initEmpty();
 };
 
-
-/*!
-   Random Number Generator
-
-   The class implements RNG using Multiply-with-Carry algorithm
-*/
 class CV_EXPORTS RNG
 {
 public:
@@ -1198,26 +909,8 @@ public:
     RNG(uint64 state);
     //! updates the state and returns the next 32-bit unsigned integer random number
     unsigned next();
-
-    operator uchar();
-    operator schar();
-    operator ushort();
-    operator short();
-    operator unsigned();
-    //! returns a random integer sampled uniformly from [0, N).
-    unsigned operator ()(unsigned N);
-    unsigned operator ()();
-    operator int();
-    operator float();
-    operator double();
-
-    //! returns Gaussian random variate with mean zero.
-
     uint64 state;
 };
-
-
-
 
 typedef void (*BinaryFunc)(const uchar* src1, size_t step1,
                            const uchar* src2, size_t step2,
@@ -1234,48 +927,15 @@ CV_EXPORTS void swap(Mat& a, Mat& b);
 //! converts array (CvMat or IplImage) to cv::Mat
 CV_EXPORTS Mat cvarrToMat(const CvArr* arr, bool copyData=false,
                           bool allowND=true, int coiMode=0);
-
-
-
-
-//! computes sum of array elements
 //! computes the number of nonzero array elements
 CV_EXPORTS_W int countNonZero( InputArray src );
-
-//! computes per-element minimum of two arrays (dst = min(src1, src2))
-CV_EXPORTS_W void min(InputArray src1, InputArray src2, OutputArray dst);
-//! computes per-element maximum of two arrays (dst = max(src1, src2))
-CV_EXPORTS_W void max(InputArray src1, InputArray src2, OutputArray dst);
-
-//! computes per-element minimum of two arrays (dst = min(src1, src2))
-CV_EXPORTS void min(const Mat& src1, const Mat& src2, Mat& dst);
-//! computes per-element minimum of array and scalar (dst = min(src1, src2))
-CV_EXPORTS void min(const Mat& src1, double src2, Mat& dst);
-//! computes per-element maximum of two arrays (dst = max(src1, src2))
-CV_EXPORTS void max(const Mat& src1, const Mat& src2, Mat& dst);
-//! computes per-element maximum of array and scalar (dst = max(src1, src2))
-CV_EXPORTS void max(const Mat& src1, double src2, Mat& dst);
-
-//! computes square root of each matrix element (dst = src**0.5)
-CV_EXPORTS_W void sqrt(InputArray src, OutputArray dst);
-//! raises the input matrix elements to the specified power (b = a**power)
-CV_EXPORTS_W void pow(InputArray src, double power, OutputArray dst);
-//! computes exponent of each matrix element (dst = e**src)
-//! computes natural logarithm of absolute value of each matrix element: dst = log(abs(src))
-//! computes cube root of the argument
-//! computes the angle in degrees (0..360) of the vector (x,y)
-
-
-
 //! transposes the matrix
 CV_EXPORTS_W void transpose(InputArray src, OutputArray dst);
-
 //! computes inverse or pseudo-inverse matrix
 CV_EXPORTS_W double invert(InputArray src, OutputArray dst, int flags=DECOMP_LU);
 //! solves linear system or a least-square problem
 CV_EXPORTS_W bool solve(InputArray src1, InputArray src2,
                         OutputArray dst, int flags=DECOMP_LU);
-
 
 template<typename _Tp, size_t fixed_size=4096/sizeof(_Tp)+8> class AutoBuffer
 {
@@ -1289,7 +949,6 @@ public:
     AutoBuffer(size_t _size);
     //! destructor. calls deallocate()
     ~AutoBuffer();
-
     //! allocates the new buffer of size _size. if the _size is small enough, stack-allocated buffer is used
     void allocate(size_t _size);
     //! deallocates the buffer if it was dynamically allocated
@@ -1298,7 +957,6 @@ public:
     operator _Tp* ();
     //! returns read-only pointer to the real buffer, stack-allocated or head-allocated
     operator const _Tp* () const;
-
     //! returns number of allocated elements
     size_t getSize() const;
 
@@ -1312,7 +970,6 @@ protected:
 };
 
 /////////////////////////// multi-dimensional dense matrix //////////////////////////
-
 class CV_EXPORTS NAryMatIterator
 {
 public:
@@ -1324,12 +981,10 @@ public:
     NAryMatIterator(const Mat** arrays, Mat* planes, int narrays=-1);
     //! the separate iterator initialization method
     void init(const Mat** arrays, Mat* planes, uchar** ptrs, int narrays=-1);
-
     //! proceeds to the next plane of every iterated matrix
     NAryMatIterator& operator ++();
     //! proceeds to the next plane of every iterated matrix (postfix increment operator)
     NAryMatIterator operator ++(int);
-
     //! the iterated arrays
     const Mat** arrays;
     //! the current planes
@@ -1347,11 +1002,7 @@ protected:
     size_t idx;
 };
 
-
 typedef Ptr<CvMemStorage> MemStorage;
-
-
-
 
 /////////////////////////////// Parallel Primitives //////////////////////////////////
 

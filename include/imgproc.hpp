@@ -49,22 +49,6 @@ public:
 };
 
 
-class CV_EXPORTS BaseFilter
-{
-public:
-    //! the default constructor
-    BaseFilter();
-    //! the destructor
-    virtual ~BaseFilter();
-    //! the filtering operator. The horizontal and the vertical border interpolation is done outside of the class.
-    virtual void operator()(const uchar** src, uchar* dst, int dststep,
-                            int dstcount, int width, int cn) = 0;
-    //! resets the internal buffers, if any
-    virtual void reset();
-    Size ksize;
-    Point anchor;
-};
-
 class CV_EXPORTS FilterEngine
 {
 public:
@@ -179,9 +163,7 @@ enum { MORPH_ERODE=CV_MOP_ERODE, MORPH_DILATE=CV_MOP_DILATE,
 CV_EXPORTS Ptr<BaseRowFilter> getMorphologyRowFilter(int op, int type, int ksize, int anchor=-1);
 //! returns vertical 1D morphological filter
 CV_EXPORTS Ptr<BaseColumnFilter> getMorphologyColumnFilter(int op, int type, int ksize, int anchor=-1);
-//! returns 2D morphological filter
-CV_EXPORTS Ptr<BaseFilter> getMorphologyFilter(int op, int type, InputArray kernel,
-                                               Point anchor=Point(-1,-1));
+
 
 //! returns "magic" border value for erosion and dilation. It is automatically transformed to Scalar::all(-DBL_MAX) for dilation.
 static inline Scalar morphologyDefaultBorderValue() { return Scalar::all(DBL_MAX); }
