@@ -1,20 +1,9 @@
 
 #include "imgproc.precomp.hpp"
 
-typedef struct
-{
-    int bottom;
-    int left;
-    float height;
-    float width;
-    float base_a;
-    float base_b;
-}
-icvMinAreaState;
 
 #define CV_CALIPERS_MAXHEIGHT      0
 #define CV_CALIPERS_MINAREARECT    1
-#define CV_CALIPERS_MAXDIST        2
 
 /*F///////////////////////////////////////////////////////////////////////////////////////
 //    Name:    icvRotatingCalipers

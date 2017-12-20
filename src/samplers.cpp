@@ -635,17 +635,7 @@ typedef CvStatus(CV_STDCALL *CvIPPGetRectSubPixFunc)(const void *src, int src_st
         return CV_OK;                                                                                           \
     }
 
-/*#define srctype uchar
-#define dsttype uchar
-#define worktype float
-#define cvt CV_8TO32F
-#define cast_macro ICV_32F8U
 
-#undef srctype
-#undef dsttype
-#undef worktype
-#undef cvt
-#undef cast_macro*/
 
 ICV_DEF_GET_QUADRANGLE_SUB_PIX_FUNC(8u, uchar, uchar, double, ICV_32F8U, CV_8TO32F)
 ICV_DEF_GET_QUADRANGLE_SUB_PIX_FUNC(32f, float, float, double, CV_CAST_32F, CV_NOP)

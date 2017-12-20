@@ -20,7 +20,6 @@
 #define  CV_DEFAULT_IMAGE_ROW_ALIGN  4
 
 /* matrices are continuous by default */
-#define  CV_DEFAULT_MAT_ROW_ALIGN  1
 
 /* maximum size of dynamic memory buffer.
    cvAlloc reports an error if a larger block is requested. */
@@ -35,22 +34,6 @@
 /* default storage block size */
 #define  CV_STORAGE_BLOCK_SIZE   ((1<<16) - 128)
 
-/* default memory block for sparse array elements */
-#define  CV_SPARSE_MAT_BLOCK    (1<<12)
-
-/* initial hash table size */
-#define  CV_SPARSE_HASH_SIZE0    (1<<10)
-
-/* maximal average node_count/hash_size ratio beyond which hash table is resized */
-#define  CV_SPARSE_HASH_RATIO    3
-
-/* max length of strings */
-#define  CV_MAX_STRLEN  1024
-
-/****************************************************************************************\
-*                                  Common declarations                                   *
-\****************************************************************************************/
-
 #ifdef __GNUC__
 #  define CV_DECL_ALIGNED(x) __attribute__ ((aligned (x)))
 #elif defined _MSC_VER
@@ -63,22 +46,15 @@
 #  define CV_IMPL CV_EXTERN_C
 #endif
 
-#define CV_DBG_BREAK() { volatile int* crashMe = 0; *crashMe = 0; }
 
 /* default step, set in case of continuous data
    to work around checks for valid step in some ipp functions */
-#define  CV_STUB_STEP     (1 << 30)
 
-#define  CV_SIZEOF_FLOAT ((int)sizeof(float))
-#define  CV_SIZEOF_SHORT ((int)sizeof(short))
 
 #define  CV_ORIGIN_TL  0
 #define  CV_ORIGIN_BL  1
 
 /* IEEE754 constants and macros */
-#define  CV_POS_INF       0x7f800000
-#define  CV_NEG_INF       0x807fffff /* CV_TOGGLE_FLT(0xff800000) */
-#define  CV_1F            0x3f800000
 #define  CV_TOGGLE_FLT(x) ((x)^((int)(x) < 0 ? 0x7fffffff : 0))
 #define  CV_TOGGLE_DBL(x) \
     ((x)^((int64)(x) < 0 ? CV_BIG_INT(0x7fffffffffffffff) : 0))
@@ -114,17 +90,10 @@
 #define  CV_CAST_32F(t) (float)(t)
 #define  CV_CAST_64F(t) (double)(t)
 
-#define  CV_PASTE2(a,b) a##b
-#define  CV_PASTE(a,b)  CV_PASTE2(a,b)
 
-#define  CV_EMPTY
-#define  CV_MAKE_STR(a) #a
 
-#define  CV_ZERO_OBJ(x) memset((x), 0, sizeof(*(x)))
 
-#define  CV_DIM(static_array) ((int)(sizeof(static_array)/sizeof((static_array)[0])))
 
-#define  cvUnsupportedFormat "Unsupported format"
 
 CV_INLINE void* cvAlignPtr( const void* ptr, int align CV_DEFAULT(32) )
 {

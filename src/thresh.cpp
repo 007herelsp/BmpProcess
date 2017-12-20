@@ -440,8 +440,6 @@ double cv::threshold( InputArray _src, OutputArray _dst, double thresh, double m
     return thresh;
 }
 
-
-
 CV_IMPL double
 cvThreshold( const void* srcarr, void* dstarr, double thresh, double maxval, int type )
 {
@@ -455,8 +453,4 @@ cvThreshold( const void* srcarr, void* dstarr, double thresh, double maxval, int
         dst.convertTo( dst0, dst0.depth() );
     return thresh;
 }
-
-
-
-
 /* End of file. */

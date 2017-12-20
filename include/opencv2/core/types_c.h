@@ -657,8 +657,6 @@ IplConvKernelFP;
 #define CV_64FC4 CV_MAKETYPE(CV_64F,4)
 #define CV_64FC(n) CV_MAKETYPE(CV_64F,(n))
 
-#define CV_AUTO_STEP  0x7fffffff
-#define CV_WHOLE_ARR  cvSlice( 0, 0x3fffffff )
 
 #define CV_MAT_CN_MASK          ((CV_CN_MAX - 1) << CV_CN_SHIFT)
 #define CV_MAT_CN(flags)        ((((flags) & CV_MAT_CN_MASK) >> CV_CN_SHIFT) + 1)
@@ -794,39 +792,7 @@ CV_INLINE CvMat cvMat( int rows, int cols, int type, void* data CV_DEFAULT(NULL)
     (*(elemtype*)CV_MAT_ELEM_PTR_FAST( mat, row, col, sizeof(elemtype)))
 
 
-CV_INLINE  double  cvmGet( const CvMat* mat, int row, int col )
-{
-    int type;
 
-    type = CV_MAT_TYPE(mat->type);
-    assert( (unsigned)row < (unsigned)mat->rows &&
-            (unsigned)col < (unsigned)mat->cols );
-
-    if( type == CV_32FC1 )
-        return ((float*)(void*)(mat->data.ptr + (size_t)mat->step*row))[col];
-    else
-    {
-        assert( type == CV_64FC1 );
-        return ((double*)(void*)(mat->data.ptr + (size_t)mat->step*row))[col];
-    }
-}
-
-
-CV_INLINE  void  cvmSet( CvMat* mat, int row, int col, double value )
-{
-    int type;
-    type = CV_MAT_TYPE(mat->type);
-    assert( (unsigned)row < (unsigned)mat->rows &&
-            (unsigned)col < (unsigned)mat->cols );
-
-    if( type == CV_32FC1 )
-        ((float*)(void*)(mat->data.ptr + (size_t)mat->step*row))[col] = (float)value;
-    else
-    {
-        assert( type == CV_64FC1 );
-        ((double*)(void*)(mat->data.ptr + (size_t)mat->step*row))[col] = value;
-    }
-}
 
 
 CV_INLINE int cvIplDepth( int type )

@@ -48,19 +48,14 @@ CVAPI(IplImage*) cvCloneImage( const IplImage* image );
 
 /* Sets a Channel Of Interest (only a few functions support COI) -
    use cvCopy to extract the selected channel and/or put it back */
-CVAPI(void)  cvSetImageCOI( IplImage* image, int coi );
 
 /* Retrieves image Channel Of Interest */
-CVAPI(int)  cvGetImageCOI( const IplImage* image );
 
 /* Sets image ROI (region of interest) (COI is not changed) */
-CVAPI(void)  cvSetImageROI( IplImage* image, CvRect rect );
 
 /* Resets image ROI and COI */
-CVAPI(void)  cvResetImageROI( IplImage* image );
 
 /* Retrieves image ROI */
-CVAPI(CvRect) cvGetImageROI( const IplImage* image );
 
 /* Allocates and initializes CvMat header */
 CVAPI(CvMat*)  cvCreateMatHeader( int rows, int cols, int type );
@@ -119,13 +114,6 @@ CV_INLINE  void  cvDecRefData( CvArr* arr )
 CVAPI(CvMat*) cvGetMat( const CvArr* arr, CvMat* header,
                        int* coi CV_DEFAULT(NULL),
                        int allowND CV_DEFAULT(0));
-
-/* Converts CvArr (IplImage or CvMat) to IplImage */
-CVAPI(IplImage*) cvGetImage( const CvArr* arr, IplImage* image_header );
-
-
-
-
 
 
 
@@ -312,9 +300,7 @@ CVAPI(void)  cvSeqPopFront( CvSeq* seq, void* element CV_DEFAULT(NULL));
 
 #define CV_FRONT 1
 #define CV_BACK 0
-/* Adds several new elements to the end of sequence */
-CVAPI(void)  cvSeqPushMulti( CvSeq* seq, const void* elements,
-                             int count, int in_front CV_DEFAULT(0) );
+
 
 /* Removes several elements from the end of sequence and optionally saves them */
 CVAPI(void)  cvSeqPopMulti( CvSeq* seq, void* elements,
@@ -393,9 +379,6 @@ CVAPI(CvSeq*) cvMakeSeqHeaderForArray( int seq_type, int header_size,
                                        CvSeq* seq, CvSeqBlock* block );
 
 
-/* Inserts a sequence or array into another sequence */
-CVAPI(void)  cvSeqInsertSlice( CvSeq* seq, int before_index, const CvArr* from_arr );
-
 /* a < b ? -1 : a > b ? 1 : 0 */
 typedef int (CV_CDECL* CvCmpFunc)(const void* a, const void* b, void* userdata );
 
@@ -457,8 +440,6 @@ CV_INLINE CvSetElem* cvGetSetElem( const CvSet* set_header, int idx )
 /* Removes all the elements from the set */
 CVAPI(void)  cvClearSet( CvSet* set_header );
 
-
-
 #define  CV_GRAPH_VERTEX        1
 #define  CV_GRAPH_TREE_EDGE     2
 #define  CV_GRAPH_BACK_EDGE     4
@@ -480,22 +461,6 @@ CVAPI(void)  cvClearSet( CvSet* set_header );
 #define  CV_GRAPH_SEARCH_TREE_NODE_FLAG   (1 << 29)
 #define  CV_GRAPH_FORWARD_EDGE_FLAG       (1 << 28)
 
-
-
-/****************************************************************************************\
-*                                     Drawing                                            *
-\****************************************************************************************/
-
-/****************************************************************************************\
-*       Drawing functions work with images/matrices of arbitrary type.                   *
-*       For color images the channel order is BGR[A]                                     *
-*       Antialiasing is supported only for 8-bit image now.                              *
-*       All the functions include parameter color that means rgb value (that may be      *
-*       constructed with CV_RGB macro) for color images and brightness                   *
-*       for grayscale images.                                                            *
-*       If a drawn figure is partially or completely outside of the image, it is clipped.*
-\****************************************************************************************/
-
 #define CV_RGB( r, g, b )  cvScalar( (b), (g), (r), 0 )
 #define CV_FILLED -1
 
@@ -513,11 +478,6 @@ CVAPI(void)  cvClearSet( CvSet* set_header );
         ((line_iterator).plus_step & _line_iterator_mask);      \
 }
 
-
-
-
-
-
 /******************* Iteration through the sequence tree *****************/
 
 
@@ -526,25 +486,8 @@ CVAPI(void)  cvClearSet( CvSet* set_header );
    then added contour will have null pointer to parent. */
 CVAPI(void) cvInsertNodeIntoTree( void* node, void* parent, void* frame );
 
-
-
-/****************************************************************************************\
-*                                    System functions                                    *
-\****************************************************************************************/
-
-
-
-/* Loads optimized functions from IPP, MKL etc. or switches back to pure C code */
-CVAPI(int)  cvUseOptimized( int on_off );
-
-
-
 typedef void* (CV_CDECL *CvAllocFunc)(size_t size, void* userdata);
 typedef int (CV_CDECL *CvFreeFunc)(void* pptr, void* userdata);
-
-
-
-
 typedef IplImage* (CV_STDCALL* Cv_iplCreateImageHeader)
                             (int,int,int,char*,char*,int,int,int,int,int,
                             IplROI*,IplImage*,void*,IplTileInfo*);
@@ -554,21 +497,6 @@ typedef IplROI* (CV_STDCALL* Cv_iplCreateROI)(int,int,int,int,int);
 typedef IplImage* (CV_STDCALL* Cv_iplCloneImage)(const IplImage*);
 
 
-
-/*********************************** CPU capabilities ***********************************/
-
-#define CV_CPU_NONE    0
-#define CV_CPU_MMX     1
-#define CV_CPU_SSE     2
-#define CV_CPU_SSE2    3
-#define CV_CPU_SSE3    4
-#define CV_CPU_SSSE3   5
-#define CV_CPU_SSE4_1  6
-#define CV_CPU_SSE4_2  7
-#define CV_CPU_POPCNT  8
-#define CV_CPU_AVX    10
-#define CV_CPU_AVX2   11
-#define CV_HARDWARE_MAX_FEATURE 255
 
 
 
@@ -594,13 +522,6 @@ cvError((status),(func),(context),__FILE__,__LINE__)
 #define OPENCV_ASSERT(expr,func,context)                            \
 {if (! (expr))                                      \
 {OPENCV_ERROR(CV_StsInternal,(func),(context));}}
-
-
-#define OPENCV_CALL( Func )                                         \
-{                                                                   \
-Func;                                                           \
-}
-
 
 /* CV_FUNCNAME macro defines icvFuncName constant which is used by CV_ERROR macro */
 #ifdef CV_NO_FUNC_NAMES
@@ -643,9 +564,6 @@ static char cvFuncName[] = Name
 
 #ifdef __cplusplus
 }
-
-
-
 
 
 #endif

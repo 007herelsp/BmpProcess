@@ -107,13 +107,7 @@ template<> inline int saturate_cast<int>(double v) { return cvRound(v); }
 template<> inline unsigned saturate_cast<unsigned>(float v){ return cvRound(v); }
 template<> inline unsigned saturate_cast<unsigned>(double v) { return cvRound(v); }
 
-inline int fast_abs(uchar v) { return v; }
-inline int fast_abs(schar v) { return std::abs((int)v); }
-inline int fast_abs(ushort v) { return v; }
-inline int fast_abs(short v) { return std::abs((int)v); }
-inline int fast_abs(int v) { return std::abs(v); }
-inline float fast_abs(float v) { return std::abs(v); }
-inline double fast_abs(double v) { return std::abs(v); }
+
 
 //////////////////////////////// Matx /////////////////////////////////
 
@@ -268,18 +262,6 @@ Matx<_Tp,m,n> Matx<_Tp,m,n>::eye()
 
 
 
-/** @cond IGNORED */
-template<typename _Tp, int m, int n> inline
-Matx<_Tp,m,n> Matx<_Tp,m,n>::diag(const typename Matx<_Tp,m,n>::diag_type& d)
-{
-    Matx<_Tp,m,n> M;
-    for(int i = 0; i < MIN(m,n); i++)
-        M(i,i) = d(i, 0);
-    return M;
-}
-/** @endcond */
-
-
 
 
 template<typename _Tp, int m, int n> template<typename T2>
@@ -290,13 +272,6 @@ inline Matx<_Tp, m, n>::operator Matx<T2, m, n>() const
     return M;
 }
 
-
-template<typename _Tp, int m, int n> template<int m1, int n1> inline
-Matx<_Tp, m1, n1> Matx<_Tp, m, n>::reshape() const
-{
-    CV_DbgAssert(m1*n1 == m*n);
-    return (const Matx<_Tp, m1, n1>&)*this;
-}
 
 
 template<typename _Tp, int m, int n>
@@ -330,15 +305,6 @@ Matx<_Tp, m, 1> Matx<_Tp, m, n>::col(int j) const
     return v;
 }
 
-
-template<typename _Tp, int m, int n> inline
-typename Matx<_Tp, m, n>::diag_type Matx<_Tp, m, n>::diag() const
-{
-    diag_type d;
-    for( int i = 0; i < MIN(m, n); i++ )
-        d.val[i] = val[i*n + i];
-    return d;
-}
 
 
 template<typename _Tp, int m, int n> inline
@@ -644,32 +610,7 @@ bool operator != (const Matx<_Tp, m, n>& a, const Matx<_Tp, m, n>& b)
 }
 
 
-template<typename _Tp, typename _T2, int m, int n> static inline
-MatxCommaInitializer<_Tp, m, n> operator << (const Matx<_Tp, m, n>& mtx, _T2 val)
-{
-    MatxCommaInitializer<_Tp, m, n> commaInitializer((Matx<_Tp, m, n>*)&mtx);
-    return (commaInitializer, val);
-}
 
-template<typename _Tp, int m, int n> inline
-MatxCommaInitializer<_Tp, m, n>::MatxCommaInitializer(Matx<_Tp, m, n>* _mtx)
-    : dst(_mtx), idx(0)
-{}
-
-template<typename _Tp, int m, int n> template<typename _T2> inline
-MatxCommaInitializer<_Tp, m, n>& MatxCommaInitializer<_Tp, m, n>::operator , (_T2 value)
-{
-    CV_DbgAssert( idx < m*n );
-    dst->val[idx++] = saturate_cast<_Tp>(value);
-    return *this;
-}
-
-template<typename _Tp, int m, int n> inline
-Matx<_Tp, m, n> MatxCommaInitializer<_Tp, m, n>::operator *() const
-{
-    CV_DbgAssert( idx == n*m );
-    return *dst;
-}
 
 /////////////////////////// short vector (Vec) /////////////////////////////
 
@@ -708,12 +649,6 @@ template<typename _Tp> Vec<_Tp, 4> conjugate(const Vec<_Tp, 4>& v)
     return Vec<_Tp, 4>(v[0], -v[1], -v[2], -v[3]);
 }
 
-
-template<typename _Tp, int cn> inline Vec<_Tp, cn> Vec<_Tp, cn>::cross(const Vec<_Tp, cn>&) const
-{
-    CV_Error(CV_StsError, "for arbitrary-size vector there is no cross-product defined");
-    return Vec<_Tp, cn>();
-}
 
 template<typename _Tp, int cn> template<typename T2>
 inline Vec<_Tp, cn>::operator Vec<T2, cn>() const
@@ -972,8 +907,6 @@ operator *= (Point_<_Tp>& a, double b)
     return a;
 }
 
-template<typename _Tp> static inline double norm(const Point_<_Tp>& pt)
-{ return std::sqrt((double)pt.x*pt.x + (double)pt.y*pt.y); }
 
 template<typename _Tp> static inline bool operator == (const Point_<_Tp>& a, const Point_<_Tp>& b)
 { return a.x == b.x && a.y == b.y; }
@@ -1562,20 +1495,9 @@ public:
         hdr.size = newSize;
     }
 
-    Vector<_Tp>& push_back(const _Tp& elem)
-    {
-        if( hdr.size == hdr.capacity )
-            reserve( std::max((size_t)4, hdr.capacity*2) );
-        hdr.data[hdr.size++] = elem;
-        return *this;
-    }
 
-    Vector<_Tp>& pop_back()
-    {
-        if( hdr.size > 0 )
-            --hdr.size;
-        return *this;
-    }
+
+
 
     size_t size() const { return hdr.size; }
     size_t capacity() const { return hdr.capacity; }
@@ -1604,7 +1526,7 @@ inline RNG::operator schar() { return (schar)next(); }
 inline RNG::operator ushort() { return (ushort)next(); }
 inline RNG::operator short() { return (short)next(); }
 inline RNG::operator unsigned() { return next(); }
-inline unsigned RNG::operator ()(unsigned N) {return (unsigned)uniform(0,N);}
+
 inline unsigned RNG::operator ()() {return next();}
 inline RNG::operator int() { return (int)next(); }
 // * (2^32-1)^-1
@@ -1614,9 +1536,7 @@ inline RNG::operator double()
     unsigned t = next();
     return (((uint64)t << 32) | next())*5.4210108624275221700372640043497e-20;
 }
-inline int RNG::uniform(int a, int b) { return a == b ? a : (int)(next()%(b - a) + a); }
-inline float RNG::uniform(float a, float b) { return ((float)*this)*(b - a) + a; }
-inline double RNG::uniform(double a, double b) { return ((double)*this)*(b - a) + a; }
+
 
 /////////////////////////////// AutoBuffer ////////////////////////////////////////
 

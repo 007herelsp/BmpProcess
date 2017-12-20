@@ -321,41 +321,6 @@ Mat::Mat(const Mat& m, const Range* ranges) : size(&rows)
 }
 
 
-Mat Mat::diag(int d) const
-{
-    CV_Assert( dims <= 2 );
-    Mat m = *this;
-    size_t esz = elemSize();
-    int len;
-
-    if( d >= 0 )
-    {
-        len = std::min(cols - d, rows);
-        m.data += esz*d;
-    }
-    else
-    {
-        len = std::min(rows + d, cols);
-        m.data -= step[0]*d;
-    }
-    CV_DbgAssert( len > 0 );
-
-    m.size[0] = m.rows = len;
-    m.size[1] = m.cols = 1;
-    m.step[0] += (len > 1 ? esz : 0);
-
-    if( m.rows > 1 )
-        m.flags &= ~CONTINUOUS_FLAG;
-    else
-        m.flags |= CONTINUOUS_FLAG;
-
-    if( size() != Size(1,1) )
-        m.flags |= SUBMATRIX_FLAG;
-
-    return m;
-}
-
-
 Mat::Mat(const CvMat* m, bool copyData) : size(&rows)
 {
     initEmpty();
@@ -439,15 +404,6 @@ Mat::Mat(const IplImage* img, bool copyData) : size(&rows)
     }
 }
 
-
-Mat::operator IplImage() const
-{
-    CV_Assert( dims <= 2 );
-    IplImage img;
-    cvInitImageHeader(&img, size(), cvIplDepth(flags), channels());
-    cvSetData(&img, data, (int)step[0]);
-    return img;
-}
 
 
 void Mat::reserve(size_t nelems)
@@ -581,103 +537,9 @@ Mat& Mat::adjustROI( int dtop, int dbottom, int dleft, int dright )
 
 }
 
-void cv::extractImageCOI(const CvArr* arr, OutputArray _ch, int coi)
-{
-    Mat mat = cvarrToMat(arr, false, true, 1);
-    _ch.create(mat.dims, mat.size, mat.depth());
-    Mat ch = _ch.getMat();
-    if(coi < 0)
-    {
-        CV_Assert( CV_IS_IMAGE(arr) );
-        coi = cvGetImageCOI((const IplImage*)arr)-1;
-    }
-    CV_Assert(0 <= coi && coi < mat.channels());
-    int _pairs[] = { coi, 0 };
-    mixChannels( &mat, 1, &ch, 1, _pairs, 1 );
-}
-
-void cv::insertImageCOI(InputArray _ch, CvArr* arr, int coi)
-{
-    Mat ch = _ch.getMat(), mat = cvarrToMat(arr, false, true, 1);
-    if(coi < 0)
-    {
-        CV_Assert( CV_IS_IMAGE(arr) );
-        coi = cvGetImageCOI((const IplImage*)arr)-1;
-    }
-    CV_Assert(ch.size == mat.size && ch.depth() == mat.depth() && 0 <= coi && coi < mat.channels());
-    int _pairs[] = { 0, coi };
-    mixChannels( &ch, 1, &mat, 1, _pairs, 1 );
-}
 
 namespace cv
 {
-
-Mat Mat::reshape(int new_cn, int new_rows) const
-{
-    int cn = channels();
-    Mat hdr = *this;
-
-    if( dims > 2 && new_rows == 0 && new_cn != 0 && size[dims-1]*cn % new_cn == 0 )
-    {
-        hdr.flags = (hdr.flags & ~CV_MAT_CN_MASK) | ((new_cn-1) << CV_CN_SHIFT);
-        hdr.step[dims-1] = CV_ELEM_SIZE(hdr.flags);
-        hdr.size[dims-1] = hdr.size[dims-1]*cn / new_cn;
-        return hdr;
-    }
-
-    CV_Assert( dims <= 2 );
-
-    if( new_cn == 0 )
-        new_cn = cn;
-
-    int total_width = cols * cn;
-
-    if( (new_cn > total_width || total_width % new_cn != 0) && new_rows == 0 )
-        new_rows = rows * total_width / new_cn;
-
-    if( new_rows != 0 && new_rows != rows )
-    {
-        int total_size = total_width * rows;
-        if( !isContinuous() )
-            CV_Error( CV_BadStep,
-            "The matrix is not continuous, thus its number of rows can not be changed" );
-
-        if( (unsigned)new_rows > (unsigned)total_size )
-            CV_Error( CV_StsOutOfRange, "Bad new number of rows" );
-
-        total_width = total_size / new_rows;
-
-        if( total_width * new_rows != total_size )
-            CV_Error( CV_StsBadArg, "The total number of matrix elements "
-                                    "is not divisible by the new number of rows" );
-
-        hdr.rows = new_rows;
-        hdr.step[0] = total_width * elemSize1();
-    }
-
-    int new_width = total_width / new_cn;
-
-    if( new_width * new_cn != total_width )
-        CV_Error( CV_BadNumChannels,
-        "The total width is not divisible by the new number of channels" );
-
-    hdr.cols = new_width;
-    hdr.flags = (hdr.flags & ~CV_MAT_CN_MASK) | ((new_cn-1) << CV_CN_SHIFT);
-    hdr.step[1] = CV_ELEM_SIZE(hdr.flags);
-    return hdr;
-}
-
-
-int Mat::checkVector(int _elemChannels, int _depth, bool _requireContinuous) const
-{
-    return (depth() == _depth || _depth <= 0) &&
-        (isContinuous() || !_requireContinuous) &&
-        ((dims == 2 && (((rows == 1 || cols == 1) && channels() == _elemChannels) ||
-                        (cols == _elemChannels && channels() == 1))) ||
-        (dims == 3 && channels() == 1 && size.p[2] == _elemChannels && (size.p[0] == 1 || size.p[1] == 1) &&
-         (isContinuous() || step.p[1] == step.p[2]*size.p[2])))
-    ? (int)(total()*channels()/_elemChannels) : -1;
-}
 
 
 void scalarToRawData(const Scalar& s, void* _buf, int type, int unroll_to)
@@ -1509,61 +1371,12 @@ void cv::completeSymm( InputOutputArray _m, bool LtoR )
 }
 
 
-cv::Mat cv::Mat::cross(InputArray _m) const
-{
-    Mat m = _m.getMat();
-    int tp = type(), d = CV_MAT_DEPTH(tp);
-    CV_Assert( dims <= 2 && m.dims <= 2 && size() == m.size() && tp == m.type() &&
-        ((rows == 3 && cols == 1) || (cols*channels() == 3 && rows == 1)));
-    Mat result(rows, cols, tp);
-
-    if( d == CV_32F )
-    {
-        const float *a = (const float*)data, *b = (const float*)m.data;
-        float* c = (float*)result.data;
-        size_t lda = rows > 1 ? step/sizeof(a[0]) : 1;
-        size_t ldb = rows > 1 ? m.step/sizeof(b[0]) : 1;
-
-        c[0] = a[lda] * b[ldb*2] - a[lda*2] * b[ldb];
-        c[1] = a[lda*2] * b[0] - a[0] * b[ldb*2];
-        c[2] = a[0] * b[ldb] - a[lda] * b[0];
-    }
-    else if( d == CV_64F )
-    {
-        const double *a = (const double*)data, *b = (const double*)m.data;
-        double* c = (double*)result.data;
-        size_t lda = rows > 1 ? step/sizeof(a[0]) : 1;
-        size_t ldb = rows > 1 ? m.step/sizeof(b[0]) : 1;
-
-        c[0] = a[lda] * b[ldb*2] - a[lda*2] * b[ldb];
-        c[1] = a[lda*2] * b[0] - a[0] * b[ldb*2];
-        c[2] = a[0] * b[ldb] - a[lda] * b[0];
-    }
-
-    return result;
-}
-
-
 
 ///////////////////////////// n-dimensional matrices ////////////////////////////
 
 namespace cv
 {
 
-Mat Mat::reshape(int _cn, int _newndims, const int* _newsz) const
-{
-    if(_newndims == dims)
-    {
-        if(_newsz == 0)
-            return reshape(_cn);
-        if(_newndims == 2)
-            return reshape(_cn, _newsz[0]);
-    }
-
-    CV_Error(CV_StsNotImplemented, "");
-    // TBD
-    return Mat();
-}
 
 
 NAryMatIterator::NAryMatIterator()

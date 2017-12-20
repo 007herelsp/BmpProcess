@@ -42,7 +42,7 @@ enum
     CV_GRAY2RGB    =CV_GRAY2BGR,
  
 
-    CV_COLORCVT_MAX  = 135
+    CV_COLORCVT_MAX  = CV_GRAY2RGB+1
 };
 
 

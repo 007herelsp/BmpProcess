@@ -181,17 +181,7 @@ inline Mat Mat::colRange(const Range &r) const
     return Mat(*this, Range::all(), r);
 }
 
-inline Mat Mat::diag(const Mat &d)
-{
-    CV_Assert(d.cols == 1 || d.rows == 1);
-    int len = d.rows + d.cols - 1;
-    Mat m(len, len, d.type(), Scalar(0)), md = m.diag();
-    if (d.cols == 1)
-        d.copyTo(md);
-    else
-        transpose(d, md);
-    return m;
-}
+
 
 inline Mat Mat::clone() const
 {

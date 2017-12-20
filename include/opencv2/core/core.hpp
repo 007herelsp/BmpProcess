@@ -181,45 +181,6 @@ static inline size_t alignSize(size_t sz, int n)
 }
 
 
-
-
-/*!
-  The STL-compilant memory Allocator based on cv::fastMalloc() and cv::fastFree()
-*/
-template<typename _Tp> class Allocator
-{
-public:
-    typedef _Tp value_type;
-    typedef value_type* pointer;
-    typedef const value_type* const_pointer;
-    typedef value_type& reference;
-    typedef const value_type& const_reference;
-    typedef size_t size_type;
-    typedef ptrdiff_t difference_type;
-    template<typename U> class rebind { typedef Allocator<U> other; };
-
-    explicit Allocator() {}
-    ~Allocator() {}
-    explicit Allocator(Allocator const&) {}
-    template<typename U>
-    explicit Allocator(Allocator<U> const&) {}
-
-    // address
-    pointer address(reference r) { return &r; }
-    const_pointer address(const_reference r) { return &r; }
-
-    pointer allocate(size_type count, const void* =0)
-    { return reinterpret_cast<pointer>(fastMalloc(count * sizeof (_Tp))); }
-
-    void deallocate(pointer p, size_type) {fastFree(p); }
-
-    size_type max_size() const
-    { return max(static_cast<_Tp>(-1)/sizeof(_Tp), 1); }
-
-    void construct(pointer p, const _Tp& v) { new(static_cast<void*>(p)) _Tp(v); }
-    void destroy(pointer p) { p->~_Tp(); }
-};
-
 /////////////////////// Vec (used as element of multi-channel images /////////////////////
 
 /*!
@@ -304,7 +265,6 @@ public:
     static Matx zeros();
     static Matx ones();
     static Matx eye();
-    static Matx diag(const diag_type& d);
 
     //! dot product computed with the default precision
 
@@ -314,7 +274,6 @@ public:
     template<typename T2> operator Matx<T2, m, n>() const;
 
     //! change the matrix shape
-    template<int m1, int n1> Matx<_Tp, m1, n1> reshape() const;
 
     //! extract part of the matrix
     template<int m1, int n1> Matx<_Tp, m1, n1> get_minor(int i, int j) const;
@@ -326,7 +285,6 @@ public:
     Matx<_Tp, m, 1> col(int i) const;
 
     //! extract the matrix diagonal
-    diag_type diag() const;
 
     //! transpose the matrix
     Matx<_Tp, n, m> t() const;
@@ -439,7 +397,6 @@ public:
 
       For other dimensionalities the exception is raised
     */
-    Vec cross(const Vec& v) const;
     //! conversion to another data type
     template<typename T2> operator Vec<T2, cn>() const;
     //! conversion to 4-element CvScalar.
@@ -510,7 +467,6 @@ public:
     //! dot product
     //! dot product computed in double-precision arithmetics
     //! cross-product
-    double cross(const Point_& pt) const;
     //! checks whether the point is inside the specified rectangle
     bool inside(const Rect_<_Tp>& r) const;
 
@@ -1134,9 +1090,7 @@ public:
     // (d=0 - the main diagonal,
     //  >0 - a diagonal from the lower half,
     //  <0 - a diagonal from the upper half)
-    Mat diag(int d=0) const;
     //! constructs a square diagonal matrix which main diagonal is vector "d"
-    static Mat diag(const Mat& d);
 
     //! returns deep copy of the matrix, i.e. the data is copied
     Mat clone() const;
@@ -1156,15 +1110,12 @@ public:
     Mat& setTo(InputArray value, InputArray mask=noArray());
     //! creates alternative matrix header for the same data, with different
     // number of channels and/or different number of rows. see cvReshape.
-    Mat reshape(int cn, int rows=0) const;
-    Mat reshape(int cn, int newndims, const int* newsz) const;
 
     //! matrix transposition by means of matrix expressions
     //! matrix inversion by means of matrix expressions
     //! per-element matrix multiplication by means of matrix expressions
 
     //! computes cross-product of 2 3D vectors
-    Mat cross(InputArray m) const;
     //! computes dot-product
 
     //! Matlab-style matrix initialization
@@ -1193,12 +1144,8 @@ public:
     //! resizes matrix to the specified number of hyper-planes; initializes the newly added elements
     void resize(size_t sz, const Scalar& s);
     //! internal function
-    void push_back_(const void* elem);
     //! adds element to the end of 1d matrix (or possibly multiple elements when _Tp=Mat)
-    template<typename _Tp> void push_back(const _Tp& elem);
-    void push_back(const Mat& m);
     //! removes several hyper-planes from bottom of the matrix
-    void pop_back(size_t nelems=1);
 
     //! locates matrix header within a parent matrix. See below
     void locateROI( Size& wholeSize, Point& ofs ) const;
@@ -1213,7 +1160,6 @@ public:
     //! converts header to CvMat; no data is copied
     operator CvMat() const;
     //! converts header to IplImage; no data is copied
-    operator IplImage() const;
 
     template<typename _Tp> operator vector<_Tp>() const;
     template<typename _Tp, int n> operator Vec<_Tp, n>() const;
@@ -1246,7 +1192,6 @@ public:
     size_t total() const;
 
     //! returns N if the matrix is 1-channel (N x ptdim) or ptdim-channel (1 x N) or (N x 1); negative number otherwise
-    int checkVector(int elemChannels, int depth=-1, bool requireContinuous=true) const;
 
     //! returns pointer to i0-th submatrix along the dimension #0
     uchar* ptr(int i0=0);
@@ -1397,12 +1342,7 @@ public:
     operator int();
     operator float();
     operator double();
-    //! returns uniformly distributed integer random number from [a,b) range
-    int uniform(int a, int b);
-    //! returns uniformly distributed floating-point random number from [a,b) range
-    float uniform(float a, float b);
-    //! returns uniformly distributed double-precision floating-point random number from [a,b) range
-    double uniform(double a, double b);
+
     void fill( InputOutputArray mat, int distType, InputArray a, InputArray b, bool saturateRange=false );
     //! returns Gaussian random variate with mean zero.
     double gaussian(double sigma);
@@ -1428,10 +1368,6 @@ CV_EXPORTS void swap(Mat& a, Mat& b);
 //! converts array (CvMat or IplImage) to cv::Mat
 CV_EXPORTS Mat cvarrToMat(const CvArr* arr, bool copyData=false,
                           bool allowND=true, int coiMode=0);
-//! extracts Channel of Interest from CvMat or IplImage and makes cv::Mat out of it.
-CV_EXPORTS void extractImageCOI(const CvArr* arr, OutputArray coiimg, int coi=-1);
-//! inserts single-channel cv::Mat into a multi-channel CvMat or IplImage
-CV_EXPORTS void insertImageCOI(InputArray coiimg, CvArr* arr, int coi=-1);
 
 
 //! subtracts one matrix from another (dst = src1 - src2)
@@ -1454,16 +1390,6 @@ CV_EXPORTS_W void divide(double scale, InputArray src2,
 CV_EXPORTS_AS(sumElems) Scalar sum(InputArray src);
 //! computes the number of nonzero array elements
 CV_EXPORTS_W int countNonZero( InputArray src );
-
-
-//! computes mean value of selected array elements
-
-//! computes norm of the selected array part
-CV_EXPORTS_W double norm(InputArray src1, int normType=NORM_L2, InputArray mask=noArray());
-//! computes norm of selected part of the difference between two arrays
-CV_EXPORTS_W double norm(InputArray src1, InputArray src2,
-                         int normType=NORM_L2, InputArray mask=noArray());
-
 
 //! copies selected channels from the input arrays to the selected channels of the output arrays
 CV_EXPORTS void mixChannels(const Mat* src, size_t nsrcs, Mat* dst, size_t ndsts,
@@ -1525,9 +1451,7 @@ CV_EXPORTS_W void mulTransposed( InputArray src, OutputArray dst, bool aTa,
 //! transposes the matrix
 CV_EXPORTS_W void transpose(InputArray src, OutputArray dst);
 //! performs affine transformation of each element of multi-channel input matrix
-CV_EXPORTS_W void transform(InputArray src, OutputArray dst, InputArray m );
 //! performs perspective transformation of each element of multi-channel input matrix
-CV_EXPORTS_W void perspectiveTransform(InputArray src, OutputArray dst, InputArray m );
 
 //! extends the symmetrical matrix from the lower half or from the upper half
 CV_EXPORTS_W void completeSymm(InputOutputArray mtx, bool lowerToUpper=false);
@@ -1539,238 +1463,7 @@ CV_EXPORTS_W double invert(InputArray src, OutputArray dst, int flags=DECOMP_LU)
 CV_EXPORTS_W bool solve(InputArray src1, InputArray src2,
                         OutputArray dst, int flags=DECOMP_LU);
 
-enum
-{
-    SORT_EVERY_ROW=0,
-    SORT_EVERY_COLUMN=1,
-    SORT_ASCENDING=0,
-    SORT_DESCENDING=16
-};
 
-//! sorts independently each matrix row or each matrix column
-//! sorts independently each matrix row or each matrix column
-CV_EXPORTS_W void sortIdx(InputArray src, OutputArray dst, int flags);
-
-
-
-
-enum
-{
-    COVAR_SCRAMBLED=0,
-    COVAR_NORMAL=1,
-    COVAR_USE_AVG=2,
-    COVAR_SCALE=4,
-    COVAR_ROWS=8,
-    COVAR_COLS=16
-};
-
-
-//! performs forward or inverse 1D or 2D Discrete Cosine Transformation
-
-//! computes element-wise product of the two Fourier spectrums. The second spectrum can optionally be conjugated before the multiplication
-CV_EXPORTS_W void mulSpectrums(InputArray a, InputArray b, OutputArray c,
-                               int flags, bool conjB=false);
-//! computes the minimal vector size vecsize1 >= vecsize so that the dft() of the vector of length vecsize1 can be computed efficiently
-CV_EXPORTS_W int getOptimalDFTSize(int vecsize);
-
-/*!
- Various k-Means flags
-*/
-enum
-{
-    KMEANS_RANDOM_CENTERS=0, // Chooses random centers for k-Means initialization
-    KMEANS_PP_CENTERS=2,     // Uses k-Means++ algorithm for initialization
-    KMEANS_USE_INITIAL_LABELS=1 // Uses the user-provided labels for K-Means initialization
-};
-
-
-//! returns the thread-local Random number generator
-CV_EXPORTS RNG& theRNG();
-
-//! sets state of the thread-local Random number generator
-CV_EXPORTS_W void setRNGSeed(int seed);
-
-//! returns the next unifomly-distributed random number of the specified type
-
-//! fills array with uniformly-distributed random numbers from the range [low, high)
-
-
-//! draws the line segment (pt1, pt2) in the image
-CV_EXPORTS_W void line(CV_IN_OUT Mat& img, Point pt1, Point pt2, const Scalar& color,
-                     int thickness=1, int lineType=8, int shift=0);
-
-//! draws an arrow from pt1 to pt2 in the image
-CV_EXPORTS_W void arrowedLine(CV_IN_OUT Mat& img, Point pt1, Point pt2, const Scalar& color,
-                     int thickness=1, int line_type=8, int shift=0, double tipLength=0.1);
-
-//! draws the rectangle outline or a solid rectangle with the opposite corners pt1 and pt2 in the image
-CV_EXPORTS_W void rectangle(CV_IN_OUT Mat& img, Point pt1, Point pt2,
-                          const Scalar& color, int thickness=1,
-                          int lineType=8, int shift=0);
-
-//! draws the rectangle outline or a solid rectangle covering rec in the image
-CV_EXPORTS void rectangle(CV_IN_OUT Mat& img, Rect rec,
-                          const Scalar& color, int thickness=1,
-                          int lineType=8, int shift=0);
-
-//! draws the circle outline or a solid circle in the image
-CV_EXPORTS_W void circle(CV_IN_OUT Mat& img, Point center, int radius,
-                       const Scalar& color, int thickness=1,
-                       int lineType=8, int shift=0);
-
-//! draws an elliptic arc, ellipse sector or a rotated ellipse in the image
-CV_EXPORTS_W void ellipse(CV_IN_OUT Mat& img, Point center, Size axes,
-                        double angle, double startAngle, double endAngle,
-                        const Scalar& color, int thickness=1,
-                        int lineType=8, int shift=0);
-
-//! draws a rotated ellipse in the image
-
-
-/* ----------------------------------------------------------------------------------------- */
-/* ADDING A SET OF PREDEFINED MARKERS WHICH COULD BE USED TO HIGHLIGHT POSITIONS IN AN IMAGE */
-/* ----------------------------------------------------------------------------------------- */
-
-//! Possible set of marker types used for the drawMarker function
-enum MarkerTypes
-{
-    MARKER_CROSS = 0,           // A crosshair marker shape
-    MARKER_TILTED_CROSS = 1,    // A 45 degree tilted crosshair marker shape
-    MARKER_STAR = 2,            // A star marker shape, combination of cross and tilted cross
-    MARKER_DIAMOND = 3,         // A diamond marker shape
-    MARKER_SQUARE = 4,          // A square marker shape
-    MARKER_TRIANGLE_UP = 5,     // An upwards pointing triangle marker shape
-    MARKER_TRIANGLE_DOWN = 6    // A downwards pointing triangle marker shape
-};
-
-/** @brief Draws a marker on a predefined position in an image.
-
-The function drawMarker draws a marker on a given position in the image. For the moment several
-marker types are supported (`MARKER_CROSS`, `MARKER_TILTED_CROSS`, `MARKER_STAR`, `MARKER_DIAMOND`, `MARKER_SQUARE`,
-`MARKER_TRIANGLE_UP` and `MARKER_TRIANGLE_DOWN`).
-
-@param img Image.
-@param position The point where the crosshair is positioned.
-@param markerType The specific type of marker you want to use, see
-@param color Line color.
-@param thickness Line thickness.
-@param line_type Type of the line, see cv::LineTypes
-@param markerSize The length of the marker axis [default = 20 pixels]
- */
-CV_EXPORTS_W void drawMarker(CV_IN_OUT Mat& img, Point position, const Scalar& color,
-                             int markerType = MARKER_CROSS, int markerSize=20, int thickness=1,
-                             int line_type=8);
-
-/* ----------------------------------------------------------------------------------------- */
-/* END OF MARKER SECTION */
-/* ----------------------------------------------------------------------------------------- */
-
-//! draws a filled convex polygon in the image
-CV_EXPORTS void fillConvexPoly(Mat& img, const Point* pts, int npts,
-                               const Scalar& color, int lineType=8,
-                               int shift=0);
-CV_EXPORTS_W void fillConvexPoly(InputOutputArray img, InputArray points,
-                                 const Scalar& color, int lineType=8,
-                                 int shift=0);
-
-//! fills an area bounded by one or more polygons
-CV_EXPORTS void fillPoly(Mat& img, const Point** pts,
-                         const int* npts, int ncontours,
-                         const Scalar& color, int lineType=8, int shift=0,
-                         Point offset=Point() );
-
-CV_EXPORTS_W void fillPoly(InputOutputArray img, InputArrayOfArrays pts,
-                           const Scalar& color, int lineType=8, int shift=0,
-                           Point offset=Point() );
-
-//! draws one or more polygonal curves
-CV_EXPORTS void polylines(Mat& img, const Point** pts, const int* npts,
-                          int ncontours, bool isClosed, const Scalar& color,
-                          int thickness=1, int lineType=8, int shift=0 );
-
-CV_EXPORTS_W void polylines(InputOutputArray img, InputArrayOfArrays pts,
-                            bool isClosed, const Scalar& color,
-                            int thickness=1, int lineType=8, int shift=0 );
-
-//! clips the line segment by the rectangle Rect(0, 0, imgSize.width, imgSize.height)
-CV_EXPORTS bool clipLine(Size imgSize, CV_IN_OUT Point& pt1, CV_IN_OUT Point& pt2);
-CV_EXPORTS bool clipLine(Size2l imgSize, CV_IN_OUT Point2l& pt1, CV_IN_OUT Point2l& pt2);
-
-//! clips the line segment by the rectangle imgRect
-CV_EXPORTS_W bool clipLine(Rect imgRect, CV_OUT CV_IN_OUT Point& pt1, CV_OUT CV_IN_OUT Point& pt2);
-
-
-
-enum
-{
-    FONT_HERSHEY_SIMPLEX = 0,
-    FONT_HERSHEY_PLAIN = 1,
-    FONT_HERSHEY_DUPLEX = 2,
-    FONT_HERSHEY_COMPLEX = 3,
-    FONT_HERSHEY_TRIPLEX = 4,
-    FONT_HERSHEY_COMPLEX_SMALL = 5,
-    FONT_HERSHEY_SCRIPT_SIMPLEX = 6,
-    FONT_HERSHEY_SCRIPT_COMPLEX = 7,
-    FONT_ITALIC = 16
-};
-
-
-
-/*!
- Comma-separated Matrix Initializer
-
- The class instances are usually not created explicitly.
- Instead, they are created on "matrix << firstValue" operator.
-
- The sample below initializes 2x2 rotation matrix:
-
- \code
- double angle = 30, a = cos(angle*CV_PI/180), b = sin(angle*CV_PI/180);
- Mat R = (Mat_<double>(2,2) << a, -b, b, a);
- \endcode
-*/
-
-
-template<typename _Tp, int m, int n> class MatxCommaInitializer
-{
-public:
-    MatxCommaInitializer(Matx<_Tp, m, n>* _mtx);
-    template<typename T2> MatxCommaInitializer<_Tp, m, n>& operator , (T2 val);
-    Matx<_Tp, m, n> operator *() const;
-
-    Matx<_Tp, m, n>* dst;
-    int idx;
-};
-
-
-
-/*!
- Automatically Allocated Buffer Class
-
- The class is used for temporary buffers in functions and methods.
- If a temporary buffer is usually small (a few K's of memory),
- but its size depends on the parameters, it makes sense to create a small
- fixed-size array on stack and use it if it's large enough. If the required buffer size
- is larger than the fixed size, another buffer of sufficient size is allocated dynamically
- and released after the processing. Therefore, in typical cases, when the buffer size is small,
- there is no overhead associated with malloc()/free().
- At the same time, there is no limit on the size of processed data.
-
- This is what AutoBuffer does. The template takes 2 parameters - type of the buffer elements and
- the number of stack-allocated elements. Here is how the class is used:
-
- \code
- void my_func(const cv::Mat& m)
- {
-    cv::AutoBuffer<float, 1000> buf; // create automatic buffer containing 1000 floats
-
-    buf.allocate(m.rows); // if m.rows <= 1000, the pre-allocated buffer is used,
-                          // otherwise the buffer of "m.rows" floats will be allocated
-                          // dynamically and deallocated in cv::AutoBuffer destructor
-    ...
- }
- \endcode
-*/
 template<typename _Tp, size_t fixed_size=4096/sizeof(_Tp)+8> class AutoBuffer
 {
 public:
