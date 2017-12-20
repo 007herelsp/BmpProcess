@@ -1,11 +1,12 @@
-#include "core.hpp"
-#include "types_c.h"
-#include "core_c.h"
-#include "imgproc_c.h"
-#include "highgui_c.h"
-
+//#include "core.hpp"
+//#include "types_c.h"
+//#include "core_c.h"
+//#include "imgproc_c.h"
+//#include "highgui_c.h"
+#include "cv.h"
+#include "highgui.h"
 #include <stdio.h>
-#include "common.h"
+//#include "common.h"
 
 #include <math.h>
 #include <string.h>
@@ -15,6 +16,9 @@
 #include <malloc.h>
 
 #include <set>
+
+
+#define ERR_1 -1
 using namespace std;
 
 #define cvShowImage(x, y)
@@ -414,7 +418,7 @@ int main(int argc, char** args)
 	printf("save\n");
 	if (NULL != lpCannyImg && NULL != lpDilateImg)
 	{
-		cvCanny(lpTargetImg, lpCannyImg, 0.5, 20, 3);
+		cvCanny(gray, lpCannyImg, 0.5, 20, 3);
 		cvSaveImage("canny1.bmp", lpCannyImg);
 		cvDilate(lpCannyImg, lpDilateImg, 0, 1);
 		cvErode(lpDilateImg, lpDilateImg, 0, 1);
