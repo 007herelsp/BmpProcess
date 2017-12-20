@@ -97,30 +97,6 @@ inline Mat::Mat(int _rows, int _cols, int _type, void *_data, size_t _step)
     dataend = datalimit - _step + minstep;
 }
 
-inline Mat::Mat(Size _sz, int _type, void *_data, size_t _step)
-    : flags(MAGIC_VAL + (_type & TYPE_MASK)), dims(2), rows(_sz.height), cols(_sz.width),
-      data((uchar *)_data), refcount(0), datastart((uchar *)_data), dataend(0),
-      datalimit(0), allocator(0), size(&rows)
-{
-    size_t esz = CV_ELEM_SIZE(_type), minstep = cols * esz;
-    if (_step == AUTO_STEP)
-    {
-        _step = minstep;
-        flags |= CONTINUOUS_FLAG;
-    }
-    else
-    {
-        if (rows == 1)
-            _step = minstep;
-        CV_DbgAssert(_step >= minstep);
-        flags |= _step == minstep ? CONTINUOUS_FLAG : 0;
-    }
-    step[0] = _step;
-    step[1] = esz;
-    datalimit = datastart + _step * rows;
-    dataend = datalimit - _step + minstep;
-}
-
 inline Mat::~Mat()
 {
     release();
@@ -340,95 +316,6 @@ inline const uchar *Mat::ptr(const int *idx) const
         p += idx[i] * step.p[i];
     }
     return p;
-}
-
-template <typename _Tp>
-inline _Tp &Mat::at(int i0, int i1)
-{
-    CV_DbgAssert(dims <= 2 && data && (unsigned)i0 < (unsigned)size.p[0] &&
-                 (unsigned)(i1 * DataType<_Tp>::channels) < (unsigned)(size.p[1] * channels()) &&
-                 CV_ELEM_SIZE1(DataType<_Tp>::depth) == elemSize1());
-    return ((_Tp *)(data + step.p[0] * i0))[i1];
-}
-
-template <typename _Tp>
-inline const _Tp &Mat::at(int i0, int i1) const
-{
-    CV_DbgAssert(dims <= 2 && data && (unsigned)i0 < (unsigned)size.p[0] &&
-                 (unsigned)(i1 * DataType<_Tp>::channels) < (unsigned)(size.p[1] * channels()) &&
-                 CV_ELEM_SIZE1(DataType<_Tp>::depth) == elemSize1());
-    return ((const _Tp *)(data + step.p[0] * i0))[i1];
-}
-
-template <typename _Tp>
-inline _Tp &Mat::at(Point pt)
-{
-    CV_DbgAssert(dims <= 2 && data && (unsigned)pt.y < (unsigned)size.p[0] &&
-                 (unsigned)(pt.x * DataType<_Tp>::channels) < (unsigned)(size.p[1] * channels()) &&
-                 CV_ELEM_SIZE1(DataType<_Tp>::depth) == elemSize1());
-    return ((_Tp *)(data + step.p[0] * pt.y))[pt.x];
-}
-
-template <typename _Tp>
-inline const _Tp &Mat::at(Point pt) const
-{
-    CV_DbgAssert(dims <= 2 && data && (unsigned)pt.y < (unsigned)size.p[0] &&
-                 (unsigned)(pt.x * DataType<_Tp>::channels) < (unsigned)(size.p[1] * channels()) &&
-                 CV_ELEM_SIZE1(DataType<_Tp>::depth) == elemSize1());
-    return ((const _Tp *)(data + step.p[0] * pt.y))[pt.x];
-}
-
-template <typename _Tp>
-inline _Tp &Mat::at(int i0)
-{
-    CV_DbgAssert(dims <= 2 && data &&
-                 (unsigned)i0 < (unsigned)(size.p[0] * size.p[1]) &&
-                 elemSize() == CV_ELEM_SIZE(DataType<_Tp>::type));
-    if (isContinuous() || size.p[0] == 1)
-        return ((_Tp *)data)[i0];
-    if (size.p[1] == 1)
-        return *(_Tp *)(data + step.p[0] * i0);
-    int i = i0 / cols, j = i0 - i * cols;
-    return ((_Tp *)(data + step.p[0] * i))[j];
-}
-
-template <typename _Tp>
-inline const _Tp &Mat::at(int i0) const
-{
-    CV_DbgAssert(dims <= 2 && data &&
-                 (unsigned)i0 < (unsigned)(size.p[0] * size.p[1]) &&
-                 elemSize() == CV_ELEM_SIZE(DataType<_Tp>::type));
-    if (isContinuous() || size.p[0] == 1)
-        return ((const _Tp *)data)[i0];
-    if (size.p[1] == 1)
-        return *(const _Tp *)(data + step.p[0] * i0);
-    int i = i0 / cols, j = i0 - i * cols;
-    return ((const _Tp *)(data + step.p[0] * i))[j];
-}
-
-template <typename _Tp>
-inline _Tp &Mat::at(int i0, int i1, int i2)
-{
-    CV_DbgAssert(elemSize() == CV_ELEM_SIZE(DataType<_Tp>::type));
-    return *(_Tp *)ptr(i0, i1, i2);
-}
-template <typename _Tp>
-inline const _Tp &Mat::at(int i0, int i1, int i2) const
-{
-    CV_DbgAssert(elemSize() == CV_ELEM_SIZE(DataType<_Tp>::type));
-    return *(const _Tp *)ptr(i0, i1, i2);
-}
-template <typename _Tp>
-inline _Tp &Mat::at(const int *idx)
-{
-    CV_DbgAssert(elemSize() == CV_ELEM_SIZE(DataType<_Tp>::type));
-    return *(_Tp *)ptr(idx);
-}
-template <typename _Tp>
-inline const _Tp &Mat::at(const int *idx) const
-{
-    CV_DbgAssert(elemSize() == CV_ELEM_SIZE(DataType<_Tp>::type));
-    return *(const _Tp *)ptr(idx);
 }
 
 

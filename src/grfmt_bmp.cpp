@@ -1,4 +1,4 @@
-#include "highgui/precomp.hpp"
+#include "precomp.hpp"
 #include "grfmt_bmp.hpp"
 
 namespace cv

@@ -1,7 +1,7 @@
 #ifndef __OPENCV_CORE_HPP__
 #define __OPENCV_CORE_HPP__
 
-#include "opencv2/core/types_c.h"
+#include "types_c.h"
 
 
 #ifdef __cplusplus
@@ -242,29 +242,11 @@ public:
     //! default constructor
     Matx();
 
-    Matx(_Tp v0); //!< 1x1 matrix
-    Matx(_Tp v0, _Tp v1); //!< 1x2 or 2x1 matrix
-    Matx(_Tp v0, _Tp v1, _Tp v2); //!< 1x3 or 3x1 matrix
-    Matx(_Tp v0, _Tp v1, _Tp v2, _Tp v3); //!< 1x4, 2x2 or 4x1 matrix
-    Matx(_Tp v0, _Tp v1, _Tp v2, _Tp v3, _Tp v4); //!< 1x5 or 5x1 matrix
-    Matx(_Tp v0, _Tp v1, _Tp v2, _Tp v3, _Tp v4, _Tp v5); //!< 1x6, 2x3, 3x2 or 6x1 matrix
-    Matx(_Tp v0, _Tp v1, _Tp v2, _Tp v3, _Tp v4, _Tp v5, _Tp v6); //!< 1x7 or 7x1 matrix
-    Matx(_Tp v0, _Tp v1, _Tp v2, _Tp v3, _Tp v4, _Tp v5, _Tp v6, _Tp v7); //!< 1x8, 2x4, 4x2 or 8x1 matrix
-    Matx(_Tp v0, _Tp v1, _Tp v2, _Tp v3, _Tp v4, _Tp v5, _Tp v6, _Tp v7, _Tp v8); //!< 1x9, 3x3 or 9x1 matrix
-    Matx(_Tp v0, _Tp v1, _Tp v2, _Tp v3, _Tp v4, _Tp v5, _Tp v6, _Tp v7, _Tp v8, _Tp v9); //!< 1x10, 2x5 or 5x2 or 10x1 matrix
-    Matx(_Tp v0, _Tp v1, _Tp v2, _Tp v3,
-         _Tp v4, _Tp v5, _Tp v6, _Tp v7,
-         _Tp v8, _Tp v9, _Tp v10, _Tp v11); //!< 1x12, 2x6, 3x4, 4x3, 6x2 or 12x1 matrix
-    Matx(_Tp v0, _Tp v1, _Tp v2, _Tp v3,
-         _Tp v4, _Tp v5, _Tp v6, _Tp v7,
-         _Tp v8, _Tp v9, _Tp v10, _Tp v11,
-         _Tp v12, _Tp v13, _Tp v14, _Tp v15); //!< 1x16, 4x4 or 16x1 matrix
+
+    
     explicit Matx(const _Tp* vals); //!< initialize from a plain array
 
     static Matx all(_Tp alpha);
-    static Matx zeros();
-    static Matx ones();
-    static Matx eye();
 
     //! dot product computed with the default precision
 
@@ -273,10 +255,6 @@ public:
     //! conversion to another data type
     template<typename T2> operator Matx<T2, m, n>() const;
 
-    //! change the matrix shape
-
-    //! extract part of the matrix
-    template<int m1, int n1> Matx<_Tp, m1, n1> get_minor(int i, int j) const;
 
     //! extract the matrix row
     Matx<_Tp, 1, n> row(int i) const;
@@ -481,7 +459,6 @@ public:
     //! conversion to another data type
     template<typename _Tp2> operator Rect_<_Tp2>() const;
     //! conversion to the old-style CvRect
-    operator CvRect() const;
 
     //! checks whether the rectangle contains the point
     bool contains(const Point_<_Tp>& pt) const;
@@ -551,8 +528,6 @@ public:
     int size() const;
     bool empty() const;
     static Range all();
-    operator CvSlice() const;
-
     int start, end;
 };
 
@@ -1141,25 +1116,6 @@ public:
     template<typename _Tp, int n> _Tp* ptr(const Vec<int, n>& idx);
     template<typename _Tp, int n> const _Tp* ptr(const Vec<int, n>& idx) const;
 
-    //! the same as above, with the pointer dereferencing
-    template<typename _Tp> _Tp& at(int i0=0);
-    template<typename _Tp> const _Tp& at(int i0=0) const;
-
-    template<typename _Tp> _Tp& at(int i0, int i1);
-    template<typename _Tp> const _Tp& at(int i0, int i1) const;
-
-    template<typename _Tp> _Tp& at(int i0, int i1, int i2);
-    template<typename _Tp> const _Tp& at(int i0, int i1, int i2) const;
-
-    template<typename _Tp> _Tp& at(const int* idx);
-    template<typename _Tp> const _Tp& at(const int* idx) const;
-
-    template<typename _Tp, int n> _Tp& at(const Vec<int, n>& idx);
-    template<typename _Tp, int n> const _Tp& at(const Vec<int, n>& idx) const;
-
-    //! special versions for 2D arrays (especially convenient for referencing image pixels)
-    template<typename _Tp> _Tp& at(Point pt);
-    template<typename _Tp> const _Tp& at(Point pt) const;
 
     //! template methods for iteration over matrix elements.
     // the iterators take care of skipping gaps in the end of rows (if any)
@@ -1412,7 +1368,7 @@ CV_EXPORTS void parallel_for_(const Range& range, const ParallelLoopBody& body, 
 
 #endif // __cplusplus
 
-#include "opencv2/core/operations.hpp"
-#include "opencv2/core/mat.hpp"
+#include "operations.hpp"
+#include "mat.hpp"
 
 #endif /*__OPENCV_CORE_HPP__*/

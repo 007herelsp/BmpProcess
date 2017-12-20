@@ -2,8 +2,8 @@
 #ifndef __OPENCV_CORE_INTERNAL_HPP__
 #define __OPENCV_CORE_INTERNAL_HPP__
 
-#include "opencv2/core/core.hpp"
-#include "opencv2/core/types_c.h"
+#include "core.hpp"
+#include "types_c.h"
 
 #include <vector>
 

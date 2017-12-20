@@ -1,5 +1,5 @@
 
-#include "highgui/precomp.hpp"
+#include "precomp.hpp"
 #include "bitstrm.hpp"
 
 namespace cv

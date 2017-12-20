@@ -3,9 +3,9 @@
 #define __OPENCV_PRECOMP_H__
 
 
-#include "opencv2/core/core.hpp"
-#include "opencv2/core/core_c.h"
-#include "opencv2/core/internal.hpp"
+#include "core.hpp"
+#include "core_c.h"
+#include "internal.hpp"
 
 #include <assert.h>
 #include <ctype.h>

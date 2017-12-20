@@ -4,7 +4,7 @@
 //  Loading and saving IPL images.
 //
 
-#include "highgui/precomp.hpp"
+#include "precomp.hpp"
 #include "grfmt_base.hpp"
 #include "grfmt_bmp.hpp"
 #undef min

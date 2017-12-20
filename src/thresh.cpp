@@ -1,7 +1,7 @@
 
 
 #include "imgproc.precomp.hpp"
-#include <opencv2/imgproc/imgproc.hpp>
+#include "imgproc.hpp"
 namespace cv
 {
 
