@@ -215,63 +215,6 @@ static inline void fixSteps(Size sz, size_t elemSize, size_t& step1, size_t& ste
         step1 = step2 = step = sz.width*elemSize;
 }
 
-static void add8u( const uchar* src1, size_t step1,
-                   const uchar* src2, size_t step2,
-                   uchar* dst, size_t step, Size sz, void* )
-{
-    IF_IPP(fixSteps(sz, sizeof(dst[0]), step1, step2, step);
-           ippiAdd_8u_C1RSfs(src1, (int)step1, src2, (int)step2, dst, (int)step, ippiSize(sz), 0),
-           (vBinOp8<uchar, OpAdd<uchar>, IF_SIMD(_VAdd8u)>(src1, step1, src2, step2, dst, step, sz)));
-}
-
-static void add8s( const schar* src1, size_t step1,
-                   const schar* src2, size_t step2,
-                   schar* dst, size_t step, Size sz, void* )
-{
-    vBinOp8<schar, OpAdd<schar>, IF_SIMD(_VAdd8s)>(src1, step1, src2, step2, dst, step, sz);
-}
-
-static void add16u( const ushort* src1, size_t step1,
-                    const ushort* src2, size_t step2,
-                    ushort* dst, size_t step, Size sz, void* )
-{
-    IF_IPP(fixSteps(sz, sizeof(dst[0]), step1, step2, step);
-           ippiAdd_16u_C1RSfs(src1, (int)step1, src2, (int)step2, dst, (int)step, ippiSize(sz), 0),
-            (vBinOp16<ushort, OpAdd<ushort>, IF_SIMD(_VAdd16u)>(src1, step1, src2, step2, dst, step, sz)));
-}
-
-static void add16s( const short* src1, size_t step1,
-                    const short* src2, size_t step2,
-                    short* dst, size_t step, Size sz, void* )
-{
-    IF_IPP(fixSteps(sz, sizeof(dst[0]), step1, step2, step);
-           ippiAdd_16s_C1RSfs(src1, (int)step1, src2, (int)step2, dst, (int)step, ippiSize(sz), 0),
-           (vBinOp16<short, OpAdd<short>, IF_SIMD(_VAdd16s)>(src1, step1, src2, step2, dst, step, sz)));
-}
-
-static void add32s( const int* src1, size_t step1,
-                    const int* src2, size_t step2,
-                    int* dst, size_t step, Size sz, void* )
-{
-    vBinOp32s<OpAdd<int>, IF_SIMD(_VAdd32s)>(src1, step1, src2, step2, dst, step, sz);
-}
-
-static void add32f( const float* src1, size_t step1,
-                    const float* src2, size_t step2,
-                    float* dst, size_t step, Size sz, void* )
-{
-    IF_IPP(fixSteps(sz, sizeof(dst[0]), step1, step2, step);
-           ippiAdd_32f_C1R(src1, (int)step1, src2, (int)step2, dst, (int)step, ippiSize(sz)),
-           (vBinOp32f<OpAdd<float>, IF_SIMD(_VAdd32f)>(src1, step1, src2, step2, dst, step, sz)));
-}
-
-static void add64f( const double* src1, size_t step1,
-                    const double* src2, size_t step2,
-                    double* dst, size_t step, Size sz, void* )
-{
-    vBinOp64f<OpAdd<double>, IF_SIMD(_VAdd64f)>(src1, step1, src2, step2, dst, step, sz);
-}
-
 static void sub8u( const uchar* src1, size_t step1,
                    const uchar* src2, size_t step2,
                    uchar* dst, size_t step, Size sz, void* )
@@ -640,19 +583,7 @@ static void arithm_op(InputArray _src1, InputArray _src2, OutputArray _dst,
     }
 }
 
-static BinaryFunc* getAddTab()
-{
-    static BinaryFunc addTab[] =
-    {
-        (BinaryFunc)GET_OPTIMIZED(add8u), (BinaryFunc)GET_OPTIMIZED(add8s),
-        (BinaryFunc)GET_OPTIMIZED(add16u), (BinaryFunc)GET_OPTIMIZED(add16s),
-        (BinaryFunc)GET_OPTIMIZED(add32s),
-        (BinaryFunc)GET_OPTIMIZED(add32f), (BinaryFunc)add64f,
-        0
-    };
 
-    return addTab;
-}
 
 static BinaryFunc* getSubTab()
 {
@@ -670,11 +601,6 @@ static BinaryFunc* getSubTab()
 
 }
 
-void cv::add( InputArray src1, InputArray src2, OutputArray dst,
-          InputArray mask, int dtype )
-{
-    arithm_op(src1, src2, dst, mask, dtype, getAddTab() );
-}
 
 void cv::subtract( InputArray _src1, InputArray _src2, OutputArray _dst,
                InputArray mask, int dtype )

@@ -305,14 +305,10 @@ public:
     static Matx ones();
     static Matx eye();
     static Matx diag(const diag_type& d);
-    static Matx randu(_Tp a, _Tp b);
-    static Matx randn(_Tp a, _Tp b);
 
     //! dot product computed with the default precision
-    _Tp dot(const Matx<_Tp, m, n>& v) const;
 
     //! dot product computed in double-precision arithmetics
-    double ddot(const Matx<_Tp, m, n>& v) const;
 
     //! conversion to another data type
     template<typename T2> operator Matx<T2, m, n>() const;
@@ -343,8 +339,6 @@ public:
     Vec<_Tp, n> solve(const Vec<_Tp, m>& rhs, int method) const;
 
     //! multiply two matrices element-wise
-    Matx<_Tp, m, n> mul(const Matx<_Tp, m, n>& a) const;
-
     //! element access
     const _Tp& operator ()(int i, int j) const;
     _Tp& operator ()(int i, int j);
@@ -429,25 +423,16 @@ public:
 
     Vec(_Tp v0); //!< 1-element vector constructor
     Vec(_Tp v0, _Tp v1); //!< 2-element vector constructor
-    Vec(_Tp v0, _Tp v1, _Tp v2); //!< 3-element vector constructor
-    Vec(_Tp v0, _Tp v1, _Tp v2, _Tp v3); //!< 4-element vector constructor
-    Vec(_Tp v0, _Tp v1, _Tp v2, _Tp v3, _Tp v4); //!< 5-element vector constructor
-    Vec(_Tp v0, _Tp v1, _Tp v2, _Tp v3, _Tp v4, _Tp v5); //!< 6-element vector constructor
-    Vec(_Tp v0, _Tp v1, _Tp v2, _Tp v3, _Tp v4, _Tp v5, _Tp v6); //!< 7-element vector constructor
-    Vec(_Tp v0, _Tp v1, _Tp v2, _Tp v3, _Tp v4, _Tp v5, _Tp v6, _Tp v7); //!< 8-element vector constructor
-    Vec(_Tp v0, _Tp v1, _Tp v2, _Tp v3, _Tp v4, _Tp v5, _Tp v6, _Tp v7, _Tp v8); //!< 9-element vector constructor
-    Vec(_Tp v0, _Tp v1, _Tp v2, _Tp v3, _Tp v4, _Tp v5, _Tp v6, _Tp v7, _Tp v8, _Tp v9); //!< 10-element vector constructor
+   
     explicit Vec(const _Tp* values);
 
     Vec(const Vec<_Tp, cn>& v);
 
-    static Vec all(_Tp alpha);
+   
 
     //! per-element multiplication
-    Vec mul(const Vec<_Tp, cn>& v) const;
 
     //! conjugation (makes sense for complex numbers and quaternions)
-    Vec conj() const;
 
     /*!
       cross product of the two 3D vectors.
@@ -458,7 +443,6 @@ public:
     //! conversion to another data type
     template<typename T2> operator Vec<T2, cn>() const;
     //! conversion to 4-element CvScalar.
-    operator CvScalar() const;
 
     /*! element access */
     const _Tp& operator [](int i) const;
@@ -466,9 +450,7 @@ public:
     const _Tp& operator ()(int i) const;
     _Tp& operator ()(int i);
 
-    Vec(const Matx<_Tp, cn, 1>& a, const Matx<_Tp, cn, 1>& b, Matx_AddOp);
-    Vec(const Matx<_Tp, cn, 1>& a, const Matx<_Tp, cn, 1>& b, Matx_SubOp);
-    template<typename _T2> Vec(const Matx<_Tp, cn, 1>& a, _T2 alpha, Matx_ScaleOp);
+ 
 };
 
 
@@ -480,13 +462,8 @@ typedef Vec<uchar, 2> Vec2b;
 typedef Vec<uchar, 3> Vec3b;
 typedef Vec<uchar, 4> Vec4b;
 
-typedef Vec<short, 2> Vec2s;
 typedef Vec<short, 3> Vec3s;
-typedef Vec<short, 4> Vec4s;
 
-typedef Vec<ushort, 2> Vec2w;
-typedef Vec<ushort, 3> Vec3w;
-typedef Vec<ushort, 4> Vec4w;
 
 typedef Vec<int, 2> Vec2i;
 typedef Vec<int, 3> Vec3i;
@@ -494,15 +471,7 @@ typedef Vec<int, 4> Vec4i;
 typedef Vec<int, 6> Vec6i;
 typedef Vec<int, 8> Vec8i;
 
-typedef Vec<float, 2> Vec2f;
-typedef Vec<float, 3> Vec3f;
-typedef Vec<float, 4> Vec4f;
-typedef Vec<float, 6> Vec6f;
 
-typedef Vec<double, 2> Vec2d;
-typedef Vec<double, 3> Vec3d;
-typedef Vec<double, 4> Vec4d;
-typedef Vec<double, 6> Vec6d;
 
 
 
@@ -539,9 +508,7 @@ public:
     operator Vec<_Tp, 2>() const;
 
     //! dot product
-    _Tp dot(const Point_& pt) const;
     //! dot product computed in double-precision arithmetics
-    double ddot(const Point_& pt) const;
     //! cross-product
     double cross(const Point_& pt) const;
     //! checks whether the point is inside the specified rectangle
@@ -550,44 +517,6 @@ public:
     _Tp x, y; //< the point coordinates
 };
 
-/*!
-  template 3D point class.
-
-  The class defines a point in 3D space. Data type of the point coordinates is specified
-  as a template parameter.
-
-  \see cv::Point3i, cv::Point3f and cv::Point3d
-*/
-template<typename _Tp> class Point3_
-{
-public:
-    typedef _Tp value_type;
-
-    // various constructors
-    Point3_();
-    Point3_(_Tp _x, _Tp _y, _Tp _z);
-    Point3_(const Point3_& pt);
-    explicit Point3_(const Point_<_Tp>& pt);
-    Point3_(const CvPoint3D32f& pt);
-    Point3_(const Vec<_Tp, 3>& v);
-
-    Point3_& operator = (const Point3_& pt);
-    //! conversion to another data type
-    template<typename _Tp2> operator Point3_<_Tp2>() const;
-    //! conversion to the old-style CvPoint...
-    operator CvPoint3D32f() const;
-    //! conversion to cv::Vec<>
-    operator Vec<_Tp, 3>() const;
-
-    //! dot product
-    _Tp dot(const Point3_& pt) const;
-    //! dot product computed in double-precision arithmetics
-    double ddot(const Point3_& pt) const;
-    //! cross product of the 2 3D points
-    Point3_ cross(const Point3_& pt) const;
-
-    _Tp x, y, z; //< the point coordinates
-};
 
 //////////////////////////////// Size_ ////////////////////////////////
 
@@ -679,39 +608,7 @@ typedef Rect_<int> Rect;
 typedef Point_<float> Point2f;
 typedef Point_<double> Point2d;
 typedef Size_<float> Size2f;
-typedef Point3_<int> Point3i;
-typedef Point3_<float> Point3f;
-typedef Point3_<double> Point3d;
 
-
-/*!
-  The rotated 2D rectangle.
-
-  The class represents rotated (i.e. not up-right) rectangles on a plane.
-  Each rectangle is described by the center point (mass center), length of each side
-  (represented by cv::Size2f structure) and the rotation angle in degrees.
-*/
-class CV_EXPORTS RotatedRect
-{
-public:
-    //! various constructors
-    RotatedRect();
-    RotatedRect(const Point2f& center, const Size2f& size, float angle);
-    RotatedRect(const CvBox2D& box);
-
-    //! returns 4 vertices of the rectangle
-    void points(Point2f pts[]) const;
-    //! returns the minimal up-right integer rectangle containing the rotated rectangle
-    Rect boundingRect() const;
-    //! returns the minimal (exact) floating point rectangle containing the rotated rectangle, not intended for use with images
-    Rect_<float> boundingRect2f() const;
-    //! conversion to the old-style CvBox2D structure
-    operator CvBox2D() const;
-
-    Point2f center; //< the rectangle mass center
-    Size2f size;    //< width and height of the rectangle
-    float angle;    //< the rotation angle. When the angle is 0, 90, 180, 270 etc., the rectangle becomes an up-right rectangle.
-};
 
 //////////////////////////////// Scalar_ ///////////////////////////////
 
@@ -733,16 +630,13 @@ public:
     //! returns a scalar with all elements set to v0
     static Scalar_<_Tp> all(_Tp v0);
     //! conversion to the old-style CvScalar
-    operator CvScalar() const;
 
     //! conversion to another data type
     template<typename T2> operator Scalar_<T2>() const;
 
     //! per-element product
-    Scalar_<_Tp> mul(const Scalar_<_Tp>& t, double scale=1 ) const;
 
     // returns (v0, -v1, -v2, -v3)
-    Scalar_<_Tp> conj() const;
 
     // returns true iff v1 == v2 == v3 == 0
     bool isReal() const;
@@ -775,17 +669,7 @@ public:
 
 /////////////////////////////// DataType ////////////////////////////////
 
-/*!
-   Informative template class for OpenCV "scalars".
 
-   The class is specialized for each primitive numerical type supported by OpenCV (such as unsigned char or float),
-   as well as for more complex types, like cv::Complex<>, std::complex<>, cv::Vec<> etc.
-   The common property of all such types (called "scalars", do not confuse it with cv::Scalar_)
-   is that each of them is basically a tuple of numbers of the same type. Each "scalar" can be represented
-   by the depth id (CV_8U ... CV_64F) and the number of channels.
-   OpenCV matrices, 2D or nD, dense or sparse, can store "scalars",
-   as long as the number of channels does not exceed CV_CN_MAX.
-*/
 template<typename _Tp> class DataType
 {
 public:
@@ -954,18 +838,6 @@ public:
     typedef Vec<channel_type, channels> vec_type;
 };
 
-template<typename _Tp> class DataType<Point3_<_Tp> >
-{
-public:
-    typedef Point3_<_Tp> value_type;
-    typedef Point3_<typename DataType<_Tp>::work_type> work_type;
-    typedef _Tp channel_type;
-    enum { generic_type = 0, depth = DataDepth<channel_type>::value, channels = 3,
-           fmt = ((channels-1)<<8) + DataDepth<channel_type>::fmt,
-           type = CV_MAKETYPE(depth, channels) };
-    typedef Vec<channel_type, channels> vec_type;
-};
-
 template<typename _Tp> class DataType<Size_<_Tp> >
 {
 public:
@@ -1016,27 +888,7 @@ public:
 
 //////////////////// generic_type ref-counting pointer class for C/C++ objects ////////////////////////
 
-/*!
-  Smart pointer to dynamically allocated objects.
 
-  This is template pointer-wrapping class that stores the associated reference counter along with the
-  object pointer. The class is similar to std::smart_ptr<> from the recent addons to the C++ standard,
-  but is shorter to write :) and self-contained (i.e. does add any dependency on the compiler or an external library).
-
-  Basically, you can use "Ptr<MyObjectType> ptr" (or faster "const Ptr<MyObjectType>& ptr" for read-only access)
-  everywhere instead of "MyObjectType* ptr", where MyObjectType is some C structure or a C++ class.
-  To make it all work, you need to specialize Ptr<>::delete_obj(), like:
-
-  \code
-  template<> void Ptr<MyObjectType>::delete_obj() { call_destructor_func(obj); }
-  \endcode
-
-  \note{if MyObjectType is a C++ class with a destructor, you do not need to specialize delete_obj(),
-  since the default implementation calls "delete obj;"}
-
-  \note{Another good property of the class is that the operations on the reference counter are atomic,
-  i.e. it is safe to use the class in multi-threaded applications}
-*/
 template<typename _Tp> class Ptr
 {
 public:
@@ -1074,39 +926,6 @@ public:
     _Tp* obj; //< the object pointer.
     int* refcount; //< the associated reference counter
 };
-
-template<typename T>
-Ptr<T> makePtr();
-
-template<typename T, typename A1>
-Ptr<T> makePtr(const A1& a1);
-
-template<typename T, typename A1, typename A2>
-Ptr<T> makePtr(const A1& a1, const A2& a2);
-
-template<typename T, typename A1, typename A2, typename A3>
-Ptr<T> makePtr(const A1& a1, const A2& a2, const A3& a3);
-
-template<typename T, typename A1, typename A2, typename A3, typename A4>
-Ptr<T> makePtr(const A1& a1, const A2& a2, const A3& a3, const A4& a4);
-
-template<typename T, typename A1, typename A2, typename A3, typename A4, typename A5>
-Ptr<T> makePtr(const A1& a1, const A2& a2, const A3& a3, const A4& a4, const A5& a5);
-
-template<typename T, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6>
-Ptr<T> makePtr(const A1& a1, const A2& a2, const A3& a3, const A4& a4, const A5& a5, const A6& a6);
-
-template<typename T, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7>
-Ptr<T> makePtr(const A1& a1, const A2& a2, const A3& a3, const A4& a4, const A5& a5, const A6& a6, const A7& a7);
-
-template<typename T, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8>
-Ptr<T> makePtr(const A1& a1, const A2& a2, const A3& a3, const A4& a4, const A5& a5, const A6& a6, const A7& a7, const A8& a8);
-
-template<typename T, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9>
-Ptr<T> makePtr(const A1& a1, const A2& a2, const A3& a3, const A4& a4, const A5& a5, const A6& a6, const A7& a7, const A8& a8, const A9& a9);
-
-template<typename T, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10>
-Ptr<T> makePtr(const A1& a1, const A2& a2, const A3& a3, const A4& a4, const A5& a5, const A6& a6, const A7& a7, const A8& a8, const A9& a9, const A10& a10);
 
 //////////////////////// Input/Output Array Arguments /////////////////////////////////
 
@@ -1292,7 +1111,6 @@ public:
     //! builds matrix from a 2D point
     template<typename _Tp> explicit Mat(const Point_<_Tp>& pt, bool copyData=true);
     //! builds matrix from a 3D point
-    template<typename _Tp> explicit Mat(const Point3_<_Tp>& pt, bool copyData=true);
     //! builds matrix from comma initializer
 
 
@@ -1348,7 +1166,6 @@ public:
     //! computes cross-product of 2 3D vectors
     Mat cross(InputArray m) const;
     //! computes dot-product
-    double dot(InputArray m) const;
 
     //! Matlab-style matrix initialization
 
@@ -1616,9 +1433,7 @@ CV_EXPORTS void extractImageCOI(const CvArr* arr, OutputArray coiimg, int coi=-1
 //! inserts single-channel cv::Mat into a multi-channel CvMat or IplImage
 CV_EXPORTS void insertImageCOI(InputArray coiimg, CvArr* arr, int coi=-1);
 
-//! adds one matrix to another (dst = src1 + src2)
-CV_EXPORTS_W void add(InputArray src1, InputArray src2, OutputArray dst,
-                      InputArray mask=noArray(), int dtype=-1);
+
 //! subtracts one matrix from another (dst = src1 - src2)
 CV_EXPORTS_W void subtract(InputArray src1, InputArray src2, OutputArray dst,
                            InputArray mask=noArray(), int dtype=-1);
@@ -1642,7 +1457,6 @@ CV_EXPORTS_W int countNonZero( InputArray src );
 
 
 //! computes mean value of selected array elements
-CV_EXPORTS_W Scalar mean(InputArray src, InputArray mask=noArray());
 
 //! computes norm of the selected array part
 CV_EXPORTS_W double norm(InputArray src1, int normType=NORM_L2, InputArray mask=noArray());
@@ -1660,10 +1474,8 @@ CV_EXPORTS_W void mixChannels(InputArrayOfArrays src, InputArrayOfArrays dst,
                               const vector<int>& fromTo);
 
 //! extracts a single channel from src (coi is 0-based index)
-CV_EXPORTS_W void extractChannel(InputArray src, OutputArray dst, int coi);
 
 //! inserts a single channel to dst (coi is 0-based index)
-CV_EXPORTS_W void insertChannel(InputArray src, InputOutputArray dst, int coi);
 
 //! reverses the order of the rows, columns or both in a matrix
 CV_EXPORTS_W void flip(InputArray src, OutputArray dst, int flipCode);
@@ -1736,7 +1548,6 @@ enum
 };
 
 //! sorts independently each matrix row or each matrix column
-CV_EXPORTS_W void sort(InputArray src, OutputArray dst, int flags);
 //! sorts independently each matrix row or each matrix column
 CV_EXPORTS_W void sortIdx(InputArray src, OutputArray dst, int flags);
 
@@ -1780,17 +1591,9 @@ CV_EXPORTS RNG& theRNG();
 CV_EXPORTS_W void setRNGSeed(int seed);
 
 //! returns the next unifomly-distributed random number of the specified type
-template<typename _Tp> static inline _Tp randu() { return (_Tp)theRNG(); }
 
 //! fills array with uniformly-distributed random numbers from the range [low, high)
-CV_EXPORTS_W void randu(InputOutputArray dst, InputArray low, InputArray high);
 
-//! fills array with normally-distributed random numbers with the specified mean and the standard deviation
-CV_EXPORTS_W void randn(InputOutputArray dst, InputArray mean, InputArray stddev);
-
-//! shuffles the input array elements
-CV_EXPORTS void randShuffle(InputOutputArray dst, double iterFactor=1., RNG* rng=0);
-CV_EXPORTS_AS(randShuffle) void randShuffle_(InputOutputArray dst, double iterFactor=1.);
 
 //! draws the line segment (pt1, pt2) in the image
 CV_EXPORTS_W void line(CV_IN_OUT Mat& img, Point pt1, Point pt2, const Scalar& color,
@@ -1822,8 +1625,7 @@ CV_EXPORTS_W void ellipse(CV_IN_OUT Mat& img, Point center, Size axes,
                         int lineType=8, int shift=0);
 
 //! draws a rotated ellipse in the image
-CV_EXPORTS_W void ellipse(CV_IN_OUT Mat& img, const RotatedRect& box, const Scalar& color,
-                        int thickness=1, int lineType=8);
+
 
 /* ----------------------------------------------------------------------------------------- */
 /* ADDING A SET OF PREDEFINED MARKERS WHICH COULD BE USED TO HIGHLIGHT POSITIONS IN AN IMAGE */
@@ -1940,13 +1742,7 @@ public:
     int idx;
 };
 
-template<typename _Tp, int m> class VecCommaInitializer : public MatxCommaInitializer<_Tp, m, 1>
-{
-public:
-    VecCommaInitializer(Vec<_Tp, m>* _vec);
-    template<typename T2> VecCommaInitializer<_Tp, m>& operator , (T2 val);
-    Vec<_Tp, m> operator *() const;
-};
+
 
 /*!
  Automatically Allocated Buffer Class
@@ -2011,56 +1807,6 @@ protected:
 
 /////////////////////////// multi-dimensional dense matrix //////////////////////////
 
-/*!
- n-Dimensional Dense Matrix Iterator Class.
-
- The class cv::NAryMatIterator is used for iterating over one or more n-dimensional dense arrays (cv::Mat's).
-
- The iterator is completely different from cv::Mat_ and cv::SparseMat_ iterators.
- It iterates through the slices (or planes), not the elements, where "slice" is a continuous part of the arrays.
-
- Here is the example on how the iterator can be used to normalize 3D histogram:
-
- \code
- void normalizeColorHist(Mat& hist)
- {
- #if 1
-     // intialize iterator (the style is different from STL).
-     // after initialization the iterator will contain
-     // the number of slices or planes
-     // the iterator will go through
-     Mat* arrays[] = { &hist, 0 };
-     Mat planes[1];
-     NAryMatIterator it(arrays, planes);
-     double s = 0;
-     // iterate through the matrix. on each iteration
-     // it.planes[i] (of type Mat) will be set to the current plane of
-     // i-th n-dim matrix passed to the iterator constructor.
-     for(int p = 0; p < it.nplanes; p++, ++it)
-        s += sum(it.planes[0])[0];
-     it = NAryMatIterator(hist);
-     s = 1./s;
-     for(int p = 0; p < it.nplanes; p++, ++it)
-        it.planes[0] *= s;
- #elif 1
-     // this is a shorter implementation of the above
-     // using built-in operations on Mat
-     double s = sum(hist)[0];
-     hist.convertTo(hist, hist.type(), 1./s, 0);
- #else
-     // and this is even shorter one
-     // (assuming that the histogram elements are non-negative)
-     normalize(hist, hist, 1, 0, NORM_L1);
- #endif
- }
- \endcode
-
- You can iterate through several matrices simultaneously as long as they have the same geometry
- (dimensionality and all the dimension sizes are the same), which is useful for binary
- and n-ary operations on such matrices. Just pass those matrices to cv::MatNDIterator.
- Then, during the iteration it.planes[0], it.planes[1], ... will
- be the slices of the corresponding matrices
-*/
 class CV_EXPORTS NAryMatIterator
 {
 public:
@@ -2095,439 +1841,9 @@ protected:
     size_t idx;
 };
 
-//typedef NAryMatIterator NAryMatNDIterator;
-
-typedef void (*ConvertData)(const void* from, void* to, int cn);
-typedef void (*ConvertScaleData)(const void* from, void* to, int cn, double alpha, double beta);
-
-//! returns the function for converting pixels from one data type to another
-CV_EXPORTS ConvertData getConvertElem(int fromType, int toType);
-//! returns the function for converting pixels from one data type to another with the optional scaling
-CV_EXPORTS ConvertScaleData getConvertScaleElem(int fromType, int toType);
-
-
-
-////////////// convenient wrappers for operating old-style dynamic structures //////////////
-
-template<typename _Tp> class SeqIterator;
 
 typedef Ptr<CvMemStorage> MemStorage;
 
-/*!
- Template Sequence Class derived from CvSeq
-
- The class provides more convenient access to sequence elements,
- STL-style operations and iterators.
-
- \note The class is targeted for simple data types,
-    i.e. no constructors or destructors
-    are called for the sequence elements.
-*/
-template<typename _Tp> class Seq
-{
-public:
-    typedef SeqIterator<_Tp> iterator;
-    typedef SeqIterator<_Tp> const_iterator;
-
-    //! the default constructor
-    Seq();
-    //! the constructor for wrapping CvSeq structure. The real element type in CvSeq should match _Tp.
-    Seq(const CvSeq* seq);
-    //! creates the empty sequence that resides in the specified storage
-    Seq(MemStorage& storage, int headerSize = sizeof(CvSeq));
-    //! returns read-write reference to the specified element
-    _Tp& operator [](int idx);
-    //! returns read-only reference to the specified element
-    const _Tp& operator[](int idx) const;
-    //! returns iterator pointing to the beginning of the sequence
-    SeqIterator<_Tp> begin() const;
-    //! returns iterator pointing to the element following the last sequence element
-    SeqIterator<_Tp> end() const;
-    //! returns the number of elements in the sequence
-    size_t size() const;
-    //! returns the type of sequence elements (CV_8UC1 ... CV_64FC(CV_CN_MAX) ...)
-    int type() const;
-    //! returns the depth of sequence elements (CV_8U ... CV_64F)
-    int depth() const;
-    //! returns the number of channels in each sequence element
-    int channels() const;
-    //! returns the size of each sequence element
-    size_t elemSize() const;
-    //! returns index of the specified sequence element
-    size_t index(const _Tp& elem) const;
-    //! appends the specified element to the end of the sequence
-    void push_back(const _Tp& elem);
-    //! appends the specified element to the front of the sequence
-    void push_front(const _Tp& elem);
-    //! appends zero or more elements to the end of the sequence
-    void push_back(const _Tp* elems, size_t count);
-    //! appends zero or more elements to the front of the sequence
-    void push_front(const _Tp* elems, size_t count);
-    //! inserts the specified element to the specified position
-    void insert(int idx, const _Tp& elem);
-    //! inserts zero or more elements to the specified position
-    void insert(int idx, const _Tp* elems, size_t count);
-    //! removes element at the specified position
-    void remove(int idx);
-    //! removes the specified subsequence
-    void remove(const Range& r);
-
-    //! returns reference to the first sequence element
-    _Tp& front();
-    //! returns read-only reference to the first sequence element
-    const _Tp& front() const;
-    //! returns reference to the last sequence element
-    _Tp& back();
-    //! returns read-only reference to the last sequence element
-    const _Tp& back() const;
-    //! returns true iff the sequence contains no elements
-    bool empty() const;
-
-    //! removes all the elements from the sequence
-    void clear();
-    //! removes the first element from the sequence
-    void pop_front();
-    //! removes the last element from the sequence
-    void pop_back();
-    //! removes zero or more elements from the beginning of the sequence
-    void pop_front(_Tp* elems, size_t count);
-    //! removes zero or more elements from the end of the sequence
-    void pop_back(_Tp* elems, size_t count);
-
-    //! copies the whole sequence or the sequence slice to the specified vector
-    void copyTo(vector<_Tp>& vec, const Range& range=Range::all()) const;
-    //! returns the vector containing all the sequence elements
-    operator vector<_Tp>() const;
-
-    CvSeq* seq;
-};
-
-
-/*!
- STL-style Sequence Iterator inherited from the CvSeqReader structure
-*/
-template<typename _Tp> class SeqIterator : public CvSeqReader
-{
-public:
-    //! the default constructor
-    SeqIterator();
-    //! the constructor setting the iterator to the beginning or to the end of the sequence
-    SeqIterator(const Seq<_Tp>& seq, bool seekEnd=false);
-    //! positions the iterator within the sequence
-    void seek(size_t pos);
-    //! reports the current iterator position
-    size_t tell() const;
-    //! returns reference to the current sequence element
-    _Tp& operator *();
-    //! returns read-only reference to the current sequence element
-    const _Tp& operator *() const;
-    //! moves iterator to the next sequence element
-    SeqIterator& operator ++();
-    //! moves iterator to the next sequence element
-    SeqIterator operator ++(int) const;
-    //! moves iterator to the previous sequence element
-    SeqIterator& operator --();
-    //! moves iterator to the previous sequence element
-    SeqIterator operator --(int) const;
-
-    //! moves iterator forward by the specified offset (possibly negative)
-    SeqIterator& operator +=(int);
-    //! moves iterator backward by the specified offset (possibly negative)
-    SeqIterator& operator -=(int);
-
-    // this is index of the current element module seq->total*2
-    // (to distinguish between 0 and seq->total)
-    int index;
-};
-
-
-class CV_EXPORTS Algorithm;
-class CV_EXPORTS AlgorithmInfo;
-struct CV_EXPORTS AlgorithmInfoData;
-
-template<typename _Tp> struct ParamType {};
-
-/*!
-  Base class for high-level OpenCV algorithms
-*/
-class CV_EXPORTS_W Algorithm
-{
-public:
-    Algorithm();
-    virtual ~Algorithm();
-    string name() const;
-
-    template<typename _Tp> typename ParamType<_Tp>::member_type get(const string& name) const;
-    template<typename _Tp> typename ParamType<_Tp>::member_type get(const char* name) const;
-
-    CV_WRAP int getInt(const string& name) const;
-    CV_WRAP double getDouble(const string& name) const;
-    CV_WRAP bool getBool(const string& name) const;
-    CV_WRAP string getString(const string& name) const;
-    CV_WRAP Mat getMat(const string& name) const;
-    CV_WRAP Ptr<Algorithm> getAlgorithm(const string& name) const;
-
-    void set(const string& name, int value);
-    void set(const string& name, double value);
-    void set(const string& name, bool value);
-    void set(const string& name, const string& value);
-    void set(const string& name, const Mat& value);
-    void set(const string& name, const vector<Mat>& value);
-    void set(const string& name, const Ptr<Algorithm>& value);
-    template<typename _Tp> void set(const string& name, const Ptr<_Tp>& value);
-
-    CV_WRAP void setInt(const string& name, int value);
-    CV_WRAP void setDouble(const string& name, double value);
-    CV_WRAP void setBool(const string& name, bool value);
-    CV_WRAP void setString(const string& name, const string& value);
-    CV_WRAP void setMat(const string& name, const Mat& value);
-    CV_WRAP void setMatVector(const string& name, const vector<Mat>& value);
-    CV_WRAP void setAlgorithm(const string& name, const Ptr<Algorithm>& value);
-    template<typename _Tp> void setAlgorithm(const string& name, const Ptr<_Tp>& value);
-
-    void set(const char* name, int value);
-    void set(const char* name, double value);
-    void set(const char* name, bool value);
-    void set(const char* name, const string& value);
-    void set(const char* name, const Mat& value);
-    void set(const char* name, const vector<Mat>& value);
-    void set(const char* name, const Ptr<Algorithm>& value);
-    template<typename _Tp> void set(const char* name, const Ptr<_Tp>& value);
-
-    void setInt(const char* name, int value);
-    void setDouble(const char* name, double value);
-    void setBool(const char* name, bool value);
-    void setString(const char* name, const string& value);
-    void setMat(const char* name, const Mat& value);
-    void setMatVector(const char* name, const vector<Mat>& value);
-    void setAlgorithm(const char* name, const Ptr<Algorithm>& value);
-    template<typename _Tp> void setAlgorithm(const char* name, const Ptr<_Tp>& value);
-
-    CV_WRAP string paramHelp(const string& name) const;
-    int paramType(const char* name) const;
-    CV_WRAP int paramType(const string& name) const;
-    CV_WRAP void getParams(CV_OUT vector<string>& names) const;
-
-
-
-    typedef Algorithm* (*Constructor)(void);
-    typedef int (Algorithm::*Getter)() const;
-    typedef void (Algorithm::*Setter)(int);
-
-    CV_WRAP static void getList(CV_OUT vector<string>& algorithms);
-    CV_WRAP static Ptr<Algorithm> _create(const string& name);
-    template<typename _Tp> static Ptr<_Tp> create(const string& name);
-
-    virtual AlgorithmInfo* info() const /* TODO: make it = 0;*/ { return 0; }
-};
-
-
-class CV_EXPORTS AlgorithmInfo
-{
-public:
-    friend class Algorithm;
-    AlgorithmInfo(const string& name, Algorithm::Constructor create);
-    ~AlgorithmInfo();
-    void get(const Algorithm* algo, const char* name, int argType, void* value) const;
-    void addParam_(Algorithm& algo, const char* name, int argType,
-                   void* value, bool readOnly,
-                   Algorithm::Getter getter, Algorithm::Setter setter,
-                   const string& help=string());
-    string paramHelp(const char* name) const;
-    int paramType(const char* name) const;
-    void getParams(vector<string>& names) const;
-
-    string name() const;
-
-    void addParam(Algorithm& algo, const char* name,
-                  int& value, bool readOnly=false,
-                  int (Algorithm::*getter)()=0,
-                  void (Algorithm::*setter)(int)=0,
-                  const string& help=string());
-    void addParam(Algorithm& algo, const char* name,
-                  short& value, bool readOnly=false,
-                  int (Algorithm::*getter)()=0,
-                  void (Algorithm::*setter)(int)=0,
-                  const string& help=string());
-    void addParam(Algorithm& algo, const char* name,
-                  bool& value, bool readOnly=false,
-                  int (Algorithm::*getter)()=0,
-                  void (Algorithm::*setter)(int)=0,
-                  const string& help=string());
-    void addParam(Algorithm& algo, const char* name,
-                  double& value, bool readOnly=false,
-                  double (Algorithm::*getter)()=0,
-                  void (Algorithm::*setter)(double)=0,
-                  const string& help=string());
-    void addParam(Algorithm& algo, const char* name,
-                  string& value, bool readOnly=false,
-                  string (Algorithm::*getter)()=0,
-                  void (Algorithm::*setter)(const string&)=0,
-                  const string& help=string());
-    void addParam(Algorithm& algo, const char* name,
-                  Mat& value, bool readOnly=false,
-                  Mat (Algorithm::*getter)()=0,
-                  void (Algorithm::*setter)(const Mat&)=0,
-                  const string& help=string());
-    void addParam(Algorithm& algo, const char* name,
-                  vector<Mat>& value, bool readOnly=false,
-                  vector<Mat> (Algorithm::*getter)()=0,
-                  void (Algorithm::*setter)(const vector<Mat>&)=0,
-                  const string& help=string());
-    void addParam(Algorithm& algo, const char* name,
-                  Ptr<Algorithm>& value, bool readOnly=false,
-                  Ptr<Algorithm> (Algorithm::*getter)()=0,
-                  void (Algorithm::*setter)(const Ptr<Algorithm>&)=0,
-                  const string& help=string());
-    void addParam(Algorithm& algo, const char* name,
-                  float& value, bool readOnly=false,
-                  float (Algorithm::*getter)()=0,
-                  void (Algorithm::*setter)(float)=0,
-                  const string& help=string());
-    void addParam(Algorithm& algo, const char* name,
-                  unsigned int& value, bool readOnly=false,
-                  unsigned int (Algorithm::*getter)()=0,
-                  void (Algorithm::*setter)(unsigned int)=0,
-                  const string& help=string());
-    void addParam(Algorithm& algo, const char* name,
-                  uint64& value, bool readOnly=false,
-                  uint64 (Algorithm::*getter)()=0,
-                  void (Algorithm::*setter)(uint64)=0,
-                  const string& help=string());
-    void addParam(Algorithm& algo, const char* name,
-                  uchar& value, bool readOnly=false,
-                  uchar (Algorithm::*getter)()=0,
-                  void (Algorithm::*setter)(uchar)=0,
-                  const string& help=string());
-    template<typename _Tp, typename _Base> void addParam(Algorithm& algo, const char* name,
-                  Ptr<_Tp>& value, bool readOnly=false,
-                  Ptr<_Tp> (Algorithm::*getter)()=0,
-                  void (Algorithm::*setter)(const Ptr<_Tp>&)=0,
-                  const string& help=string());
-    template<typename _Tp> void addParam(Algorithm& algo, const char* name,
-                  Ptr<_Tp>& value, bool readOnly=false,
-                  Ptr<_Tp> (Algorithm::*getter)()=0,
-                  void (Algorithm::*setter)(const Ptr<_Tp>&)=0,
-                  const string& help=string());
-protected:
-    AlgorithmInfoData* data;
-    void set(Algorithm* algo, const char* name, int argType,
-              const void* value, bool force=false) const;
-};
-
-
-struct CV_EXPORTS Param
-{
-    enum { INT=0, BOOLEAN=1, REAL=2, STRING=3, MAT=4, MAT_VECTOR=5, ALGORITHM=6, FLOAT=7, UNSIGNED_INT=8, UINT64=9, SHORT=10, UCHAR=11 };
-
-    Param();
-    Param(int _type, bool _readonly, int _offset,
-          Algorithm::Getter _getter=0,
-          Algorithm::Setter _setter=0,
-          const string& _help=string());
-    int type;
-    int offset;
-    bool readonly;
-    Algorithm::Getter getter;
-    Algorithm::Setter setter;
-    string help;
-};
-
-template<> struct ParamType<bool>
-{
-    typedef bool const_param_type;
-    typedef bool member_type;
-
-    enum { type = Param::BOOLEAN };
-};
-
-template<> struct ParamType<int>
-{
-    typedef int const_param_type;
-    typedef int member_type;
-
-    enum { type = Param::INT };
-};
-
-template<> struct ParamType<short>
-{
-    typedef int const_param_type;
-    typedef int member_type;
-
-    enum { type = Param::SHORT };
-};
-
-template<> struct ParamType<double>
-{
-    typedef double const_param_type;
-    typedef double member_type;
-
-    enum { type = Param::REAL };
-};
-
-template<> struct ParamType<string>
-{
-    typedef const string& const_param_type;
-    typedef string member_type;
-
-    enum { type = Param::STRING };
-};
-
-template<> struct ParamType<Mat>
-{
-    typedef const Mat& const_param_type;
-    typedef Mat member_type;
-
-    enum { type = Param::MAT };
-};
-
-template<> struct ParamType<vector<Mat> >
-{
-    typedef const vector<Mat>& const_param_type;
-    typedef vector<Mat> member_type;
-
-    enum { type = Param::MAT_VECTOR };
-};
-
-template<> struct ParamType<Algorithm>
-{
-    typedef const Ptr<Algorithm>& const_param_type;
-    typedef Ptr<Algorithm> member_type;
-
-    enum { type = Param::ALGORITHM };
-};
-
-template<> struct ParamType<float>
-{
-    typedef float const_param_type;
-    typedef float member_type;
-
-    enum { type = Param::FLOAT };
-};
-
-template<> struct ParamType<unsigned>
-{
-    typedef unsigned const_param_type;
-    typedef unsigned member_type;
-
-    enum { type = Param::UNSIGNED_INT };
-};
-
-template<> struct ParamType<uint64>
-{
-    typedef uint64 const_param_type;
-    typedef uint64 member_type;
-
-    enum { type = Param::UINT64 };
-};
-
-template<> struct ParamType<uchar>
-{
-    typedef uchar const_param_type;
-    typedef uchar member_type;
-
-    enum { type = Param::UCHAR };
-};
 
 
 

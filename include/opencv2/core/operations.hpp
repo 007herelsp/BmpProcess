@@ -264,20 +264,8 @@ Matx<_Tp,m,n> Matx<_Tp,m,n>::eye()
     return M;
 }
 
-template<typename _Tp, int m, int n> inline _Tp Matx<_Tp, m, n>::dot(const Matx<_Tp, m, n>& M) const
-{
-    _Tp s = 0;
-    for( int i = 0; i < m*n; i++ ) s += val[i]*M.val[i];
-    return s;
-}
 
 
-template<typename _Tp, int m, int n> inline double Matx<_Tp, m, n>::ddot(const Matx<_Tp, m, n>& M) const
-{
-    double s = 0;
-    for( int i = 0; i < m*n; i++ ) s += (double)val[i]*M.val[i];
-    return s;
-}
 
 
 /** @cond IGNORED */
@@ -291,23 +279,8 @@ Matx<_Tp,m,n> Matx<_Tp,m,n>::diag(const typename Matx<_Tp,m,n>::diag_type& d)
 }
 /** @endcond */
 
-template<typename _Tp, int m, int n> inline
-Matx<_Tp,m,n> Matx<_Tp,m,n>::randu(_Tp a, _Tp b)
-{
-    Matx<_Tp,m,n> M;
-    Mat matM(M, false);
-    cv::randu(matM, Scalar(a), Scalar(b));
-    return M;
-}
 
-template<typename _Tp, int m, int n> inline
-Matx<_Tp,m,n> Matx<_Tp,m,n>::randn(_Tp a, _Tp b)
-{
-    Matx<_Tp,m,n> M;
-    Mat matM(M, false);
-    cv::randn(matM, Scalar(a), Scalar(b));
-    return M;
-}
+
 
 template<typename _Tp, int m, int n> template<typename T2>
 inline Matx<_Tp, m, n>::operator Matx<T2, m, n>() const
@@ -577,27 +550,7 @@ Point_<_Tp> operator * (const Matx<_Tp, 2, 2>& a, const Point_<_Tp>& b)
 }
 
 
-template<typename _Tp> static inline
-Point3_<_Tp> operator * (const Matx<_Tp, 3, 3>& a, const Point3_<_Tp>& b)
-{
-    Matx<_Tp, 3, 1> tmp = a*Vec<_Tp,3>(b.x, b.y, b.z);
-    return Point3_<_Tp>(tmp.val[0], tmp.val[1], tmp.val[2]);
-}
 
-
-template<typename _Tp> static inline
-Point3_<_Tp> operator * (const Matx<_Tp, 3, 3>& a, const Point_<_Tp>& b)
-{
-    Matx<_Tp, 3, 1> tmp = a*Vec<_Tp,3>(b.x, b.y, 1);
-    return Point3_<_Tp>(tmp.val[0], tmp.val[1], tmp.val[2]);
-}
-
-
-template<typename _Tp> static inline
-Matx<_Tp, 4, 1> operator * (const Matx<_Tp, 4, 4>& a, const Point3_<_Tp>& b)
-{
-    return a*Matx<_Tp, 4, 1>(b.x, b.y, b.z, 1);
-}
 
 
 template<typename _Tp> static inline
@@ -616,11 +569,6 @@ Scalar operator * (const Matx<double, 4, 4>& a, const Scalar& b)
 }
 
 
-template<typename _Tp, int m, int n> inline
-Matx<_Tp, m, n> Matx<_Tp, m, n>::mul(const Matx<_Tp, m, n>& a) const
-{
-    return Matx<_Tp, m, n>(*this, a, Matx_MulOp());
-}
 
 
 CV_EXPORTS int LU(float* A, size_t astep, int m, float* b, size_t bstep, int n);
@@ -736,43 +684,7 @@ template<typename _Tp, int cn> inline Vec<_Tp, cn>::Vec(_Tp v0, _Tp v1)
     : Matx<_Tp, cn, 1>(v0, v1)
 {}
 
-template<typename _Tp, int cn> inline Vec<_Tp, cn>::Vec(_Tp v0, _Tp v1, _Tp v2)
-    : Matx<_Tp, cn, 1>(v0, v1, v2)
-{}
 
-template<typename _Tp, int cn> inline Vec<_Tp, cn>::Vec(_Tp v0, _Tp v1, _Tp v2, _Tp v3)
-    : Matx<_Tp, cn, 1>(v0, v1, v2, v3)
-{}
-
-template<typename _Tp, int cn> inline Vec<_Tp, cn>::Vec(_Tp v0, _Tp v1, _Tp v2, _Tp v3, _Tp v4)
-    : Matx<_Tp, cn, 1>(v0, v1, v2, v3, v4)
-{}
-
-template<typename _Tp, int cn> inline Vec<_Tp, cn>::Vec(_Tp v0, _Tp v1, _Tp v2, _Tp v3, _Tp v4, _Tp v5)
-    : Matx<_Tp, cn, 1>(v0, v1, v2, v3, v4, v5)
-{}
-
-template<typename _Tp, int cn> inline Vec<_Tp, cn>::Vec(_Tp v0, _Tp v1, _Tp v2, _Tp v3,
-                                                        _Tp v4, _Tp v5, _Tp v6)
-    : Matx<_Tp, cn, 1>(v0, v1, v2, v3, v4, v5, v6)
-{}
-
-template<typename _Tp, int cn> inline Vec<_Tp, cn>::Vec(_Tp v0, _Tp v1, _Tp v2, _Tp v3,
-                                                        _Tp v4, _Tp v5, _Tp v6, _Tp v7)
-    : Matx<_Tp, cn, 1>(v0, v1, v2, v3, v4, v5, v6, v7)
-{}
-
-template<typename _Tp, int cn> inline Vec<_Tp, cn>::Vec(_Tp v0, _Tp v1, _Tp v2, _Tp v3,
-                                                        _Tp v4, _Tp v5, _Tp v6, _Tp v7,
-                                                        _Tp v8)
-    : Matx<_Tp, cn, 1>(v0, v1, v2, v3, v4, v5, v6, v7, v8)
-{}
-
-template<typename _Tp, int cn> inline Vec<_Tp, cn>::Vec(_Tp v0, _Tp v1, _Tp v2, _Tp v3,
-                                                        _Tp v4, _Tp v5, _Tp v6, _Tp v7,
-                                                        _Tp v8, _Tp v9)
-    : Matx<_Tp, cn, 1>(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9)
-{}
 
 template<typename _Tp, int cn> inline Vec<_Tp, cn>::Vec(const _Tp* values)
     : Matx<_Tp, cn, 1>(values)
@@ -783,34 +695,8 @@ template<typename _Tp, int cn> inline Vec<_Tp, cn>::Vec(const Vec<_Tp, cn>& m)
     : Matx<_Tp, cn, 1>(m.val)
 {}
 
-template<typename _Tp, int cn> inline
-Vec<_Tp, cn>::Vec(const Matx<_Tp, cn, 1>& a, const Matx<_Tp, cn, 1>& b, Matx_AddOp op)
-: Matx<_Tp, cn, 1>(a, b, op)
-{}
 
-template<typename _Tp, int cn> inline
-Vec<_Tp, cn>::Vec(const Matx<_Tp, cn, 1>& a, const Matx<_Tp, cn, 1>& b, Matx_SubOp op)
-: Matx<_Tp, cn, 1>(a, b, op)
-{}
 
-template<typename _Tp, int cn> template<typename _T2> inline
-Vec<_Tp, cn>::Vec(const Matx<_Tp, cn, 1>& a, _T2 alpha, Matx_ScaleOp op)
-: Matx<_Tp, cn, 1>(a, alpha, op)
-{}
-
-template<typename _Tp, int cn> inline Vec<_Tp, cn> Vec<_Tp, cn>::all(_Tp alpha)
-{
-    Vec v;
-    for( int i = 0; i < cn; i++ ) v.val[i] = alpha;
-    return v;
-}
-
-template<typename _Tp, int cn> inline Vec<_Tp, cn> Vec<_Tp, cn>::mul(const Vec<_Tp, cn>& v) const
-{
-    Vec<_Tp, cn> w;
-    for( int i = 0; i < cn; i++ ) w.val[i] = saturate_cast<_Tp>(this->val[i]*v.val[i]);
-    return w;
-}
 
 template<typename _Tp> Vec<_Tp, 2> conjugate(const Vec<_Tp, 2>& v)
 {
@@ -822,25 +708,6 @@ template<typename _Tp> Vec<_Tp, 4> conjugate(const Vec<_Tp, 4>& v)
     return Vec<_Tp, 4>(v[0], -v[1], -v[2], -v[3]);
 }
 
-template<> inline Vec<float, 2> Vec<float, 2>::conj() const
-{
-    return conjugate(*this);
-}
-
-template<> inline Vec<double, 2> Vec<double, 2>::conj() const
-{
-    return conjugate(*this);
-}
-
-template<> inline Vec<float, 4> Vec<float, 4>::conj() const
-{
-    return conjugate(*this);
-}
-
-template<> inline Vec<double, 4> Vec<double, 4>::conj() const
-{
-    return conjugate(*this);
-}
 
 template<typename _Tp, int cn> inline Vec<_Tp, cn> Vec<_Tp, cn>::cross(const Vec<_Tp, cn>&) const
 {
@@ -856,14 +723,7 @@ inline Vec<_Tp, cn>::operator Vec<T2, cn>() const
     return v;
 }
 
-template<typename _Tp, int cn> inline Vec<_Tp, cn>::operator CvScalar() const
-{
-    CvScalar s = {{0,0,0,0}};
-    int i;
-    for( i = 0; i < std::min(cn, 4); i++ ) s.val[i] = this->val[i];
-    for( ; i < 4; i++ ) s.val[i] = 0;
-    return s;
-}
+
 
 template<typename _Tp, int cn> inline const _Tp& Vec<_Tp, cn>::operator [](int i) const
 {
@@ -1048,33 +908,6 @@ template<typename _Tp> inline Vec<_Tp, 4>& operator *= (Vec<_Tp, 4>& v1, const V
 
 
 
-template<typename _Tp, typename _T2, int cn> static inline
-VecCommaInitializer<_Tp, cn> operator << (const Vec<_Tp, cn>& vec, _T2 val)
-{
-    VecCommaInitializer<_Tp, cn> commaInitializer((Vec<_Tp, cn>*)&vec);
-    return (commaInitializer, val);
-}
-
-template<typename _Tp, int cn> inline
-VecCommaInitializer<_Tp, cn>::VecCommaInitializer(Vec<_Tp, cn>* _vec)
-    : MatxCommaInitializer<_Tp, cn, 1>(_vec)
-{}
-
-template<typename _Tp, int cn> template<typename _T2> inline
-VecCommaInitializer<_Tp, cn>& VecCommaInitializer<_Tp, cn>::operator , (_T2 value)
-{
-    CV_DbgAssert( this->idx < cn );
-    this->dst->val[this->idx++] = saturate_cast<_Tp>(value);
-    return *this;
-}
-
-template<typename _Tp, int cn> inline
-Vec<_Tp, cn> VecCommaInitializer<_Tp, cn>::operator *() const
-{
-    CV_DbgAssert( this->idx == cn );
-    return *this->dst;
-}
-
 //////////////////////////////// 2D Point ////////////////////////////////
 
 template<typename _Tp> inline Point_<_Tp>::Point_() : x(0), y(0) {}
@@ -1096,11 +929,6 @@ template<typename _Tp> inline Point_<_Tp>::operator CvPoint2D32f() const
 { return cvPoint2D32f((float)x, (float)y); }
 template<typename _Tp> inline Point_<_Tp>::operator Vec<_Tp, 2>() const
 { return Vec<_Tp, 2>(x, y); }
-
-template<typename _Tp> inline _Tp Point_<_Tp>::dot(const Point_& pt) const
-{ return saturate_cast<_Tp>(x*pt.x + y*pt.y); }
-template<typename _Tp> inline double Point_<_Tp>::ddot(const Point_& pt) const
-{ return (double)x*pt.x + (double)y*pt.y; }
 
 
 
@@ -1180,133 +1008,7 @@ template<typename _Tp> static inline Point_<_Tp> operator * (const Point_<_Tp>& 
 template<typename _Tp> static inline Point_<_Tp> operator * (double a, const Point_<_Tp>& b)
 { return Point_<_Tp>( saturate_cast<_Tp>(b.x*a), saturate_cast<_Tp>(b.y*a) ); }
 
-//////////////////////////////// 3D Point ////////////////////////////////
 
-template<typename _Tp> inline Point3_<_Tp>::Point3_() : x(0), y(0), z(0) {}
-template<typename _Tp> inline Point3_<_Tp>::Point3_(_Tp _x, _Tp _y, _Tp _z) : x(_x), y(_y), z(_z) {}
-template<typename _Tp> inline Point3_<_Tp>::Point3_(const Point3_& pt) : x(pt.x), y(pt.y), z(pt.z) {}
-template<typename _Tp> inline Point3_<_Tp>::Point3_(const Point_<_Tp>& pt) : x(pt.x), y(pt.y), z(_Tp()) {}
-template<typename _Tp> inline Point3_<_Tp>::Point3_(const CvPoint3D32f& pt) :
-    x(saturate_cast<_Tp>(pt.x)), y(saturate_cast<_Tp>(pt.y)), z(saturate_cast<_Tp>(pt.z)) {}
-template<typename _Tp> inline Point3_<_Tp>::Point3_(const Vec<_Tp, 3>& v) : x(v[0]), y(v[1]), z(v[2]) {}
-
-template<typename _Tp> template<typename _Tp2> inline Point3_<_Tp>::operator Point3_<_Tp2>() const
-{ return Point3_<_Tp2>(saturate_cast<_Tp2>(x), saturate_cast<_Tp2>(y), saturate_cast<_Tp2>(z)); }
-
-template<typename _Tp> inline Point3_<_Tp>::operator CvPoint3D32f() const
-{ return cvPoint3D32f((float)x, (float)y, (float)z); }
-
-template<typename _Tp> inline Point3_<_Tp>::operator Vec<_Tp, 3>() const
-{ return Vec<_Tp, 3>(x, y, z); }
-
-template<typename _Tp> inline Point3_<_Tp>& Point3_<_Tp>::operator = (const Point3_& pt)
-{ x = pt.x; y = pt.y; z = pt.z; return *this; }
-
-template<typename _Tp> inline _Tp Point3_<_Tp>::dot(const Point3_& pt) const
-{ return saturate_cast<_Tp>(x*pt.x + y*pt.y + z*pt.z); }
-template<typename _Tp> inline double Point3_<_Tp>::ddot(const Point3_& pt) const
-{ return (double)x*pt.x + (double)y*pt.y + (double)z*pt.z; }
-
-
-
-template<typename _Tp> static inline Point3_<_Tp>&
-operator += (Point3_<_Tp>& a, const Point3_<_Tp>& b)
-{
-    a.x = saturate_cast<_Tp>(a.x + b.x);
-    a.y = saturate_cast<_Tp>(a.y + b.y);
-    a.z = saturate_cast<_Tp>(a.z + b.z);
-    return a;
-}
-
-template<typename _Tp> static inline Point3_<_Tp>&
-operator -= (Point3_<_Tp>& a, const Point3_<_Tp>& b)
-{
-    a.x = saturate_cast<_Tp>(a.x - b.x);
-    a.y = saturate_cast<_Tp>(a.y - b.y);
-    a.z = saturate_cast<_Tp>(a.z - b.z);
-    return a;
-}
-
-template<typename _Tp> static inline Point3_<_Tp>&
-operator *= (Point3_<_Tp>& a, int b)
-{
-    a.x = saturate_cast<_Tp>(a.x*b);
-    a.y = saturate_cast<_Tp>(a.y*b);
-    a.z = saturate_cast<_Tp>(a.z*b);
-    return a;
-}
-
-template<typename _Tp> static inline Point3_<_Tp>&
-operator *= (Point3_<_Tp>& a, float b)
-{
-    a.x = saturate_cast<_Tp>(a.x*b);
-    a.y = saturate_cast<_Tp>(a.y*b);
-    a.z = saturate_cast<_Tp>(a.z*b);
-    return a;
-}
-
-template<typename _Tp> static inline Point3_<_Tp>&
-operator *= (Point3_<_Tp>& a, double b)
-{
-    a.x = saturate_cast<_Tp>(a.x*b);
-    a.y = saturate_cast<_Tp>(a.y*b);
-    a.z = saturate_cast<_Tp>(a.z*b);
-    return a;
-}
-
-template<typename _Tp> static inline double norm(const Point3_<_Tp>& pt)
-{ return std::sqrt((double)pt.x*pt.x + (double)pt.y*pt.y + (double)pt.z*pt.z); }
-
-template<typename _Tp> static inline bool operator == (const Point3_<_Tp>& a, const Point3_<_Tp>& b)
-{ return a.x == b.x && a.y == b.y && a.z == b.z; }
-
-template<typename _Tp> static inline bool operator != (const Point3_<_Tp>& a, const Point3_<_Tp>& b)
-{ return a.x != b.x || a.y != b.y || a.z != b.z; }
-
-template<typename _Tp> static inline Point3_<_Tp> operator + (const Point3_<_Tp>& a, const Point3_<_Tp>& b)
-{ return Point3_<_Tp>( saturate_cast<_Tp>(a.x + b.x),
-                      saturate_cast<_Tp>(a.y + b.y),
-                      saturate_cast<_Tp>(a.z + b.z)); }
-
-template<typename _Tp> static inline Point3_<_Tp> operator - (const Point3_<_Tp>& a, const Point3_<_Tp>& b)
-{ return Point3_<_Tp>( saturate_cast<_Tp>(a.x - b.x),
-                        saturate_cast<_Tp>(a.y - b.y),
-                        saturate_cast<_Tp>(a.z - b.z)); }
-
-template<typename _Tp> static inline Point3_<_Tp> operator - (const Point3_<_Tp>& a)
-{ return Point3_<_Tp>( saturate_cast<_Tp>(-a.x),
-                      saturate_cast<_Tp>(-a.y),
-                      saturate_cast<_Tp>(-a.z) ); }
-
-template<typename _Tp> static inline Point3_<_Tp> operator * (const Point3_<_Tp>& a, int b)
-{ return Point3_<_Tp>( saturate_cast<_Tp>(a.x*b),
-                      saturate_cast<_Tp>(a.y*b),
-                      saturate_cast<_Tp>(a.z*b) ); }
-
-template<typename _Tp> static inline Point3_<_Tp> operator * (int a, const Point3_<_Tp>& b)
-{ return Point3_<_Tp>( saturate_cast<_Tp>(b.x*a),
-                      saturate_cast<_Tp>(b.y*a),
-                      saturate_cast<_Tp>(b.z*a) ); }
-
-template<typename _Tp> static inline Point3_<_Tp> operator * (const Point3_<_Tp>& a, float b)
-{ return Point3_<_Tp>( saturate_cast<_Tp>(a.x*b),
-                      saturate_cast<_Tp>(a.y*b),
-                      saturate_cast<_Tp>(a.z*b) ); }
-
-template<typename _Tp> static inline Point3_<_Tp> operator * (float a, const Point3_<_Tp>& b)
-{ return Point3_<_Tp>( saturate_cast<_Tp>(b.x*a),
-                      saturate_cast<_Tp>(b.y*a),
-                      saturate_cast<_Tp>(b.z*a) ); }
-
-template<typename _Tp> static inline Point3_<_Tp> operator * (const Point3_<_Tp>& a, double b)
-{ return Point3_<_Tp>( saturate_cast<_Tp>(a.x*b),
-                      saturate_cast<_Tp>(a.y*b),
-                      saturate_cast<_Tp>(a.z*b) ); }
-
-template<typename _Tp> static inline Point3_<_Tp> operator * (double a, const Point3_<_Tp>& b)
-{ return Point3_<_Tp>( saturate_cast<_Tp>(b.x*a),
-                      saturate_cast<_Tp>(b.y*a),
-                      saturate_cast<_Tp>(b.z*a) ); }
 
 //////////////////////////////// Size ////////////////////////////////
 
@@ -1455,16 +1157,7 @@ template<typename _Tp> inline bool Point_<_Tp>::inside( const Rect_<_Tp>& r ) co
     return r.contains(*this);
 }
 
-inline RotatedRect::RotatedRect() { angle = 0; }
-inline RotatedRect::RotatedRect(const Point2f& _center, const Size2f& _size, float _angle)
-    : center(_center), size(_size), angle(_angle) {}
-inline RotatedRect::RotatedRect(const CvBox2D& box)
-    : center(box.center), size(box.size), angle(box.angle) {}
-inline RotatedRect::operator CvBox2D() const
-{
-    CvBox2D box; box.center = center; box.size = size; box.angle = angle;
-    return box;
-}
+
 
 //////////////////////////////// Scalar_ ///////////////////////////////
 
@@ -1487,8 +1180,6 @@ template<typename _Tp> inline Scalar_<_Tp>::Scalar_(_Tp v0)
 
 template<typename _Tp> inline Scalar_<_Tp> Scalar_<_Tp>::all(_Tp v0)
 { return Scalar_<_Tp>(v0, v0, v0, v0); }
-template<typename _Tp> inline Scalar_<_Tp>::operator CvScalar() const
-{ return cvScalar(this->val[0], this->val[1], this->val[2], this->val[3]); }
 
 template<typename _Tp> template<typename T2> inline Scalar_<_Tp>::operator Scalar_<T2>() const
 {
@@ -1523,14 +1214,6 @@ template<typename _Tp> static inline Scalar_<_Tp>& operator *= ( Scalar_<_Tp>& a
     a.val[2] = saturate_cast<_Tp>(a.val[2] * v);
     a.val[3] = saturate_cast<_Tp>(a.val[3] * v);
     return a;
-}
-
-template<typename _Tp> inline Scalar_<_Tp> Scalar_<_Tp>::mul(const Scalar_<_Tp>& t, double scale ) const
-{
-    return Scalar_<_Tp>( saturate_cast<_Tp>(this->val[0]*t.val[0]*scale),
-                       saturate_cast<_Tp>(this->val[1]*t.val[1]*scale),
-                       saturate_cast<_Tp>(this->val[2]*t.val[2]*scale),
-                       saturate_cast<_Tp>(this->val[3]*t.val[3]*scale));
 }
 
 template<typename _Tp> static inline bool operator == ( const Scalar_<_Tp>& a, const Scalar_<_Tp>& b )
@@ -1597,13 +1280,6 @@ operator *= (Scalar_<_Tp>& a, const Scalar_<_Tp>& b)
     return a;
 }
 
-template<typename _Tp> inline Scalar_<_Tp> Scalar_<_Tp>::conj() const
-{
-    return Scalar_<_Tp>(saturate_cast<_Tp>(this->val[0]),
-                        saturate_cast<_Tp>(-this->val[1]),
-                        saturate_cast<_Tp>(-this->val[2]),
-                        saturate_cast<_Tp>(-this->val[3]));
-}
 
 template<typename _Tp> inline bool Scalar_<_Tp>::isReal() const
 {
@@ -1640,12 +1316,7 @@ Scalar_<_Tp>& operator /= (Scalar_<_Tp>& a, _Tp alpha)
     return a;
 }
 
-template<typename _Tp> static inline
-Scalar_<_Tp> operator / (_Tp a, const Scalar_<_Tp>& b)
-{
-    _Tp s = a/(b[0]*b[0] + b[1]*b[1] + b[2]*b[2] + b[3]*b[3]);
-    return b.conj()*s;
-}
+
 
 template<typename _Tp> static inline
 Scalar_<_Tp> operator / (const Scalar_<_Tp>& a, const Scalar_<_Tp>& b)
@@ -1917,20 +1588,7 @@ protected:
 };
 
 
-template<typename _Tp> inline typename DataType<_Tp>::work_type
-dot(const Vector<_Tp>& v1, const Vector<_Tp>& v2)
-{
-    typedef typename DataType<_Tp>::work_type _Tw;
-    size_t i = 0, n = v1.size();
-    assert(v1.size() == v2.size());
 
-    _Tw s = 0;
-    const _Tp *ptr1 = &v1[0], *ptr2 = &v2[0];
-    for( ; i < n; i++ )
-        s += (_Tw)ptr1[i]*ptr2[i];
-
-    return s;
-}
 
 // Multiply-with-Carry RNG
 inline RNG::RNG() { state = 0xffffffff; }
@@ -2125,71 +1783,6 @@ template<typename _Tp> template<typename _Tp2> inline const Ptr<_Tp2> Ptr<_Tp>::
     return p;
 }
 
-template<typename T>
-Ptr<T> makePtr()
-{
-    return Ptr<T>(new T());
-}
-
-template<typename T, typename A1>
-Ptr<T> makePtr(const A1& a1)
-{
-    return Ptr<T>(new T(a1));
-}
-
-template<typename T, typename A1, typename A2>
-Ptr<T> makePtr(const A1& a1, const A2& a2)
-{
-    return Ptr<T>(new T(a1, a2));
-}
-
-template<typename T, typename A1, typename A2, typename A3>
-Ptr<T> makePtr(const A1& a1, const A2& a2, const A3& a3)
-{
-    return Ptr<T>(new T(a1, a2, a3));
-}
-
-template<typename T, typename A1, typename A2, typename A3, typename A4>
-Ptr<T> makePtr(const A1& a1, const A2& a2, const A3& a3, const A4& a4)
-{
-    return Ptr<T>(new T(a1, a2, a3, a4));
-}
-
-template<typename T, typename A1, typename A2, typename A3, typename A4, typename A5>
-Ptr<T> makePtr(const A1& a1, const A2& a2, const A3& a3, const A4& a4, const A5& a5)
-{
-    return Ptr<T>(new T(a1, a2, a3, a4, a5));
-}
-
-template<typename T, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6>
-Ptr<T> makePtr(const A1& a1, const A2& a2, const A3& a3, const A4& a4, const A5& a5, const A6& a6)
-{
-    return Ptr<T>(new T(a1, a2, a3, a4, a5, a6));
-}
-
-template<typename T, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7>
-Ptr<T> makePtr(const A1& a1, const A2& a2, const A3& a3, const A4& a4, const A5& a5, const A6& a6, const A7& a7)
-{
-    return Ptr<T>(new T(a1, a2, a3, a4, a5, a6, a7));
-}
-
-template<typename T, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8>
-Ptr<T> makePtr(const A1& a1, const A2& a2, const A3& a3, const A4& a4, const A5& a5, const A6& a6, const A7& a7, const A8& a8)
-{
-    return Ptr<T>(new T(a1, a2, a3, a4, a5, a6, a7, a8));
-}
-
-template<typename T, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9>
-Ptr<T> makePtr(const A1& a1, const A2& a2, const A3& a3, const A4& a4, const A5& a5, const A6& a6, const A7& a7, const A8& a8, const A9& a9)
-{
-    return Ptr<T>(new T(a1, a2, a3, a4, a5, a6, a7, a8, a9));
-}
-
-template<typename T, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9, typename A10>
-Ptr<T> makePtr(const A1& a1, const A2& a2, const A3& a3, const A4& a4, const A5& a5, const A6& a6, const A7& a7, const A8& a8, const A9& a9, const A10& a10)
-{
-    return Ptr<T>(new T(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10));
-}
 
 //// specializied implementations of Ptr::delete_obj() for classic OpenCV types
 
@@ -2208,734 +1801,7 @@ template<> CV_EXPORTS void Ptr<CvMemStorage>::delete_obj();
 
 
 
-//////////////////////////////////////// Various algorithms ////////////////////////////////////
 
-template<typename _Tp> static inline _Tp gcd(_Tp a, _Tp b)
-{
-    if( a < b )
-        std::swap(a, b);
-    while( b > 0 )
-    {
-        _Tp r = a % b;
-        a = b;
-        b = r;
-    }
-    return a;
-}
-
-/****************************************************************************************\
-
-  Generic implementation of QuickSort algorithm
-  Use it as: vector<_Tp> a; ... sort(a,<less_than_predictor>);
-
-  The current implementation was derived from *BSD system qsort():
-
-    * Copyright (c) 1992, 1993
-    *  The Regents of the University of California.  All rights reserved.
-    *
-    * Redistribution and use in source and binary forms, with or without
-    * modification, are permitted provided that the following conditions
-    * are met:
-    * 1. Redistributions of source code must retain the above copyright
-    *    notice, this list of conditions and the following disclaimer.
-    * 2. Redistributions in binary form must reproduce the above copyright
-    *    notice, this list of conditions and the following disclaimer in the
-    *    documentation and/or other materials provided with the distribution.
-    * 3. All advertising materials mentioning features or use of this software
-    *    must display the following acknowledgement:
-    *  This product includes software developed by the University of
-    *  California, Berkeley and its contributors.
-    * 4. Neither the name of the University nor the names of its contributors
-    *    may be used to endorse or promote products derived from this software
-    *    without specific prior written permission.
-    *
-    * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
-    * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-    * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-    * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
-    * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-    * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-    * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-    * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-    * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
-    * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
-    * SUCH DAMAGE.
-
-\****************************************************************************************/
-
-template<typename _Tp, class _LT> void sort( vector<_Tp>& vec, _LT LT=_LT() )
-{
-    int isort_thresh = 7;
-    int sp = 0;
-
-    struct
-    {
-        _Tp *lb;
-        _Tp *ub;
-    } stack[48];
-
-    size_t total = vec.size();
-
-    if( total <= 1 )
-        return;
-
-    _Tp* arr = &vec[0];
-    stack[0].lb = arr;
-    stack[0].ub = arr + (total - 1);
-
-    while( sp >= 0 )
-    {
-        _Tp* left = stack[sp].lb;
-        _Tp* right = stack[sp--].ub;
-
-        for(;;)
-        {
-            int i, n = (int)(right - left) + 1, m;
-            _Tp* ptr;
-            _Tp* ptr2;
-
-            if( n <= isort_thresh )
-            {
-            insert_sort:
-                for( ptr = left + 1; ptr <= right; ptr++ )
-                {
-                    for( ptr2 = ptr; ptr2 > left && LT(ptr2[0],ptr2[-1]); ptr2--)
-                        std::swap( ptr2[0], ptr2[-1] );
-                }
-                break;
-            }
-            else
-            {
-                _Tp* left0;
-                _Tp* left1;
-                _Tp* right0;
-                _Tp* right1;
-                _Tp* pivot;
-                _Tp* a;
-                _Tp* b;
-                _Tp* c;
-                int swap_cnt = 0;
-
-                left0 = left;
-                right0 = right;
-                pivot = left + (n/2);
-
-                if( n > 40 )
-                {
-                    int d = n / 8;
-                    a = left, b = left + d, c = left + 2*d;
-                    left = LT(*a, *b) ? (LT(*b, *c) ? b : (LT(*a, *c) ? c : a))
-                                      : (LT(*c, *b) ? b : (LT(*a, *c) ? a : c));
-
-                    a = pivot - d, b = pivot, c = pivot + d;
-                    pivot = LT(*a, *b) ? (LT(*b, *c) ? b : (LT(*a, *c) ? c : a))
-                                      : (LT(*c, *b) ? b : (LT(*a, *c) ? a : c));
-
-                    a = right - 2*d, b = right - d, c = right;
-                    right = LT(*a, *b) ? (LT(*b, *c) ? b : (LT(*a, *c) ? c : a))
-                                      : (LT(*c, *b) ? b : (LT(*a, *c) ? a : c));
-                }
-
-                a = left, b = pivot, c = right;
-                pivot = LT(*a, *b) ? (LT(*b, *c) ? b : (LT(*a, *c) ? c : a))
-                                   : (LT(*c, *b) ? b : (LT(*a, *c) ? a : c));
-                if( pivot != left0 )
-                {
-                    std::swap( *pivot, *left0 );
-                    pivot = left0;
-                }
-                left = left1 = left0 + 1;
-                right = right1 = right0;
-
-                for(;;)
-                {
-                    while( left <= right && !LT(*pivot, *left) )
-                    {
-                        if( !LT(*left, *pivot) )
-                        {
-                            if( left > left1 )
-                                std::swap( *left1, *left );
-                            swap_cnt = 1;
-                            left1++;
-                        }
-                        left++;
-                    }
-
-                    while( left <= right && !LT(*right, *pivot) )
-                    {
-                        if( !LT(*pivot, *right) )
-                        {
-                            if( right < right1 )
-                                std::swap( *right1, *right );
-                            swap_cnt = 1;
-                            right1--;
-                        }
-                        right--;
-                    }
-
-                    if( left > right )
-                        break;
-                    std::swap( *left, *right );
-                    swap_cnt = 1;
-                    left++;
-                    right--;
-                }
-
-                if( swap_cnt == 0 )
-                {
-                    left = left0, right = right0;
-                    goto insert_sort;
-                }
-
-                n = std::min( (int)(left1 - left0), (int)(left - left1) );
-                for( i = 0; i < n; i++ )
-                    std::swap( left0[i], left[i-n] );
-
-                n = std::min( (int)(right0 - right1), (int)(right1 - right) );
-                for( i = 0; i < n; i++ )
-                    std::swap( left[i], right0[i-n+1] );
-                n = (int)(left - left1);
-                m = (int)(right1 - right);
-                if( n > 1 )
-                {
-                    if( m > 1 )
-                    {
-                        if( n > m )
-                        {
-                            stack[++sp].lb = left0;
-                            stack[sp].ub = left0 + n - 1;
-                            left = right0 - m + 1, right = right0;
-                        }
-                        else
-                        {
-                            stack[++sp].lb = right0 - m + 1;
-                            stack[sp].ub = right0;
-                            left = left0, right = left0 + n - 1;
-                        }
-                    }
-                    else
-                        left = left0, right = left0 + n - 1;
-                }
-                else if( m > 1 )
-                    left = right0 - m + 1, right = right0;
-                else
-                    break;
-            }
-        }
-    }
-}
-
-template<typename _Tp> class LessThan
-{
-public:
-    bool operator()(const _Tp& a, const _Tp& b) const { return a < b; }
-};
-
-template<typename _Tp> class GreaterEq
-{
-public:
-    bool operator()(const _Tp& a, const _Tp& b) const { return a >= b; }
-};
-
-template<typename _Tp> class LessThanIdx
-{
-public:
-    LessThanIdx( const _Tp* _arr ) : arr(_arr) {}
-    bool operator()(int a, int b) const { return arr[a] < arr[b]; }
-    const _Tp* arr;
-};
-
-template<typename _Tp> class GreaterEqIdx
-{
-public:
-    GreaterEqIdx( const _Tp* _arr ) : arr(_arr) {}
-    bool operator()(int a, int b) const { return arr[a] >= arr[b]; }
-    const _Tp* arr;
-};
-
-
-//////////////////////////////////////////////////////////////////////////////
-
-// bridge C++ => C Seq API
-CV_EXPORTS void  seqPop( CvSeq* seq, void* element=0);
-CV_EXPORTS void  seqPopFront( CvSeq* seq, void* element=0);
-CV_EXPORTS void  seqPopMulti( CvSeq* seq, void* elements,
-                              int count, int in_front=0 );
-CV_EXPORTS void  seqRemove( CvSeq* seq, int index );
-CV_EXPORTS void  clearSeq( CvSeq* seq );
-CV_EXPORTS schar*  getSeqElem( const CvSeq* seq, int index );
-CV_EXPORTS void  seqRemoveSlice( CvSeq* seq, CvSlice slice );
-CV_EXPORTS void  seqInsertSlice( CvSeq* seq, int before_index, const CvArr* from_arr );
-
-template<typename _Tp> inline Seq<_Tp>::Seq() : seq(0) {}
-template<typename _Tp> inline Seq<_Tp>::Seq( const CvSeq* _seq ) : seq((CvSeq*)_seq)
-{
-    CV_Assert(!_seq || _seq->elem_size == sizeof(_Tp));
-}
-
-template<typename _Tp> inline Seq<_Tp>::Seq( MemStorage& storage,
-                                             int headerSize )
-{
-    CV_Assert(headerSize >= (int)sizeof(CvSeq));
-    seq = cvCreateSeq(DataType<_Tp>::type, headerSize, sizeof(_Tp), storage);
-}
-
-template<typename _Tp> inline _Tp& Seq<_Tp>::operator [](int idx)
-{ return *(_Tp*)getSeqElem(seq, idx); }
-
-template<typename _Tp> inline const _Tp& Seq<_Tp>::operator [](int idx) const
-{ return *(_Tp*)getSeqElem(seq, idx); }
-
-template<typename _Tp> inline SeqIterator<_Tp> Seq<_Tp>::begin() const
-{ return SeqIterator<_Tp>(*this); }
-
-template<typename _Tp> inline SeqIterator<_Tp> Seq<_Tp>::end() const
-{ return SeqIterator<_Tp>(*this, true); }
-
-template<typename _Tp> inline size_t Seq<_Tp>::size() const
-{ return seq ? seq->total : 0; }
-
-template<typename _Tp> inline int Seq<_Tp>::type() const
-{ return seq ? CV_MAT_TYPE(seq->flags) : 0; }
-
-template<typename _Tp> inline int Seq<_Tp>::depth() const
-{ return seq ? CV_MAT_DEPTH(seq->flags) : 0; }
-
-template<typename _Tp> inline int Seq<_Tp>::channels() const
-{ return seq ? CV_MAT_CN(seq->flags) : 0; }
-
-template<typename _Tp> inline size_t Seq<_Tp>::elemSize() const
-{ return seq ? seq->elem_size : 0; }
-
-template<typename _Tp> inline size_t Seq<_Tp>::index(const _Tp& elem) const
-{ return cvSeqElemIdx(seq, &elem); }
-
-template<typename _Tp> inline void Seq<_Tp>::push_back(const _Tp& elem)
-{ cvSeqPush(seq, &elem); }
-
-template<typename _Tp> inline void Seq<_Tp>::push_front(const _Tp& elem)
-{ cvSeqPushFront(seq, &elem); }
-
-template<typename _Tp> inline void Seq<_Tp>::push_back(const _Tp* elem, size_t count)
-{ cvSeqPushMulti(seq, elem, (int)count, 0); }
-
-template<typename _Tp> inline void Seq<_Tp>::push_front(const _Tp* elem, size_t count)
-{ cvSeqPushMulti(seq, elem, (int)count, 1); }
-
-template<typename _Tp> inline _Tp& Seq<_Tp>::back()
-{ return *(_Tp*)getSeqElem(seq, -1); }
-
-template<typename _Tp> inline const _Tp& Seq<_Tp>::back() const
-{ return *(const _Tp*)getSeqElem(seq, -1); }
-
-template<typename _Tp> inline _Tp& Seq<_Tp>::front()
-{ return *(_Tp*)getSeqElem(seq, 0); }
-
-template<typename _Tp> inline const _Tp& Seq<_Tp>::front() const
-{ return *(const _Tp*)getSeqElem(seq, 0); }
-
-template<typename _Tp> inline bool Seq<_Tp>::empty() const
-{ return !seq || seq->total == 0; }
-
-template<typename _Tp> inline void Seq<_Tp>::clear()
-{ if(seq) clearSeq(seq); }
-
-template<typename _Tp> inline void Seq<_Tp>::pop_back()
-{ seqPop(seq); }
-
-template<typename _Tp> inline void Seq<_Tp>::pop_front()
-{ seqPopFront(seq); }
-
-template<typename _Tp> inline void Seq<_Tp>::pop_back(_Tp* elem, size_t count)
-{ seqPopMulti(seq, elem, (int)count, 0); }
-
-template<typename _Tp> inline void Seq<_Tp>::pop_front(_Tp* elem, size_t count)
-{ seqPopMulti(seq, elem, (int)count, 1); }
-
-template<typename _Tp> inline void Seq<_Tp>::insert(int idx, const _Tp& elem)
-{ seqInsert(seq, idx, &elem); }
-
-template<typename _Tp> inline void Seq<_Tp>::insert(int idx, const _Tp* elems, size_t count)
-{
-    CvMat m = cvMat(1, count, DataType<_Tp>::type, elems);
-    seqInsertSlice(seq, idx, &m);
-}
-
-template<typename _Tp> inline void Seq<_Tp>::remove(int idx)
-{ seqRemove(seq, idx); }
-
-template<typename _Tp> inline void Seq<_Tp>::remove(const Range& r)
-{ seqRemoveSlice(seq, r); }
-
-template<typename _Tp> inline void Seq<_Tp>::copyTo(vector<_Tp>& vec, const Range& range) const
-{
-    size_t len = !seq ? 0 : range == Range::all() ? seq->total : range.end - range.start;
-    vec.resize(len);
-    if( seq && len )
-        cvCvtSeqToArray(seq, &vec[0], range);
-}
-
-template<typename _Tp> inline Seq<_Tp>::operator vector<_Tp>() const
-{
-    vector<_Tp> vec;
-    copyTo(vec);
-    return vec;
-}
-
-template<typename _Tp> inline SeqIterator<_Tp>::SeqIterator()
-{ memset(this, 0, sizeof(*this)); }
-
-template<typename _Tp> inline SeqIterator<_Tp>::SeqIterator(const Seq<_Tp>& _seq, bool seekEnd)
-{
-    cvStartReadSeq(_seq.seq, this);
-    index = seekEnd ? _seq.seq->total : 0;
-}
-
-template<typename _Tp> inline void SeqIterator<_Tp>::seek(size_t pos)
-{
-    cvSetSeqReaderPos(this, (int)pos, false);
-    index = pos;
-}
-
-template<typename _Tp> inline size_t SeqIterator<_Tp>::tell() const
-{ return index; }
-
-template<typename _Tp> inline _Tp& SeqIterator<_Tp>::operator *()
-{ return *(_Tp*)ptr; }
-
-template<typename _Tp> inline const _Tp& SeqIterator<_Tp>::operator *() const
-{ return *(const _Tp*)ptr; }
-
-template<typename _Tp> inline SeqIterator<_Tp>& SeqIterator<_Tp>::operator ++()
-{
-    CV_NEXT_SEQ_ELEM(sizeof(_Tp), *this);
-    if( ++index >= seq->total*2 )
-        index = 0;
-    return *this;
-}
-
-template<typename _Tp> inline SeqIterator<_Tp> SeqIterator<_Tp>::operator ++(int) const
-{
-    SeqIterator<_Tp> it = *this;
-    ++*this;
-    return it;
-}
-
-template<typename _Tp> inline SeqIterator<_Tp>& SeqIterator<_Tp>::operator --()
-{
-    CV_PREV_SEQ_ELEM(sizeof(_Tp), *this);
-    if( --index < 0 )
-        index = seq->total*2-1;
-    return *this;
-}
-
-template<typename _Tp> inline SeqIterator<_Tp> SeqIterator<_Tp>::operator --(int) const
-{
-    SeqIterator<_Tp> it = *this;
-    --*this;
-    return it;
-}
-
-template<typename _Tp> inline SeqIterator<_Tp>& SeqIterator<_Tp>::operator +=(int delta)
-{
-    cvSetSeqReaderPos(this, delta, 1);
-    index += delta;
-    int n = seq->total*2;
-    if( index < 0 )
-        index += n;
-    if( index >= n )
-        index -= n;
-    return *this;
-}
-
-template<typename _Tp> inline SeqIterator<_Tp>& SeqIterator<_Tp>::operator -=(int delta)
-{
-    return (*this += -delta);
-}
-
-template<typename _Tp> inline ptrdiff_t operator - (const SeqIterator<_Tp>& a,
-                                                    const SeqIterator<_Tp>& b)
-{
-    ptrdiff_t delta = a.index - b.index, n = a.seq->total;
-#if defined(__QNX__)
-    // No long std::abs(long) in QNX
-    long absdelta = (delta < 0) ? -delta : delta;
-    if( absdelta > n )
-#else
-    if( std::abs(static_cast<long>(delta)) > n )
-#endif
-        delta += delta < 0 ? n : -n;
-
-    return delta;
-}
-
-template<typename _Tp> inline bool operator == (const SeqIterator<_Tp>& a,
-                                                const SeqIterator<_Tp>& b)
-{
-    return a.seq == b.seq && a.index == b.index;
-}
-
-template<typename _Tp> inline bool operator != (const SeqIterator<_Tp>& a,
-                                                const SeqIterator<_Tp>& b)
-{
-    return !(a == b);
-}
-
-
-template<typename _ClsName> struct RTTIImpl
-{
-public:
-    static int isInstance(const void* ptr)
-    {
-        static _ClsName dummy;
-        static void* dummyp = &dummy;
-        union
-        {
-            const void* p;
-            const void** pp;
-        } a, b;
-        a.p = dummyp;
-        b.p = ptr;
-        return *a.pp == *b.pp;
-    }
-    static void release(void** dbptr)
-    {
-        if(dbptr && *dbptr)
-        {
-            delete (_ClsName*)*dbptr;
-            *dbptr = 0;
-        }
-    }
-
-
-
-
-    static void* clone(const void* ptr)
-    {
-        if(!ptr)
-            return 0;
-        return new _ClsName(*(const _ClsName*)ptr);
-    }
-};
-
-
-class CV_EXPORTS Formatter
-{
-public:
-    virtual ~Formatter() {}
-    virtual void write(std::ostream& out, const Mat& m, const int* params=0, int nparams=0) const = 0;
-    virtual void write(std::ostream& out, const void* data, int nelems, int type,
-                       const int* params=0, int nparams=0) const = 0;
-    static const Formatter* get(const char* fmt="");
-    static const Formatter* setDefault(const Formatter* fmt);
-};
-
-
-struct CV_EXPORTS Formatted
-{
-    Formatted(const Mat& m, const Formatter* fmt,
-              const vector<int>& params);
-    Formatted(const Mat& m, const Formatter* fmt,
-              const int* params=0);
-    Mat mtx;
-    const Formatter* fmt;
-    vector<int> params;
-};
-
-static inline Formatted format(const Mat& mtx, const char* fmt,
-                               const vector<int>& params=vector<int>())
-{
-    return Formatted(mtx, Formatter::get(fmt), params);
-}
-
-template<typename _Tp> static inline Formatted format(const vector<Point_<_Tp> >& vec,
-                                                      const char* fmt, const vector<int>& params=vector<int>())
-{
-    return Formatted(Mat(vec), Formatter::get(fmt), params);
-}
-
-template<typename _Tp> static inline Formatted format(const vector<Point3_<_Tp> >& vec,
-                                                      const char* fmt, const vector<int>& params=vector<int>())
-{
-    return Formatted(Mat(vec), Formatter::get(fmt), params);
-}
-
-/** \brief prints Mat to the output stream in Matlab notation
- * use like
- @verbatim
- Mat my_mat = Mat::eye(3,3,CV_32F);
- std::cout << my_mat;
- @endverbatim
- */
-static inline std::ostream& operator << (std::ostream& out, const Mat& mtx)
-{
-    Formatter::get()->write(out, mtx);
-    return out;
-}
-
-/** \brief prints Mat to the output stream allows in the specified notation (see format)
- * use like
- @verbatim
- Mat my_mat = Mat::eye(3,3,CV_32F);
- std::cout << my_mat;
- @endverbatim
- */
-static inline std::ostream& operator << (std::ostream& out, const Formatted& fmtd)
-{
-    fmtd.fmt->write(out, fmtd.mtx);
-    return out;
-}
-
-
-template<typename _Tp> static inline std::ostream& operator << (std::ostream& out,
-                                                                const vector<Point_<_Tp> >& vec)
-{
-    Formatter::get()->write(out, Mat(vec));
-    return out;
-}
-
-
-template<typename _Tp> static inline std::ostream& operator << (std::ostream& out,
-                                                                const vector<Point3_<_Tp> >& vec)
-{
-    Formatter::get()->write(out, Mat(vec));
-    return out;
-}
-
-
-/** Writes a Matx to an output stream.
- */
-template<typename _Tp, int m, int n> inline std::ostream& operator<<(std::ostream& out, const Matx<_Tp, m, n>& matx)
-{
-    out << cv::Mat(matx);
-    return out;
-}
-
-/** Writes a point to an output stream in Matlab notation
- */
-template<typename _Tp> inline std::ostream& operator<<(std::ostream& out, const Point_<_Tp>& p)
-{
-    out << "[" << p.x << ", " << p.y << "]";
-    return out;
-}
-
-/** Writes a point to an output stream in Matlab notation
- */
-template<typename _Tp> inline std::ostream& operator<<(std::ostream& out, const Point3_<_Tp>& p)
-{
-    out << "[" << p.x << ", " << p.y << ", " << p.z << "]";
-    return out;
-}
-
-/** Writes a Vec to an output stream. Format example : [10, 20, 30]
- */
-template<typename _Tp, int n> inline std::ostream& operator<<(std::ostream& out, const Vec<_Tp, n>& vec)
-{
-    out << "[";
-
-    if(Vec<_Tp, n>::depth < CV_32F)
-    {
-        for (int i = 0; i < n - 1; ++i) {
-            out << (int)vec[i] << ", ";
-        }
-        out << (int)vec[n-1] << "]";
-    }
-    else
-    {
-        for (int i = 0; i < n - 1; ++i) {
-            out << vec[i] << ", ";
-        }
-        out << vec[n-1] << "]";
-    }
-
-    return out;
-}
-
-/** Writes a Size_ to an output stream. Format example : [640 x 480]
- */
-template<typename _Tp> inline std::ostream& operator<<(std::ostream& out, const Size_<_Tp>& size)
-{
-    out << "[" << size.width << " x " << size.height << "]";
-    return out;
-}
-
-/** Writes a Rect_ to an output stream. Format example : [640 x 480 from (10, 20)]
- */
-template<typename _Tp> inline std::ostream& operator<<(std::ostream& out, const Rect_<_Tp>& rect)
-{
-    out << "[" << rect.width << " x " << rect.height << " from (" << rect.x << ", " << rect.y << ")]";
-    return out;
-}
-
-
-template<typename _Tp> inline Ptr<_Tp> Algorithm::create(const string& name)
-{
-    return _create(name).ptr<_Tp>();
-}
-
-template<typename _Tp>
-inline void Algorithm::set(const char* _name, const Ptr<_Tp>& value)
-{
-    Ptr<Algorithm> algo_ptr = value. template ptr<cv::Algorithm>();
-    if (algo_ptr.empty()) {
-        CV_Error( CV_StsUnsupportedFormat, "unknown/unsupported Ptr type of the second parameter of the method Algorithm::set");
-    }
-    info()->set(this, _name, ParamType<Algorithm>::type, &algo_ptr);
-}
-
-template<typename _Tp>
-inline void Algorithm::set(const string& _name, const Ptr<_Tp>& value)
-{
-    this->set<_Tp>(_name.c_str(), value);
-}
-
-template<typename _Tp>
-inline void Algorithm::setAlgorithm(const char* _name, const Ptr<_Tp>& value)
-{
-    Ptr<Algorithm> algo_ptr = value. template ptr<cv::Algorithm>();
-    if (algo_ptr.empty()) {
-        CV_Error( CV_StsUnsupportedFormat, "unknown/unsupported Ptr type of the second parameter of the method Algorithm::set");
-    }
-    info()->set(this, _name, ParamType<Algorithm>::type, &algo_ptr);
-}
-
-template<typename _Tp>
-inline void Algorithm::setAlgorithm(const string& _name, const Ptr<_Tp>& value)
-{
-    this->set<_Tp>(_name.c_str(), value);
-}
-
-template<typename _Tp> inline typename ParamType<_Tp>::member_type Algorithm::get(const string& _name) const
-{
-    typename ParamType<_Tp>::member_type value;
-    info()->get(this, _name.c_str(), ParamType<_Tp>::type, &value);
-    return value;
-}
-
-template<typename _Tp> inline typename ParamType<_Tp>::member_type Algorithm::get(const char* _name) const
-{
-    typename ParamType<_Tp>::member_type value;
-    info()->get(this, _name, ParamType<_Tp>::type, &value);
-    return value;
-}
-
-template<typename _Tp, typename _Base> inline void AlgorithmInfo::addParam(Algorithm& algo, const char* parameter,
-                  Ptr<_Tp>& value, bool readOnly, Ptr<_Tp> (Algorithm::*getter)(), void (Algorithm::*setter)(const Ptr<_Tp>&),
-                  const string& help)
-{
-    //TODO: static assert: _Tp inherits from _Base
-    addParam_(algo, parameter, ParamType<_Base>::type, &value, readOnly,
-              (Algorithm::Getter)getter, (Algorithm::Setter)setter, help);
-}
-
-template<typename _Tp> inline void AlgorithmInfo::addParam(Algorithm& algo, const char* parameter,
-                  Ptr<_Tp>& value, bool readOnly, Ptr<_Tp> (Algorithm::*getter)(), void (Algorithm::*setter)(const Ptr<_Tp>&),
-                  const string& help)
-{
-    //TODO: static assert: _Tp inherits from Algorithm
-    addParam_(algo, parameter, ParamType<Algorithm>::type, &value, readOnly,
-              (Algorithm::Getter)getter, (Algorithm::Setter)setter, help);
-}
 
 }
 

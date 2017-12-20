@@ -441,40 +441,5 @@ Mat repeat(const Mat& src, int ny, int nx)
 
 }
 
-/* dst = src */
-CV_IMPL void
-cvCopy( const void* srcarr, void* dstarr, const void* maskarr )
-{
-    cv::Mat src = cv::cvarrToMat(srcarr, false, true, 1), dst = cv::cvarrToMat(dstarr, false, true, 1);
-    CV_Assert( src.depth() == dst.depth() && src.size == dst.size );
-
-    int coi1 = 0, coi2 = 0;
-    if( CV_IS_IMAGE(srcarr) )
-        coi1 = cvGetImageCOI((const IplImage*)srcarr);
-    if( CV_IS_IMAGE(dstarr) )
-        coi2 = cvGetImageCOI((const IplImage*)dstarr);
-
-    if( coi1 || coi2 )
-    {
-        CV_Assert( (coi1 != 0 || src.channels() == 1) &&
-            (coi2 != 0 || dst.channels() == 1) );
-
-        int pair[] = { std::max(coi1-1, 0), std::max(coi2-1, 0) };
-        cv::mixChannels( &src, 1, &dst, 1, pair, 1 );
-        return;
-    }
-    else
-        CV_Assert( src.channels() == dst.channels() );
-
-    if( !maskarr )
-        src.copyTo(dst);
-    else
-        src.copyTo(dst, cv::cvarrToMat(maskarr));
-}
-
-
-
-
-
 
 /* End of file. */

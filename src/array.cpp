@@ -120,23 +120,6 @@ cvReleaseMat(CvMat **array)
     }
 }
 
-// Creates a copy of matrix
-CV_IMPL CvMat *
-cvCloneMat(const CvMat *src)
-{
-    if (!CV_IS_MAT_HDR(src))
-        CV_Error(CV_StsBadArg, "Bad CvMat header");
-
-    CvMat *dst = cvCreateMatHeader(src->rows, src->cols, src->type);
-
-    if (src->data.ptr)
-    {
-        cvCreateData(dst);
-        cvCopy(src, dst);
-    }
-
-    return dst;
-}
 
 /****************************************************************************************\
 *                          Common for multiple array types operations                    *

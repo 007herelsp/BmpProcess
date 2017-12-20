@@ -28,13 +28,6 @@ inline Mat::Mat(int _rows, int _cols, int _type) : size(&rows)
     create(_rows, _cols, _type);
 }
 
-inline Mat::Mat(int _rows, int _cols, int _type, const Scalar &_s) : size(&rows)
-{
-    initEmpty();
-    create(_rows, _cols, _type);
-    *this = _s;
-}
-
 inline Mat::Mat(Size _sz, int _type) : size(&rows)
 {
     initEmpty();
@@ -523,7 +516,6 @@ inline Mat::MStep &Mat::MStep::operator=(size_t s)
 
 
 ////////////////////////////// Augmenting algebraic operations //////////////////////////////////
-
 
 
 static inline Mat &operator*=(const Mat &a, double s)

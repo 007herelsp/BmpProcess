@@ -346,7 +346,6 @@ static bool Jacobi( double* S, size_t sstep, double* e, double* E, size_t estep,
 
 template<typename T> struct VBLAS
 {
-    int dot(const T*, const T*, int, T*) const { return 0; }
     int givens(T*, T*, int, T, T) const { return 0; }
     int givensx(T*, T*, int, T, T, T*, T*) const { return 0; }
 };

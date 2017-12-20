@@ -21,14 +21,6 @@ bool BaseImageDecoder::setSource( const string& filename )
     return true;
 }
 
-bool BaseImageDecoder::setSource( const Mat& buf )
-{
-    if( !m_buf_supported )
-        return false;
-    m_filename = string();
-    m_buf = buf;
-    return true;
-}
 
 size_t BaseImageDecoder::signatureLength() const
 {
@@ -68,15 +60,6 @@ bool BaseImageEncoder::setDestination( const string& filename )
     return true;
 }
 
-bool BaseImageEncoder::setDestination( vector<uchar>& buf )
-{
-    if( !m_buf_supported )
-        return false;
-    m_buf = &buf;
-    m_buf->clear();
-    m_filename = string();
-    return true;
-}
 
 ImageEncoder BaseImageEncoder::newEncoder() const
 {

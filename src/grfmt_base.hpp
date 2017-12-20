@@ -1,7 +1,6 @@
 #ifndef _GRFMT_BASE_H_
 #define _GRFMT_BASE_H_
 
-#include "highgui.utils.hpp"
 #include "bitstrm.hpp"
 
 namespace cv
@@ -24,7 +23,6 @@ public:
     virtual int type() const { return m_type; };
 
     virtual bool setSource( const string& filename );
-    virtual bool setSource( const Mat& buf );
     virtual bool readHeader() = 0;
     virtual bool readData( Mat& img ) = 0;
 
@@ -52,7 +50,6 @@ public:
     virtual bool isFormatSupported( int depth ) const;
 
     virtual bool setDestination( const string& filename );
-    virtual bool setDestination( vector<uchar>& buf );
     virtual bool write( const Mat& img, const vector<int>& params ) = 0;
 
     virtual string getDescription() const;

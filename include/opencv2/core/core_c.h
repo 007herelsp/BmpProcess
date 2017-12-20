@@ -100,10 +100,6 @@ CV_INLINE  void  cvDecRefData( CvArr* arr )
 
 
 
-/* Creates an exact copy of the input matrix (except, may be, step value) */
-CVAPI(CvMat*) cvCloneMat( const CvMat* mat );
-
-
 /**************** matrix iterator: used for n-ary operations on dense arrays *********/
 
 #define CV_MAX_ARR 10
@@ -147,10 +143,6 @@ CVAPI(void)  cvSetData( CvArr* arr, void* data, int step );
 
 /* Returns width and height of array in elements */
 CVAPI(CvSize) cvGetSize( const CvArr* arr );
-
-/* Copies source array to destination array */
-CVAPI(void)  cvCopy( const CvArr* src, CvArr* dst,
-                     const CvArr* mask CV_DEFAULT(NULL) );
 
 
 

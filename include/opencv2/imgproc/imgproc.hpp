@@ -6,9 +6,6 @@
 
 #ifdef __cplusplus
 
-/*! \namespace cv
- Namespace where all the C++ OpenCV functionality resides
- */
 namespace cv
 {
 
@@ -22,15 +19,6 @@ enum { BORDER_REPLICATE=IPL_BORDER_REPLICATE, BORDER_CONSTANT=IPL_BORDER_CONSTAN
 //! 1D interpolation function: returns coordinate of the "donor" pixel for the specified location p.
 CV_EXPORTS_W int borderInterpolate( int p, int len, int borderType );
 
-/*!
- The Base Class for 1D or Row-wise Filters
-
- This is the base class for linear or non-linear filters that process 1D data.
- In particular, such filters are used for the "horizontal" filtering parts in separable filters.
-
- Several functions in OpenCV return Ptr<BaseRowFilter> for the specific types of filters,
- and those pointers can be used directly or within cv::FilterEngine.
-*/
 class CV_EXPORTS BaseRowFilter
 {
 public:
@@ -45,19 +33,6 @@ public:
 };
 
 
-/*!
- The Base Class for Column-wise Filters
-
- This is the base class for linear or non-linear filters that process columns of 2D arrays.
- Such filters are used for the "vertical" filtering parts in separable filters.
-
- Several functions in OpenCV return Ptr<BaseColumnFilter> for the specific types of filters,
- and those pointers can be used directly or within cv::FilterEngine.
-
- Unlike cv::BaseRowFilter, cv::BaseColumnFilter may have some context information,
- i.e. box filter keeps the sliding sum of elements. To reset the state BaseColumnFilter::reset()
- must be called (e.g. the method is called by cv::FilterEngine)
- */
 class CV_EXPORTS BaseColumnFilter
 {
 public:
@@ -73,17 +48,7 @@ public:
     int ksize, anchor;
 };
 
-/*!
- The Base Class for Non-Separable 2D Filters.
 
- This is the base class for linear or non-linear 2D filters.
-
- Several functions in OpenCV return Ptr<BaseFilter> for the specific types of filters,
- and those pointers can be used directly or within cv::FilterEngine.
-
- Similar to cv::BaseColumnFilter, the class may have some context information,
- that should be reset using BaseFilter::reset() method before processing the new array.
-*/
 class CV_EXPORTS BaseFilter
 {
 public:
@@ -335,22 +300,8 @@ CV_EXPORTS_W void remap( InputArray src, OutputArray dst,
                          int interpolation, int borderMode=BORDER_CONSTANT,
                          const Scalar& borderValue=Scalar());
 
-
-
-
 //! returns 3x3 perspective transformation for the corresponding 4 point pairs.
 CV_EXPORTS Mat getPerspectiveTransform( const Point2f src[], const Point2f dst[] );
-//! returns 2x3 affine transformation for the corresponding 3 point pairs.
-CV_EXPORTS Mat getAffineTransform( const Point2f src[], const Point2f dst[] );
-
-
-CV_EXPORTS_W Mat getPerspectiveTransform( InputArray src, InputArray dst );
-CV_EXPORTS_W Mat getAffineTransform( InputArray src, InputArray dst );
-
-
-
-
-
 
 //! type of the threshold operation
 enum { THRESH_BINARY=CV_THRESH_BINARY, THRESH_BINARY_INV=CV_THRESH_BINARY_INV,
