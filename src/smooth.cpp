@@ -1,5 +1,5 @@
 #include "imgproc.precomp.hpp"
-#include <imgproc.hpp>
+
 
 /****************************************************************************************\
                                      Gaussian Blur

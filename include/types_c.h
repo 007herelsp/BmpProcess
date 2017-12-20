@@ -104,12 +104,6 @@ typedef union Cv32suf {
     float f;
 } Cv32suf;
 
-typedef union Cv64suf {
-    int64 i;
-    uint64 u;
-    double f;
-} Cv64suf;
-
 typedef int CVStatus;
 
 enum
@@ -175,7 +169,6 @@ enum
 \****************************************************************************************/
 
 #define CV_PI 3.1415926535897932384626433832795
-#define CV_LOG2 0.69314718055994530941723212145818
 
 #define CV_SWAP(a, b, t) ((t) = (a), (a) = (b), (b) = (t))
 
@@ -295,14 +288,6 @@ typedef struct _IplConvKernel
     int nShiftR;
 } IplConvKernel;
 
-typedef struct _IplConvKernelFP
-{
-    int nCols;
-    int nRows;
-    int anchorX;
-    int anchorY;
-    float *values;
-} IplConvKernelFP;
 
 #define IPL_IMAGE_HEADER 1
 #define IPL_IMAGE_DATA 2

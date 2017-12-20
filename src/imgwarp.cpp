@@ -1,5 +1,3 @@
- 
-
 #include "imgproc.precomp.hpp"
 #include <iostream>
 #include <vector>

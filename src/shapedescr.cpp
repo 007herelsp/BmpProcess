@@ -1,4 +1,3 @@
-
 #include "imgproc.precomp.hpp"
 
 /* calculates length of a curve (e.g. contour perimeter) */

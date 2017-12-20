@@ -1,11 +1,8 @@
- 
-
 //
 //  Loading and saving IPL images.
 //
 
 #include "precomp.hpp"
-#include "grfmt_base.hpp"
 #include "grfmt_bmp.hpp"
 #undef min
 #undef max

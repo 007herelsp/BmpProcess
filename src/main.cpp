@@ -2,8 +2,7 @@
 #include "types_c.h"
 #include "core_c.h"
 #include "imgproc_c.h"
-
-#include "process.h"
+#include "highgui_c.h"
 
 #include <stdio.h>
 #include "common.h"

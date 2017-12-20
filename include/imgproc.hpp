@@ -71,8 +71,7 @@ public:
     //! the default constructor
     FilterEngine();
     //! the full constructor. Either _filter2D or both _rowFilter and _columnFilter must be non-empty.
-    FilterEngine(const Ptr<BaseFilter>& _filter2D,
-                 const Ptr<BaseRowFilter>& _rowFilter,
+    FilterEngine(const Ptr<BaseRowFilter>& _rowFilter,
                  const Ptr<BaseColumnFilter>& _columnFilter,
                  int srcType, int dstType, int bufType,
                  int _rowBorderType=BORDER_REPLICATE,
@@ -81,8 +80,7 @@ public:
     //! the destructor
     virtual ~FilterEngine();
     //! reinitializes the engine. The previously assigned filters are released.
-    void init(const Ptr<BaseFilter>& _filter2D,
-              const Ptr<BaseRowFilter>& _rowFilter,
+    void init(const Ptr<BaseRowFilter>& _rowFilter,
               const Ptr<BaseColumnFilter>& _columnFilter,
               int srcType, int dstType, int bufType,
               int _rowBorderType=BORDER_REPLICATE, int _columnBorderType=-1,
@@ -101,7 +99,7 @@ public:
                         Point dstOfs=Point(0,0),
                         bool isolated=false);
     //! returns true if the filter is separable
-    bool isSeparable() const { return (const BaseFilter*)filter2D == 0; }
+    bool isSeparable() const { return true; }
     //! returns the number
     int remainingInputRows() const;
     int remainingOutputRows() const;
@@ -123,7 +121,6 @@ public:
     int bufStep, startY, startY0, endY, rowCount, dstY;
     vector<uchar*> rows;
 
-    Ptr<BaseFilter> filter2D;
     Ptr<BaseRowFilter> rowFilter;
     Ptr<BaseColumnFilter> columnFilter;
 };

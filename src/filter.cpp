@@ -76,14 +76,13 @@ FilterEngine::FilterEngine()
 }
 
 
-FilterEngine::FilterEngine( const Ptr<BaseFilter>& _filter2D,
-                            const Ptr<BaseRowFilter>& _rowFilter,
+FilterEngine::FilterEngine( const Ptr<BaseRowFilter>& _rowFilter,
                             const Ptr<BaseColumnFilter>& _columnFilter,
                             int _srcType, int _dstType, int _bufType,
                             int _rowBorderType, int _columnBorderType,
                             const Scalar& _borderValue )
 {
-    init(_filter2D, _rowFilter, _columnFilter, _srcType, _dstType, _bufType,
+    init( _rowFilter, _columnFilter, _srcType, _dstType, _bufType,
          _rowBorderType, _columnBorderType, _borderValue);
 }
 
@@ -92,7 +91,7 @@ FilterEngine::~FilterEngine()
 }
 
 
-void FilterEngine::init( const Ptr<BaseFilter>& _filter2D,
+void FilterEngine::init(
                          const Ptr<BaseRowFilter>& _rowFilter,
                          const Ptr<BaseColumnFilter>& _columnFilter,
                          int _srcType, int _dstType, int _bufType,
@@ -108,7 +107,6 @@ void FilterEngine::init( const Ptr<BaseFilter>& _filter2D,
     dstType = _dstType;
     bufType = _bufType;
 
-    filter2D = _filter2D;
     rowFilter = _rowFilter;
     columnFilter = _columnFilter;
 
@@ -128,9 +126,10 @@ void FilterEngine::init( const Ptr<BaseFilter>& _filter2D,
     }
     else
     {
-        CV_Assert( bufType == srcType );
-        ksize = filter2D->ksize;
-        anchor = filter2D->anchor;
+        // CV_Assert( bufType == srcType );
+        // ksize = filter2D->ksize;
+        // anchor = filter2D->anchor;
+        assert("herelsp remove" && 0);
     }
 
     CV_Assert( 0 <= anchor.x && anchor.x < ksize.width &&
@@ -251,8 +250,7 @@ int FilterEngine::start(Size _wholeSize, Rect _roi, int _maxBufRows)
     endY = std::min(roi.y + roi.height + ksize.height - anchor.y - 1, wholeSize.height);
     if( !columnFilter.empty() )
         columnFilter->reset();
-    if( !filter2D.empty() )
-        filter2D->reset();
+
 
     return startY;
 }
@@ -1299,7 +1297,7 @@ cv::Ptr<cv::FilterEngine> cv::createSeparableLinearFilter(
     Ptr<BaseColumnFilter> _columnFilter = getLinearColumnFilter(
         _bufType, _dstType, columnKernel, _anchor.y, ctype, _delta, bits );
 
-    return Ptr<FilterEngine>( new FilterEngine(Ptr<BaseFilter>(0), _rowFilter, _columnFilter,
+    return Ptr<FilterEngine>( new FilterEngine( _rowFilter, _columnFilter,
         _srcType, _dstType, _bufType, _rowBorderType, _columnBorderType, _borderValue ));
 }
 

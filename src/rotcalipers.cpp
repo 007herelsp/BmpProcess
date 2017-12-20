@@ -1,42 +1,8 @@
-
 #include "imgproc.precomp.hpp"
 
 
 #define CV_CALIPERS_MAXHEIGHT      0
 #define CV_CALIPERS_MINAREARECT    1
-
-/*F///////////////////////////////////////////////////////////////////////////////////////
-//    Name:    icvRotatingCalipers
-//    Purpose:
-//      Rotating calipers algorithm with some applications
-//
-//    Context:
-//    Parameters:
-//      points      - convex hull vertices ( any orientation )
-//      n           - number of vertices
-//      mode        - concrete application of algorithm
-//                    can be  CV_CALIPERS_MAXDIST   or
-//                            CV_CALIPERS_MINAREARECT
-//      left, bottom, right, top - indexes of extremal points
-//      out         - output info.
-//                    In case CV_CALIPERS_MAXDIST it points to float value -
-//                    maximal height of polygon.
-//                    In case CV_CALIPERS_MINAREARECT
-//                    ((CvPoint2D32f*)out)[0] - corner
-//                    ((CvPoint2D32f*)out)[1] - vector1
-//                    ((CvPoint2D32f*)out)[0] - corner2
-//
-//                      ^
-//                      |
-//              vector2 |
-//                      |
-//                      |____________\
-//                    corner         /
-//                               vector1
-//
-//    Returns:
-//    Notes:
-//F*/
 
 /* we will use usual cartesian coordinates */
 static void
@@ -51,9 +17,6 @@ icvRotatingCalipers( CvPoint2D32f* points, int n, int mode, float* out )
     int left = 0, bottom = 0, right = 0, top = 0;
     int seq[4] = { -1, -1, -1, -1 };
 
-    /* rotating calipers sides will always have coordinates
-       (a,b) (-b,a) (-a,-b) (b, -a)
-     */
     /* this is a first base bector (a,b) initialized by (1,0) */
     float orientation = 0;
     float base_a;

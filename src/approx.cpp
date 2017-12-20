@@ -5,8 +5,6 @@
 *                               Polygonal Approximation                                  *
 \****************************************************************************************/
 
-/* Ramer-Douglas-Peucker algorithm for polygon simplification */
-
 /* the version for integer point coordinates */
 template<typename T> static CvSeq*
 icvApproxPolyDP( CvSeq* src_contour, int header_size,

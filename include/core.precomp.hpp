@@ -24,14 +24,6 @@ namespace cv
 {
 
 // -128.f ... 255.f
-extern const float g_8x32fTab[];
-#define CV_8TO32F(x)  cv::g_8x32fTab[(x)+128]
-
-extern const ushort g_8x16uSqrTab[];
-#define CV_SQR_8U(x)  cv::g_8x16uSqrTab[(x)+255]
-
-
-
 
 
 inline Size getContinuousSize_(int flags, int cols, int rows, int widthScale)
@@ -53,33 +45,9 @@ inline Size getContinuousSize(const Mat& m1, const Mat& m2, int widthScale = 1)
                               m1.cols, m1.rows, widthScale);
 }
 
-inline Size getContinuousSize(const Mat& m1, const Mat& m2,
-                              const Mat& m3, int widthScale = 1)
-{
-    return getContinuousSize_(m1.flags & m2.flags & m3.flags,
-                              m1.cols, m1.rows, widthScale);
-}
-
-inline Size getContinuousSize(const Mat& m1, const Mat& m2,
-                              const Mat& m3, const Mat& m4,
-                              int widthScale = 1)
-{
-    return getContinuousSize_(m1.flags & m2.flags & m3.flags & m4.flags,
-                              m1.cols, m1.rows, widthScale);
-}
-
-inline Size getContinuousSize(const Mat& m1, const Mat& m2,
-                              const Mat& m3, const Mat& m4,
-                              const Mat& m5, int widthScale = 1)
-{
-    return getContinuousSize_(m1.flags & m2.flags & m3.flags & m4.flags & m5.flags,
-                              m1.cols, m1.rows, widthScale);
-}
 
 
 enum { BLOCK_SIZE = 1024 };
-
-
 
 
 #define ARITHM_USE_IPP 0

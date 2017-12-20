@@ -1,5 +1,3 @@
- 
-
 #include "imgproc.precomp.hpp"
 #include <limits.h>
 #include <stdio.h>
@@ -27,10 +25,7 @@ template<typename T> struct MaxOp
     T operator ()(const T a, const T b) const { return std::max(a, b); }
 };
 
-#undef CV_MIN_8U
-#undef CV_MAX_8U
-#define CV_MIN_8U(a,b)       ((a) - CV_FAST_CAST_8U((a) - (b)))
-#define CV_MAX_8U(a,b)       ((a) + CV_FAST_CAST_8U((b) - (a)))
+
 
 
 struct MorphRowNoVec
@@ -418,7 +413,7 @@ cv::Ptr<cv::FilterEngine> cv::createMorphologyFilter( int op, int type, InputArr
                                        depth == CV_32F ? (double)-FLT_MAX : -DBL_MAX);
     }
 
-    return Ptr<FilterEngine>(new FilterEngine(filter2D, rowFilter, columnFilter,
+    return Ptr<FilterEngine>(new FilterEngine(rowFilter, columnFilter,
                                               type, type, type, _rowBorderType, _columnBorderType, borderValue ));
 }
 
