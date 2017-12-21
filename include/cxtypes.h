@@ -204,58 +204,19 @@ Cv64suf;
 
 CV_INLINE  int  cvRound( double value )
 {
-#if CV_SSE2
-    __m128d t = _mm_load_sd( &value );
-    return _mm_cvtsd_si32(t);
-#elif defined WIN32 && !defined WIN64 && defined _MSC_VER
-    int t;
-    __asm
-    {
-        fld value;
-        fistp t;
-    }
-    return t;
-#elif (defined HAVE_LRINT) || (defined WIN64 && !defined EM64T && defined CV_ICC)
-    return (int)lrint(value);
-#else
-    /*
-     the algorithm was taken from Agner Fog's optimization guide
-     at http://www.agner.org/assem
-     */
-    Cv64suf temp;
-    temp.f = value + 6755399441055744.0;
-    return (int)temp.u;
-#endif
+return (int)round(value);
 }
 
 
 CV_INLINE  int  cvFloor( double value )
 {
-#if CV_SSE2
-    __m128d t = _mm_load_sd( &value );
-    int i = _mm_cvtsd_si32(t);
-    return i - _mm_movemask_pd(_mm_cmplt_sd(t,_mm_cvtsi32_sd(t,i)));
-#else
-    int temp = cvRound(value);
-    Cv32suf diff;
-    diff.f = (float)(value - temp);
-    return temp - (diff.i < 0);
-#endif
+return (int)floor(value);
 }
 
 
 CV_INLINE  int  cvCeil( double value )
 {
-#if CV_SSE2
-    __m128d t = _mm_load_sd( &value );
-    int i = _mm_cvtsd_si32(t);
-    return i + _mm_movemask_pd(_mm_cmplt_sd(_mm_cvtsi32_sd(t,i),t));
-#else
-    int temp = cvRound(value);
-    Cv32suf diff;
-    diff.f = (float)(temp - value);
-    return temp + (diff.i < 0);
-#endif
+return ceil(value);
 }
 
 #define cvInvSqrt(value) ((float)(1./sqrt(value)))

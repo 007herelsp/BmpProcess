@@ -1,23 +1,4 @@
-
-
 #include "_cv.h"
-
-typedef CvStatus (CV_STDCALL * CvColorCvtFunc0)(
-    const void* src, int srcstep, void* dst, int dststep, CvSize size );
-
-typedef CvStatus (CV_STDCALL * CvColorCvtFunc1)(
-    const void* src, int srcstep, void* dst, int dststep,
-    CvSize size, int param0 );
-
-typedef CvStatus (CV_STDCALL * CvColorCvtFunc2)(
-    const void* src, int srcstep, void* dst, int dststep,
-    CvSize size, int param0, int param1 );
-
-typedef CvStatus (CV_STDCALL * CvColorCvtFunc3)(
-    const void* src, int srcstep, void* dst, int dststep,
-    CvSize size, int param0, int param1, int param2 );
-
-
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -90,9 +71,6 @@ icvBGRx2Gray_8u_CnC1R( const uchar* src, int srcstep,
 }
 
 
-
-
-
 /****************************************************************************************\
 *                                   The main function                                    *
 \****************************************************************************************/
@@ -109,10 +87,6 @@ cvCvtColor( const CvArr* srcarr, CvArr* dstarr, int code )
     CvSize size;
     int src_step, dst_step;
     int src_cn, dst_cn, depth;
-    CvColorCvtFunc0 func0 = 0;
-    CvColorCvtFunc1 func1 = 0;
-    CvColorCvtFunc2 func2 = 0;
-    CvColorCvtFunc3 func3 = 0;
     int param[] = { 0, 0, 0, 0 };
     
     CV_CALL( src = cvGetMat( srcarr, &srcstub ));
@@ -134,15 +108,7 @@ cvCvtColor( const CvArr* srcarr, CvArr* dstarr, int code )
     src_step = src->step;
     dst_step = dst->step;
 
-    if( CV_IS_MAT_CONT(src->type & dst->type) &&
-        code != CV_BayerBG2BGR && code != CV_BayerGB2BGR &&
-        code != CV_BayerRG2BGR && code != CV_BayerGR2BGR ) 
-    {
-        size.width *= size.height;
-        size.height = 1;
-        src_step = dst_step = CV_STUB_STEP;
-    }
-
+    
     switch( code )
     {
    
@@ -151,24 +117,18 @@ cvCvtColor( const CvArr* srcarr, CvArr* dstarr, int code )
         if( (src_cn != 3 && src_cn != 4) || dst_cn != 1 )
             CV_ERROR( CV_BadNumChannels,
             "Incorrect number of channels for this conversion code" );
-	assert("herelsp remove" && (depth == CV_8U ));
-        func2 = (CvColorCvtFunc2)icvBGRx2Gray_8u_CnC1R;
+
+		assert("herelsp remove" && (depth == CV_8U ));
                
         param[0] = src_cn;
         param[1] = code == CV_BGR2GRAY || code == CV_BGRA2GRAY ? 0 : 2;
+		  IPPI_CALL( icvBGRx2Gray_8u_CnC1R( src->data.ptr, src_step,
+            dst->data.ptr, dst_step, size, param[0], param[1] ));
         break;
 
     default:
         CV_ERROR( CV_StsBadFlag, "Unknown/unsupported color conversion code" );
     }
-
-  if( func2 )
-    {
-        IPPI_CALL( func2( src->data.ptr, src_step,
-            dst->data.ptr, dst_step, size, param[0], param[1] ));
-    }
-    else
-        CV_ERROR( CV_StsUnsupportedFormat, "The image format is not supported" );
 
     __END__;
 }

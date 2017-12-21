@@ -259,11 +259,6 @@ CVAPI(void)  cvCvtColor( const CvArr* src, CvArr* dst, int code );
 #define  CV_WARP_INVERSE_MAP  16
 
 
-/* Computes affine transform matrix for mapping src[i] to dst[i] (i=0,1,2) */
-CVAPI(CvMat*) cvGetAffineTransform( const CvPoint2D32f * src, 
-                                    const CvPoint2D32f * dst, 
-                                    CvMat * map_matrix );
-
 
 
 /* Warps image with perspective (projective) transform */

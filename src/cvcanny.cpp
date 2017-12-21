@@ -55,18 +55,6 @@ cvCanny( const void* srcarr, void* dstarr,
     cvSobel( src, dx, 1, 0, aperture_size );
     cvSobel( src, dy, 0, 1, aperture_size );
 
-    if( icvCannyGetSize_p && icvCanny_16s8u_C1R_p && !(flags & CV_CANNY_L2_GRADIENT) )
-    {
-        int buf_size=  0;
-        IPPI_CALL( icvCannyGetSize_p( size, &buf_size ));
-        CV_CALL( buffer = cvAlloc( buf_size ));
-        IPPI_CALL( icvCanny_16s8u_C1R_p( (short*)dx->data.ptr, dx->step,
-                                     (short*)dy->data.ptr, dy->step,
-                                     dst->data.ptr, dst->step,
-                                     size, (float)low_thresh,
-                                     (float)high_thresh, buffer ));
-        EXIT;
-    }
 
     if( flags & CV_CANNY_L2_GRADIENT )
     {
