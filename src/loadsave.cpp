@@ -187,9 +187,7 @@ cvSaveImage( const char* filename, const CvArr* arr )
 
     if( origin )
     {
-        CV_CALL( temp = cvCreateMat(image->rows, image->cols, image->type) );
-        CV_CALL( cvFlip( image, temp, 0 ));
-        image = temp;
+       CV_ERROR( CV_StsError, "could not find a filter for the specified extension" );
     }
 
     ipl_depth = cvCvToIplDepth(image->type);

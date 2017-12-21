@@ -80,47 +80,6 @@ cvStartReadChainPoints( CvChain * chain, CvChainPtReader * reader )
 }
 
 
-/* retrieves next point of the chain curve and updates reader */
-CV_IMPL CvPoint
-cvReadChainPoint( CvChainPtReader * reader )
-{
-    char *ptr;
-    int code;
-    CvPoint pt = { 0, 0 };
-
-    CV_FUNCNAME( "cvReadChainPoint" );
-
-    __BEGIN__;
-
-    if( !reader )
-        CV_ERROR( CV_StsNullPtr, "" );
-
-    pt = reader->pt;
-    
-    ptr = reader->ptr;
-    if( ptr )
-    {
-        code = *ptr++;
-
-        if( ptr >= reader->block_max )
-        {
-            cvChangeSeqBlock( (CvSeqReader *) reader, 1 );
-            ptr = reader->ptr;
-        }
-
-        reader->ptr = ptr;
-        reader->code = (char)code;
-        assert( (code & ~7) == 0 );
-        reader->pt.x = pt.x + icvCodeDeltas[code].x;
-        reader->pt.y = pt.y + icvCodeDeltas[code].y;
-    }
-
-    __END__;
-
-    return pt;
-}
-
-
 /****************************************************************************************\
 *                         Raster->Chain Tree (Suzuki algorithms)                         *
 \****************************************************************************************/
@@ -357,29 +316,6 @@ icvEndProcessContour( CvContourScanner scanner )
         }
         scanner->l_cinfo = 0;
     }
-}
-
-/* replaces one contour with another */
-CV_IMPL void
-cvSubstituteContour( CvContourScanner scanner, CvSeq * new_contour )
-{
-    _CvContourInfo *l_cinfo;
-
-    CV_FUNCNAME( "cvSubstituteContour" );
-
-    __BEGIN__;
-
-    if( !scanner )
-        CV_ERROR( CV_StsNullPtr, "" );
-
-    l_cinfo = scanner->l_cinfo;
-    if( l_cinfo && l_cinfo->contour && l_cinfo->contour != new_contour )
-    {
-        l_cinfo->contour = new_contour;
-        scanner->subst_flag = 1;
-    }
-
-    __END__;
 }
 
 

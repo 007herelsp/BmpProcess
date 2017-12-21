@@ -4,7 +4,6 @@
 
 #include "cxtypes.h"
 #include "cxerror.h"
-#include "cvver.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -124,39 +123,9 @@ CV_INLINE  int  cvIncRefData( CvArr* arr )
 CVAPI(CvMat*) cvCloneMat( const CvMat* mat );
 
 
-/* Makes a new matrix from <rect> subrectangle of input array.
-   No data is copied */
-CVAPI(CvMat*) cvGetSubRect( const CvArr* arr, CvMat* submat, CvRect rect );
-#define cvGetSubArr cvGetSubRect
-
-/* Selects row span of the input array: arr(start_row:delta_row:end_row,:)
-    (end_row is not included into the span). */
-CVAPI(CvMat*) cvGetRows( const CvArr* arr, CvMat* submat,
-                        int start_row, int end_row,
-                        int delta_row CV_DEFAULT(1));
-
-CV_INLINE  CvMat*  cvGetRow( const CvArr* arr, CvMat* submat, int row )
-{
-    return cvGetRows( arr, submat, row, row + 1, 1 );
-}
 
 
-/* Selects column span of the input array: arr(:,start_col:end_col)
-   (end_col is not included into the span) */
-CVAPI(CvMat*) cvGetCols( const CvArr* arr, CvMat* submat,
-                        int start_col, int end_col );
 
-CV_INLINE  CvMat*  cvGetCol( const CvArr* arr, CvMat* submat, int col )
-{
-    return cvGetCols( arr, submat, col, col + 1 );
-}
-
-/* Select a diagonal of the input array.
-   (diag = 0 means the main diagonal, >0 means a diagonal above the main one,
-   <0 - below the main one).
-   The diagonal will be represented as a column (nx1 matrix). */
-CVAPI(CvMat*) cvGetDiag( const CvArr* arr, CvMat* submat,
-                            int diag CV_DEFAULT(0));
 
 /* low-level scalar <-> raw data conversion functions */
 CVAPI(void) cvScalarToRawData( const CvScalar* scalar, void* data, int type,
@@ -167,11 +136,7 @@ CVAPI(void) cvScalarToRawData( const CvScalar* scalar, void* data, int type,
 CVAPI(CvMatND*)  cvCreateMatNDHeader( int dims, const int* sizes, int type );
 
 /* Allocates and initializes CvMatND header and allocates data */
-CVAPI(CvMatND*)  cvCreateMatND( int dims, const int* sizes, int type );
 
-/* Initializes preallocated CvMatND header */
-CVAPI(CvMatND*)  cvInitMatNDHeader( CvMatND* mat, int dims, const int* sizes,
-                                    int type, void* data CV_DEFAULT(NULL) );
 
 /* Releases CvMatND */
 CV_INLINE  void  cvReleaseMatND( CvMatND** mat )
@@ -179,8 +144,7 @@ CV_INLINE  void  cvReleaseMatND( CvMatND** mat )
     cvReleaseMat( (CvMat**)mat );
 }
 
-/* Creates a copy of CvMatND (except, may be, steps) */
-CVAPI(CvMatND*) cvCloneMatND( const CvMatND* mat );
+
 
 /* Allocates and initializes CvSparseMat header and allocates data */
 CVAPI(CvSparseMat*)  cvCreateSparseMat( int dims, const int* sizes, int type );
@@ -257,11 +221,6 @@ CVAPI(int) cvGetElemType( const CvArr* arr );
    optionally sizes of the dimensions */
 CVAPI(int) cvGetDims( const CvArr* arr, int* sizes CV_DEFAULT(NULL) );
 
-
-/* Retrieves size of a particular array dimension.
-   For 2d arrays cvGetDimSize(arr,0) returns number of rows (image height)
-   and cvGetDimSize(arr,1) returns number of columns (image width) */
-CVAPI(int) cvGetDimSize( const CvArr* arr, int index );
 
 
 /* ptr = &arr(idx0,idx1,...). All indexes are zero-based,
@@ -433,25 +392,13 @@ CVAPI(CvTermCriteria) cvCheckTermCriteria( CvTermCriteria criteria,
 *                   Arithmetic, logic and comparison operations                          *
 \****************************************************************************************/
 
-/* dst(mask) = src1(mask) + src2(mask) */
-CVAPI(void)  cvAdd( const CvArr* src1, const CvArr* src2, CvArr* dst,
-                    const CvArr* mask CV_DEFAULT(NULL));
 
-/* dst(mask) = src(mask) + value */
-CVAPI(void)  cvAddS( const CvArr* src, CvScalar value, CvArr* dst,
-                     const CvArr* mask CV_DEFAULT(NULL));
 
 /* dst(mask) = src1(mask) - src2(mask) */
 CVAPI(void)  cvSub( const CvArr* src1, const CvArr* src2, CvArr* dst,
                     const CvArr* mask CV_DEFAULT(NULL));
 
-/* dst(mask) = src(mask) - value = src(mask) + (-value) */
-CV_INLINE  void  cvSubS( const CvArr* src, CvScalar value, CvArr* dst,
-                         const CvArr* mask CV_DEFAULT(NULL))
-{
-    cvAddS( src, cvScalar( -value.val[0], -value.val[1], -value.val[2], -value.val[3]),
-            dst, mask );
-}
+
 
 /* dst(mask) = value - src(mask) */
 CVAPI(void)  cvSubRS( const CvArr* src, CvScalar value, CvArr* dst,
@@ -468,31 +415,10 @@ CVAPI(void)  cvMul( const CvArr* src1, const CvArr* src2,
 CVAPI(void)  cvDiv( const CvArr* src1, const CvArr* src2,
                     CvArr* dst, double scale CV_DEFAULT(1));
 
-/* dst = src1 * scale + src2 */
-CVAPI(void)  cvScaleAdd( const CvArr* src1, CvScalar scale,
-                         const CvArr* src2, CvArr* dst );
-#define cvAXPY( A, real_scalar, B, C ) cvScaleAdd(A, cvRealScalar(real_scalar), B, C)
-
-/* dst = src1 * alpha + src2 * beta + gamma */
-CVAPI(void)  cvAddWeighted( const CvArr* src1, double alpha,
-                            const CvArr* src2, double beta,
-                            double gamma, CvArr* dst );
-
-/* result = sum_i(src1(i) * src2(i)) (results for all channels are accumulated together) */
-CVAPI(double)  cvDotProduct( const CvArr* src1, const CvArr* src2 );
-
-/* dst(idx) = src1(idx) & src2(idx) */
-CVAPI(void) cvAnd( const CvArr* src1, const CvArr* src2,
-                  CvArr* dst, const CvArr* mask CV_DEFAULT(NULL));
-
 /* dst(idx) = src(idx) & value */
 CVAPI(void) cvAndS( const CvArr* src, CvScalar value,
                    CvArr* dst, const CvArr* mask CV_DEFAULT(NULL));
 
-
-
-/* dst(idx) = ~src(idx) */
-CVAPI(void) cvNot( const CvArr* src, CvArr* dst );
 
 
 
@@ -508,60 +434,19 @@ CVAPI(void) cvNot( const CvArr* src, CvArr* dst );
    Destination image should be 8uC1 or 8sC1 */
 
 /* dst(idx) = src1(idx) _cmp_op_ src2(idx) */
-CVAPI(void) cvCmp( const CvArr* src1, const CvArr* src2, CvArr* dst, int cmp_op );
 
 /* dst(idx) = src1(idx) _cmp_op_ value */
 CVAPI(void) cvCmpS( const CvArr* src, double value, CvArr* dst, int cmp_op );
-
-/* dst(idx) = min(src1(idx),src2(idx)) */
-
-/* dst(idx) = max(src1(idx),src2(idx)) */
-
-/* dst(idx) = min(src(idx),value) */
-
-/* dst(idx) = max(src(idx),value) */
-
-/* dst(x,y,c) = abs(src1(x,y,c) - src2(x,y,c)) */
-
-/* dst(x,y,c) = abs(src(x,y,c) - value(c)) */
-CVAPI(void) cvAbsDiffS( const CvArr* src, CvArr* dst, CvScalar value );
 
 /****************************************************************************************\
 *                                Math operations                                         *
 \****************************************************************************************/
 
-/* Does cartesian->polar coordinates conversion.
-   Either of output components (magnitude or angle) is optional */
-CVAPI(void)  cvCartToPolar( const CvArr* x, const CvArr* y,
-                            CvArr* magnitude, CvArr* angle CV_DEFAULT(NULL),
-                            int angle_in_degrees CV_DEFAULT(0));
-
-/* Does polar->cartesian coordinates conversion.
-   Either of output components (magnitude or angle) is optional.
-   If magnitude is missing it is assumed to be all 1's */
-CVAPI(void)  cvPolarToCart( const CvArr* magnitude, const CvArr* angle,
-                            CvArr* x, CvArr* y,
-                            int angle_in_degrees CV_DEFAULT(0));
 
 /* Does powering: dst(idx) = src(idx)^power */
 CVAPI(void)  cvPow( const CvArr* src, CvArr* dst, double power );
 
-/* Does exponention: dst(idx) = exp(src(idx)).
-   Overflow is not handled yet. Underflow is handled.
-   Maximal relative error is ~7e-6 for single-precision input */
-CVAPI(void)  cvExp( const CvArr* src, CvArr* dst );
 
-/* Calculates natural logarithms: dst(idx) = log(abs(src(idx))).
-   Logarithm of 0 gives large negative number(~-700)
-   Maximal relative error is ~3e-7 for single-precision output
-*/
-CVAPI(void)  cvLog( const CvArr* src, CvArr* dst );
-
-/* Fast arctangent calculation */
-CVAPI(float) cvFastArctan( float y, float x );
-
-/* Fast cubic root calculation */
-CVAPI(float)  cvCbrt( float value );
 
 /* Checks array values for NaNs, Infs or simply for too large numbers
    (if CV_CHECK_RANGE is set). If CV_CHECK_QUIET is set,
@@ -569,70 +454,17 @@ CVAPI(float)  cvCbrt( float value );
    Otherwise cvError is called */ 
 #define  CV_CHECK_RANGE    1
 #define  CV_CHECK_QUIET    2
-CVAPI(int)  cvCheckArr( const CvArr* arr, int flags CV_DEFAULT(0),
-                        double min_val CV_DEFAULT(0), double max_val CV_DEFAULT(0));
-#define cvCheckArray cvCheckArr
 
-#define CV_RAND_UNI      0
-#define CV_RAND_NORMAL   1
-CVAPI(void) cvRandArr( CvRNG* rng, CvArr* arr, int dist_type,
-                      CvScalar param1, CvScalar param2 );
-
-CVAPI(void) cvRandShuffle( CvArr* mat, CvRNG* rng,
-                           double iter_factor CV_DEFAULT(1.));
-
-/* Finds real roots of a cubic equation */
-CVAPI(int) cvSolveCubic( const CvMat* coeffs, CvMat* roots );
 
 /****************************************************************************************\
 *                                Matrix operations                                       *
 \****************************************************************************************/
 
-/* Calculates cross product of two 3d vectors */
-CVAPI(void)  cvCrossProduct( const CvArr* src1, const CvArr* src2, CvArr* dst );
 
-/* Matrix transform: dst = A*B + C, C is optional */
-#define cvMatMulAdd( src1, src2, src3, dst ) cvGEMM( (src1), (src2), 1., (src3), 1., (dst), 0 )
-#define cvMatMul( src1, src2, dst )  cvMatMulAdd( (src1), (src2), NULL, (dst))
-
-#define CV_GEMM_A_T 1
-#define CV_GEMM_B_T 2
-#define CV_GEMM_C_T 4
-/* Extended matrix transform:
-   dst = alpha*op(A)*op(B) + beta*op(C), where op(X) is X or X^T */
-CVAPI(void)  cvGEMM( const CvArr* src1, const CvArr* src2, double alpha,
-                     const CvArr* src3, double beta, CvArr* dst,
-                     int tABC CV_DEFAULT(0));
-#define cvMatMulAddEx cvGEMM
-
-/* Transforms each element of source array and stores
-   resultant vectors in destination array */
-CVAPI(void)  cvTransform( const CvArr* src, CvArr* dst,
-                          const CvMat* transmat,
-                          const CvMat* shiftvec CV_DEFAULT(NULL));
-#define cvMatMulAddS cvTransform
-
-/* Does perspective transform on every element of input array */
-CVAPI(void)  cvPerspectiveTransform( const CvArr* src, CvArr* dst,
-                                     const CvMat* mat );
-
-/* Calculates (A-delta)*(A-delta)^T (order=0) or (A-delta)^T*(A-delta) (order=1) */
-CVAPI(void) cvMulTransposed( const CvArr* src, CvArr* dst, int order,
-                             const CvArr* delta CV_DEFAULT(NULL),
-                             double scale CV_DEFAULT(1.) );
 
 /* Tranposes matrix. Square matrices can be transposed in-place */
 CVAPI(void)  cvTranspose( const CvArr* src, CvArr* dst );
 #define cvT cvTranspose
-
-
-/* Mirror array data around horizontal (flip=0),
-   vertical (flip=1) or both(flip=-1) axises:
-   cvFlip(src) flips images vertically and sequences horizontally (inplace) */
-CVAPI(void)  cvFlip( const CvArr* src, CvArr* dst CV_DEFAULT(NULL),
-                     int flip_mode CV_DEFAULT(0));
-#define cvMirror cvFlip
-
 
 #define CV_SVD_MODIFY_A   1
 #define CV_SVD_U_T        2
@@ -661,15 +493,6 @@ CVAPI(double)  cvInvert( const CvArr* src, CvArr* dst,
 CVAPI(int)  cvSolve( const CvArr* src1, const CvArr* src2, CvArr* dst,
                      int method CV_DEFAULT(CV_LU));
 
-/* Calculates determinant of input matrix */
-CVAPI(double) cvDet( const CvArr* mat );
-
-/* Calculates trace of the matrix (sum of elements on the main diagonal) */
-CVAPI(CvScalar) cvTrace( const CvArr* mat );
-
-/* Finds eigen values and vectors of a symmetric matrix */
-CVAPI(void)  cvEigenVV( CvArr* mat, CvArr* evects,
-                        CvArr* evals, double eps CV_DEFAULT(0));
 
 /* Makes an identity matrix (mat_ij = i == j) */
 CVAPI(void)  cvSetIdentity( CvArr* mat, CvScalar value CV_DEFAULT(cvRealScalar(1)) );
@@ -697,47 +520,16 @@ CVAPI(CvArr*)  cvRange( CvArr* mat, double start, double end );
 /* all the input vectors are stored in a single matrix, as its columns */
 #define CV_COVAR_COLS     16
 
-CVAPI(void)  cvCalcCovarMatrix( const CvArr** vects, int count,
-                                CvArr* cov_mat, CvArr* avg, int flags );
-
-#define CV_PCA_DATA_AS_ROW 0 
-#define CV_PCA_DATA_AS_COL 1
-#define CV_PCA_USE_AVG 2
-CVAPI(void)  cvCalcPCA( const CvArr* data, CvArr* mean,
-                        CvArr* eigenvals, CvArr* eigenvects, int flags );
-
-CVAPI(void)  cvProjectPCA( const CvArr* data, const CvArr* mean,
-                           const CvArr* eigenvects, CvArr* result );
-
-CVAPI(void)  cvBackProjectPCA( const CvArr* proj, const CvArr* mean,
-                               const CvArr* eigenvects, CvArr* result );
-
-/* Calculates Mahalanobis(weighted) distance */
-CVAPI(double)  cvMahalanobis( const CvArr* vec1, const CvArr* vec2, CvArr* mat );
-#define cvMahalonobis  cvMahalanobis
 
 /****************************************************************************************\
 *                                    Array Statistics                                    *
 \****************************************************************************************/
 
-/* Finds sum of array elements */
-CVAPI(CvScalar)  cvSum( const CvArr* arr );
+
 
 /* Calculates number of non-zero pixels */
 CVAPI(int)  cvCountNonZero( const CvArr* arr );
 
-/* Calculates mean value of array elements */
-CVAPI(CvScalar)  cvAvg( const CvArr* arr, const CvArr* mask CV_DEFAULT(NULL) );
-
-/* Calculates mean and standard deviation of pixel values */
-CVAPI(void)  cvAvgSdv( const CvArr* arr, CvScalar* mean, CvScalar* std_dev,
-                       const CvArr* mask CV_DEFAULT(NULL) );
-
-/* Finds global minimum, maximum and their positions */
-CVAPI(void)  cvMinMaxLoc( const CvArr* arr, double* min_val, double* max_val,
-                          CvPoint* min_loc CV_DEFAULT(NULL),
-                          CvPoint* max_loc CV_DEFAULT(NULL),
-                          const CvArr* mask CV_DEFAULT(NULL) );
 
 /* types of array norm */
 #define CV_C            1
@@ -771,8 +563,7 @@ CVAPI(void)  cvNormalize( const CvArr* src, CvArr* dst,
 #define CV_REDUCE_MAX 2
 #define CV_REDUCE_MIN 3
 
-CVAPI(void)  cvReduce( const CvArr* src, CvArr* dst, int dim CV_DEFAULT(-1),
-                       int op CV_DEFAULT(CV_REDUCE_SUM) );
+
 
 /****************************************************************************************\
 *                      Discrete Linear Transforms and Related Functions                  *
@@ -901,10 +692,7 @@ CVAPI(void)  cvClearSeq( CvSeq* seq );
    (e.g -1 means the last sequence element) */
 CVAPI(char*)  cvGetSeqElem( const CvSeq* seq, int index );
 
-/* Calculates index of the specified sequence element.
-   Returns -1 if element does not belong to the sequence */
-CVAPI(int)  cvSeqElemIdx( const CvSeq* seq, const void* element,
-                         CvSeqBlock** block CV_DEFAULT(NULL) );
+
 
 /* Initializes sequence writer. The new elements will be added to the end of sequence */
 CVAPI(void)  cvStartAppendToSeq( CvSeq* seq, CvSeqWriter* writer );
@@ -942,9 +730,7 @@ CVAPI(int)  cvGetSeqReaderPos( CvSeqReader* reader );
 CVAPI(void)   cvSetSeqReaderPos( CvSeqReader* reader, int index,
                                  int is_relative CV_DEFAULT(0));
 
-/* Copies sequence content to a continuous piece of memory */
-CVAPI(void*)  cvCvtSeqToArray( const CvSeq* seq, void* elements,
-                               CvSlice slice CV_DEFAULT(CV_WHOLE_SEQ) );
+
 
 /* Creates sequence header for array.
    After that all the operations on sequences that do not alter the content
@@ -953,21 +739,12 @@ CVAPI(CvSeq*) cvMakeSeqHeaderForArray( int seq_type, int header_size,
                                        int elem_size, void* elements, int total,
                                        CvSeq* seq, CvSeqBlock* block );
 
-/* Extracts sequence slice (with or without copying sequence elements) */
-CVAPI(CvSeq*) cvSeqSlice( const CvSeq* seq, CvSlice slice,
-                         CvMemStorage* storage CV_DEFAULT(NULL),
-                         int copy_data CV_DEFAULT(0));
 
-CV_INLINE CvSeq* cvCloneSeq( const CvSeq* seq, CvMemStorage* storage CV_DEFAULT(NULL))
-{
-    return cvSeqSlice( seq, CV_WHOLE_SEQ, storage, 1 );
-}
+
+
 
 /* Removes sequence slice */
-CVAPI(void)  cvSeqRemoveSlice( CvSeq* seq, CvSlice slice );
 
-/* Inserts a sequence or array into another sequence */
-CVAPI(void)  cvSeqInsertSlice( CvSeq* seq, int before_index, const CvArr* from_arr );
 
 /* a < b ? -1 : a > b ? 1 : 0 */
 typedef int (CV_CDECL* CvCmpFunc)(const void* a, const void* b, void* userdata );
@@ -1051,8 +828,6 @@ CVAPI(int)  cvGraphAddVtx( CvGraph* graph, const CvGraphVtx* vtx CV_DEFAULT(NULL
 
 
 /* Removes vertex from the graph together with all incident edges */
-CVAPI(int)  cvGraphRemoveVtx( CvGraph* graph, int index );
-CVAPI(int)  cvGraphRemoveVtxByPtr( CvGraph* graph, CvGraphVtx* vtx );
 
 
 /* Link two vertices specifed by indices or pointers if they
@@ -1136,11 +911,6 @@ typedef struct CvGraphScanner
     int      mask;         /* event mask */
 }
 CvGraphScanner;
-
-/* Creates new graph scanner. */
-CVAPI(CvGraphScanner*)  cvCreateGraphScanner( CvGraph* graph,
-                                             CvGraphVtx* vtx CV_DEFAULT(NULL),
-                                             int mask CV_DEFAULT(CV_GRAPH_ALL_ITEMS));
 
 /* Releases graph scanner. */
 CVAPI(void) cvReleaseGraphScanner( CvGraphScanner** scanner );
@@ -1352,10 +1122,7 @@ CVAPI(void) cvInsertNodeIntoTree( void* node, void* parent, void* frame );
 /* Removes contour from tree (together with the contour children). */
 CVAPI(void) cvRemoveNodeFromTree( void* node, void* frame );
 
-/* Gathers pointers to all the sequences,
-   accessible from the <first>, to the single sequence */
-CVAPI(CvSeq*) cvTreeToNodeSeq( const void* first, int header_size,
-                              CvMemStorage* storage );
+
 
 /* The function implements the K-means algorithm for clustering an array of sample
    vectors in a specified number of classes */
@@ -1448,9 +1215,7 @@ CVAPI(void) cvSetIPLAllocators( Cv_iplCreateImageHeader create_header,
                                Cv_iplCreateROI create_roi,
                                Cv_iplCloneImage clone_image );
 
-#define CV_TURN_ON_IPL_COMPATIBILITY()                                  \
-    cvSetIPLAllocators( iplCreateImageHeader, iplAllocateImage,         \
-                        iplDeallocate, iplCreateROI, iplCloneImage )
+
 
 /****************************************************************************************\
 *                                    Data Persistence                                    *

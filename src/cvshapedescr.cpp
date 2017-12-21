@@ -30,10 +30,7 @@ cvArcLength( const void *array, CvSlice slice, int is_closed )
     }
     else
     {
-        is_closed = is_closed > 0;
-        CV_CALL( contour = cvPointSeqFromMat(
-            CV_SEQ_KIND_CURVE | (is_closed ? CV_SEQ_FLAG_CLOSED : 0),
-            array, &contour_header, &block ));
+        CV_ERROR( CV_StsBadArg, "Unsupported sequence type" );
     }
 
     if( contour->total > 1 )
@@ -377,7 +374,6 @@ cvContourArea( const void *array, CvSlice slice )
     CvContour contour_header;
     CvSeq* contour = 0;
     CvSeqBlock block;
-
     if( CV_IS_SEQ( array ))
     {
         contour = (CvSeq*)array;
@@ -386,8 +382,7 @@ cvContourArea( const void *array, CvSlice slice )
     }
     else
     {
-        CV_CALL( contour = cvPointSeqFromMat(
-            CV_SEQ_KIND_CURVE, array, &contour_header, &block ));
+        CV_ERROR( CV_StsBadArg, "Unsupported sequence type" );
     }
 
     if( cvSliceLength( slice, contour ) == contour->total )
@@ -444,20 +439,7 @@ cvBoundingRect( CvArr* array, int update )
     }
     else
     {
-        CV_CALL( mat = cvGetMat( array, &stub ));
-        if( CV_MAT_TYPE(mat->type) == CV_32SC1 ||
-            CV_MAT_TYPE(mat->type) == CV_32FC1 )
-        {
-            CV_CALL( ptseq = cvPointSeqFromMat(
-                CV_SEQ_KIND_GENERIC, mat, &contour_header, &block ));
-            mat = 0;
-        }
-        else if( CV_MAT_TYPE(mat->type) != CV_8UC1 &&
-                CV_MAT_TYPE(mat->type) != CV_8SC1 )
-            CV_ERROR( CV_StsUnsupportedFormat,
-                "The image/matrix format is not supported by the function" );
-        update = 0;
-        calculate = 1;
+       CV_ERROR( CV_StsBadArg, "Unsupported sequence type" );
     }
 
     if( !calculate )

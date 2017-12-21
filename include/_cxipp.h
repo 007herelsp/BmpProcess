@@ -535,9 +535,7 @@ IPCVAPI_EX( CvStatus, icvExp_32f, "ippsExp_32f_A21, ippsExp_32f",
 IPCVAPI_EX( CvStatus, icvExp_64f, "ippsExp_64f_A50, ippsExp_64f",
            CV_PLUGINS2(CV_PLUGIN_IPPVM,CV_PLUGIN_IPPS),
            ( const double *x, double *y, int n ) )
-IPCVAPI_EX( CvStatus, icvFastArctan_32f, "ippibFastArctan_32f",
-           CV_PLUGINS1(CV_PLUGIN_IPPCV),
-           ( const float* y, const float* x, float* angle, int len ))
+
 
 /****************************************************************************************/
 /*                                  Error handling functions                            */

@@ -813,9 +813,7 @@ cvApproxPoly( const void*  array, int  header_size,
     }
     else
     {
-        CV_CALL( src_seq = cvPointSeqFromMat(
-            CV_SEQ_KIND_CURVE | (parameter2 ? CV_SEQ_FLAG_CLOSED : 0),
-            array, &contour_header, &block ));
+       CV_ERROR( CV_StsBadArg, "Unsupported sequence type" );
     }
 
     if( !storage )

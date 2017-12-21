@@ -108,7 +108,6 @@ typedef struct CvPyramid
 CvPyramid;
 
 #include "_cvipp.h"
-#include "_cvmatrix.h"
 #include "_cvgeom.h"
 #include "_cvimgproc.h"
 

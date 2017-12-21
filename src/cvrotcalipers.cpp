@@ -1,16 +1,6 @@
 
 #include "_cv.h"
 
-typedef struct
-{
-    int bottom;
-    int left;
-    float height;
-    float width;
-    float base_a;
-    float base_b;
-}
-icvMinAreaState;
 
 #define CV_CALIPERS_MAXHEIGHT      0
 #define CV_CALIPERS_MINAREARECT    1
@@ -304,8 +294,8 @@ cvMinAreaRect2( const CvArr* array, CvMemStorage* storage )
     }
     else
     {
-        CV_CALL( ptseq = cvPointSeqFromMat(
-            CV_SEQ_KIND_GENERIC, array, &contour_header, &block ));
+    CV_ERROR( CV_StsBadArg, "Unsupported sequence type" );
+      
     }
 
     if( storage )

@@ -226,8 +226,8 @@ cvConvexHull2( const CvArr* array, void* hull_storage,
     }
     else
     {
-        CV_CALL( ptseq = cvPointSeqFromMat(
-            CV_SEQ_KIND_GENERIC, array, &contour_header, &block ));
+    CV_ERROR( CV_StsBadArg, "herelsp removed Unsupported sequence type" );
+        
     }
 
     if( CV_IS_STORAGE( hull_storage ))
@@ -496,8 +496,8 @@ cvCheckContourConvexity( const CvArr* array )
     }
     else
     {
-        CV_CALL( contour = cvPointSeqFromMat(
-            CV_SEQ_KIND_CURVE|CV_SEQ_FLAG_CLOSED, array, &contour_header, &block ));
+    CV_ERROR( CV_StsBadArg, "Unsupported sequence type" );
+       
     }
 
     if( contour->total == 0 )
