@@ -578,13 +578,8 @@ CVAPI(void) cvXorS( const CvArr* src, CvScalar value,
 /* dst(idx) = ~src(idx) */
 CVAPI(void) cvNot( const CvArr* src, CvArr* dst );
 
-/* dst(idx) = lower(idx) <= src(idx) < upper(idx) */
-CVAPI(void) cvInRange( const CvArr* src, const CvArr* lower,
-                      const CvArr* upper, CvArr* dst );
 
-/* dst(idx) = lower <= src(idx) < upper */
-CVAPI(void) cvInRangeS( const CvArr* src, CvScalar lower,
-                       CvScalar upper, CvArr* dst );
+
 
 #define CV_CMP_EQ   0
 #define CV_CMP_GT   1
