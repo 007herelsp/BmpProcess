@@ -603,23 +603,17 @@ CVAPI(void) cvCmp( const CvArr* src1, const CvArr* src2, CvArr* dst, int cmp_op 
 CVAPI(void) cvCmpS( const CvArr* src, double value, CvArr* dst, int cmp_op );
 
 /* dst(idx) = min(src1(idx),src2(idx)) */
-CVAPI(void) cvMin( const CvArr* src1, const CvArr* src2, CvArr* dst );
 
 /* dst(idx) = max(src1(idx),src2(idx)) */
-CVAPI(void) cvMax( const CvArr* src1, const CvArr* src2, CvArr* dst );
 
 /* dst(idx) = min(src(idx),value) */
-CVAPI(void) cvMinS( const CvArr* src, double value, CvArr* dst );
 
 /* dst(idx) = max(src(idx),value) */
-CVAPI(void) cvMaxS( const CvArr* src, double value, CvArr* dst );
 
 /* dst(x,y,c) = abs(src1(x,y,c) - src2(x,y,c)) */
-CVAPI(void) cvAbsDiff( const CvArr* src1, const CvArr* src2, CvArr* dst );
 
 /* dst(x,y,c) = abs(src(x,y,c) - value(c)) */
 CVAPI(void) cvAbsDiffS( const CvArr* src, CvArr* dst, CvScalar value );
-#define cvAbs( src, dst ) cvAbsDiffS( (src), (dst), cvScalarAll(0))
 
 /****************************************************************************************\
 *                                Math operations                                         *

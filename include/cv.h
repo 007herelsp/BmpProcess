@@ -85,9 +85,7 @@ CVAPI(void) cvSmooth( const CvArr* src, CvArr* dst,
                       double param3 CV_DEFAULT(0),
                       double param4 CV_DEFAULT(0));
 
-/* Convolves the image with the kernel */
-CVAPI(void) cvFilter2D( const CvArr* src, CvArr* dst, const CvMat* kernel,
-                        CvPoint anchor CV_DEFAULT(cvPoint(-1,-1)));
+
 
 /* Finds integral image: SUM(X,Y) = sum(x<X,y<Y)I(x,y) */
 CVAPI(void) cvIntegral( const CvArr* image, CvArr* sum,
@@ -296,10 +294,6 @@ CVAPI(void)  cvRemap( const CvArr* src, CvArr* dst,
                       int flags CV_DEFAULT(CV_INTER_LINEAR+CV_WARP_FILL_OUTLIERS),
                       CvScalar fillval CV_DEFAULT(cvScalarAll(0)) );
 
-/* Performs forward or inverse log-polar image transform */
-CVAPI(void)  cvLogPolar( const CvArr* src, CvArr* dst,
-                         CvPoint2D32f center, double M,
-                         int flags CV_DEFAULT(CV_INTER_LINEAR+CV_WARP_FILL_OUTLIERS));
 
 #define  CV_SHAPE_RECT      0
 #define  CV_SHAPE_CROSS     1
@@ -343,8 +337,7 @@ CVAPI(void) cvMoments( const CvArr* arr, CvMoments* moments, int binary CV_DEFAU
 /* Retrieve particular spatial, central or normalized central moments */
 CVAPI(double)  cvGetSpatialMoment( CvMoments* moments, int x_order, int y_order );
 CVAPI(double)  cvGetCentralMoment( CvMoments* moments, int x_order, int y_order );
-CVAPI(double)  cvGetNormalizedCentralMoment( CvMoments* moments,
-                                             int x_order, int y_order );
+
 
 /* Calculates 7 Hu's invariants from precalculated spatial and central moments */
 CVAPI(void) cvGetHuMoments( CvMoments*  moments, CvHuMoments*  hu_moments );
@@ -378,10 +371,7 @@ CVAPI(void)  cvGetQuadrangleSubPix( const CvArr* src, CvArr* dst,
 #define  CV_TM_CCOEFF        4
 #define  CV_TM_CCOEFF_NORMED 5
 
-/* Measures similarity between template and overlapped windows in the source image
-   and fills the resultant image with the measurements */
-CVAPI(void)  cvMatchTemplate( const CvArr* image, const CvArr* templ,
-                              CvArr* result, int method );
+
 
 /* Computes earth mover distance between
    two weighted point sets (called signatures) */
@@ -430,12 +420,7 @@ CVAPI(void)   cvSubstituteContour( CvContourScanner scanner, CvSeq* new_contour 
 /* Releases contour scanner and returns pointer to the first outer contour */
 CVAPI(CvSeq*)  cvEndFindContours( CvContourScanner* scanner );
 
-/* Approximates a single Freeman chain or a tree of chains to polygonal curves */
-CVAPI(CvSeq*) cvApproxChains( CvSeq* src_seq, CvMemStorage* storage,
-                            int method CV_DEFAULT(CV_CHAIN_APPROX_SIMPLE),
-                            double parameter CV_DEFAULT(0),
-                            int  minimal_perimeter CV_DEFAULT(0),
-                            int  recursive CV_DEFAULT(0));
+
 
 
 /* Initalizes Freeman chain reader.
@@ -542,9 +527,6 @@ CVAPI(CvSeq*)  cvSegmentMotion( const CvArr* mhi, CvArr* seg_mask,
 CVAPI(void)  cvAcc( const CvArr* image, CvArr* sum,
                     const CvArr* mask CV_DEFAULT(NULL) );
 
-/* Adds squared image to accumulator */
-CVAPI(void)  cvSquareAcc( const CvArr* image, CvArr* sqsum,
-                          const CvArr* mask CV_DEFAULT(NULL) );
 
 /* Adds a product of two images to accumulator */
 CVAPI(void)  cvMultiplyAcc( const CvArr* image1, const CvArr* image2, CvArr* acc,
@@ -734,9 +716,7 @@ CVAPI(double)  cvContourArea( const CvArr* contour,
 CVAPI(CvBox2D)  cvMinAreaRect2( const CvArr* points,
                                 CvMemStorage* storage CV_DEFAULT(NULL));
 
-/* Finds minimum enclosing circle for a set of points */
-CVAPI(int)  cvMinEnclosingCircle( const CvArr* points,
-                                  CvPoint2D32f* center, float* radius );
+
 
 #define CV_CONTOURS_MATCH_I1  1
 #define CV_CONTOURS_MATCH_I2  2
@@ -778,13 +758,6 @@ CVAPI(CvSeq*) cvConvexHull2( const CvArr* input,
 /* Checks whether the contour is convex or not (returns 1 if convex, 0 if not) */
 CVAPI(int)  cvCheckContourConvexity( const CvArr* contour );
 
-/* Finds convexity defects for the contour */
-CVAPI(CvSeq*)  cvConvexityDefects( const CvArr* contour, const CvArr* convexhull,
-                                   CvMemStorage* storage CV_DEFAULT(NULL));
-
-/* Fits ellipse into a set of 2d points */
-CVAPI(CvBox2D) cvFitEllipse2( const CvArr* points );
-
 /* Finds minimum rectangle containing two given rectangles */
 CVAPI(CvRect)  cvMaxRect( const CvRect* rect1, const CvRect* rect2 );
 
@@ -797,12 +770,6 @@ CVAPI(CvSeq*) cvPointSeqFromMat( int seq_kind, const CvArr* mat,
                                  CvContour* contour_header,
                                  CvSeqBlock* block );
 
-/* Checks whether the point is inside polygon, outside, on an edge (at a vertex).
-   Returns positive, negative or zero value, correspondingly.
-   Optionally, measures a signed distance between
-   the point and the nearest polygon edge (measure_dist=1) */
-CVAPI(double) cvPointPolygonTest( const CvArr* contour,
-                                  CvPoint2D32f pt, int measure_dist );
 
 /****************************************************************************************\
 *                                  Histogram functions                                   *
@@ -1166,7 +1133,6 @@ CVAPI(void)  cvReleasePOSITObject( CvPOSITObject**  posit_object );
 *                                 Epipolar Geometry                                      *
 \****************************************************************************************/
 
-CVAPI(void) cvConvertPointsHomogenious( const CvMat* src, CvMat* dst );
 
 /* Calculates fundamental matrix given a set of corresponding points */
 #define CV_FM_7POINT 1
@@ -1181,13 +1147,6 @@ CVAPI(int) cvFindFundamentalMat( const CvMat* points1, const CvMat* points2,
                                  double param1 CV_DEFAULT(1.), double param2 CV_DEFAULT(0.99),
                                  CvMat* status CV_DEFAULT(NULL) );
 
-/* For each input point on one of images
-   computes parameters of the corresponding
-   epipolar line on the other image */
-CVAPI(void) cvComputeCorrespondEpilines( const CvMat* points,
-                                         int which_image,
-                                         const CvMat* fundamental_matrix,
-                                         CvMat* correspondent_lines );
 
 #ifdef __cplusplus
 }

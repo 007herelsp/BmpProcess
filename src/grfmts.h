@@ -44,12 +44,5 @@
 
 #include "grfmt_base.h"
 #include "grfmt_bmp.h"
-#include "grfmt_sunras.h"
-#include "grfmt_jpeg.h"
-#include "grfmt_pxm.h"
-#include "grfmt_tiff.h"
-#include "grfmt_png.h"
-#include "grfmt_jpeg2000.h"
-#include "grfmt_exr.h"
 
 #endif/*_GRFMTS_H_*/

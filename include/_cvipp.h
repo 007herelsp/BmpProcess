@@ -66,93 +66,7 @@ IPCV_COPY_BORDER( Replicate, 16s_C4 )
 IPCV_COPY_BORDER( Replicate, 32s_C3 )
 IPCV_COPY_BORDER( Replicate, 32s_C4 )
 
-/****************************************************************************************\
-*                                        Moments                                         *
-\****************************************************************************************/
 
-#define IPCV_MOMENTS( suffix, ipp_suffix, cn )                      \
-IPCVAPI_EX( CvStatus, icvMoments##suffix##_C##cn##R,                \
-"ippiMoments" #ipp_suffix "_C" #cn "R", CV_PLUGINS1(CV_PLUGIN_IPPI),\
-( const void* img, int step, CvSize size, void* momentstate ))
-
-IPCV_MOMENTS( _8u, 64f_8u, 1 )
-IPCV_MOMENTS( _32f, 64f_32f, 1 )
-
-#undef IPCV_MOMENTS
-
-IPCVAPI_EX( CvStatus, icvMomentInitAlloc_64f,
-            "ippiMomentInitAlloc_64f", CV_PLUGINS1(CV_PLUGIN_IPPI),
-            (void** momentstate, CvHintAlgorithm hint ))
-
-IPCVAPI_EX( CvStatus, icvMomentFree_64f,
-            "ippiMomentFree_64f", CV_PLUGINS1(CV_PLUGIN_IPPI),
-            (void* momentstate ))
-
-IPCVAPI_EX( CvStatus, icvGetSpatialMoment_64f,
-            "ippiGetSpatialMoment_64f", CV_PLUGINS1(CV_PLUGIN_IPPI),
-            (const void* momentstate, int mOrd, int nOrd,
-             int nChannel, CvPoint roiOffset, double* value ))
-
-/****************************************************************************************\
-*                                  Background differencing                               *
-\****************************************************************************************/
-
-/////////////////////////////////// Accumulation /////////////////////////////////////////
-
-#define IPCV_ACCUM( flavor, arrtype, acctype )                                      \
-IPCVAPI_EX( CvStatus, icvAdd_##flavor##_C1IR,                                       \
-    "ippiAdd_" #flavor "_C1IR", CV_PLUGINS1(CV_PLUGIN_IPPCV),                       \
-    ( const arrtype* src, int srcstep, acctype* dst, int dststep, CvSize size ))    \
-IPCVAPI_EX( CvStatus, icvAddSquare_##flavor##_C1IR,                                 \
-    "ippiAddSquare_" #flavor "_C1IR", CV_PLUGINS1(CV_PLUGIN_IPPCV),                 \
-    ( const arrtype* src, int srcstep, acctype* dst, int dststep, CvSize size ))    \
-IPCVAPI_EX( CvStatus, icvAddProduct_##flavor##_C1IR,                                \
-    "ippiAddProduct_" #flavor "_C1IR", CV_PLUGINS1(CV_PLUGIN_IPPCV),                \
-    ( const arrtype* src1, int srcstep1, const arrtype* src2, int srcstep2,         \
-      acctype* dst, int dststep, CvSize size ))                                     \
-IPCVAPI_EX( CvStatus, icvAddWeighted_##flavor##_C1IR,                               \
-    "ippiAddWeighted_" #flavor "_C1IR", CV_PLUGINS1(CV_PLUGIN_IPPCV),               \
-    ( const arrtype* src, int srcstep, acctype* dst, int dststep,                   \
-      CvSize size, acctype alpha ))                                                 \
-                                                                                    \
-IPCVAPI_EX( CvStatus, icvAdd_##flavor##_C1IMR,                                      \
-    "ippiAdd_" #flavor "_C1IMR", CV_PLUGINS1(CV_PLUGIN_IPPCV),                      \
-    ( const arrtype* src, int srcstep, const uchar* mask, int maskstep,             \
-      acctype* dst, int dststep, CvSize size ))                                     \
-IPCVAPI_EX( CvStatus, icvAddSquare_##flavor##_C1IMR,                                \
-    "ippiAddSquare_" #flavor "_C1IMR", CV_PLUGINS1(CV_PLUGIN_IPPCV),                \
-    ( const arrtype* src, int srcstep, const uchar* mask, int maskstep,             \
-      acctype* dst, int dststep, CvSize size ))                                     \
-IPCVAPI_EX( CvStatus, icvAddProduct_##flavor##_C1IMR,                               \
-    "ippiAddProduct_" #flavor "_C1IMR", CV_PLUGINS1(CV_PLUGIN_IPPCV),               \
-    ( const arrtype* src1, int srcstep1, const arrtype* src2, int srcstep2,         \
-      const uchar* mask, int maskstep, acctype* dst, int dststep, CvSize size ))    \
-IPCVAPI_EX( CvStatus, icvAddWeighted_##flavor##_C1IMR,                              \
-    "ippiAddWeighted_" #flavor "_C1IMR", CV_PLUGINS1(CV_PLUGIN_IPPCV),              \
-    ( const arrtype* src, int srcstep, const uchar* mask, int maskstep,             \
-      acctype* dst, int dststep, CvSize size, acctype alpha ))                      \
-                                                                                    \
-IPCVAPI_EX( CvStatus, icvAdd_##flavor##_C3IMR,                                      \
-    "ippiAdd_" #flavor "_C3IMR", CV_PLUGINS1(CV_PLUGIN_IPPCV),                      \
-    ( const arrtype* src, int srcstep, const uchar* mask, int maskstep,             \
-      acctype* dst, int dststep, CvSize size ))                                     \
-IPCVAPI_EX( CvStatus, icvAddSquare_##flavor##_C3IMR,                                \
-    "ippiAddSquare_" #flavor "_C3IMR", CV_PLUGINS1(CV_PLUGIN_IPPCV),                \
-    ( const arrtype* src, int srcstep, const uchar* mask, int maskstep,             \
-      acctype* dst, int dststep, CvSize size ))                                     \
-IPCVAPI_EX( CvStatus, icvAddProduct_##flavor##_C3IMR,                               \
-    "ippiAddProduct_" #flavor "_C3IMR", CV_PLUGINS1(CV_PLUGIN_IPPCV),               \
-    ( const arrtype* src1, int srcstep1, const arrtype* src2, int srcstep2,         \
-      const uchar* mask, int maskstep, acctype* dst, int dststep, CvSize size ))    \
-IPCVAPI_EX( CvStatus, icvAddWeighted_##flavor##_C3IMR,                              \
-    "ippiAddWeighted_" #flavor "_C3IMR", CV_PLUGINS1(CV_PLUGIN_IPPCV),              \
-    ( const arrtype* src, int srcstep, const uchar* mask, int maskstep,             \
-      acctype* dst, int dststep, CvSize size, acctype alpha ))
-
-IPCV_ACCUM( 8u32f, uchar, float )
-IPCV_ACCUM( 32f, float, float )
-
-#undef IPCV_ACCUM
 
 /****************************************************************************************\
 *                                       Pyramids                                         *
@@ -551,32 +465,6 @@ IPCVAPI_EX( CvStatus, icvUpdateMotionHistory_8u32f_C1IR,
     ( const uchar* silIm, int silStep, float* mhiIm, int mhiStep,
       CvSize size,float  timestamp, float  mhi_duration ))
 
-/****************************************************************************************\
-*                                 Template Matching                                      *
-\****************************************************************************************/
-
-#define ICV_MATCHTEMPLATE( flavor, arrtype )                        \
-IPCVAPI_EX( CvStatus, icvCrossCorrValid_Norm_##flavor##_C1R,        \
-        "ippiCrossCorrValid_Norm_" #flavor "_C1R",                  \
-        CV_PLUGINS1(CV_PLUGIN_IPPI),                                \
-        ( const arrtype* pSrc, int srcStep, CvSize srcRoiSize,      \
-        const arrtype* pTpl, int tplStep, CvSize tplRoiSize,        \
-        float* pDst, int dstStep ))                                 \
-IPCVAPI_EX( CvStatus, icvCrossCorrValid_NormLevel_##flavor##_C1R,   \
-        "ippiCrossCorrValid_NormLevel_" #flavor "_C1R",             \
-        CV_PLUGINS1(CV_PLUGIN_IPPI),                                \
-        ( const arrtype* pSrc, int srcStep, CvSize srcRoiSize,      \
-        const arrtype* pTpl, int tplStep, CvSize tplRoiSize,        \
-        float* pDst, int dstStep ))                                 \
-IPCVAPI_EX( CvStatus, icvSqrDistanceValid_Norm_##flavor##_C1R,      \
-        "ippiSqrDistanceValid_Norm_" #flavor "_C1R",                \
-        CV_PLUGINS1(CV_PLUGIN_IPPI),                                \
-        ( const arrtype* pSrc, int srcStep, CvSize srcRoiSize,      \
-        const arrtype* pTpl, int tplStep, CvSize tplRoiSize,        \
-        float* pDst, int dstStep ))
-
-ICV_MATCHTEMPLATE( 8u32f, uchar )
-ICV_MATCHTEMPLATE( 32f, float )
 
 /****************************************************************************************/
 /*                                Distance Transform                                    */
