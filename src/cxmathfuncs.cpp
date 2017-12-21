@@ -41,9 +41,7 @@
 
 #include "_cxcore.h"
 
-#ifdef HAVE_CONFIG_H
-#include <cvconfig.h>
-#endif
+
 
 #define ICV_MATH_BLOCK_SIZE  256
 

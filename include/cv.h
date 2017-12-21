@@ -260,23 +260,13 @@ CVAPI(void)  cvCvtColor( const CvArr* src, CvArr* dst, int code );
 #define  CV_WARP_FILL_OUTLIERS 8
 #define  CV_WARP_INVERSE_MAP  16
 
-/* Resizes image (input array is resized to fit the destination array) */
-CVAPI(void)  cvResize( const CvArr* src, CvArr* dst,
-                       int interpolation CV_DEFAULT( CV_INTER_LINEAR ));
-
-/* Warps image with affine transform */ 
-CVAPI(void)  cvWarpAffine( const CvArr* src, CvArr* dst, const CvMat* map_matrix,
-                           int flags CV_DEFAULT(CV_INTER_LINEAR+CV_WARP_FILL_OUTLIERS),
-                           CvScalar fillval CV_DEFAULT(cvScalarAll(0)) );
 
 /* Computes affine transform matrix for mapping src[i] to dst[i] (i=0,1,2) */
 CVAPI(CvMat*) cvGetAffineTransform( const CvPoint2D32f * src, 
                                     const CvPoint2D32f * dst, 
                                     CvMat * map_matrix );
 
-/* Computes rotation_matrix matrix */
-CVAPI(CvMat*)  cv2DRotationMatrix( CvPoint2D32f center, double angle,
-                                   double scale, CvMat* map_matrix );
+
 
 /* Warps image with perspective (projective) transform */
 CVAPI(void)  cvWarpPerspective( const CvArr* src, CvArr* dst, const CvMat* map_matrix,
@@ -1160,8 +1150,5 @@ CVAPI(int) cvFindFundamentalMat( const CvMat* points1, const CvMat* points2,
 *                                 Backward compatibility                                 *
 \****************************************************************************************/
 
-#ifndef CV_NO_BACKWARD_COMPATIBILITY
-#include "cvcompat.h"
-#endif
 
 #endif /*_CV_H_*/
