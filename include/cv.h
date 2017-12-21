@@ -43,9 +43,7 @@
 #ifndef _CV_H_
 #define _CV_H_
 
-#ifdef __IPL_H__
-#define HAVE_IPL
-#endif
+
 
 #ifndef SKIP_INCLUDES
   #if defined(_CH_)
@@ -316,42 +314,10 @@ CVAPI(void)  cvDilate( const CvArr* src, CvArr* dst,
 #define CV_MOP_TOPHAT       5
 #define CV_MOP_BLACKHAT     6
 
-/* Performs complex morphological transformation */
-CVAPI(void)  cvMorphologyEx( const CvArr* src, CvArr* dst,
-                             CvArr* temp, IplConvKernel* element,
-                             int operation, int iterations CV_DEFAULT(1) );
-
-/* Calculates all spatial and central moments up to the 3rd order */
-CVAPI(void) cvMoments( const CvArr* arr, CvMoments* moments, int binary CV_DEFAULT(0));
-
-/* Retrieve particular spatial, central or normalized central moments */
-CVAPI(double)  cvGetSpatialMoment( CvMoments* moments, int x_order, int y_order );
-CVAPI(double)  cvGetCentralMoment( CvMoments* moments, int x_order, int y_order );
 
 
-/* Calculates 7 Hu's invariants from precalculated spatial and central moments */
-CVAPI(void) cvGetHuMoments( CvMoments*  moments, CvHuMoments*  hu_moments );
-
-/*********************************** data sampling **************************************/
-
-/* Fetches pixels that belong to the specified line segment and stores them to the buffer.
-   Returns the number of retrieved points. */
-CVAPI(int)  cvSampleLine( const CvArr* image, CvPoint pt1, CvPoint pt2, void* buffer,
-                          int connectivity CV_DEFAULT(8));
-
-/* Retrieves the rectangular image region with specified center from the input array.
- dst(x,y) <- src(x + center.x - dst_width/2, y + center.y - dst_height/2).
- Values of pixels with fractional coordinates are retrieved using bilinear interpolation*/
-CVAPI(void)  cvGetRectSubPix( const CvArr* src, CvArr* dst, CvPoint2D32f center );
 
 
-/* Retrieves quadrangle from the input array.
-    matrixarr = ( a11  a12 | b1 )   dst(x,y) <- src(A[x y]' + b)
-                ( a21  a22 | b2 )   (bilinear interpolation is used to retrieve pixels
-                                     with fractional coordinates)
-*/
-CVAPI(void)  cvGetQuadrangleSubPix( const CvArr* src, CvArr* dst,
-                                    const CvMat* map_matrix );
 
 /* Methods for comparing two array */
 #define  CV_TM_SQDIFF        0
@@ -527,142 +493,8 @@ CVAPI(void)  cvRunningAvg( const CvArr* image, CvArr* acc, double alpha,
                            const CvArr* mask CV_DEFAULT(NULL) );
 
 
-/****************************************************************************************\
-*                                       Tracking                                         *
-\****************************************************************************************/
-
-/* Implements CAMSHIFT algorithm - determines object position, size and orientation
-   from the object histogram back project (extension of meanshift) */
-CVAPI(int)  cvCamShift( const CvArr* prob_image, CvRect  window,
-                       CvTermCriteria criteria, CvConnectedComp* comp,
-                       CvBox2D* box CV_DEFAULT(NULL) );
-
-/* Implements MeanShift algorithm - determines object position
-   from the object histogram back project */
-CVAPI(int)  cvMeanShift( const CvArr* prob_image, CvRect  window,
-                        CvTermCriteria criteria, CvConnectedComp* comp );
-
-/* Creates ConDensation filter state */
-CVAPI(CvConDensation*)  cvCreateConDensation( int dynam_params,
-                                             int measure_params,
-                                             int sample_count );
-
-/* Releases ConDensation filter state */
-CVAPI(void)  cvReleaseConDensation( CvConDensation** condens );
-
-/* Updates ConDensation filter by time (predict future state of the system) */
-CVAPI(void)  cvConDensUpdateByTime( CvConDensation* condens);
-
-/* Initializes ConDensation filter samples  */
-CVAPI(void)  cvConDensInitSampleSet( CvConDensation* condens, CvMat* lower_bound, CvMat* upper_bound );
-
-/* Creates Kalman filter and sets A, B, Q, R and state to some initial values */
-CVAPI(CvKalman*) cvCreateKalman( int dynam_params, int measure_params,
-                                int control_params CV_DEFAULT(0));
-
-/* Releases Kalman filter state */
-CVAPI(void)  cvReleaseKalman( CvKalman** kalman);
-
-/* Updates Kalman filter by time (predicts future state of the system) */
-CVAPI(const CvMat*)  cvKalmanPredict( CvKalman* kalman,
-                                     const CvMat* control CV_DEFAULT(NULL));
-
-/* Updates Kalman filter by measurement
-   (corrects state of the system and internal matrices) */
-CVAPI(const CvMat*)  cvKalmanCorrect( CvKalman* kalman, const CvMat* measurement );
-
-/****************************************************************************************\
-*                              Planar subdivisions                                       *
-\****************************************************************************************/
-
-/* Initializes Delaunay triangulation */
-CVAPI(void)  cvInitSubdivDelaunay2D( CvSubdiv2D* subdiv, CvRect rect );
-
-/* Creates new subdivision */
-CVAPI(CvSubdiv2D*)  cvCreateSubdiv2D( int subdiv_type, int header_size,
-                                      int vtx_size, int quadedge_size,
-                                      CvMemStorage* storage );
-
-/************************* high-level subdivision functions ***************************/
-
-/* Simplified Delaunay diagram creation */
-CV_INLINE  CvSubdiv2D* cvCreateSubdivDelaunay2D( CvRect rect, CvMemStorage* storage )
-{
-    CvSubdiv2D* subdiv = cvCreateSubdiv2D( CV_SEQ_KIND_SUBDIV2D, sizeof(*subdiv),
-                         sizeof(CvSubdiv2DPoint), sizeof(CvQuadEdge2D), storage );
-
-    cvInitSubdivDelaunay2D( subdiv, rect );
-    return subdiv;
-}
-
-
-/* Inserts new point to the Delaunay triangulation */
-CVAPI(CvSubdiv2DPoint*)  cvSubdivDelaunay2DInsert( CvSubdiv2D* subdiv, CvPoint2D32f pt);
-
-/* Locates a point within the Delaunay triangulation (finds the edge
-   the point is left to or belongs to, or the triangulation point the given
-   point coinsides with */
-CVAPI(CvSubdiv2DPointLocation)  cvSubdiv2DLocate(
-                               CvSubdiv2D* subdiv, CvPoint2D32f pt,
-                               CvSubdiv2DEdge* edge,
-                               CvSubdiv2DPoint** vertex CV_DEFAULT(NULL) );
-
-/* Calculates Voronoi tesselation (i.e. coordinates of Voronoi points) */
-CVAPI(void)  cvCalcSubdivVoronoi2D( CvSubdiv2D* subdiv );
-
-
-/* Removes all Voronoi points from the tesselation */
-CVAPI(void)  cvClearSubdivVoronoi2D( CvSubdiv2D* subdiv );
-
-
-/* Finds the nearest to the given point vertex in subdivision. */
-CVAPI(CvSubdiv2DPoint*) cvFindNearestPoint2D( CvSubdiv2D* subdiv, CvPoint2D32f pt );
-
 
 /************ Basic quad-edge navigation and operations ************/
-
-CV_INLINE  CvSubdiv2DEdge  cvSubdiv2DNextEdge( CvSubdiv2DEdge edge )
-{
-    return  CV_SUBDIV2D_NEXT_EDGE(edge);
-}
-
-
-CV_INLINE  CvSubdiv2DEdge  cvSubdiv2DRotateEdge( CvSubdiv2DEdge edge, int rotate )
-{
-    return  (edge & ~3) + ((edge + rotate) & 3);
-}
-
-CV_INLINE  CvSubdiv2DEdge  cvSubdiv2DSymEdge( CvSubdiv2DEdge edge )
-{
-    return edge ^ 2;
-}
-
-CV_INLINE  CvSubdiv2DEdge  cvSubdiv2DGetEdge( CvSubdiv2DEdge edge, CvNextEdgeType type )
-{
-    CvQuadEdge2D* e = (CvQuadEdge2D*)(edge & ~3);
-    edge = e->next[(edge + (int)type) & 3];
-    return  (edge & ~3) + ((edge + ((int)type >> 4)) & 3);
-}
-
-
-CV_INLINE  CvSubdiv2DPoint*  cvSubdiv2DEdgeOrg( CvSubdiv2DEdge edge )
-{
-    CvQuadEdge2D* e = (CvQuadEdge2D*)(edge & ~3);
-    return (CvSubdiv2DPoint*)e->pt[edge & 3];
-}
-
-
-CV_INLINE  CvSubdiv2DPoint*  cvSubdiv2DEdgeDst( CvSubdiv2DEdge edge )
-{
-    CvQuadEdge2D* e = (CvQuadEdge2D*)(edge & ~3);
-    return (CvSubdiv2DPoint*)e->pt[(edge + 2) & 3];
-}
-
-
-CV_INLINE  double  cvTriangleArea( CvPoint2D32f a, CvPoint2D32f b, CvPoint2D32f c )
-{
-    return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
-}
 
 
 /****************************************************************************************\
@@ -916,13 +748,7 @@ CVAPI(void)  cvAdaptiveThreshold( const CvArr* src, CvArr* dst, double max_value
 #define CV_FLOODFILL_FIXED_RANGE (1 << 16)
 #define CV_FLOODFILL_MASK_ONLY   (1 << 17)
 
-/* Fills the connected component until the color difference gets large enough */
-CVAPI(void)  cvFloodFill( CvArr* image, CvPoint seed_point,
-                          CvScalar new_val, CvScalar lo_diff CV_DEFAULT(cvScalarAll(0)),
-                          CvScalar up_diff CV_DEFAULT(cvScalarAll(0)),
-                          CvConnectedComp* comp CV_DEFAULT(NULL),
-                          int flags CV_DEFAULT(4),
-                          CvArr* mask CV_DEFAULT(NULL));
+
 
 /****************************************************************************************\
 *                                  Feature detection                                     *

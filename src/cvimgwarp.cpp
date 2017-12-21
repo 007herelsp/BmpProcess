@@ -189,19 +189,6 @@ static void icvInitWarpPerspectiveTab( CvFuncTable* bilin_tab )
 
 /////////////////////////// IPP warpperspective functions ////////////////////////////////
 
-icvWarpPerspectiveBack_8u_C1R_t icvWarpPerspectiveBack_8u_C1R_p = 0;
-icvWarpPerspectiveBack_8u_C3R_t icvWarpPerspectiveBack_8u_C3R_p = 0;
-icvWarpPerspectiveBack_8u_C4R_t icvWarpPerspectiveBack_8u_C4R_p = 0;
-icvWarpPerspectiveBack_32f_C1R_t icvWarpPerspectiveBack_32f_C1R_p = 0;
-icvWarpPerspectiveBack_32f_C3R_t icvWarpPerspectiveBack_32f_C3R_p = 0;
-icvWarpPerspectiveBack_32f_C4R_t icvWarpPerspectiveBack_32f_C4R_p = 0;
-
-icvWarpPerspective_8u_C1R_t icvWarpPerspective_8u_C1R_p = 0;
-icvWarpPerspective_8u_C3R_t icvWarpPerspective_8u_C3R_p = 0;
-icvWarpPerspective_8u_C4R_t icvWarpPerspective_8u_C4R_p = 0;
-icvWarpPerspective_32f_C1R_t icvWarpPerspective_32f_C1R_p = 0;
-icvWarpPerspective_32f_C3R_t icvWarpPerspective_32f_C3R_p = 0;
-icvWarpPerspective_32f_C4R_t icvWarpPerspective_32f_C4R_p = 0;
 
 typedef CvStatus (CV_STDCALL * CvWarpPerspectiveBackIPPFunc)
 ( const void* src, CvSize srcsize, int srcstep, CvRect srcroi,
@@ -269,55 +256,6 @@ cvWarpPerspective( const CvArr* srcarr, CvArr* dstarr,
     ssize = cvGetMatSize(src);
     dsize = cvGetMatSize(dst);
     
-    if( icvWarpPerspectiveBack_8u_C1R_p )
-    {
-        CvWarpPerspectiveBackIPPFunc ipp_func =
-            type == CV_8UC1 ? icvWarpPerspectiveBack_8u_C1R_p :
-            type == CV_8UC3 ? icvWarpPerspectiveBack_8u_C3R_p :
-            type == CV_8UC4 ? icvWarpPerspectiveBack_8u_C4R_p :
-            type == CV_32FC1 ? icvWarpPerspectiveBack_32f_C1R_p :
-            type == CV_32FC3 ? icvWarpPerspectiveBack_32f_C3R_p :
-            type == CV_32FC4 ? icvWarpPerspectiveBack_32f_C4R_p : 0;
-        
-        if( ipp_func && CV_INTER_NN <= method && method <= CV_INTER_AREA &&
-            MIN(ssize.width,ssize.height) >= 4 && MIN(dsize.width,dsize.height) >= 4 )
-        {
-            int srcstep = src->step ? src->step : CV_STUB_STEP;
-            int dststep = dst->step ? dst->step : CV_STUB_STEP;
-            CvStatus status;
-            CvRect srcroi = {0, 0, ssize.width, ssize.height};
-            CvRect dstroi = {0, 0, dsize.width, dsize.height};
-
-            // this is not the most efficient way to fill outliers
-            if( flags & CV_WARP_FILL_OUTLIERS )
-                cvSet( dst, fillval );
-
-            status = ipp_func( src->data.ptr, ssize, srcstep, srcroi,
-                               dst->data.ptr, dststep, dstroi,
-                               invA.data.db, 1 << method );
-            if( status >= 0 )
-                EXIT;
-
-            ipp_func = type == CV_8UC1 ? icvWarpPerspective_8u_C1R_p :
-                type == CV_8UC3 ? icvWarpPerspective_8u_C3R_p :
-                type == CV_8UC4 ? icvWarpPerspective_8u_C4R_p :
-                type == CV_32FC1 ? icvWarpPerspective_32f_C1R_p :
-                type == CV_32FC3 ? icvWarpPerspective_32f_C3R_p :
-                type == CV_32FC4 ? icvWarpPerspective_32f_C4R_p : 0;
-
-            if( ipp_func )
-            {
-                if( flags & CV_WARP_INVERSE_MAP )
-                    cvInvert( &invA, &A, CV_SVD );
-
-                status = ipp_func( src->data.ptr, ssize, srcstep, srcroi,
-                               dst->data.ptr, dststep, dstroi,
-                               A.data.db, 1 << method );
-                if( status >= 0 )
-                    EXIT;
-            }
-        }
-    }
 
     cvScalarToRawData( &fillval, fillbuf, CV_MAT_TYPE(src->type), 0 );
 

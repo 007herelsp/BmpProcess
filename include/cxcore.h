@@ -1,70 +1,6 @@
-/*M///////////////////////////////////////////////////////////////////////////////////////
-//
-//  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.
-//
-//  By downloading, copying, installing or using the software you agree to this license.
-//  If you do not agree to this license, do not download, install,
-//  copy or use the software.
-//
-//
-//                        Intel License Agreement
-//                For Open Source Computer Vision Library
-//
-// Copyright (C) 2000, Intel Corporation, all rights reserved.
-// Third party copyrights are property of their respective owners.
-//
-// Redistribution and use in source and binary forms, with or without modification,
-// are permitted provided that the following conditions are met:
-//
-//   * Redistribution's of source code must retain the above copyright notice,
-//     this list of conditions and the following disclaimer.
-//
-//   * Redistribution's in binary form must reproduce the above copyright notice,
-//     this list of conditions and the following disclaimer in the documentation
-//     and/or other materials provided with the distribution.
-//
-//   * The name of Intel Corporation may not be used to endorse or promote products
-//     derived from this software without specific prior written permission.
-//
-// This software is provided by the copyright holders and contributors "as is" and
-// any express or implied warranties, including, but not limited to, the implied
-// warranties of merchantability and fitness for a particular purpose are disclaimed.
-// In no event shall the Intel Corporation or contributors be liable for any direct,
-// indirect, incidental, special, exemplary, or consequential damages
-// (including, but not limited to, procurement of substitute goods or services;
-// loss of use, data, or profits; or business interruption) however caused
-// and on any theory of liability, whether in contract, strict liability,
-// or tort (including negligence or otherwise) arising in any way out of
-// the use of this software, even if advised of the possibility of such damage.
-//
-//M*/
-
-
 #ifndef _CXCORE_H_
 #define _CXCORE_H_
 
-#ifdef __IPL_H__
-#define HAVE_IPL
-#endif
-
-#ifndef SKIP_INCLUDES
-  #if defined HAVE_IPL && !defined __IPL_H__
-    #ifndef _INC_WINDOWS
-        #define CV_PRETEND_WINDOWS
-        #define _INC_WINDOWS
-        typedef struct tagBITMAPINFOHEADER BITMAPINFOHEADER;
-        typedef int BOOL;
-    #endif
-    #if defined WIN32 || defined WIN64
-      #include "ipl.h"
-    #else
-      #include "ipl/ipl.h"
-    #endif
-    #ifdef CV_PRETEND_WINDOWS
-        #undef _INC_WINDOWS
-    #endif
-  #endif
-#endif // SKIP_INCLUDES
 
 #include "cxtypes.h"
 #include "cxerror.h"
@@ -115,19 +51,15 @@ CVAPI(IplImage*) cvCloneImage( const IplImage* image );
 
 /* Sets a Channel Of Interest (only a few functions support COI) - 
    use cvCopy to extract the selected channel and/or put it back */
-CVAPI(void)  cvSetImageCOI( IplImage* image, int coi );
 
 /* Retrieves image Channel Of Interest */
-CVAPI(int)  cvGetImageCOI( const IplImage* image );
 
 /* Sets image ROI (region of interest) (COI is not changed) */
 CVAPI(void)  cvSetImageROI( IplImage* image, CvRect rect );
 
 /* Resets image ROI and COI */
-CVAPI(void)  cvResetImageROI( IplImage* image );
 
 /* Retrieves image ROI */
-CVAPI(CvRect) cvGetImageROI( const IplImage* image );
 
 /* Allocates and initalizes CvMat header */
 CVAPI(CvMat*)  cvCreateMatHeader( int rows, int cols, int type );
@@ -230,7 +162,6 @@ CVAPI(CvMat*) cvGetDiag( const CvArr* arr, CvMat* submat,
 CVAPI(void) cvScalarToRawData( const CvScalar* scalar, void* data, int type,
                               int extend_to_12 CV_DEFAULT(0) );
 
-CVAPI(void) cvRawDataToScalar( const void* data, int type, CvScalar* scalar );
 
 /* Allocates and initializes CvMatND header */
 CVAPI(CvMatND*)  cvCreateMatNDHeader( int dims, const int* sizes, int type );
@@ -351,7 +282,6 @@ CVAPI(uchar*) cvPtrND( const CvArr* arr, const int* idx, int* type CV_DEFAULT(NU
 /* value = arr(idx0,idx1,...) */
 CVAPI(CvScalar) cvGet1D( const CvArr* arr, int idx0 );
 CVAPI(CvScalar) cvGet2D( const CvArr* arr, int idx0, int idx1 );
-CVAPI(CvScalar) cvGet3D( const CvArr* arr, int idx0, int idx1, int idx2 );
 CVAPI(CvScalar) cvGetND( const CvArr* arr, const int* idx );
 
 /* for 1-channel arrays */
@@ -559,21 +489,7 @@ CVAPI(void) cvAnd( const CvArr* src1, const CvArr* src2,
 CVAPI(void) cvAndS( const CvArr* src, CvScalar value,
                    CvArr* dst, const CvArr* mask CV_DEFAULT(NULL));
 
-/* dst(idx) = src1(idx) | src2(idx) */
-CVAPI(void) cvOr( const CvArr* src1, const CvArr* src2,
-                 CvArr* dst, const CvArr* mask CV_DEFAULT(NULL));
 
-/* dst(idx) = src(idx) | value */
-CVAPI(void) cvOrS( const CvArr* src, CvScalar value,
-                  CvArr* dst, const CvArr* mask CV_DEFAULT(NULL));
-
-/* dst(idx) = src1(idx) ^ src2(idx) */
-CVAPI(void) cvXor( const CvArr* src1, const CvArr* src2,
-                  CvArr* dst, const CvArr* mask CV_DEFAULT(NULL));
-
-/* dst(idx) = src(idx) ^ value */
-CVAPI(void) cvXorS( const CvArr* src, CvScalar value,
-                   CvArr* dst, const CvArr* mask CV_DEFAULT(NULL));
 
 /* dst(idx) = ~src(idx) */
 CVAPI(void) cvNot( const CvArr* src, CvArr* dst );
@@ -1486,9 +1402,7 @@ CVAPI(void) cvError( int status, const char* func_name,
 /* Retrieves textual description of the error given its code */
 CVAPI(const char*) cvErrorStr( int status );
 
-/* Retrieves detailed information about the last error occured */
-CVAPI(int) cvGetErrInfo( const char** errcode_desc, const char** description,
-                        const char** filename, int* line );
+
 
 /* Maps IPP error codes to the counterparts from OpenCV */
 CVAPI(int) cvErrorFromIppStatus( int ipp_status );
@@ -1496,10 +1410,7 @@ CVAPI(int) cvErrorFromIppStatus( int ipp_status );
 typedef int (CV_CDECL *CvErrorCallback)( int status, const char* func_name,
                     const char* err_msg, const char* file_name, int line, void* userdata );
 
-/* Assigns a new error-handling function */
-CVAPI(CvErrorCallback) cvRedirectError( CvErrorCallback error_handler,
-                                       void* userdata CV_DEFAULT(NULL),
-                                       void** prev_userdata CV_DEFAULT(NULL) );
+
 
 /*
     Output to:
@@ -1519,11 +1430,7 @@ CVAPI(int) cvGuiBoxReport( int status, const char* func_name, const char* err_ms
 typedef void* (CV_CDECL *CvAllocFunc)(size_t size, void* userdata);
 typedef int (CV_CDECL *CvFreeFunc)(void* pptr, void* userdata);
 
-/* Set user-defined memory managment functions (substitutors for malloc and free) that
-   will be called by cvAlloc, cvFree and higher-level functions (e.g. cvCreateImage) */
-CVAPI(void) cvSetMemoryManager( CvAllocFunc alloc_func CV_DEFAULT(NULL),
-                               CvFreeFunc free_func CV_DEFAULT(NULL),
-                               void* userdata CV_DEFAULT(NULL));
+
 
 
 typedef IplImage* (CV_STDCALL* Cv_iplCreateImageHeader)

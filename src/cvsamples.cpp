@@ -1,18 +1,4 @@
 
-
-/*
- * cvsamples.cpp
- *
- * support functions for training and test samples creation.
- */
-
-
-/* if ipl.h file is included then iplWarpPerspectiveQ function
-   is used for image transformation during samples creation;
-   otherwise internal cvWarpPerspective function is used */
-
-//#include <ipl.h>
-
 #include <cv.h>
 #include <highgui.h>
 
@@ -95,15 +81,7 @@ void cvWarpPerspective( CvArr* src, CvArr* dst, double quad[4][2] )
 
     __BEGIN__;
 
-#ifdef __IPL_H__
-    IplImage src_stub, dst_stub;
-    IplImage* src_img;
-    IplImage* dst_img;
-    CV_CALL( src_img = cvGetImage( src, &src_stub ) );
-    CV_CALL( dst_img = cvGetImage( dst, &dst_stub ) );
-    iplWarpPerspectiveQ( src_img, dst_img, quad, IPL_WARP_R_TO_Q,
-                         IPL_INTER_CUBIC | IPL_SMOOTH_EDGE );
-#else
+
 
     int fill_value = 0;
 
@@ -346,7 +324,7 @@ void cvWarpPerspective( CvArr* src, CvArr* dst, double quad[4][2] )
         }
         y_min = y_max;
     }
-#endif /* #ifndef __IPL_H__ */
+
 
     __END__;
 }

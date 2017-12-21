@@ -255,39 +255,6 @@ CV_INLINE  CvSize  cvGetMatSize( const CvMat* mat )
 #define  CV_DESCALE(x,n)     (((x) + (1 << ((n)-1))) >> (n))
 #define  CV_FLT_TO_FIX(x,n)  cvRound((x)*(1<<(n)))
 
-#if 0
-/* This is a small engine for performing fast division of multiple numbers
-   by the same constant. Most compilers do it too if they know the divisor value
-   at compile-time. The algorithm was taken from Agner Fog's optimization guide
-   at http://www.agner.org/assem */
-typedef struct CvFastDiv
-{
-    unsigned delta, scale, divisor;
-}
-CvFastDiv;
-
-#define CV_FAST_DIV_SHIFT 32
-
-CV_INLINE CvFastDiv cvFastDiv( int divisor )
-{
-    CvFastDiv fastdiv;
-    
-    assert( divisor >= 1 );
-    uint64 temp = ((uint64)1 << CV_FAST_DIV_SHIFT)/divisor;
-
-    fastdiv.divisor = divisor;
-    fastdiv.delta = (unsigned)(((temp & 1) ^ 1) + divisor - 1);
-    fastdiv.scale = (unsigned)((temp + 1) >> 1);
-    
-    return fastdiv;
-}
-
-#define CV_FAST_DIV( x, fastdiv )  \
-    ((int)(((int64)((x)*2 + (int)(fastdiv).delta))*(int)(fastdiv).scale>>CV_FAST_DIV_SHIFT))
-
-#define CV_FAST_UDIV( x, fastdiv )  \
-    ((int)(((uint64)((x)*2 + (fastdiv).delta))*(fastdiv).scale>>CV_FAST_DIV_SHIFT))
-#endif
 
 #define CV_MEMCPY_CHAR( dst, src, len )                                             \
 {                                                                                   \

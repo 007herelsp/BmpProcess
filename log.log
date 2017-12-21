@@ -1,10 +1,1 @@
-g++   -o build/matrix.o src//matrix.cpp	-Wall -g -std=c++11 -pipe  -c  -I./include
-mingw32-make: Nothing to be done for '2'.
-src//matrix.cpp: In member function 'cv::SparseMat::operator CvSparseMat*() const':
-src//matrix.cpp:3764:21: warning: unused variable 'n' [-Wunused-variable]
-         const Node* n = from.node();
-                     ^
-src//matrix.cpp:3760:30: warning: unused variable 'esz' [-Wunused-variable]
-     size_t i, N = nzcount(), esz = elemSize();
-                              ^~~
-g++  -o build/contours build/shapedescr.o build/highgui.utils.o build/gpumat.o build/opengl_interop.o build/histogram.o build/deriv.o build/grfmt_bmp.o build/bitstrm.o build/process.o build/matop.o build/imgrpoce.tables.o build/grfmt_base.o build/rotcalipers.o build/imgwarp.o build/utils.o build/main.o build/copy.o build/smooth.o build/datastructs.o build/convert.o build/opengl_interop_deprecated.o build/samplers.o build/alloc.o build/convhull.o build/moments.o build/thresh.o build/matmul.o build/loadsave.o build/approx.o build/arithm.o build/dxt.o build/geometry.o build/lapack.o build/contours.o build/stat.o build/sumpixels.o build/morph.o build/array.o build/mathfuncs.o build/filter.o build/matrix.o build/tables.o build/color.o build/imgwarp_avx2.o build/rand.o build/canny.o build/parallel.o build/system.o 
+./build/main.exe ./images/out3.bmp ./images/Target18.bmp ./images/Source1_2.bmp
