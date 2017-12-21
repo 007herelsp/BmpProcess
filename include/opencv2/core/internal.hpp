@@ -56,19 +56,7 @@
 
 /* IEEE754 constants and macros */
 #define  CV_TOGGLE_FLT(x) ((x)^((int)(x) < 0 ? 0x7fffffff : 0))
-#define  CV_TOGGLE_DBL(x) \
-    ((x)^((int64)(x) < 0 ? CV_BIG_INT(0x7fffffffffffffff) : 0))
 
-#define  CV_NOP(a)      (a)
-#define  CV_ADD(a, b)   ((a) + (b))
-#define  CV_SUB(a, b)   ((a) - (b))
-#define  CV_MUL(a, b)   ((a) * (b))
-#define  CV_AND(a, b)   ((a) & (b))
-#define  CV_OR(a, b)    ((a) | (b))
-#define  CV_XOR(a, b)   ((a) ^ (b))
-#define  CV_ANDN(a, b)  (~(a) & (b))
-#define  CV_ORN(a, b)   (~(a) | (b))
-#define  CV_SQR(a)      ((a) * (a))
 
 
 /* general-purpose saturation macros */
@@ -309,60 +297,9 @@ CvStatus;
 
 #define CV_NOTHROW throw()
 
-typedef struct CvFuncTable
-{
-    void*   fn_2d[CV_DEPTH_MAX];
-}
-CvFuncTable;
-
-typedef struct CvBigFuncTable
-{
-    void*   fn_2d[CV_DEPTH_MAX*4];
-} CvBigFuncTable;
-
-#define CV_INIT_FUNC_TAB( tab, FUNCNAME, FLAG )         \
-    (tab).fn_2d[CV_8U] = (void*)FUNCNAME##_8u##FLAG;    \
-    (tab).fn_2d[CV_8S] = 0;                             \
-    (tab).fn_2d[CV_16U] = (void*)FUNCNAME##_16u##FLAG;  \
-    (tab).fn_2d[CV_16S] = (void*)FUNCNAME##_16s##FLAG;  \
-    (tab).fn_2d[CV_32S] = (void*)FUNCNAME##_32s##FLAG;  \
-    (tab).fn_2d[CV_32F] = (void*)FUNCNAME##_32f##FLAG;  \
-    (tab).fn_2d[CV_64F] = (void*)FUNCNAME##_64f##FLAG
 
 #ifdef __cplusplus
 
-// < Deprecated
-
-class CV_EXPORTS CvOpenGlFuncTab
-{
-public:
-    virtual ~CvOpenGlFuncTab();
-
-    virtual void genBuffers(int n, unsigned int* buffers) const = 0;
-    virtual void deleteBuffers(int n, const unsigned int* buffers) const = 0;
-
-    virtual void bufferData(unsigned int target, ptrdiff_t size, const void* data, unsigned int usage) const = 0;
-    virtual void bufferSubData(unsigned int target, ptrdiff_t offset, ptrdiff_t size, const void* data) const = 0;
-
-    virtual void bindBuffer(unsigned int target, unsigned int buffer) const = 0;
-
-    virtual void* mapBuffer(unsigned int target, unsigned int access) const = 0;
-    virtual void unmapBuffer(unsigned int target) const = 0;
-
-    virtual void generateBitmapFont(const std::string& family, int height, int weight, bool italic, bool underline, int start, int count, int base) const = 0;
-
-    virtual bool isGlContextInitialized() const = 0;
-};
-
-CV_EXPORTS void icvSetOpenGlFuncTab(const CvOpenGlFuncTab* tab);
-
-CV_EXPORTS bool icvCheckGlError(const char* file, const int line, const char* func = "");
-
-// >
-
-namespace cv { namespace ogl {
-CV_EXPORTS bool checkError(const char* file, const int line, const char* func = "");
-}}
 
 #define CV_CheckGlError() CV_DbgAssert( (cv::ogl::checkError(__FILE__, __LINE__, CV_Func)) )
 

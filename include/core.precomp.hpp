@@ -30,21 +30,7 @@ extern const float g_8x32fTab[];
 extern const ushort g_8x16uSqrTab[];
 #define CV_SQR_8U(x)  cv::g_8x16uSqrTab[(x)+255]
 
-extern const uchar g_Saturate8u[];
-#define CV_FAST_CAST_8U(t)   (assert(-256 <= (t) && (t) <= 512), cv::g_Saturate8u[(t)+256])
-#define CV_MIN_8U(a,b)       ((a) - CV_FAST_CAST_8U((a) - (b)))
-#define CV_MAX_8U(a,b)       ((a) + CV_FAST_CAST_8U((b) - (a)))
 
-
-
-
-template<typename T1, typename T2=T1, typename T3=T1> struct OpRSub
-{
-    typedef T1 type1;
-    typedef T2 type2;
-    typedef T3 rtype;
-    T3 operator ()(const T1 a, const T2 b) const { return saturate_cast<T3>(b - a); }
-};
 
 
 
@@ -90,10 +76,6 @@ inline Size getContinuousSize(const Mat& m1, const Mat& m2,
                               m1.cols, m1.rows, widthScale);
 }
 
-struct NoVec
-{
-    size_t operator()(const void*, const void*, void*, size_t) const { return 0; }
-};
 
 enum { BLOCK_SIZE = 1024 };
 

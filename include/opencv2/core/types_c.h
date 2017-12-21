@@ -796,7 +796,6 @@ typedef struct CvContour
     CV_CONTOUR_FIELDS()
 } CvContour;
 
-typedef CvContour CvPoint2DSeq;
 
 /****************************************************************************************\
 *                                    Sequence types                                      *

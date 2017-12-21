@@ -146,11 +146,7 @@ CV_EXPORTS Ptr<BaseColumnFilter> getLinearColumnFilter(int bufType, int dstType,
                                             int symmetryType, double delta=0,
                                             int bits=0);
 
-//! returns 2D filter with the specified kernel
-CV_EXPORTS Ptr<BaseFilter> getLinearFilter(int srcType, int dstType,
-                                           InputArray kernel,
-                                           Point anchor=Point(-1,-1),
-                                           double delta=0, int bits=0);
+
 
 //! returns the separable linear filter engine
 CV_EXPORTS Ptr<FilterEngine> createSeparableLinearFilter(int srcType, int dstType,
@@ -160,11 +156,7 @@ CV_EXPORTS Ptr<FilterEngine> createSeparableLinearFilter(int srcType, int dstTyp
                           int columnBorderType=-1,
                           const Scalar& borderValue=Scalar());
 
-//! returns the non-separable linear filter engine
-CV_EXPORTS Ptr<FilterEngine> createLinearFilter(int srcType, int dstType,
-                 InputArray kernel, Point _anchor=Point(-1,-1),
-                 double delta=0, int rowBorderType=BORDER_DEFAULT,
-                 int columnBorderType=-1, const Scalar& borderValue=Scalar());
+
 
 //! returns the Gaussian kernel with the specified parameters
 CV_EXPORTS_W Mat getGaussianKernel( int ksize, double sigma, int ktype=CV_64F );
@@ -179,9 +171,6 @@ CV_EXPORTS_W void getDerivKernels( OutputArray kx, OutputArray ky,
                                    bool normalize=false, int ktype=CV_32F );
 
 
-//! returns the Gabor kernel with the specified parameters
-CV_EXPORTS_W Mat getGaborKernel( Size ksize, double sigma, double theta, double lambd,
-                                 double gamma, double psi=CV_PI*0.5, int ktype=CV_64F );
 
 //! type of morphological operation
 enum { MORPH_ERODE=CV_MOP_ERODE, MORPH_DILATE=CV_MOP_DILATE,

@@ -17,7 +17,6 @@
 
 #define GET_OPTIMIZED(func) (func)
 
-
 /* helper tables */
 extern const uchar icvSaturate8u_cv[];
 #define CV_FAST_CAST_8U(t)  (assert(-256 <= (t) && (t) <= 512), icvSaturate8u_cv[(t)+256])
@@ -49,43 +48,6 @@ void preprocess2DKernel( const Mat& kernel, vector<Point>& coords, vector<uchar>
 
 
 }
-
-
-#define  CV_COPY( dst, src, len, idx ) \
-    for( (idx) = 0; (idx) < (len); (idx)++) (dst)[idx] = (src)[idx]
-
-#define  CV_SET( dst, val, len, idx )  \
-    for( (idx) = 0; (idx) < (len); (idx)++) (dst)[idx] = (val)
-
-
-
-#undef   CV_CALC_MIN
-#define  CV_CALC_MIN(a, b) if((a) > (b)) (a) = (b)
-
-#undef   CV_CALC_MAX
-#define  CV_CALC_MAX(a, b) if((a) < (b)) (a) = (b)
-
-
-
-CvStatus CV_STDCALL icvGetRectSubPix_8u_C1R
-( const uchar* src, int src_step, CvSize src_size,
-  uchar* dst, int dst_step, CvSize win_size, CvPoint2D32f center );
-CvStatus CV_STDCALL icvGetRectSubPix_8u32f_C1R
-( const uchar* src, int src_step, CvSize src_size,
-  float* dst, int dst_step, CvSize win_size, CvPoint2D32f center );
-CvStatus CV_STDCALL icvGetRectSubPix_32f_C1R
-( const float* src, int src_step, CvSize src_size,
-  float* dst, int dst_step, CvSize win_size, CvPoint2D32f center );
-
-CvStatus CV_STDCALL icvGetQuadrangleSubPix_8u_C1R
-( const uchar* src, int src_step, CvSize src_size,
-  uchar* dst, int dst_step, CvSize win_size, const float *matrix );
-CvStatus CV_STDCALL icvGetQuadrangleSubPix_8u32f_C1R
-( const uchar* src, int src_step, CvSize src_size,
-  float* dst, int dst_step, CvSize win_size, const float *matrix );
-CvStatus CV_STDCALL icvGetQuadrangleSubPix_32f_C1R
-( const float* src, int src_step, CvSize src_size,
-  float* dst, int dst_step, CvSize win_size, const float *matrix );
 
 
 #endif /*__OPENCV_CV_INTERNAL_H_*/
