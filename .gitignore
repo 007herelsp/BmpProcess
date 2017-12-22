@@ -1,5 +1,6 @@
 build/
 3rd/
+tmp/
 BmpProcess_codeb/obj/Debug/src/thresh.o
 c.bmp
 canny1.bmp
@@ -131,3 +132,5 @@ log.log
 images/out3.bmp
 log.log
 bmp_opencv1/bmp_opencv1.layout
+tmp/cvderiv1.cpp
+tmp/cvderiv.cpp

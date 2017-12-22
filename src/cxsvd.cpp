@@ -1231,7 +1231,13 @@ cvSVD( CvArr* aarr, CvArr* warr, CvArr* uarr, CvArr* varr, int flags )
     w_is_mat = w_cols > 1 && w_rows > 1;
 
     if( !w_is_mat && CV_IS_MAT_CONT(w->type) && w_cols + w_rows - 1 == n )
+    {
         tw = w->data.ptr;
+    }
+    else
+    {
+         CV_ERROR( CV_StsUnsupportedFormat, "herelsp remove" );
+    }
 
     if( u )
     {
@@ -1370,17 +1376,7 @@ cvSVD( CvArr* aarr, CvArr* warr, CvArr* uarr, CvArr* varr, int flags )
         CV_ERROR( CV_StsUnsupportedFormat, "" );
     }
 
-    if( tw != w->data.ptr )
-    {
-        int shift = w->cols != 1;
-        cvSetZero( w );
-        if( type == CV_32FC1 )
-            for( int i = 0; i < n; i++ )
-                ((float*)(w->data.ptr + i*w->step))[i*shift] = ((float*)tw)[i];
-        else
-            for( int i = 0; i < n; i++ )
-                ((double*)(w->data.ptr + i*w->step))[i*shift] = ((double*)tw)[i];
-    }
+    
 
     if( uarr )
     {

@@ -171,8 +171,7 @@ cvWarpPerspective( const CvArr* srcarr, CvArr* dstarr,
         cvConvertScale( matrix, &invA );
     else
     {
-        cvConvertScale( matrix, &A );
-        cvInvert( &A, &invA, CV_SVD );
+         CV_ERROR( CV_StsUnmatchedFormats, "herelsp remove" );
     }
 
     type = CV_MAT_TYPE(src->type);

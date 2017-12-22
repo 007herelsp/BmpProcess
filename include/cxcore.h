@@ -262,17 +262,6 @@ CVAPI(CvSize) cvGetSize( const CvArr* arr );
 CVAPI(void)  cvCopy( const CvArr* src, CvArr* dst,
                      const CvArr* mask CV_DEFAULT(NULL) );
 
-/* Sets all or "masked" elements of input array
-   to the same value*/
-CVAPI(void)  cvSet( CvArr* arr, CvScalar value,
-                    const CvArr* mask CV_DEFAULT(NULL) );
-
-/* Clears all the array elements (sets them to 0) */
-CVAPI(void)  cvSetZero( CvArr* arr );
-#define cvZero  cvSetZero
-
-
-
 /* Performs linear transformation on every source array element:
    dst(x,y,c) = scale*src(x,y,c)+shift.
    Arbitrary combination of input and output array depths are allowed
@@ -281,8 +270,6 @@ CVAPI(void)  cvSetZero( CvArr* arr );
 CVAPI(void)  cvConvertScale( const CvArr* src, CvArr* dst,
                              double scale CV_DEFAULT(1),
                              double shift CV_DEFAULT(0) );
-#define cvCvtScale cvConvertScale
-#define cvScale  cvConvertScale
 #define cvConvert( src, dst )  cvConvertScale( (src), (dst), 1, 0 )
 
 
@@ -314,14 +301,6 @@ CVAPI(void)  cvMul( const CvArr* src1, const CvArr* src2,
 CVAPI(void)  cvDiv( const CvArr* src1, const CvArr* src2,
                     CvArr* dst, double scale CV_DEFAULT(1));
 
-/* dst(idx) = src(idx) & value */
-CVAPI(void) cvAndS( const CvArr* src, CvScalar value,
-                   CvArr* dst, const CvArr* mask CV_DEFAULT(NULL));
-
-
-
-
-
 #define CV_CMP_EQ   0
 #define CV_CMP_GT   1
 #define CV_CMP_GE   2
@@ -335,7 +314,6 @@ CVAPI(void) cvAndS( const CvArr* src, CvScalar value,
 /* dst(idx) = src1(idx) _cmp_op_ src2(idx) */
 
 /* dst(idx) = src1(idx) _cmp_op_ value */
-CVAPI(void) cvCmpS( const CvArr* src, double value, CvArr* dst, int cmp_op );
 
 /****************************************************************************************\
 *                                Math operations                                         *
@@ -345,20 +323,9 @@ CVAPI(void) cvCmpS( const CvArr* src, double value, CvArr* dst, int cmp_op );
 /* Does powering: dst(idx) = src(idx)^power */
 CVAPI(void)  cvPow( const CvArr* src, CvArr* dst, double power );
 
-
-
-/* Checks array values for NaNs, Infs or simply for too large numbers
-   (if CV_CHECK_RANGE is set). If CV_CHECK_QUIET is set,
-   no runtime errors is raised (function returns zero value in case of "bad" values).
-   Otherwise cvError is called */ 
-#define  CV_CHECK_RANGE    1
-#define  CV_CHECK_QUIET    2
-
-
 /****************************************************************************************\
 *                                Matrix operations                                       *
 \****************************************************************************************/
-
 
 
 /* Tranposes matrix. Square matrices can be transposed in-place */
@@ -382,9 +349,7 @@ CVAPI(void)   cvSVBkSb( const CvArr* W, const CvArr* U,
 #define CV_LU  0
 #define CV_SVD 1
 #define CV_SVD_SYM 2
-/* Inverts matrix */
-CVAPI(double)  cvInvert( const CvArr* src, CvArr* dst,
-                         int method CV_DEFAULT(CV_LU));
+
 
 /* Solves linear system (src1)*(dst) = (src2)
    (returns 0 if src1 is a singular and CV_LU method is used) */
@@ -392,8 +357,6 @@ CVAPI(int)  cvSolve( const CvArr* src1, const CvArr* src2, CvArr* dst,
                      int method CV_DEFAULT(CV_LU));
 
 
-/* Makes an identity matrix (mat_ij = i == j) */
-CVAPI(void)  cvSetIdentity( CvArr* mat, CvScalar value CV_DEFAULT(cvRealScalar(1)) );
 
 /* Fills matrix with given range of numbers */
 CVAPI(CvArr*)  cvRange( CvArr* mat, double start, double end );
@@ -531,9 +494,7 @@ CVAPI(void)  cvRestoreMemStoragePos( CvMemStorage* storage, CvMemStoragePos* pos
 /* Allocates continuous buffer of the specified size in the storage */
 CVAPI(void*) cvMemStorageAlloc( CvMemStorage* storage, size_t size );
 
-/* Allocates string in memory storage */
-CVAPI(CvString) cvMemStorageAllocString( CvMemStorage* storage, const char* ptr,
-                                        int len CV_DEFAULT(-1) );
+
 
 /* Creates new empty sequence that will reside in the specified storage */
 CVAPI(CvSeq*)  cvCreateSeq( int seq_flags, int header_size,
@@ -548,35 +509,22 @@ CVAPI(void)  cvSetSeqBlockSize( CvSeq* seq, int delta_elems );
 CVAPI(char*)  cvSeqPush( CvSeq* seq, void* element CV_DEFAULT(NULL));
 
 
-/* Adds new element to the beginning of sequence. Returns pointer to it */
-CVAPI(char*)  cvSeqPushFront( CvSeq* seq, void* element CV_DEFAULT(NULL));
-
 
 /* Removes the last element from sequence and optionally saves it */
 CVAPI(void)  cvSeqPop( CvSeq* seq, void* element CV_DEFAULT(NULL));
 
 
-/* Removes the first element from sequence and optioanally saves it */
-CVAPI(void)  cvSeqPopFront( CvSeq* seq, void* element CV_DEFAULT(NULL));
+
 
 
 #define CV_FRONT 1
 #define CV_BACK 0
-/* Adds several new elements to the end of sequence */
-CVAPI(void)  cvSeqPushMulti( CvSeq* seq, void* elements,
-                             int count, int in_front CV_DEFAULT(0) );
+
 
 /* Removes several elements from the end of sequence and optionally saves them */
 CVAPI(void)  cvSeqPopMulti( CvSeq* seq, void* elements,
                             int count, int in_front CV_DEFAULT(0) );
 
-/* Inserts a new element in the middle of sequence.
-   cvSeqInsert(seq,0,elem) == cvSeqPushFront(seq,elem) */
-CVAPI(char*)  cvSeqInsert( CvSeq* seq, int before_index,
-                           void* element CV_DEFAULT(NULL));
-
-/* Removes specified sequence element */
-CVAPI(void)  cvSeqRemove( CvSeq* seq, int index );
 
 
 /* Removes all the elements from the sequence. The freed memory
@@ -628,39 +576,6 @@ CVAPI(int)  cvGetSeqReaderPos( CvSeqReader* reader );
 CVAPI(void)   cvSetSeqReaderPos( CvSeqReader* reader, int index,
                                  int is_relative CV_DEFAULT(0));
 
-
-
-/* Creates sequence header for array.
-   After that all the operations on sequences that do not alter the content
-   can be applied to the resultant sequence */
-CVAPI(CvSeq*) cvMakeSeqHeaderForArray( int seq_type, int header_size,
-                                       int elem_size, void* elements, int total,
-                                       CvSeq* seq, CvSeqBlock* block );
-
-
-
-
-
-/* Removes sequence slice */
-
-
-/* a < b ? -1 : a > b ? 1 : 0 */
-typedef int (CV_CDECL* CvCmpFunc)(const void* a, const void* b, void* userdata );
-
-/* Sorts sequence in-place given element comparison function */
-CVAPI(void) cvSeqSort( CvSeq* seq, CvCmpFunc func, void* userdata CV_DEFAULT(NULL) );
-
-/* Finds element in a [sorted] sequence */
-CVAPI(char*) cvSeqSearch( CvSeq* seq, const void* elem, CvCmpFunc func,
-                          int is_sorted, int* elem_idx,
-                          void* userdata CV_DEFAULT(NULL) );
-
-/* Reverses order of sequence elements in-place */
-CVAPI(void) cvSeqInvert( CvSeq* seq );
-
-/* Splits sequence into one or more equivalence classes using the specified criteria */
-CVAPI(int)  cvSeqPartition( const CvSeq* seq, CvMemStorage* storage,
-                            CvSeq** labels, CvCmpFunc is_equal, void* userdata );
 
 /************ Internal sequence functions ************/
 CVAPI(void)  cvChangeSeqBlock( void* reader, int direction );

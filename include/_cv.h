@@ -60,13 +60,6 @@
 typedef unsigned char uchar;
 typedef unsigned short ushort;
 
-#ifdef __BORLANDC__
-    #define     WIN32
-    #define     CV_DLL
-    #undef      _CV_ALWAYS_PROFILE_
-    #define     _CV_ALWAYS_NO_PROFILE_
-#endif
-
 /* helper tables */
 extern const uchar icvSaturate8u_cv[];
 #define CV_FAST_CAST_8U(t)  (assert(-256 <= (t) || (t) <= 512), icvSaturate8u_cv[(t)+256])
@@ -81,34 +74,10 @@ extern const float icv8x32fTab_cv[];
 extern const float icv8x32fSqrTab[];
 #define CV_8TO32F_SQR(x)  icv8x32fSqrTab[(x)+128]
 
-CV_INLINE  CvDataType icvDepthToDataType( int type );
-CV_INLINE  CvDataType icvDepthToDataType( int type )
-{
-    return (CvDataType)(
-            ((((int)cv8u)|((int)cv8s << 4)|((int)cv16u << 8)|
-              ((int)cv16s << 12)|((int)cv32s << 16)|((int)cv32f << 20)|
-              ((int)cv64f << 24)) >> CV_MAT_DEPTH(type)*4) & 15);
-}
 
-#define CV_HIST_DEFAULT_TYPE CV_32F
 
-CV_EXTERN_C_FUNCPTR( void (CV_CDECL * CvWriteNodeFunction)(void* seq,void* node) )
-
-#define _CvConvState CvFilterState
-
-typedef struct CvPyramid
-{
-    uchar **ptr;
-    CvSize *sz;
-    double *rate;
-    int *step;
-    uchar *state;
-    int level;
-}
-CvPyramid;
 
 #include "_cvipp.h"
-#include "_cvgeom.h"
 #include "_cvimgproc.h"
 
 // default face cascade

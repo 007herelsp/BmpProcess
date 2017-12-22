@@ -809,14 +809,8 @@ cvFindNextContour( CvContourScanner scanner )
 
                 if( scanner->approx_method1 != scanner->approx_method2 )
                 {
-                    result = icvApproximateChainTC89( (CvChain *) seq,
-                                                      scanner->header_size2,
-                                                      scanner->storage2,
-                                                      &(l_cinfo->contour),
-                                                      scanner->approx_method2 );
-                    if( result < 0 )
-                        goto exit_func;
-                    cvClearMemStorage( scanner->storage1 );
+                 CV_ERROR( CV_StsNotImplemented, "herelsp remove" );
+                   
                 }
 
                 l_cinfo->contour->v_prev = l_cinfo->parent->contour;

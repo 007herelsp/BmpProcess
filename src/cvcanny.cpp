@@ -126,7 +126,7 @@ cvCanny( const void* srcarr, void* dstarr,
             if( !(flags & CV_CANNY_L2_GRADIENT) )
                 for( j = 0; j < size.width; j++ )
                     _mag[j] = abs(_dx[j]) + abs(_dy[j]);
-            else if( icvFilterSobelVert_8u16s_C1R_p != 0 ) // check for IPP
+            else if( 0 != 0 ) // check for IPP
             {
                 // use vectorized sqrt
                 mag_row.data.fl = _magf;

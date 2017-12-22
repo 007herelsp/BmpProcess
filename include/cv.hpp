@@ -22,11 +22,7 @@ class CV_EXPORTS CvBaseImageFilter
 public:
     CvBaseImageFilter();
     /* calls init() */
-    CvBaseImageFilter( int _max_width, int _src_type, int _dst_type,
-                       bool _is_separable, CvSize _ksize,
-                       CvPoint _anchor=cvPoint(-1,-1),
-                       int _border_mode=IPL_BORDER_REPLICATE,
-                       CvScalar _border_value=cvScalarAll(0) );
+    
     virtual ~CvBaseImageFilter();
 
     /* initializes the class for processing an image of maximal width _max_width,
@@ -125,11 +121,7 @@ class CV_EXPORTS CvSepFilter : public CvBaseImageFilter
 {
 public:
     CvSepFilter();
-    CvSepFilter( int _max_width, int _src_type, int _dst_type,
-                 const CvMat* _kx, const CvMat* _ky,
-                 CvPoint _anchor=cvPoint(-1,-1),
-                 int _border_mode=IPL_BORDER_REPLICATE,
-                 CvScalar _border_value=cvScalarAll(0) );
+   
     virtual ~CvSepFilter();
 
     virtual void init( int _max_width, int _src_type, int _dst_type,
@@ -160,7 +152,6 @@ public:
 
     static void init_gaussian_kernel( CvMat* kernel, double sigma=-1 );
     static void init_sobel_kernel( CvMat* _kx, CvMat* _ky, int dx, int dy, int flags=0 );
-    static void init_scharr_kernel( CvMat* _kx, CvMat* _ky, int dx, int dy, int flags=0 );
 
 protected:
     CvMat *kx, *ky;

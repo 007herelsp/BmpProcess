@@ -249,29 +249,7 @@ cvConvexHull2( const CvArr* array, void* hull_storage,
     }
     else
     {
-        if( !CV_IS_MAT( hull_storage ))
-            CV_ERROR(CV_StsBadArg, "Destination must be valid memory storage or matrix");
-
-        mat = (CvMat*)hull_storage;
-
-        if( mat->cols != 1 && mat->rows != 1 || !CV_IS_MAT_CONT(mat->type))
-            CV_ERROR( CV_StsBadArg,
-            "The hull matrix should be continuous and have a single row or a single column" );
-
-        if( mat->cols + mat->rows - 1 < ptseq->total )
-            CV_ERROR( CV_StsBadSize, "The hull matrix size might be not enough to fit the hull" );
-
-        if( CV_MAT_TYPE(mat->type) != CV_SEQ_ELTYPE(ptseq) &&
-            CV_MAT_TYPE(mat->type) != CV_32SC1 )
-            CV_ERROR( CV_StsUnsupportedFormat,
-            "The hull matrix must have the same type as input or 32sC1 (integers)" );
-
-        CV_CALL( hullseq = cvMakeSeqHeaderForArray(
-            CV_SEQ_KIND_CURVE|CV_MAT_TYPE(mat->type)|CV_SEQ_FLAG_CLOSED,
-            sizeof(contour_header), CV_ELEM_SIZE(mat->type), mat->data.ptr,
-            mat->cols + mat->rows - 1, &hull_header.s, &hullblock ));
-
-        cvClearSeq( hullseq );
+        CV_ERROR(CV_StsBadArg, "herelsp remove");
     }
 
     total = ptseq->total;

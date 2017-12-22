@@ -193,13 +193,6 @@ icvThresh_32f_C1R( const float *src, int src_step, float *dst, int dst_step,
 }
 
 
-icvAndC_8u_C1R_t icvAndC_8u_C1R_p = 0;
-icvCompareC_8u_C1R_cv_t icvCompareC_8u_C1R_cv_p = 0;
-icvThreshold_GTVal_8u_C1R_t icvThreshold_GTVal_8u_C1R_p = 0;
-icvThreshold_GTVal_32f_C1R_t icvThreshold_GTVal_32f_C1R_p = 0;
-icvThreshold_LTVal_8u_C1R_t icvThreshold_LTVal_8u_C1R_p = 0;
-icvThreshold_LTVal_32f_C1R_t icvThreshold_LTVal_32f_C1R_p = 0;
-
 CV_IMPL void
 cvThreshold( const void* srcarr, void* dstarr, double thresh, double maxval, int type )
 {
@@ -244,25 +237,7 @@ cvThreshold( const void* srcarr, void* dstarr, double thresh, double maxval, int
 
     if( !CV_ARE_DEPTHS_EQ( src, dst ) )
     {
-        if( CV_MAT_TYPE(dst->type) != CV_8UC1 )
-            CV_ERROR( CV_StsUnsupportedFormat, "In case of different types destination should be 8uC1" );
-
-        if( type != CV_THRESH_BINARY && type != CV_THRESH_BINARY_INV )
-            CV_ERROR( CV_StsBadArg,
-            "In case of different types only CV_THRESH_BINARY "
-            "and CV_THRESH_BINARY_INV thresholding types are supported" );
-
-        if( maxval < 0 )
-        {
-            CV_CALL( cvSetZero( dst ));
-        }
-        else
-        {
-            CV_CALL( cvCmpS( src, thresh, dst, type == CV_THRESH_BINARY ? CV_CMP_GT : CV_CMP_LE ));
-            if( maxval < 255 )
-                CV_CALL( cvAndS( dst, cvScalarAll( maxval ), dst ));
-        }
-        EXIT;
+       CV_ERROR( CV_BadDepth, cvUnsupportedFormat );
     }
 
     if( !CV_ARE_SIZES_EQ( src, dst ) )
@@ -291,88 +266,12 @@ cvThreshold( const void* srcarr, void* dstarr, double thresh, double maxval, int
             imaxval = ithresh;
         imaxval = CV_CAST_8U(imaxval);
 
-        if( ithresh < 0 || ithresh >= 255 )
-        {
-            if( type == CV_THRESH_BINARY || type == CV_THRESH_BINARY_INV ||
-                (type == CV_THRESH_TRUNC || type == CV_THRESH_TOZERO_INV) && ithresh < 0 ||
-                type == CV_THRESH_TOZERO && ithresh >= 255 )
-            {
-                int v = type == CV_THRESH_BINARY ? (ithresh >= 255 ? 0 : imaxval) :
-                        type == CV_THRESH_BINARY_INV ? (ithresh >= 255 ? imaxval : 0) :
-                        type == CV_THRESH_TRUNC ? imaxval : 0;
-
-                cvSet( dst, cvScalarAll(v) );
-                EXIT;
-            }
-            else
-            {
-                cvCopy( src, dst );
-                EXIT;
-            }
-        }
-
-        if( type == CV_THRESH_BINARY || type == CV_THRESH_BINARY_INV )
-        {
-            if( icvCompareC_8u_C1R_cv_p && icvAndC_8u_C1R_p )
-            {
-                IPPI_CALL( icvCompareC_8u_C1R_cv_p( src->data.ptr, src_step,
-                    (uchar)ithresh, dst->data.ptr, dst_step, roi,
-                    type == CV_THRESH_BINARY ? cvCmpGreater : cvCmpLessEq ));
-
-                if( imaxval < 255 )
-                    IPPI_CALL( icvAndC_8u_C1R_p( dst->data.ptr, dst_step,
-                    (uchar)imaxval, dst->data.ptr, dst_step, roi ));
-                EXIT;
-            }
-        }
-        else if( type == CV_THRESH_TRUNC || type == CV_THRESH_TOZERO_INV )
-        {
-            if( icvThreshold_GTVal_8u_C1R_p )
-            {
-                IPPI_CALL( icvThreshold_GTVal_8u_C1R_p( src->data.ptr, src_step,
-                    dst->data.ptr, dst_step, roi, (uchar)ithresh,
-                    (uchar)(type == CV_THRESH_TRUNC ? ithresh : 0) ));
-                EXIT;
-            }
-        }
-        else
-        {
-            assert( type == CV_THRESH_TOZERO );
-            if( icvThreshold_LTVal_8u_C1R_p )
-            {
-                ithresh = cvFloor(thresh+1.);
-                ithresh = CV_CAST_8U(ithresh);
-                IPPI_CALL( icvThreshold_LTVal_8u_C1R_p( src->data.ptr, src_step,
-                    dst->data.ptr, dst_step, roi, (uchar)ithresh, 0 ));
-                EXIT;
-            }
-        }
-
         icvThresh_8u_C1R( src->data.ptr, src_step,
                           dst->data.ptr, dst_step, roi,
                           (uchar)ithresh, (uchar)imaxval, type );
         break;
     case CV_32F:
 
-        if( type == CV_THRESH_TRUNC || type == CV_THRESH_TOZERO_INV )
-        {
-            if( icvThreshold_GTVal_32f_C1R_p )
-            {
-                IPPI_CALL( icvThreshold_GTVal_32f_C1R_p( src->data.fl, src_step,
-                    dst->data.fl, dst_step, roi, (float)thresh,
-                    type == CV_THRESH_TRUNC ? (float)thresh : 0 ));
-                EXIT;
-            }
-        }
-        else if( type == CV_THRESH_TOZERO )
-        {
-            if( icvThreshold_LTVal_32f_C1R_p )
-            {
-                IPPI_CALL( icvThreshold_LTVal_32f_C1R_p( src->data.fl, src_step,
-                    dst->data.fl, dst_step, roi, (float)(thresh*(1 + FLT_EPSILON)), 0 ));
-                EXIT;
-            }
-        }
 
         icvThresh_32f_C1R( src->data.fl, src_step, dst->data.fl, dst_step, roi,
                            (float)thresh, (float)maxval, type );
