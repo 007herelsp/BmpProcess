@@ -1,43 +1,4 @@
-/*M///////////////////////////////////////////////////////////////////////////////////////
-//
-//  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.
-//
-//  By downloading, copying, installing or using the software you agree to this license.
-//  If you do not agree to this license, do not download, install,
-//  copy or use the software.
-//
-//
-//                        Intel License Agreement
-//                For Open Source Computer Vision Library
-//
-// Copyright (C) 2000, Intel Corporation, all rights reserved.
-// Third party copyrights are property of their respective owners.
-//
-// Redistribution and use in source and binary forms, with or without modification,
-// are permitted provided that the following conditions are met:
-//
-//   * Redistribution's of source code must retain the above copyright notice,
-//     this list of conditions and the following disclaimer.
-//
-//   * Redistribution's in binary form must reproduce the above copyright notice,
-//     this list of conditions and the following disclaimer in the documentation
-//     and/or other materials provided with the distribution.
-//
-//   * The name of Intel Corporation may not be used to endorse or promote products
-//     derived from this software without specific prior written permission.
-//
-// This software is provided by the copyright holders and contributors "as is" and
-// any express or implied warranties, including, but not limited to, the implied
-// warranties of merchantability and fitness for a particular purpose are disclaimed.
-// In no event shall the Intel Corporation or contributors be liable for any direct,
-// indirect, incidental, special, exemplary, or consequential damages
-// (including, but not limited to, procurement of substitute goods or services;
-// loss of use, data, or profits; or business interruption) however caused
-// and on any theory of liability, whether in contract, strict liability,
-// or tort (including negligence or otherwise) arising in any way out of
-// the use of this software, even if advised of the possibility of such damage.
-//
-//M*/
+
 
 /*
  * cvsamples.cpp
@@ -45,8 +6,6 @@
  * support functions for training and test samples creation.
  */
 
-#include <cvhaartraining.h>
-#include <_cvhaartraining.h>
 
 /* if ipl.h file is included then iplWarpPerspectiveQ function
    is used for image transformation during samples creation;
@@ -144,7 +103,7 @@ void cvWarpPerspective( CvArr* src, CvArr* dst, double quad[4][2] )
     CV_CALL( dst_img = cvGetImage( dst, &dst_stub ) );
     iplWarpPerspectiveQ( src_img, dst_img, quad, IPL_WARP_R_TO_Q,
                          IPL_INTER_CUBIC | IPL_SMOOTH_EDGE );
-#else    
+#else
 
     int fill_value = 0;
 
@@ -391,77 +350,6 @@ void cvWarpPerspective( CvArr* src, CvArr* dst, double quad[4][2] )
 
     __END__;
 }
-
-static
-void icvRandomQuad( int width, int height, double quad[4][2], 
-                    double maxxangle,
-                    double maxyangle,
-                    double maxzangle )
-{
-    double distfactor = 3.0;
-    double distfactor2 = 1.0;
-
-    double halfw, halfh;
-    int i;
-    
-    double rotVectData[3];
-    double vectData[3];
-    double rotMatData[9];
-
-    CvMat rotVect;
-    CvMat rotMat;
-    CvMat vect;
-
-    double d;
-
-    rotVect = cvMat( 3, 1, CV_64FC1, &rotVectData[0] );
-    rotMat = cvMat( 3, 3, CV_64FC1, &rotMatData[0] );
-    vect = cvMat( 3, 1, CV_64FC1, &vectData[0] );
-
-    rotVectData[0] = maxxangle * (2.0 * rand() / RAND_MAX - 1.0);
-    rotVectData[1] = ( maxyangle - fabs( rotVectData[0] ) )
-        * (2.0 * rand() / RAND_MAX - 1.0);
-    rotVectData[2] = maxzangle * (2.0 * rand() / RAND_MAX - 1.0);
-    d = (distfactor + distfactor2 * (2.0 * rand() / RAND_MAX - 1.0)) * width;
-
-/*
-    rotVectData[0] = maxxangle;
-    rotVectData[1] = maxyangle;
-    rotVectData[2] = maxzangle;
-
-    d = distfactor * width;
-*/
-
-    cvRodrigues( &rotMat, &rotVect, NULL, CV_RODRIGUES_V2M );
-
-    halfw = 0.5 * width;
-    halfh = 0.5 * height;
-
-    quad[0][0] = -halfw;
-    quad[0][1] = -halfh;
-    quad[1][0] =  halfw;
-    quad[1][1] = -halfh;
-    quad[2][0] =  halfw;
-    quad[2][1] =  halfh;
-    quad[3][0] = -halfw;
-    quad[3][1] =  halfh;
-
-    for( i = 0; i < 4; i++ )
-    {
-        rotVectData[0] = quad[i][0];
-        rotVectData[1] = quad[i][1];
-        rotVectData[2] = 0.0;
-        cvMatMulAdd( &rotMat, &rotVect, 0, &vect );
-        quad[i][0] = vectData[0] * d / (d + vectData[2]) + halfw;
-        quad[i][1] = vectData[1] * d / (d + vectData[2]) + halfh;
-        
-        /*
-        quad[i][0] += halfw;
-        quad[i][1] += halfh;
-        */
-    }
-}
-
 
 
 

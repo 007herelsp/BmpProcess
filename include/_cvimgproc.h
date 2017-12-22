@@ -48,9 +48,6 @@
 #define  CV_SET( dst, val, len, idx )  \
     for( (idx) = 0; (idx) < (len); (idx)++) (dst)[idx] = (val)
 
-/* performs convolution of 2d floating-point array with 3x1, 1x3 or separable 3x3 mask */
-void icvSepConvSmall3_32f( float* src, int src_step, float* dst, int dst_step,
-            CvSize src_size, const float* kx, const float* ky, float* buffer );
 
 typedef CvStatus (CV_STDCALL * CvSobelFixedIPPFunc)
 ( const void* src, int srcstep, void* dst, int dststep, CvSize roi, int aperture );
