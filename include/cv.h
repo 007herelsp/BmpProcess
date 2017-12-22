@@ -107,37 +107,6 @@ CVAPI(void)  cvPyrUp( const CvArr* src, CvArr* dst,
                       int filter CV_DEFAULT(CV_GAUSSIAN_5x5) );
 
 
-/* Builds the whole pyramid at once. Output array of CvMat headers (levels[*])
-   is initialized with the headers of subsequent pyramid levels */
-/*CVAPI  void  cvCalcPyramid( const CvArr* src, CvArr* container,
-                              CvMat* levels, int level_count,
-                              int filter CV_DEFAULT(CV_GAUSSIAN_5x5) );*/
-
-
-/* Splits color or grayscale image into multiple connected components
-   of nearly the same color/brightness using modification of Burt algorithm.
-   comp with contain a pointer to sequence (CvSeq)
-   of connected components (CvConnectedComp) */
-CVAPI(void) cvPyrSegmentation( IplImage* src, IplImage* dst,
-                              CvMemStorage* storage, CvSeq** comp,
-                              int level, double threshold1,
-                              double threshold2 );
-
-/* Filters image using meanshift algorithm */
-CVAPI(void) cvPyrMeanShiftFiltering( const CvArr* src, CvArr* dst, 
-    double sp, double sr, int max_level CV_DEFAULT(1),
-    CvTermCriteria termcrit CV_DEFAULT(cvTermCriteria(CV_TERMCRIT_ITER+CV_TERMCRIT_EPS,5,1)));
-
-/* Segments image using seed "markers" */
-CVAPI(void) cvWatershed( const CvArr* image, CvArr* markers );
-
-#define CV_INPAINT_NS      0
-#define CV_INPAINT_TELEA   1
-
-/* Inpaints the selected region in the image */
-CVAPI(void) cvInpaint( const CvArr* src, const CvArr* inpaint_mask,
-                       CvArr* dst, double inpaintRange, int flags );
-
 #define CV_SCHARR -1
 #define CV_MAX_SOBEL_KSIZE 7
 
@@ -148,9 +117,6 @@ CVAPI(void) cvSobel( const CvArr* src, CvArr* dst,
                     int xorder, int yorder,
                     int aperture_size CV_DEFAULT(3));
 
-/* Calculates the image Laplacian: (d2/dx + d2/dy)I */
-CVAPI(void) cvLaplace( const CvArr* src, CvArr* dst,
-                      int aperture_size CV_DEFAULT(3) );
 
 /* Constants for color conversion */
 #define  CV_BGR2BGRA    0
@@ -259,8 +225,6 @@ CVAPI(void)  cvCvtColor( const CvArr* src, CvArr* dst, int code );
 #define  CV_WARP_INVERSE_MAP  16
 
 
-
-
 /* Warps image with perspective (projective) transform */
 CVAPI(void)  cvWarpPerspective( const CvArr* src, CvArr* dst, const CvMat* map_matrix,
                                 int flags CV_DEFAULT(CV_INTER_LINEAR+CV_WARP_FILL_OUTLIERS),
@@ -299,44 +263,11 @@ CVAPI(void)  cvDilate( const CvArr* src, CvArr* dst,
                        IplConvKernel* element CV_DEFAULT(NULL),
                        int iterations CV_DEFAULT(1) );
 
-#define CV_MOP_OPEN         2
-#define CV_MOP_CLOSE        3
-#define CV_MOP_GRADIENT     4
-#define CV_MOP_TOPHAT       5
-#define CV_MOP_BLACKHAT     6
-
-
-
-
-
-
-/* Methods for comparing two array */
-#define  CV_TM_SQDIFF        0
-#define  CV_TM_SQDIFF_NORMED 1
-#define  CV_TM_CCORR         2
-#define  CV_TM_CCORR_NORMED  3
-#define  CV_TM_CCOEFF        4
-#define  CV_TM_CCOEFF_NORMED 5
-
-
-
-/* Computes earth mover distance between
-   two weighted point sets (called signatures) */
-CVAPI(float)  cvCalcEMD2( const CvArr* signature1,
-                          const CvArr* signature2,
-                          int distance_type,
-                          CvDistanceFunction distance_func CV_DEFAULT(NULL),
-                          const CvArr* cost_matrix CV_DEFAULT(NULL),
-                          CvArr* flow CV_DEFAULT(NULL),
-                          float* lower_bound CV_DEFAULT(NULL),
-                          void* userdata CV_DEFAULT(NULL));
 
 /****************************************************************************************\
 *                              Contours retrieving                                       *
 \****************************************************************************************/
 
-/* Retrieves outer and optionally inner boundaries of white (non-zero) connected
-   components in the black (zero) background */
 CVAPI(int)  cvFindContours( CvArr* image, CvMemStorage* storage, CvSeq** first_contour,
                             int header_size CV_DEFAULT(sizeof(CvContour)),
                             int mode CV_DEFAULT(CV_RETR_LIST),
@@ -344,11 +275,6 @@ CVAPI(int)  cvFindContours( CvArr* image, CvMemStorage* storage, CvSeq** first_c
                             CvPoint offset CV_DEFAULT(cvPoint(0,0)));
 
 
-/* Initalizes contour retrieving process.
-   Calls cvStartFindContours.
-   Calls cvFindNextContour until null pointer is returned
-   or some other condition becomes true.
-   Calls cvEndFindContours at the end. */
 CVAPI(CvContourScanner)  cvStartFindContours( CvArr* image, CvMemStorage* storage,
                             int header_size CV_DEFAULT(sizeof(CvContour)),
                             int mode CV_DEFAULT(CV_RETR_LIST),
@@ -363,22 +289,6 @@ CVAPI(CvSeq*)  cvFindNextContour( CvContourScanner scanner );
 CVAPI(CvSeq*)  cvEndFindContours( CvContourScanner* scanner );
 
 
-/* Initalizes Freeman chain reader.
-   The reader is used to iteratively get coordinates of all the chain points.
-   If the Freeman codes should be read as is, a simple sequence reader should be used */
-CVAPI(void) cvStartReadChainPoints( CvChain* chain, CvChainPtReader* reader );
-
-
-
-/****************************************************************************************\
-*                                  Motion Analysis                                       *
-\****************************************************************************************/
-
-
-
-/************ Basic quad-edge navigation and operations ************/
-
-
 /****************************************************************************************\
 *                            Contour Processing and Shape Analysis                       *
 \****************************************************************************************/
@@ -391,8 +301,6 @@ CVAPI(CvSeq*)  cvApproxPoly( const void* src_seq,
                              int header_size, CvMemStorage* storage,
                              int method, double parameter,
                              int parameter2 CV_DEFAULT(0));
-
-#define CV_DOMINANT_IPAN 1
 
 
 /* Calculates perimeter of a contour or length of a part of contour */
@@ -439,21 +347,6 @@ CVAPI(CvRect)  cvMaxRect( const CvRect* rect1, const CvRect* rect2 );
 /* Finds coordinates of the box vertices */
 CVAPI(void) cvBoxPoints( CvBox2D box, CvPoint2D32f pt[4] );
 
-/* Initializes sequence header for a matrix (column or row vector) of points -
-   a wrapper for cvMakeSeqHeaderForArray (it does not initialize bounding rectangle!!!) */
-CVAPI(CvSeq*) cvPointSeqFromMat( int seq_kind, const CvArr* mat,
-                                 CvContour* contour_header,
-                                 CvSeqBlock* block );
-
-
-
-
-#define CV_DIST_MASK_3   3
-#define CV_DIST_MASK_5   5
-#define CV_DIST_MASK_PRECISE 0
-
-
-
 /* Types of thresholding */
 #define CV_THRESH_BINARY      0  /* value = value > threshold ? max_value : 0       */
 #define CV_THRESH_BINARY_INV  1  /* value = value > threshold ? 0 : max_value       */
@@ -470,24 +363,6 @@ CVAPI(CvSeq*) cvPointSeqFromMat( int seq_kind, const CvArr* mat,
 CVAPI(void)  cvThreshold( const CvArr*  src, CvArr*  dst,
                           double  threshold, double  max_value,
                           int threshold_type );
-
-#define CV_ADAPTIVE_THRESH_MEAN_C  0
-#define CV_ADAPTIVE_THRESH_GAUSSIAN_C  1
-
-/* Applies adaptive threshold to grayscale image.
-   The two parameters for methods CV_ADAPTIVE_THRESH_MEAN_C and
-   CV_ADAPTIVE_THRESH_GAUSSIAN_C are:
-   neighborhood size (3, 5, 7 etc.),
-   and a constant subtracted from mean (...,-3,-2,-1,0,1,2,3,...) */
-CVAPI(void)  cvAdaptiveThreshold( const CvArr* src, CvArr* dst, double max_value,
-                                  int adaptive_method CV_DEFAULT(CV_ADAPTIVE_THRESH_MEAN_C),
-                                  int threshold_type CV_DEFAULT(CV_THRESH_BINARY),
-                                  int block_size CV_DEFAULT(3),
-                                  double param1 CV_DEFAULT(5));
-
-#define CV_FLOODFILL_FIXED_RANGE (1 << 16)
-#define CV_FLOODFILL_MASK_ONLY   (1 << 17)
-
 
 
 /****************************************************************************************\

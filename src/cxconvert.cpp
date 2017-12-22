@@ -421,82 +421,12 @@ cvConvertScale( const void* srcarr, void* dstarr,
 
     if( !CV_IS_MAT(src) )
     {
-        if( CV_IS_MATND(src) )
-            is_nd = 1;
-        else
-        {
-            int coi = 0;
-            CV_CALL( src = cvGetMat( src, &srcstub, &coi ));
-
-            if( coi != 0 )
-                CV_ERROR( CV_BadCOI, "" );
-        }
+       CV_ERROR( CV_BadCOI, "herelsp remove" );
     }
 
     if( !CV_IS_MAT(dst) )
     {
-        if( CV_IS_MATND(dst) )
-            is_nd = 1;
-        else
-        {
-            int coi = 0;
-            CV_CALL( dst = cvGetMat( dst, &dststub, &coi ));
-
-            if( coi != 0 )
-                CV_ERROR( CV_BadCOI, "" );
-        }
-    }
-
-    if( is_nd )
-    {
-        CvArr* arrs[] = { src, dst };
-        CvMatND stubs[2];
-        CvNArrayIterator iterator;
-        int dsttype;
-
-        CV_CALL( cvInitNArrayIterator( 2, arrs, 0, stubs, &iterator, CV_NO_DEPTH_CHECK ));
-
-        type = iterator.hdr[0]->type;
-        dsttype = iterator.hdr[1]->type;
-        iterator.size.width *= CV_MAT_CN(type);
-
-        if( !inittab )
-        {
-            icvInitCvtToC1RTable( &cvt_tab );
-            icvInitCvtScaleToC1RTable( &cvtscale_tab );
-            inittab = 1;
-        }
-
-        if( no_scale )
-        {
-            CvCvtFunc func = (CvCvtFunc)(cvt_tab.fn_2d[CV_MAT_DEPTH(dsttype)]);
-            if( !func )
-                CV_ERROR( CV_StsUnsupportedFormat, "" );
-
-            do
-            {
-                IPPI_CALL( func( iterator.ptr[0], CV_STUB_STEP,
-                                 iterator.ptr[1], CV_STUB_STEP,
-                                 iterator.size, type ));
-            }
-            while( cvNextNArraySlice( &iterator ));
-        }
-        else
-        {
-            CvCvtScaleFunc func =
-                (CvCvtScaleFunc)(cvtscale_tab.fn_2d[CV_MAT_DEPTH(dsttype)]);
-            if( !func )
-                CV_ERROR( CV_StsUnsupportedFormat, "" );
-
-            do
-            {
-                IPPI_CALL( func( iterator.ptr[0], CV_STUB_STEP,
-                                 iterator.ptr[1], CV_STUB_STEP,
-                                 iterator.size, scale, shift, type ));
-            }
-            while( cvNextNArraySlice( &iterator ));
-        }
-        EXIT;
+        CV_ERROR( CV_BadCOI, "herelsp remove" );
     }
 
     if( no_scale && CV_ARE_TYPES_EQ( src, dst ) )

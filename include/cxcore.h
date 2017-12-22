@@ -177,13 +177,7 @@ CvNArrayIterator;
 #define CV_NO_CN_CHECK        2
 #define CV_NO_SIZE_CHECK      4
 
-/* initializes iterator that traverses through several arrays simulteneously
-   (the function together with cvNextArraySlice is used for
-    N-ari element-wise operations) */
-CVAPI(int) cvInitNArrayIterator( int count, CvArr** arrs,
-                                 const CvArr* mask, CvMatND* stubs,
-                                 CvNArrayIterator* array_iterator,
-                                 int flags CV_DEFAULT(0) );
+
 
 /* returns zero value if iteration is finished, non-zero (slice length) otherwise */
 CVAPI(int) cvNextNArraySlice( CvNArrayIterator* array_iterator );
@@ -192,36 +186,6 @@ CVAPI(int) cvNextNArraySlice( CvNArrayIterator* array_iterator );
 /* Returns type of array elements:
    CV_8UC1 ... CV_64FC4 ... */
 CVAPI(int) cvGetElemType( const CvArr* arr );
-
-
-
-
-
-/* For CvMat or IplImage number of indices should be 2
-   (row index (y) goes first, column index (x) goes next).
-   For CvMatND or CvSparseMat number of infices should match number of <dims> and
-   indices order should match the array dimension order. */
-CVAPI(uchar*) cvPtrND( const CvArr* arr, const int* idx, int* type CV_DEFAULT(NULL),
-                      int create_node CV_DEFAULT(1),
-                      unsigned* precalc_hashval CV_DEFAULT(NULL));
-
-/* value = arr(idx0,idx1,...) */
-CVAPI(CvScalar) cvGet1D( const CvArr* arr, int idx0 );
-CVAPI(CvScalar) cvGet2D( const CvArr* arr, int idx0, int idx1 );
-CVAPI(CvScalar) cvGetND( const CvArr* arr, const int* idx );
-
-/* for 1-channel arrays */
-CVAPI(double) cvGetReal1D( const CvArr* arr, int idx0 );
-CVAPI(double) cvGetReal2D( const CvArr* arr, int idx0, int idx1 );
-CVAPI(double) cvGetReal3D( const CvArr* arr, int idx0, int idx1, int idx2 );
-CVAPI(double) cvGetRealND( const CvArr* arr, const int* idx );
-
-/* arr(idx0,idx1,...) = value */
-CVAPI(void) cvSet1D( CvArr* arr, int idx0, CvScalar value );
-CVAPI(void) cvSet2D( CvArr* arr, int idx0, int idx1, CvScalar value );
-CVAPI(void) cvSet3D( CvArr* arr, int idx0, int idx1, int idx2, CvScalar value );
-CVAPI(void) cvSetND( CvArr* arr, const int* idx, CvScalar value );
-
 
 /* Converts CvArr (IplImage or CvMat,...) to CvMat.
    If the last parameter is non-zero, function can
@@ -275,13 +239,7 @@ CVAPI(void)  cvConvertScale( const CvArr* src, CvArr* dst,
 
 
 
-/* checks termination criteria validity and
-   sets eps to default_eps (if it is not set),
-   max_iter to default_max_iters (if it is not set)
-*/
-CVAPI(CvTermCriteria) cvCheckTermCriteria( CvTermCriteria criteria,
-                                           double default_eps,
-                                           int default_max_iters );
+
 
 /****************************************************************************************\
 *                   Arithmetic, logic and comparison operations                          *
@@ -408,17 +366,6 @@ CVAPI(int)  cvCountNonZero( const CvArr* arr );
 #define CV_RELATIVE_L1  (CV_RELATIVE | CV_L1)
 #define CV_RELATIVE_L2  (CV_RELATIVE | CV_L2)
 
-/* Finds norm, difference norm or relative difference norm for an array (or two arrays) */
-CVAPI(double)  cvNorm( const CvArr* arr1, const CvArr* arr2 CV_DEFAULT(NULL),
-                       int norm_type CV_DEFAULT(CV_L2),
-                       const CvArr* mask CV_DEFAULT(NULL) );
-
-CVAPI(void)  cvNormalize( const CvArr* src, CvArr* dst,
-                          double a CV_DEFAULT(1.), double b CV_DEFAULT(0.),
-                          int norm_type CV_DEFAULT(CV_L2),
-                          const CvArr* mask CV_DEFAULT(NULL) );
-
-
 #define CV_REDUCE_SUM 0
 #define CV_REDUCE_AVG 1
 #define CV_REDUCE_MAX 2
@@ -438,23 +385,13 @@ CVAPI(void)  cvNormalize( const CvArr* src, CvArr* dst,
 #define CV_DXT_ROWS     4 /* transform each row individually */
 #define CV_DXT_MUL_CONJ 8 /* conjugate the second argument of cvMulSpectrums */
 
-/* Discrete Fourier Transform:
-    complex->complex,
-    real->ccs (forward),
-    ccs->real (inverse) */
-CVAPI(void)  cvDFT( const CvArr* src, CvArr* dst, int flags,
-                    int nonzero_rows CV_DEFAULT(0) );
-#define cvFFT cvDFT
 
-/* Multiply results of DFTs: DFT(X)*DFT(Y) or DFT(X)*conj(DFT(Y)) */
-CVAPI(void)  cvMulSpectrums( const CvArr* src1, const CvArr* src2,
-                             CvArr* dst, int flags );
+
 
 /* Finds optimal DFT vector size >= size0 */
 CVAPI(int)  cvGetOptimalDFTSize( int size0 );
 
 /* Discrete Cosine Transform */
-CVAPI(void)  cvDCT( const CvArr* src, CvArr* dst, int flags );
 
 /****************************************************************************************\
 *                              Dynamic data structures                                   *
@@ -937,25 +874,12 @@ CVAPI(void) cvRemoveNodeFromTree( void* node, void* frame );
 
 
 
-/* The function implements the K-means algorithm for clustering an array of sample
-   vectors in a specified number of classes */
-CVAPI(void)  cvKMeans2( const CvArr* samples, int cluster_count,
-                        CvArr* labels, CvTermCriteria termcrit );
-
 /****************************************************************************************\
 *                                    System functions                                    *
 \****************************************************************************************/
 
-/* Add the function pointers table with associated information to the IPP primitives list */
-CVAPI(int)  cvRegisterModule( const CvModuleInfo* module_info );
 
-/* Loads optimized functions from IPP, MKL etc. or switches back to pure C code */
-CVAPI(int)  cvUseOptimized( int on_off );
 
-/* Retrieves information about the registered modules and loaded optimized plugins */
-CVAPI(void)  cvGetModuleInfo( const char* module_name,
-                              const char** version,
-                              const char** loaded_addon_plugins );
 
 /* Get current OpenCV error status */
 CVAPI(int) cvGetErrStatus( void );
@@ -1015,17 +939,15 @@ typedef int (CV_CDECL *CvFreeFunc)(void* pptr, void* userdata);
 
 typedef IplImage* (CV_STDCALL* Cv_iplCreateImageHeader)
                             (int,int,int,char*,char*,int,int,int,int,int,
-                            IplROI*,IplImage*,void*,IplTileInfo*);
+                            IplImage*,void*,IplTileInfo*);
 typedef void (CV_STDCALL* Cv_iplAllocateImageData)(IplImage*,int,int);
 typedef void (CV_STDCALL* Cv_iplDeallocate)(IplImage*,int);
-typedef IplROI* (CV_STDCALL* Cv_iplCreateROI)(int,int,int,int,int);
 typedef IplImage* (CV_STDCALL* Cv_iplCloneImage)(const IplImage*);
 
 /* Makes OpenCV use IPL functions for IplImage allocation/deallocation */
 CVAPI(void) cvSetIPLAllocators( Cv_iplCreateImageHeader create_header,
                                Cv_iplAllocateImageData allocate_data,
                                Cv_iplDeallocate deallocate,
-                               Cv_iplCreateROI create_roi,
                                Cv_iplCloneImage clone_image );
 
 
@@ -1034,149 +956,6 @@ CVAPI(void) cvSetIPLAllocators( Cv_iplCreateImageHeader create_header,
 *                                    Data Persistence                                    *
 \****************************************************************************************/
 
-/********************************** High-level functions ********************************/
-
-/* opens existing or creates new file storage */
-CVAPI(CvFileStorage*)  cvOpenFileStorage( const char* filename,
-                                          CvMemStorage* memstorage,
-                                          int flags );
-
-/* closes file storage and deallocates buffers */
-CVAPI(void) cvReleaseFileStorage( CvFileStorage** fs );
-
-/* returns attribute value or 0 (NULL) if there is no such attribute */
-CVAPI(const char*) cvAttrValue( const CvAttrList* attr, const char* attr_name );
-
-/* starts writing compound structure (map or sequence) */
-CVAPI(void) cvStartWriteStruct( CvFileStorage* fs, const char* name,
-                                int struct_flags, const char* type_name CV_DEFAULT(NULL),
-                                CvAttrList attributes CV_DEFAULT(cvAttrList()));
-
-/* finishes writing compound structure */
-CVAPI(void) cvEndWriteStruct( CvFileStorage* fs );
-
-/* writes an integer */
-CVAPI(void) cvWriteInt( CvFileStorage* fs, const char* name, int value );
-
-/* writes a floating-point number */
-CVAPI(void) cvWriteReal( CvFileStorage* fs, const char* name, double value );
-
-/* writes a string */
-CVAPI(void) cvWriteString( CvFileStorage* fs, const char* name,
-                           const char* str, int quote CV_DEFAULT(0) );
-
-/* writes a comment */
-CVAPI(void) cvWriteComment( CvFileStorage* fs, const char* comment,
-                            int eol_comment );
-
-/* writes instance of a standard type (matrix, image, sequence, graph etc.)
-   or user-defined type */
-CVAPI(void) cvWrite( CvFileStorage* fs, const char* name, const void* ptr,
-                         CvAttrList attributes CV_DEFAULT(cvAttrList()));
-
-/* starts the next stream */
-CVAPI(void) cvStartNextStream( CvFileStorage* fs );
-
-/* helper function: writes multiple integer or floating-point numbers */
-CVAPI(void) cvWriteRawData( CvFileStorage* fs, const void* src,
-                                int len, const char* dt );
-
-/* returns the hash entry corresponding to the specified literal key string or 0
-   if there is no such a key in the storage */
-CVAPI(CvStringHashNode*) cvGetHashedKey( CvFileStorage* fs, const char* name,
-                                        int len CV_DEFAULT(-1),
-                                        int create_missing CV_DEFAULT(0));
-
-/* returns file node with the specified key within the specified map
-   (collection of named nodes) */
-CVAPI(CvFileNode*) cvGetRootFileNode( const CvFileStorage* fs,
-                                     int stream_index CV_DEFAULT(0) );
-
-/* returns file node with the specified key within the specified map
-   (collection of named nodes) */
-CVAPI(CvFileNode*) cvGetFileNode( CvFileStorage* fs, CvFileNode* map,
-                                 const CvStringHashNode* key,
-                                 int create_missing CV_DEFAULT(0) );
-
-/* this is a slower version of cvGetFileNode that takes the key as a literal string */
-CVAPI(CvFileNode*) cvGetFileNodeByName( const CvFileStorage* fs,
-                                       const CvFileNode* map,
-                                       const char* name );
-
-CV_INLINE int cvReadInt( const CvFileNode* node, int default_value CV_DEFAULT(0) )
-{
-    return !node ? default_value :
-        CV_NODE_IS_INT(node->tag) ? node->data.i :
-        CV_NODE_IS_REAL(node->tag) ? cvRound(node->data.f) : 0x7fffffff;
-}
-
-
-CV_INLINE int cvReadIntByName( const CvFileStorage* fs, const CvFileNode* map,
-                         const char* name, int default_value CV_DEFAULT(0) )
-{
-    return cvReadInt( cvGetFileNodeByName( fs, map, name ), default_value );
-}
-
-
-CV_INLINE double cvReadReal( const CvFileNode* node, double default_value CV_DEFAULT(0.) )
-{
-    return !node ? default_value :
-        CV_NODE_IS_INT(node->tag) ? (double)node->data.i :
-        CV_NODE_IS_REAL(node->tag) ? node->data.f : 1e300;
-}
-
-
-CV_INLINE double cvReadRealByName( const CvFileStorage* fs, const CvFileNode* map,
-                        const char* name, double default_value CV_DEFAULT(0.) )
-{
-    return cvReadReal( cvGetFileNodeByName( fs, map, name ), default_value );
-}
-
-
-CV_INLINE const char* cvReadString( const CvFileNode* node,
-                        const char* default_value CV_DEFAULT(NULL) )
-{
-    return !node ? default_value : CV_NODE_IS_STRING(node->tag) ? node->data.str.ptr : 0;
-}
-
-
-CV_INLINE const char* cvReadStringByName( const CvFileStorage* fs, const CvFileNode* map,
-                        const char* name, const char* default_value CV_DEFAULT(NULL) )
-{
-    return cvReadString( cvGetFileNodeByName( fs, map, name ), default_value );
-}
-
-
-/* decodes standard or user-defined object and returns it */
-CVAPI(void*) cvRead( CvFileStorage* fs, CvFileNode* node,
-                        CvAttrList* attributes CV_DEFAULT(NULL));
-
-/* decodes standard or user-defined object and returns it */
-CV_INLINE void* cvReadByName( CvFileStorage* fs, const CvFileNode* map,
-                              const char* name, CvAttrList* attributes CV_DEFAULT(NULL) )
-{
-    return cvRead( fs, cvGetFileNodeByName( fs, map, name ), attributes );
-}
-
-
-/* starts reading data from sequence or scalar numeric node */
-CVAPI(void) cvStartReadRawData( const CvFileStorage* fs, const CvFileNode* src,
-                               CvSeqReader* reader );
-
-/* reads multiple numbers and stores them to array */
-CVAPI(void) cvReadRawDataSlice( const CvFileStorage* fs, CvSeqReader* reader,
-                               int count, void* dst, const char* dt );
-
-/* combination of two previous functions for easier reading of whole sequences */
-CVAPI(void) cvReadRawData( const CvFileStorage* fs, const CvFileNode* src,
-                          void* dst, const char* dt );
-
-/* writes a copy of file node to file storage */
-CVAPI(void) cvWriteFileNode( CvFileStorage* fs, const char* new_node_name,
-                            const CvFileNode* node, int embed );
-
-/* returns name of file node */
-CVAPI(const char*) cvGetFileNodeName( const CvFileNode* node );
 
 /*********************************** Adding own types ***********************************/
 

@@ -4,71 +4,19 @@
 //
 
 #include "_highgui.h"
-#include "grfmts.h"
+#include "grfmt_base.h"
+#include "grfmt_bmp.h"
+
 
 
 /****************************************************************************************\
 *                              Image Readers & Writers Class                             *
 \****************************************************************************************/
 
-class  CvImageFilters
-{
-public:
-
-    CvImageFilters();
-    ~CvImageFilters();
-
-    GrFmtReader* FindReader( const char* filename ) const;
-    GrFmtWriter* FindWriter( const char* filename ) const;
-
-    //const CvFilePath& Path() const { return (const CvFilePath&)m_path; };
-    //CvFilePath& Path() { return m_path; };
-
-protected:
-
-    GrFmtFactoriesList*  m_factories;
-};
-
-
-CvImageFilters::CvImageFilters()
-{
-    m_factories = new GrFmtFactoriesList;
-
-    m_factories->AddFactory( new GrFmtBmp() );
-}
-
-
-CvImageFilters::~CvImageFilters()
-{
-    delete m_factories;
-}
-
-
-GrFmtReader* CvImageFilters::FindReader( const char* filename ) const
-{
-    return m_factories->FindReader( filename );
-}
-
-
-GrFmtWriter* CvImageFilters::FindWriter( const char* filename ) const
-{
-    return m_factories->FindWriter( filename );
-}
-
-/****************************************************************************************\
-*                         HighGUI loading & saving function implementation               *
-\****************************************************************************************/
-
-
-
-// global image I/O filters
-static CvImageFilters  g_Filters;
-
-
 static void*
 icvLoadImage( const char* filename, int flags, bool load_as_matrix )
 {
-    GrFmtReader* reader = 0;
+    GrFmtBmpReader* reader = 0;
     IplImage* image = 0;
     CvMat hdr, *matrix = 0;
     int depth = 8;
@@ -84,7 +32,7 @@ icvLoadImage( const char* filename, int flags, bool load_as_matrix )
     if( !filename || strlen(filename) == 0 )
         CV_ERROR( CV_StsNullPtr, "null filename" );
 
-    reader = g_Filters.FindReader( filename );
+    reader = new GrFmtBmpReader(filename);
     if( !reader )
         EXIT;
 
@@ -159,7 +107,7 @@ CV_IMPL int
 cvSaveImage( const char* filename, const CvArr* arr )
 {
     int origin = 0;
-    GrFmtWriter* writer = 0;
+    GrFmtBmpWriter* writer = 0;
     CvMat *temp = 0, *temp2 = 0;
 
     CV_FUNCNAME( "cvSaveImage" );
@@ -181,7 +129,7 @@ cvSaveImage( const char* filename, const CvArr* arr )
     if( channels != 1 && channels != 3 && channels != 4 )
         CV_ERROR( CV_BadNumChannels, "" );
 
-    writer = g_Filters.FindWriter( filename );
+    writer = new GrFmtBmpWriter(filename);
     if( !writer )
         CV_ERROR( CV_StsError, "could not find a filter for the specified extension" );
 

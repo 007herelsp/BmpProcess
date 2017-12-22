@@ -395,37 +395,7 @@ cvCountNonZero( const CvArr* arr )
 
     if( !CV_IS_MAT(mat) )
     {
-        if( CV_IS_MATND(mat) )
-        {
-            void* matnd = (void*)arr;
-            CvMatND nstub;
-            CvNArrayIterator iterator;
-            CvFunc2D_1A1P func;
-
-            CV_CALL( cvInitNArrayIterator( 1, &matnd, 0, &nstub, &iterator ));
-
-            type = CV_MAT_TYPE(iterator.hdr[0]->type);
-
-            if( CV_MAT_CN(type) != 1 )
-                CV_ERROR( CV_BadNumChannels,
-                    "Only single-channel array are supported here" );
-
-            func = (CvFunc2D_1A1P)(nz_tab.fn_2d[CV_MAT_DEPTH(type)]);
-            if( !func )
-                CV_ERROR( CV_StsUnsupportedFormat, "" );
-       
-            do
-            {
-                int temp;
-                IPPI_CALL( func( iterator.ptr[0], CV_STUB_STEP,
-                                 iterator.size, &temp ));
-                count += temp;
-            }
-            while( cvNextNArraySlice( &iterator ));
-            EXIT;
-        }
-        else
-            CV_CALL( mat = cvGetMat( mat, &stub, &coi ));
+          CV_ERROR( CV_StsBadArg, cvUnsupportedFormat );
     }
 
     type = CV_MAT_TYPE(mat->type);

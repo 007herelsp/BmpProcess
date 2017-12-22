@@ -4,41 +4,8 @@
 #include <limits.h>
 #include <stdio.h>
 
-#define IPCV_MORPHOLOGY_PTRS(morphtype, flavor)               \
-    icv##morphtype##Rect_##flavor##_C1R_t                     \
-        icv##morphtype##Rect_##flavor##_C1R_p = 0;            \
-    icv##morphtype##Rect_GetBufSize_##flavor##_C1R_t          \
-        icv##morphtype##Rect_GetBufSize_##flavor##_C1R_p = 0; \
-    icv##morphtype##Rect_##flavor##_C3R_t                     \
-        icv##morphtype##Rect_##flavor##_C3R_p = 0;            \
-    icv##morphtype##Rect_GetBufSize_##flavor##_C3R_t          \
-        icv##morphtype##Rect_GetBufSize_##flavor##_C3R_p = 0; \
-    icv##morphtype##Rect_##flavor##_C4R_t                     \
-        icv##morphtype##Rect_##flavor##_C4R_p = 0;            \
-    icv##morphtype##Rect_GetBufSize_##flavor##_C4R_t          \
-        icv##morphtype##Rect_GetBufSize_##flavor##_C4R_p = 0; \
-                                                              \
-    icv##morphtype##_##flavor##_C1R_t                         \
-        icv##morphtype##_##flavor##_C1R_p = 0;                \
-    icv##morphtype##_##flavor##_C3R_t                         \
-        icv##morphtype##_##flavor##_C3R_p = 0;                \
-    icv##morphtype##_##flavor##_C4R_t                         \
-        icv##morphtype##_##flavor##_C4R_p = 0;
-
-#define IPCV_MORPHOLOGY_INITALLOC_PTRS(flavor)  \
-    icvMorphInitAlloc_##flavor##_C1R_t          \
-        icvMorphInitAlloc_##flavor##_C1R_p = 0; \
-    icvMorphInitAlloc_##flavor##_C3R_t          \
-        icvMorphInitAlloc_##flavor##_C3R_p = 0; \
-    icvMorphInitAlloc_##flavor##_C4R_t          \
-        icvMorphInitAlloc_##flavor##_C4R_p = 0;
-
-IPCV_MORPHOLOGY_PTRS(Erode, 8u)
-IPCV_MORPHOLOGY_PTRS(Dilate, 8u)
-IPCV_MORPHOLOGY_INITALLOC_PTRS(8u)
 
 
-icvMorphFree_t icvMorphFree_p = 0;
 
 /****************************************************************************************\
                      Basic Morphological Operations: Erosion & Dilation
@@ -829,8 +796,7 @@ icvMorphOp(const void *srcarr, void *dstarr, IplConvKernel *element,
 
     if (!local_alloc)
         cvFree(&buffer);
-    if (morphstate)
-        icvMorphFree_p(morphstate);
+
     cvReleaseMat(&temp);
 }
 

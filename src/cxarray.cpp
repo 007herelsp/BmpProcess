@@ -13,7 +13,6 @@ static struct
     Cv_iplCreateImageHeader  createHeader;
     Cv_iplAllocateImageData  allocateData;
     Cv_iplDeallocate  deallocate;
-    Cv_iplCreateROI  createROI;
     Cv_iplCloneImage  cloneImage;
 }
 CvIPL;
@@ -200,200 +199,6 @@ cvCloneMat( const CvMat* src )
     return dst;
 }
 
-
-/****************************************************************************************\
-*                               CvMatND creation and basic operations                    *
-\****************************************************************************************/
-
-
-static CvMatND*
-cvGetMatND( const CvArr* arr, CvMatND* matnd, int* coi )
-{
-    CvMatND* result = 0;
-
-    CV_FUNCNAME( "cvGetMatND" );
-
-    __BEGIN__;
-
-    if( coi )
-        *coi = 0;
-
-    if( !matnd || !arr )
-        CV_ERROR( CV_StsNullPtr, "NULL array pointer is passed" );
-
-    if( CV_IS_MATND_HDR(arr))
-    {
-        if( !((CvMatND*)arr)->data.ptr )
-            CV_ERROR( CV_StsNullPtr, "The matrix has NULL data pointer" );
-
-        result = (CvMatND*)arr;
-    }
-    else
-    {
-        CvMat stub, *mat = (CvMat*)arr;
-
-        if( CV_IS_IMAGE_HDR( mat ))
-            CV_CALL( mat = cvGetMat( mat, &stub, coi ));
-
-        if( !CV_IS_MAT_HDR( mat ))
-            CV_ERROR( CV_StsBadArg, "Unrecognized or unsupported array type" );
-
-        if( !mat->data.ptr )
-            CV_ERROR( CV_StsNullPtr, "Input array has NULL data pointer" );
-
-        matnd->data.ptr = mat->data.ptr;
-        matnd->refcount = 0;
-        matnd->hdr_refcount = 0;
-        matnd->type = mat->type;
-        matnd->dims = 2;
-        matnd->dim[0].size = mat->rows;
-        matnd->dim[0].step = mat->step;
-        matnd->dim[1].size = mat->cols;
-        matnd->dim[1].step = CV_ELEM_SIZE(mat->type);
-        result = matnd;
-    }
-
-    __END__;
-
-    return result;
-}
-
-
-// returns number of dimensions to iterate.
-/*
-Checks whether <count> arrays have equal type, sizes (mask is optional array
-that needs to have the same size, but 8uC1 or 8sC1 type).
-Returns number of dimensions to iterate through:
-0 means that all arrays are continuous,
-1 means that all arrays are vectors of continuous arrays etc.
-and the size of largest common continuous part of the arrays
-*/
-CV_IMPL int
-cvInitNArrayIterator( int count, CvArr** arrs,
-                      const CvArr* mask, CvMatND* stubs,
-                      CvNArrayIterator* iterator, int flags )
-{
-    int dims = -1;
-
-    CV_FUNCNAME( "cvInitArrayOp" );
-
-    __BEGIN__;
-
-    int i, j, size, dim0 = -1;
-    int64 step;
-    CvMatND* hdr0 = 0;
-
-    if( count < 1 || count > CV_MAX_ARR )
-        CV_ERROR( CV_StsOutOfRange, "Incorrect number of arrays" );
-
-    if( !arrs || !stubs )
-        CV_ERROR( CV_StsNullPtr, "Some of required array pointers is NULL" );
-
-    if( !iterator )
-        CV_ERROR( CV_StsNullPtr, "Iterator pointer is NULL" );
-
-    for( i = 0; i <= count; i++ )
-    {
-        const CvArr* arr = i < count ? arrs[i] : mask;
-        CvMatND* hdr;
-
-        if( !arr )
-        {
-            if( i < count )
-                CV_ERROR( CV_StsNullPtr, "Some of required array pointers is NULL" );
-            break;
-        }
-
-        if( CV_IS_MATND( arr ))
-            hdr = (CvMatND*)arr;
-        else
-        {
-            int coi = 0;
-            CV_CALL( hdr = cvGetMatND( arr, stubs + i, &coi ));
-            if( coi != 0 )
-                CV_ERROR( CV_BadCOI, "COI set is not allowed here" );
-        }
-
-        iterator->hdr[i] = hdr;
-
-        if( i > 0 )
-        {
-            if( hdr->dims != hdr0->dims )
-                CV_ERROR( CV_StsUnmatchedSizes,
-                          "Number of dimensions is the same for all arrays" );
-
-            if( i < count )
-            {
-                switch( flags & (CV_NO_DEPTH_CHECK|CV_NO_CN_CHECK))
-                {
-                case 0:
-                    if( !CV_ARE_TYPES_EQ( hdr, hdr0 ))
-                        CV_ERROR( CV_StsUnmatchedFormats,
-                                  "Data type is not the same for all arrays" );
-                    break;
-                case CV_NO_DEPTH_CHECK:
-                    if( !CV_ARE_CNS_EQ( hdr, hdr0 ))
-                        CV_ERROR( CV_StsUnmatchedFormats,
-                                  "Number of channels is not the same for all arrays" );
-                    break;
-                case CV_NO_CN_CHECK:
-                    if( !CV_ARE_CNS_EQ( hdr, hdr0 ))
-                        CV_ERROR( CV_StsUnmatchedFormats,
-                                  "Depth is not the same for all arrays" );
-                    break;
-                }
-            }
-            else
-            {
-                if( !CV_IS_MASK_ARR( hdr ))
-                    CV_ERROR( CV_StsBadMask, "Mask should have 8uC1 or 8sC1 data type" );
-            }
-
-            if( !(flags & CV_NO_SIZE_CHECK) )
-            {
-                for( j = 0; j < hdr->dims; j++ )
-                    if( hdr->dim[j].size != hdr0->dim[j].size )
-                        CV_ERROR( CV_StsUnmatchedSizes,
-                                  "Dimension sizes are the same for all arrays" );
-            }
-        }
-        else
-            hdr0 = hdr;
-
-        step = CV_ELEM_SIZE(hdr->type);
-        for( j = hdr->dims - 1; j > dim0; j-- )
-        {
-            if( step != hdr->dim[j].step )
-                break;
-            step *= hdr->dim[j].size;
-        }
-
-        if( j == dim0 && step > INT_MAX )
-            j++;
-
-        if( j > dim0 )
-            dim0 = j;
-
-        iterator->hdr[i] = (CvMatND*)hdr;
-        iterator->ptr[i] = (uchar*)hdr->data.ptr;
-    }
-
-    size = 1;
-    for( j = hdr0->dims - 1; j > dim0; j-- )
-        size *= hdr0->dim[j].size;
-
-    dims = dim0 + 1;
-    iterator->dims = dims;
-    iterator->count = count;
-    iterator->size = cvSize(size,1);
-
-    for( i = 0; i < dims; i++ )
-        iterator->stack[i] = hdr0->dim[i].size;
-
-    __END__;
-
-    return dims;
-}
 
 
 // returns zero value if iteration is finished, non-zero otherwise
@@ -1078,7 +883,7 @@ cvCreateImageHeader( CvSize size, int depth, int channels )
         img = CvIPL.createHeader( channels, 0, depth, colorModel, channelSeq,
                                   IPL_DATA_ORDER_PIXEL, IPL_ORIGIN_TL,
                                   CV_DEFAULT_IMAGE_ROW_ALIGN,
-                                  size.width, size.height, 0, 0, 0, 0 );
+                                  size.width, size.height, 0, 0, 0 );
     }
 
     __END__;

@@ -74,10 +74,6 @@ extern const float icv8x32fTab_cv[];
 extern const float icv8x32fSqrTab[];
 #define CV_8TO32F_SQR(x)  icv8x32fSqrTab[(x)+128]
 
-
-
-
-#include "_cvipp.h"
 #include "_cvimgproc.h"
 
 // default face cascade

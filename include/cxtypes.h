@@ -354,15 +354,6 @@ IplImage;
 
 typedef struct _IplTileInfo IplTileInfo;
 
-typedef struct _IplROI
-{
-    int  coi; /* 0 - no COI (all channels are selected), 1 - 0th channel is selected ...*/
-    int  xOffset;
-    int  yOffset;
-    int  width;
-    int  height;
-}
-IplROI;
 
 typedef struct _IplConvKernel
 {
@@ -375,15 +366,6 @@ typedef struct _IplConvKernel
 }
 IplConvKernel;
 
-typedef struct _IplConvKernelFP
-{
-    int  nCols;
-    int  nRows;
-    int  anchorX;
-    int  anchorY;
-    float *values;
-}
-IplConvKernelFP;
 
 #define IPL_IMAGE_HEADER 1
 #define IPL_IMAGE_DATA   2
@@ -809,52 +791,6 @@ CV_INLINE  CvRect  cvRect( int x, int y, int width, int height )
     r.height = height;
 
     return r;
-}
-
-
-CV_INLINE  IplROI  cvRectToROI( CvRect rect, int coi )
-{
-    IplROI roi;
-    roi.xOffset = rect.x;
-    roi.yOffset = rect.y;
-    roi.width = rect.width;
-    roi.height = rect.height;
-    roi.coi = coi;
-
-    return roi;
-}
-
-
-CV_INLINE  CvRect  cvROIToRect( IplROI roi )
-{
-    return cvRect( roi.xOffset, roi.yOffset, roi.width, roi.height );
-}
-
-/*********************************** CvTermCriteria *************************************/
-
-#define CV_TERMCRIT_ITER    1
-#define CV_TERMCRIT_NUMBER  CV_TERMCRIT_ITER
-#define CV_TERMCRIT_EPS     2
-
-typedef struct CvTermCriteria
-{
-    int    type;  /* may be combination of
-                     CV_TERMCRIT_ITER
-                     CV_TERMCRIT_EPS */
-    int    max_iter;
-    double epsilon;
-}
-CvTermCriteria;
-
-CV_INLINE  CvTermCriteria  cvTermCriteria( int type, int max_iter, double epsilon )
-{
-    CvTermCriteria t;
-
-    t.type = type;
-    t.max_iter = max_iter;
-    t.epsilon = (float)epsilon;
-
-    return t;
 }
 
 
@@ -1704,27 +1640,6 @@ typedef struct CvTypeInfo
 }
 CvTypeInfo;
 
-
-/**** System data types ******/
-
-typedef struct CvPluginFuncInfo
-{
-    void** func_addr;
-    void* default_func_addr;
-    const char* func_names;
-    int search_modules;
-    int loaded_from;
-}
-CvPluginFuncInfo;
-
-typedef struct CvModuleInfo
-{
-    struct CvModuleInfo* next;
-    const char* name;
-    const char* version;
-    CvPluginFuncInfo* func_tab;
-}
-CvModuleInfo;
 
 #endif /*_CXCORE_TYPES_H_*/
 
