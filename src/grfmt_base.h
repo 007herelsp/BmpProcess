@@ -42,11 +42,6 @@
 #ifndef _GRFMT_BASE_H_
 #define _GRFMT_BASE_H_
 
-#if _MSC_VER >= 1200
-    #pragma warning( disable: 4514 )
-    #pragma warning( disable: 4711 )
-    #pragma warning( disable: 4611 )
-#endif
 
 #include "utils.h"
 #include "bitstrm.h"

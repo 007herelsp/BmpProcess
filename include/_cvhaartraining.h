@@ -321,17 +321,9 @@ void icvConvertToFastHaarFeature( CvTHaarFeature* haarFeature,
                                   int size, int step );
 
 
-void icvWriteVecHeader( FILE* file, int count, int width, int height );
-void icvWriteVecSample( FILE* file, CvArr* sample );
-void icvPlaceDistortedSample( CvArr* background,
-                              int inverse, int maxintensitydev,
-                              double maxxangle, double maxyangle, double maxzangle,
-                              int inscribe, double maxshiftf, double maxscalef,
-                              CvSampleDistortionData* data );
-void icvEndSampleDistortion( CvSampleDistortionData* data );
 
-int icvStartSampleDistortion( const char* imgfilename, int bgcolor, int bgthreshold,
-                              CvSampleDistortionData* data );
+
+
 
 typedef int (*CvGetHaarTrainingDataCallback)( CvMat* img, void* userdata );
 

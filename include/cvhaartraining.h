@@ -74,56 +74,6 @@
  */
 #define CV_RANDOM_INVERT 0x7FFFFFFF
 
-void cvCreateTrainingSamples( const char* filename,
-                              const char* imgfilename, int bgcolor, int bgthreshold,
-                              const char* bgfilename, int count,
-                              int invert = 0, int maxintensitydev = 40,
-                              double maxxangle = 1.1,
-                              double maxyangle = 1.1,
-                              double maxzangle = 0.5,
-                              int showsamples = 0,
-                              int winwidth = 24, int winheight = 24 );
-
-void cvCreateTestSamples( const char* infoname,
-                          const char* imgfilename, int bgcolor, int bgthreshold,
-                          const char* bgfilename, int count,
-                          int invert, int maxintensitydev,
-                          double maxxangle, double maxyangle, double maxzangle,
-                          int showsamples,
-                          int winwidth, int winheight );
-
-/*
- * cvCreateTrainingSamplesFromInfo
- *
- * Create training samples from a set of marked up images and store them into .vec file
- * infoname    - file in which marked up image descriptions are stored
- * num         - desired number of samples
- * showsamples - if not 0 samples will be shown
- * winwidth    - sample width
- * winheight   - sample height
- * 
- * Return number of successfully created samples
- */
-int cvCreateTrainingSamplesFromInfo( const char* infoname, const char* vecfilename,
-                                     int num,
-                                     int showsamples,
-                                     int winwidth, int winheight );
-
-/*
- * cvShowVecSamples
- *
- * Shows samples stored in .vec file
- *
- * filename
- *   .vec file name
- * winwidth
- *   sample width
- * winheight
- *   sample height
- * scale
- *   the scale each sample is adjusted to
- */
-void cvShowVecSamples( const char* filename, int winwidth, int winheight, double scale );
 
 
 /*
