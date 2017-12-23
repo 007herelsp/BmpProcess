@@ -1,5 +1,3 @@
-
-
 #include "_cxcore.h"
 #include <float.h>
 

@@ -1,7 +1,6 @@
 
 #include "_cv.h"
 
-/* calculates length of a curve (e.g. contour perimeter) */
 CV_IMPL  double
 cvArcLength( const void *array, CvSlice slice, int is_closed )
 {

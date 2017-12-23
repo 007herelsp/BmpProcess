@@ -2,11 +2,6 @@
 #ifndef _CVTYPES_H_
 #define _CVTYPES_H_
 
-
-/*
-Internal structure that is used for sequental retrieving contours from the image.
-It supports both hierarchical and plane variants of Suzuki algorithm.
-*/
 typedef struct _CvContourScanner* CvContourScanner;
 
 /* contour retrieval mode */

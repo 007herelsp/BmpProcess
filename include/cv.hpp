@@ -43,30 +43,14 @@ public:
     /* releases all the internal buffers.
        for the further use of the object, init() needs to be called. */
     virtual void clear();
-    /* processes input image or a part of it.
-       input is represented either as matrix (CvMat* src)
-       or a list of row pointers (uchar** src2).
-       in the later case width, _src_y1 and _src_y2 are used to specify the size.
-       _dst is the output image/matrix.
-       _src_roi specifies the roi inside the input image to process,
-          (0,0,-1,-1) denotes the whole image.
-       _dst_origin is the upper-left corner of the filtered roi within the output image.
-       _phase is either CV_START, or CV_END, or CV_MIDDLE, or CV_START|CV_END, or CV_WHOLE,
-          which is the same as CV_START|CV_END.
-          CV_START means that the input is the first (top) stripe of the processed image [roi],
-          CV_END - the input is the last (bottom) stripe of the processed image [roi],
-          CV_MIDDLE - the input is neither first nor last stripe.
-          CV_WHOLE - the input is the whole processed image [roi].
-    */
+   
     virtual int process( const CvMat* _src, CvMat* _dst,
                          CvRect _src_roi=cvRect(0,0,-1,-1),
                          CvPoint _dst_origin=cvPoint(0,0), int _flags=0 );
     /* retrieve various parameters of the filtering object */
     int get_src_type() const { return src_type; }
     int get_dst_type() const { return dst_type; }
-    int get_work_type() const { return work_type; }
     CvSize get_kernel_size() const { return ksize; }
-    CvPoint get_anchor() const { return anchor; }
     int get_width() const { return prev_x_range.end_index - prev_x_range.start_index; }
     CvRowFilterFunc get_x_filter_func() const { return x_func; }
     CvColumnFilterFunc get_y_filter_func() const { return y_func; }

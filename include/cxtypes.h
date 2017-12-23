@@ -1,50 +1,5 @@
-/*M///////////////////////////////////////////////////////////////////////////////////////
-//
-//  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.
-//
-//  By downloading, copying, installing or using the software you agree to this license.
-//  If you do not agree to this license, do not download, install,
-//  copy or use the software.
-//
-//
-//                        Intel License Agreement
-//                For Open Source Computer Vision Library
-//
-// Copyright (C) 2000, Intel Corporation, all rights reserved.
-// Third party copyrights are property of their respective owners.
-//
-// Redistribution and use in source and binary forms, with or without modification,
-// are permitted provided that the following conditions are met:
-//
-//   * Redistribution's of source code must retain the above copyright notice,
-//     this list of conditions and the following disclaimer.
-//
-//   * Redistribution's in binary form must reproduce the above copyright notice,
-//     this list of conditions and the following disclaimer in the documentation
-//     and/or other materials provided with the distribution.
-//
-//   * The name of Intel Corporation may not be used to endorse or promote products
-//     derived from this software without specific prior written permission.
-//
-// This software is provided by the copyright holders and contributors "as is" and
-// any express or implied warranties, including, but not limited to, the implied
-// warranties of merchantability and fitness for a particular purpose are disclaimed.
-// In no event shall the Intel Corporation or contributors be liable for any direct,
-// indirect, incidental, special, exemplary, or consequential damages
-// (including, but not limited to, procurement of substitute goods or services;
-// loss of use, data, or profits; or business interruption) however caused
-// and on any theory of liability, whether in contract, strict liability,
-// or tort (including negligence or otherwise) arising in any way out of
-// the use of this software, even if advised of the possibility of such damage.
-//
-//M*/
-
 #ifndef _CXCORE_TYPES_H_
 #define _CXCORE_TYPES_H_
-
-#if !defined _CRT_SECURE_NO_DEPRECATE && _MSC_VER > 1300
-#define _CRT_SECURE_NO_DEPRECATE /* to avoid multiple Visual Studio 2005 warnings */
-#endif
 
 #ifndef SKIP_INCLUDES
   #include <assert.h>
@@ -52,52 +7,17 @@
   #include <string.h>
   #include <float.h>
 
-  #if defined __ICL
-    #define CV_ICC   __ICL
-  #elif defined __ICC
-    #define CV_ICC   __ICC
-  #elif defined __ECL
-    #define CV_ICC   __ECL
-  #elif defined __ECC
-    #define CV_ICC   __ECC
-  #endif
 
-  #if defined WIN64 && defined EM64T && (defined _MSC_VER || defined CV_ICC) \
-      || defined __SSE2__ || defined _MM_SHUFFLE2
-    #include <emmintrin.h>
-    #define CV_SSE2 1
-  #else
-    #define CV_SSE2 0
-  #endif
 
-  #if defined __BORLANDC__
-    #include <fastmath.h>
-  #elif defined WIN64 && !defined EM64T && defined CV_ICC
-    #include <mathimf.h>
-  #else
     #include <math.h>
-  #endif
 
-  #ifdef HAVE_IPL
-      #ifndef __IPL_H__
-          #if defined WIN32 || defined WIN64
-              #include <ipl.h>
-          #else
-              #include <ipl/ipl.h>
-          #endif
-      #endif
-  #elif defined __IPL_H__
-      #define HAVE_IPL
-  #endif
+
 #endif // SKIP_INCLUDES
 
-#if defined WIN32 || defined WIN64
-    #define CV_CDECL __cdecl
-    #define CV_STDCALL __stdcall
-#else
+
     #define CV_CDECL
     #define CV_STDCALL
-#endif
+
 
 #ifndef CV_EXTERN_C
     #ifdef __cplusplus
@@ -127,17 +47,15 @@
 #endif
 #endif /* CV_INLINE */
 
-#if (defined WIN32 || defined WIN64) && defined CVAPI_EXPORTS
-    #define CV_EXPORTS __declspec(dllexport)
-#else
-    #define CV_EXPORTS
-#endif
+
+#define CV_EXPORTS
+
 
 #ifndef CVAPI
     #define CVAPI(rettype) CV_EXTERN_C CV_EXPORTS rettype CV_CDECL
 #endif
 
-#if defined _MSC_VER || defined __BORLANDC__
+#if defined _MSC_VER
 typedef __int64 int64;
 typedef unsigned __int64 uint64;
 #else
@@ -145,10 +63,10 @@ typedef long long int64;
 typedef unsigned long long uint64;
 #endif
 
-#ifndef HAVE_IPL
+
 typedef unsigned char uchar;
 typedef unsigned short ushort;
-#endif
+
 
 /* CvArr* is used to pass arbitrary array-like data structures
    into the functions where the particular
@@ -222,60 +140,7 @@ return ceil(value);
 #define cvInvSqrt(value) ((float)(1./sqrt(value)))
 #define cvSqrt(value)  ((float)sqrt(value))
 
-CV_INLINE int cvIsNaN( double value )
-{
-#if 1/*defined _MSC_VER || defined __BORLANDC__
-    return _isnan(value);
-#elif defined __GNUC__
-    return isnan(value);
-#else*/
-    Cv64suf ieee754;
-    ieee754.f = value;
-    return ((unsigned)(ieee754.u >> 32) & 0x7fffffff) +
-           ((unsigned)ieee754.u != 0) > 0x7ff00000;
-#endif
-}
 
-
-CV_INLINE int cvIsInf( double value )
-{
-#if 1/*defined _MSC_VER || defined __BORLANDC__
-    return !_finite(value);
-#elif defined __GNUC__
-    return isinf(value);
-#else*/
-    Cv64suf ieee754;
-    ieee754.f = value;
-    return ((unsigned)(ieee754.u >> 32) & 0x7fffffff) == 0x7ff00000 &&
-           (unsigned)ieee754.u == 0;
-#endif
-}
-
-
-/*************** Random number generation *******************/
-
-typedef uint64 CvRNG;
-
-CV_INLINE CvRNG cvRNG( int64 seed CV_DEFAULT(-1))
-{
-    CvRNG rng = seed ? (uint64)seed : (uint64)(int64)-1;
-    return rng;
-}
-
-/* returns random 32-bit unsigned integer */
-CV_INLINE unsigned cvRandInt( CvRNG* rng )
-{
-    uint64 temp = *rng;
-    temp = (uint64)(unsigned)temp*1554115554 + (temp >> 32);
-    *rng = temp;
-    return (unsigned)temp;
-}
-
-/* returns random floating-point number between 0 and 1 */
-CV_INLINE double cvRandReal( CvRNG* rng )
-{
-    return cvRandInt(rng)*2.3283064365386962890625e-10 /* 2^-32 */;
-}
 
 /****************************************************************************************\
 *                                  Image type (IplImage)                                 *
@@ -326,8 +191,6 @@ typedef struct _IplImage
     int  alphaChannel;  /* ignored by OpenCV */
     int  depth;         /* pixel depth in bits: IPL_DEPTH_8U, IPL_DEPTH_8S, IPL_DEPTH_16S,
                            IPL_DEPTH_32S, IPL_DEPTH_32F and IPL_DEPTH_64F are supported */
-    char colorModel[4]; /* ignored by OpenCV */
-    char channelSeq[4]; /* ditto */
     int  dataOrder;     /* 0 - interleaved color channels, 1 - separate color channels.
                            cvCreateImage can only create interleaved images */
     int  origin;        /* 0 - top-left origin,
@@ -336,23 +199,18 @@ typedef struct _IplImage
                            OpenCV ignores it and uses widthStep instead */
     int  width;         /* image width in pixels */
     int  height;        /* image height in pixels */
-    struct _IplImage *maskROI; /* must be NULL */
     void  *imageId;     /* ditto */
-    struct _IplTileInfo *tileInfo; /* ditto */
     int  imageSize;     /* image data size in bytes
                            (==image->height*image->widthStep
                            in case of interleaved data)*/
     char *imageData;  /* pointer to aligned image data */
     int  widthStep;   /* size of aligned image row in bytes */
-    int  BorderMode[4]; /* ignored by OpenCV */
-    int  BorderConst[4]; /* ditto */
     char *imageDataOrigin; /* pointer to very origin of image data
                               (not necessarily aligned) -
                               needed for correct deallocation */
 }
 IplImage;
 
-typedef struct _IplTileInfo IplTileInfo;
 
 
 typedef struct _IplConvKernel
@@ -572,53 +430,6 @@ CV_INLINE CvMat cvMat( int rows, int cols, int type, void* data CV_DEFAULT(NULL)
 }
 
 
-#define CV_MAT_ELEM_PTR_FAST( mat, row, col, pix_size )  \
-    (assert( (unsigned)(row) < (unsigned)(mat).rows &&   \
-             (unsigned)(col) < (unsigned)(mat).cols ),   \
-     (mat).data.ptr + (size_t)(mat).step*(row) + (pix_size)*(col))
-
-#define CV_MAT_ELEM_PTR( mat, row, col )                 \
-    CV_MAT_ELEM_PTR_FAST( mat, row, col, CV_ELEM_SIZE((mat).type) )
-
-#define CV_MAT_ELEM( mat, elemtype, row, col )           \
-    (*(elemtype*)CV_MAT_ELEM_PTR_FAST( mat, row, col, sizeof(elemtype)))
-
-
-CV_INLINE  double  cvmGet( const CvMat* mat, int row, int col )
-{
-    int type;
-
-    type = CV_MAT_TYPE(mat->type);
-    assert( (unsigned)row < (unsigned)mat->rows &&
-            (unsigned)col < (unsigned)mat->cols );
-
-    if( type == CV_32FC1 )
-        return ((float*)(mat->data.ptr + (size_t)mat->step*row))[col];
-    else
-    {
-        assert( type == CV_64FC1 );
-        return ((double*)(mat->data.ptr + (size_t)mat->step*row))[col];
-    }
-}
-
-
-CV_INLINE  void  cvmSet( CvMat* mat, int row, int col, double value )
-{
-    int type;
-    type = CV_MAT_TYPE(mat->type);
-    assert( (unsigned)row < (unsigned)mat->rows &&
-            (unsigned)col < (unsigned)mat->cols );
-
-    if( type == CV_32FC1 )
-        ((float*)(mat->data.ptr + (size_t)mat->step*row))[col] = (float)value;
-    else
-    {
-        assert( type == CV_64FC1 );
-        ((double*)(mat->data.ptr + (size_t)mat->step*row))[col] = (double)value;
-    }
-}
-
-
 CV_INLINE int cvCvToIplDepth( int type )
 {
     int depth = CV_MAT_DEPTH(type);
@@ -626,53 +437,6 @@ CV_INLINE int cvCvToIplDepth( int type )
            depth == CV_32S ? IPL_DEPTH_SIGN : 0);
 }
 
-
-/****************************************************************************************\
-*                       Multi-dimensional dense array (CvMatND)                          *
-\****************************************************************************************/
-
-#define CV_MATND_MAGIC_VAL    0x42430000
-#define CV_TYPE_NAME_MATND    "opencv-nd-matrix"
-
-#define CV_MAX_DIM            32
-#define CV_MAX_DIM_HEAP       (1 << 16)
-
-typedef struct CvMatND
-{
-    int type;
-    int dims;
-
-    int* refcount;
-    int hdr_refcount;
-
-    union
-    {
-        uchar* ptr;
-        float* fl;
-        double* db;
-        int* i;
-        short* s;
-    } data;
-
-    struct
-    {
-        int size;
-        int step;
-    }
-    dim[CV_MAX_DIM];
-}
-CvMatND;
-
-#define CV_IS_MATND_HDR(mat) \
-    ((mat) != NULL && (((const CvMatND*)(mat))->type & CV_MAGIC_MASK) == CV_MATND_MAGIC_VAL)
-
-#define CV_IS_MATND(mat) \
-    (CV_IS_MATND_HDR(mat) && ((const CvMatND*)(mat))->data.ptr != NULL)
-
-
-/****************************************************************************************\
-*                      Multi-dimensional sparse array (CvSparseMat)                      *
-\****************************************************************************************/
 
 
 struct CvSet;
@@ -763,25 +527,6 @@ CV_INLINE  CvPoint  cvPointFrom32f( CvPoint2D32f point )
 }
 
 
-typedef struct CvPoint3D32f
-{
-    float x;
-    float y;
-    float z;
-}
-CvPoint3D32f;
-
-
-CV_INLINE  CvPoint3D32f  cvPoint3D32f( double x, double y, double z )
-{
-    CvPoint3D32f p;
-
-    p.x = (float)x;
-    p.y = (float)y;
-    p.z = (float)z;
-
-    return p;
-}
 
 
 typedef struct CvPoint2D64f
@@ -802,26 +547,6 @@ CV_INLINE  CvPoint2D64f  cvPoint2D64f( double x, double y )
     return p;
 }
 
-
-typedef struct CvPoint3D64f
-{
-    double x;
-    double y;
-    double z;
-}
-CvPoint3D64f;
-
-
-CV_INLINE  CvPoint3D64f  cvPoint3D64f( double x, double y, double z )
-{
-    CvPoint3D64f p;
-
-    p.x = x;
-    p.y = y;
-    p.z = z;
-
-    return p;
-}
 
 
 /******************************** CvSize's & CvBox **************************************/
@@ -869,23 +594,6 @@ typedef struct CvBox2D
                              and the first side (i.e. length) in degrees */
 }
 CvBox2D;
-
-
-/* Line iterator state */
-typedef struct CvLineIterator
-{
-    /* pointer to the current point */
-    uchar* ptr;
-
-    /* Bresenham algorithm state */
-    int  err;
-    int  plus_delta;
-    int  minus_delta;
-    int  plus_step;
-    int  minus_step;
-}
-CvLineIterator;
-
 
 
 /************************************* CvSlice ******************************************/
@@ -1086,8 +794,6 @@ typedef struct CvContour
 }
 CvContour;
 
-typedef CvContour CvPoint2DSeq;
-
 /****************************************************************************************\
 *                                    Sequence types                                      *
 \****************************************************************************************/
@@ -1136,12 +842,6 @@ typedef CvContour CvPoint2DSeq;
 #define CV_SEQ_FLAG_CONVEX     (4 << CV_SEQ_FLAG_SHIFT)
 #define CV_SEQ_FLAG_HOLE       (8 << CV_SEQ_FLAG_SHIFT)
 
-/* flags for graphs */
-#define CV_GRAPH_FLAG_ORIENTED (1 << CV_SEQ_FLAG_SHIFT)
-
-#define CV_GRAPH               CV_SEQ_KIND_GRAPH
-#define CV_ORIENTED_GRAPH      (CV_SEQ_KIND_GRAPH|CV_GRAPH_FLAG_ORIENTED)
-
 /* point sets */
 #define CV_SEQ_POINT_SET       (CV_SEQ_KIND_GENERIC| CV_SEQ_ELTYPE_POINT)
 #define CV_SEQ_POINT3D_SET     (CV_SEQ_KIND_GENERIC| CV_SEQ_ELTYPE_POINT3D)
@@ -1174,15 +874,12 @@ typedef CvContour CvPoint2DSeq;
 #define CV_IS_SEQ_CLOSED( seq )     (((seq)->flags & CV_SEQ_FLAG_CLOSED) != 0)
 #define CV_IS_SEQ_CONVEX( seq )     (((seq)->flags & CV_SEQ_FLAG_CONVEX) != 0)
 #define CV_IS_SEQ_HOLE( seq )       (((seq)->flags & CV_SEQ_FLAG_HOLE) != 0)
-#define CV_IS_SEQ_SIMPLE( seq )     ((((seq)->flags & CV_SEQ_FLAG_SIMPLE) != 0) || \
-                                    CV_IS_SEQ_CONVEX(seq))
+
 
 /* type checking macros */
 #define CV_IS_SEQ_POINT_SET( seq ) \
     ((CV_SEQ_ELTYPE(seq) == CV_32SC2 || CV_SEQ_ELTYPE(seq) == CV_32FC2))
 
-#define CV_IS_SEQ_POINT_SUBSET( seq ) \
-    (CV_IS_SEQ_INDEX( seq ) || CV_SEQ_ELTYPE(seq) == CV_SEQ_ELTYPE_PPOINT)
 
 #define CV_IS_SEQ_POLYLINE( seq )   \
     (CV_SEQ_KIND(seq) == CV_SEQ_KIND_CURVE && CV_IS_SEQ_POINT_SET(seq))
@@ -1193,24 +890,6 @@ typedef CvContour CvPoint2DSeq;
 #define CV_IS_SEQ_CHAIN( seq )   \
     (CV_SEQ_KIND(seq) == CV_SEQ_KIND_CURVE && (seq)->elem_size == 1)
 
-#define CV_IS_SEQ_CONTOUR( seq )   \
-    (CV_IS_SEQ_CLOSED(seq) && (CV_IS_SEQ_POLYLINE(seq) || CV_IS_SEQ_CHAIN(seq)))
-
-#define CV_IS_SEQ_CHAIN_CONTOUR( seq ) \
-    (CV_IS_SEQ_CHAIN( seq ) && CV_IS_SEQ_CLOSED( seq ))
-
-#define CV_IS_SEQ_POLYGON_TREE( seq ) \
-    (CV_SEQ_ELTYPE (seq) ==  CV_SEQ_ELTYPE_TRIAN_ATR &&    \
-    CV_SEQ_KIND( seq ) ==  CV_SEQ_KIND_BIN_TREE )
-
-#define CV_IS_GRAPH( seq )    \
-    (CV_IS_SET(seq) && CV_SEQ_KIND((CvSet*)(seq)) == CV_SEQ_KIND_GRAPH)
-
-#define CV_IS_GRAPH_ORIENTED( seq )   \
-    (((seq)->flags & CV_GRAPH_FLAG_ORIENTED) != 0)
-
-#define CV_IS_SUBDIV2D( seq )  \
-    (CV_IS_SET(seq) && CV_SEQ_KIND((CvSet*)(seq)) == CV_SEQ_KIND_SUBDIV2D)
 
 /****************************************************************************************/
 /*                            Sequence writer & reader                                  */
@@ -1252,26 +931,6 @@ CvSeqReader;
 /*                                Operations on sequences                               */
 /****************************************************************************************/
 
-#define  CV_SEQ_ELEM( seq, elem_type, index )                    \
-/* assert gives some guarantee that <seq> parameter is valid */  \
-(   assert(sizeof((seq)->first[0]) == sizeof(CvSeqBlock) &&      \
-    (seq)->elem_size == sizeof(elem_type)),                      \
-    (elem_type*)((seq)->first && (unsigned)index <               \
-    (unsigned)((seq)->first->count) ?                            \
-    (seq)->first->data + (index) * sizeof(elem_type) :           \
-    cvGetSeqElem( (CvSeq*)(seq), (index) )))
-#define CV_GET_SEQ_ELEM( elem_type, seq, index ) CV_SEQ_ELEM( (seq), elem_type, (index) )
-
-/* macro that adds element to sequence */
-#define CV_WRITE_SEQ_ELEM_VAR( elem_ptr, writer )     \
-{                                                     \
-    if( (writer).ptr >= (writer).block_max )          \
-    {                                                 \
-        cvCreateSeqBlock( &writer);                   \
-    }                                                 \
-    memcpy((writer).ptr, elem_ptr, (writer).seq->elem_size);\
-    (writer).ptr += (writer).seq->elem_size;          \
-}
 
 #define CV_WRITE_SEQ_ELEM( elem, writer )             \
 {                                                     \
@@ -1296,15 +955,6 @@ CvSeqReader;
 }
 
 
-/* move reader position backward */
-#define CV_PREV_SEQ_ELEM( elem_size, reader )                \
-{                                                            \
-    if( ((reader).ptr -= (elem_size)) < (reader).block_min ) \
-    {                                                        \
-        cvChangeSeqBlock( &(reader), -1 );                   \
-    }                                                        \
-}
-
 /* read element and move read position forward */
 #define CV_READ_SEQ_ELEM( elem, reader )                       \
 {                                                              \
@@ -1312,145 +962,6 @@ CvSeqReader;
     memcpy( &(elem), (reader).ptr, sizeof((elem)));            \
     CV_NEXT_SEQ_ELEM( sizeof(elem), reader )                   \
 }
-
-/* read element and move read position backward */
-#define CV_REV_READ_SEQ_ELEM( elem, reader )                     \
-{                                                                \
-    assert( (reader).seq->elem_size == sizeof(elem));            \
-    memcpy(&(elem), (reader).ptr, sizeof((elem)));               \
-    CV_PREV_SEQ_ELEM( sizeof(elem), reader )                     \
-}
-
-
-#define CV_READ_CHAIN_POINT( _pt, reader )                              \
-{                                                                       \
-    (_pt) = (reader).pt;                                                \
-    if( (reader).ptr )                                                  \
-    {                                                                   \
-        CV_READ_SEQ_ELEM( (reader).code, (reader));                     \
-        assert( ((reader).code & ~7) == 0 );                            \
-        (reader).pt.x += (reader).deltas[(int)(reader).code][0];        \
-        (reader).pt.y += (reader).deltas[(int)(reader).code][1];        \
-    }                                                                   \
-}
-
-#define CV_CURRENT_POINT( reader )  (*((CvPoint*)((reader).ptr)))
-#define CV_PREV_POINT( reader )     (*((CvPoint*)((reader).prev_elem)))
-
-#define CV_READ_EDGE( pt1, pt2, reader )               \
-{                                                      \
-    assert( sizeof(pt1) == sizeof(CvPoint) &&          \
-            sizeof(pt2) == sizeof(CvPoint) &&          \
-            reader.seq->elem_size == sizeof(CvPoint)); \
-    (pt1) = CV_PREV_POINT( reader );                   \
-    (pt2) = CV_CURRENT_POINT( reader );                \
-    (reader).prev_elem = (reader).ptr;                 \
-    CV_NEXT_SEQ_ELEM( sizeof(CvPoint), (reader));      \
-}
-
-/************ Graph macros ************/
-
-/* returns next graph edge for given vertex */
-#define  CV_NEXT_GRAPH_EDGE( edge, vertex )                              \
-     (assert((edge)->vtx[0] == (vertex) || (edge)->vtx[1] == (vertex)),  \
-      (edge)->next[(edge)->vtx[1] == (vertex)])
-
-
-
-/****************************************************************************************\
-*             Data structures for persistence (a.k.a serialization) functionality        *
-\****************************************************************************************/
-
-/* list of attributes */
-typedef struct CvAttrList
-{
-    const char** attr; /* NULL-terminated array of (attribute_name,attribute_value) pairs */
-    struct CvAttrList* next; /* pointer to next chunk of the attributes list */
-}
-CvAttrList;
-
-CV_INLINE CvAttrList cvAttrList( const char** attr CV_DEFAULT(NULL),
-                                 CvAttrList* next CV_DEFAULT(NULL) )
-{
-    CvAttrList l;
-    l.attr = attr;
-    l.next = next;
-
-    return l;
-}
-
-struct CvTypeInfo;
-
-#define CV_NODE_NONE        0
-#define CV_NODE_INT         1
-#define CV_NODE_INTEGER     CV_NODE_INT
-#define CV_NODE_REAL        2
-#define CV_NODE_FLOAT       CV_NODE_REAL
-#define CV_NODE_STR         3
-#define CV_NODE_STRING      CV_NODE_STR
-#define CV_NODE_REF         4 /* not used */
-#define CV_NODE_SEQ         5
-#define CV_NODE_MAP         6
-#define CV_NODE_TYPE_MASK   7
-
-#define CV_NODE_TYPE(flags)  ((flags) & CV_NODE_TYPE_MASK)
-
-/* file node flags */
-#define CV_NODE_FLOW        8 /* used only for writing structures to YAML format */
-#define CV_NODE_USER        16
-#define CV_NODE_EMPTY       32
-#define CV_NODE_NAMED       64
-
-#define CV_NODE_IS_INT(flags)        (CV_NODE_TYPE(flags) == CV_NODE_INT)
-#define CV_NODE_IS_REAL(flags)       (CV_NODE_TYPE(flags) == CV_NODE_REAL)
-#define CV_NODE_IS_STRING(flags)     (CV_NODE_TYPE(flags) == CV_NODE_STRING)
-#define CV_NODE_IS_SEQ(flags)        (CV_NODE_TYPE(flags) == CV_NODE_SEQ)
-#define CV_NODE_IS_MAP(flags)        (CV_NODE_TYPE(flags) == CV_NODE_MAP)
-#define CV_NODE_IS_COLLECTION(flags) (CV_NODE_TYPE(flags) >= CV_NODE_SEQ)
-#define CV_NODE_IS_FLOW(flags)       (((flags) & CV_NODE_FLOW) != 0)
-#define CV_NODE_IS_EMPTY(flags)      (((flags) & CV_NODE_EMPTY) != 0)
-#define CV_NODE_IS_USER(flags)       (((flags) & CV_NODE_USER) != 0)
-#define CV_NODE_HAS_NAME(flags)      (((flags) & CV_NODE_NAMED) != 0)
-
-#define CV_NODE_SEQ_SIMPLE 256
-#define CV_NODE_SEQ_IS_SIMPLE(seq) (((seq)->flags & CV_NODE_SEQ_SIMPLE) != 0)
-
-typedef struct CvString
-{
-    int len;
-    char* ptr;
-}
-CvString;
-
-/* all the keys (names) of elements in the readed file storage
-   are stored in the hash to speed up the lookup operations */
-typedef struct CvStringHashNode
-{
-    unsigned hashval;
-    CvString str;
-    struct CvStringHashNode* next;
-}
-CvStringHashNode;
-
-typedef struct CvGenericHash CvFileNodeHash;
-
-/* basic element of the file storage - scalar or collection */
-typedef struct CvFileNode
-{
-    int tag;
-    struct CvTypeInfo* info; /* type information
-            (only for user-defined object, for others it is 0) */
-    union
-    {
-        double f; /* scalar floating-point number */
-        int i;    /* scalar integer number */
-        CvString str; /* text string */
-        CvSeq* seq; /* sequence (ordered collection of file nodes) */
-        CvFileNodeHash* map; /* map (collection of named file nodes) */
-    } data;
-}
-CvFileNode;
-
 
 
 #endif /*_CXCORE_TYPES_H_*/

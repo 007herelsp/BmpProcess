@@ -131,7 +131,6 @@ public:
     int     GetPos();
     int     Get( int bits );
     int     Show( int bits );
-    int     GetHuff( const short* table );
     void    Move( int shift );
     void    Skip( int bytes );
         
@@ -151,7 +150,6 @@ public:
     int     GetPos();
     int     Get( int bits );
     int     Show( int bits );
-    int     GetHuff( const short* table );
     void    Move( int shift );
     void    Skip( int bytes );
 
@@ -225,7 +223,6 @@ public:
     
     int     GetPos();
     void    Put( int val, int bits );
-    void    PutHuff( int val, const int* table );
         
 protected:
     int     m_bit_idx;
@@ -248,7 +245,6 @@ public:
 
     int     GetPos();
     void    Put( int val, int bits );
-    void    PutHuff( int val, const ulong* table );
         
 protected:
     int     m_bit_idx;
@@ -263,10 +259,6 @@ protected:
 #define BSWAP(v)    (((v)<<24)|(((v)&0xff00)<<8)| \
                     (((v)>>8)&0xff00)|((unsigned)(v)>>24))
 
-int* bsCreateSourceHuffmanTable( const uchar* src, int* dst, 
-                                 int max_bits, int first_bits );
-bool bsCreateDecodeHuffmanTable( const int* src, short* dst, int max_size );
-bool bsCreateEncodeHuffmanTable( const int* src, ulong* dst, int max_size );
 
 void bsBSwapBlock( uchar *start, uchar *end );
 bool bsIsBigEndian( void );

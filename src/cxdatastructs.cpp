@@ -1375,25 +1375,6 @@ cvSetAdd( CvSet* set, CvSetElem* element, CvSetElem** inserted_element )
     return id;
 }
 
-
-/* removes element from the set given its index */
-CV_IMPL void
-cvSetRemove( CvSet* set, int index )
-{
-    CV_FUNCNAME( "cvSetRemove" );
-
-    __BEGIN__;
-
-    CvSetElem* elem = cvGetSetElem( set, index );
-    if( elem )
-        cvSetRemoveByPtr( set, elem );
-    else if( !set )
-        CV_ERROR( CV_StsNullPtr, "" );
-
-    __END__;
-}
-
-
 /* removes all elements from the set */
 CV_IMPL void
 cvClearSet( CvSet* set )

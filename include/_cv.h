@@ -42,11 +42,6 @@
 #ifndef _CV_INTERNAL_H_
 #define _CV_INTERNAL_H_
 
-#if defined _MSC_VER && _MSC_VER >= 1200
-    /* disable warnings related to inline functions */
-    #pragma warning( disable: 4711 4710 4514 )
-#endif
-
 #include "cv.h"
 #include "cxmisc.h"
 #include <math.h>

@@ -69,21 +69,7 @@ void CvMorphology::init(int _operation, int _max_width, int _src_dst_type,
     if (_operation != ERODE && _operation != DILATE)
         CV_ERROR(CV_StsBadArg, "Unknown/unsupported morphological operation");
 
-    if (_element_shape == CUSTOM)
-    {
-        if (!CV_IS_MAT(_element))
-            CV_ERROR(CV_StsBadArg,
-                     "structuring element should be valid matrix if CUSTOM element shape is specified");
 
-        el_type = CV_MAT_TYPE(_element->type);
-        if (el_type != CV_8UC1 && el_type != CV_32SC1)
-            CV_ERROR(CV_StsUnsupportedFormat, "the structuring element must have 8uC1 or 32sC1 type");
-
-        _ksize = cvGetMatSize(_element);
-        CV_CALL(nz = cvCountNonZero(_element));
-        if (nz == _ksize.width * _ksize.height)
-            _element_shape = RECT;
-    }
 
     operation = _operation;
     el_shape = _element_shape;

@@ -2,16 +2,9 @@
 
 #ifndef _CXCORE_INTERNAL_H_
 #define _CXCORE_INTERNAL_H_
-
-
-
 typedef unsigned long ulong;
-
-
-
 #include "cxcore.h"
 #include "cxmisc.h"
-#include "_cxipp.h"
 #include <math.h>
 #include <assert.h>
 #include <string.h>
@@ -33,24 +26,8 @@ extern const signed char icvDepthToType[];
 
 extern const uchar icvSaturate8u[];
 #define CV_FAST_CAST_8U(t)   (assert(-256 <= (t) && (t) <= 512), icvSaturate8u[(t)+256])
-#define CV_MIN_8U(a,b)       ((a) - CV_FAST_CAST_8U((a) - (b)))
-#define CV_MAX_8U(a,b)       ((a) + CV_FAST_CAST_8U((b) - (a)))
-
-typedef CvFunc2D_3A1I CvArithmBinMaskFunc2D;
-typedef CvFunc2D_2A1P1I CvArithmUniMaskFunc2D;
 
 
-
-typedef CvStatus (CV_STDCALL * CvCopyMaskFunc)(const void* src, int src_step,
-                                               void* dst, int dst_step, CvSize size,
-                                               const void* mask, int mask_step);
-
-CvCopyMaskFunc icvGetCopyMaskFunc( int elem_size );
-
-CvStatus CV_STDCALL icvSetZero_8u_C1R( uchar* dst, int dststep, CvSize size );
-
-CvStatus CV_STDCALL icvScale_32f( const float* src, float* dst, int len, float a, float b );
-CvStatus CV_STDCALL icvScale_64f( const double* src, double* dst, int len, double a, double b );
 
 CvStatus CV_STDCALL icvLUT_Transform8u_8u_C1R( const uchar* src, int srcstep, uchar* dst,
                                                int dststep, CvSize size, const uchar* lut );

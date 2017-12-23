@@ -61,7 +61,6 @@ set<CvBox2D, SymCmp> SearchProcess(IplImage *lpSrcImg)
 	int index = 0;
 	set<CvBox2D, SymCmp> lstRes;
 	// ����һ�����������ڴ洢�����ǵ�
-	CvSeq *squares = cvCreateSeq(0, sizeof(CvSeq), sizeof(CvPoint), storage);
 	cvFindContours(lpSrcImg, storage, &contours, sizeof(CvContour),
 		CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE, cvPoint(0, 0));
 
@@ -178,7 +177,6 @@ set<Box, SymUBoxCmp> SearchProcess_v2(IplImage *lpSrcImg)
 	int index = 0;
 	set<Box, SymUBoxCmp> lstRes;
 	// ����һ�����������ڴ洢�����ǵ�
-	CvSeq *squares = cvCreateSeq(0, sizeof(CvSeq), sizeof(CvPoint), storage);
 	cvFindContours(lpSrcImg, storage, &contours, sizeof(CvContour),
 		CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE, cvPoint(0, 0));
 	int iCount = 0;

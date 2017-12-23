@@ -4,53 +4,50 @@
 /****************************************************************************************\
 *                               Polygonal Approximation                                  *
 \****************************************************************************************/
-
-/* Ramer-Douglas-Peucker algorithm for polygon simplification */
-
 /* the version for integer point coordinates */
 static CvStatus
-icvApproxPolyDP_32s( CvSeq* src_contour, int header_size,
-                     CvMemStorage* storage,
-                     CvSeq** dst_contour, float eps )
+icvApproxPolyDP_32s(CvSeq *src_contour, int header_size,
+                    CvMemStorage *storage,
+                    CvSeq **dst_contour, float eps)
 {
-    int             init_iters = 3;
-    CvSlice         slice = {0, 0}, right_slice = {0, 0};
-    CvSeqReader     reader, reader2;
-    CvSeqWriter     writer;
-    CvPoint         start_pt = {INT_MIN, INT_MIN}, end_pt = {0, 0}, pt = {0,0};
-    int             i = 0, j, count = src_contour->total, new_count;
-    int             is_closed = CV_IS_SEQ_CLOSED( src_contour );
-    int             le_eps = 0;
-    CvMemStorage*   temp_storage = 0;
-    CvSeq*          stack = 0;
+    int init_iters = 3;
+    CvSlice slice = {0, 0}, right_slice = {0, 0};
+    CvSeqReader reader, reader2;
+    CvSeqWriter writer;
+    CvPoint start_pt = {INT_MIN, INT_MIN}, end_pt = {0, 0}, pt = {0, 0};
+    int i = 0, j, count = src_contour->total, new_count;
+    int is_closed = CV_IS_SEQ_CLOSED(src_contour);
+    int le_eps = 0;
+    CvMemStorage *temp_storage = 0;
+    CvSeq *stack = 0;
 
-    assert( CV_SEQ_ELTYPE(src_contour) == CV_32SC2 );
-    cvStartWriteSeq( src_contour->flags, header_size, sizeof(pt), storage, &writer );
+    assert(CV_SEQ_ELTYPE(src_contour) == CV_32SC2);
+    cvStartWriteSeq(src_contour->flags, header_size, sizeof(pt), storage, &writer);
 
-    if( src_contour->total == 0  )
+    if (src_contour->total == 0)
     {
-        *dst_contour = cvEndWriteSeq( &writer );
+        *dst_contour = cvEndWriteSeq(&writer);
         return CV_OK;
     }
 
-    temp_storage = cvCreateChildMemStorage( storage );
+    temp_storage = cvCreateChildMemStorage(storage);
 
-    assert( src_contour->first != 0 );
-    stack = cvCreateSeq( 0, sizeof(CvSeq), sizeof(CvSlice), temp_storage );
+    assert(src_contour->first != 0);
+    stack = cvCreateSeq(0, sizeof(CvSeq), sizeof(CvSlice), temp_storage);
     eps *= eps;
-    cvStartReadSeq( src_contour, &reader, 0 );
+    cvStartReadSeq(src_contour, &reader, 0);
 
-    if( !is_closed )
+    if (!is_closed)
     {
         right_slice.start_index = count;
-        end_pt = *(CvPoint*)(reader.ptr);
-        start_pt = *(CvPoint*)cvGetSeqElem( src_contour, -1 );
+        end_pt = *(CvPoint *)(reader.ptr);
+        start_pt = *(CvPoint *)cvGetSeqElem(src_contour, -1);
 
-        if( start_pt.x != end_pt.x || start_pt.y != end_pt.y )
+        if (start_pt.x != end_pt.x || start_pt.y != end_pt.y)
         {
             slice.start_index = 0;
             slice.end_index = count - 1;
-            cvSeqPush( stack, &slice );
+            cvSeqPush(stack, &slice);
         }
         else
         {
@@ -59,28 +56,28 @@ icvApproxPolyDP_32s( CvSeq* src_contour, int header_size,
         }
     }
 
-    if( is_closed )
+    if (is_closed)
     {
         /* 1. Find approximately two farthest points of the contour */
         right_slice.start_index = 0;
 
-        for( i = 0; i < init_iters; i++ )
+        for (i = 0; i < init_iters; i++)
         {
             int max_dist = 0;
-            cvSetSeqReaderPos( &reader, right_slice.start_index, 1 );
-            CV_READ_SEQ_ELEM( start_pt, reader );   /* read the first point */
+            cvSetSeqReaderPos(&reader, right_slice.start_index, 1);
+            CV_READ_SEQ_ELEM(start_pt, reader); /* read the first point */
 
-            for( j = 1; j < count; j++ )
+            for (j = 1; j < count; j++)
             {
                 int dx, dy, dist;
 
-                CV_READ_SEQ_ELEM( pt, reader );
+                CV_READ_SEQ_ELEM(pt, reader);
                 dx = pt.x - start_pt.x;
                 dy = pt.y - start_pt.y;
 
                 dist = dx * dx + dy * dy;
 
-                if( dist > max_dist )
+                if (dist > max_dist)
                 {
                     max_dist = dist;
                     right_slice.start_index = j;
@@ -91,49 +88,49 @@ icvApproxPolyDP_32s( CvSeq* src_contour, int header_size,
         }
 
         /* 2. initialize the stack */
-        if( !le_eps )
+        if (!le_eps)
         {
-            slice.start_index = cvGetSeqReaderPos( &reader );
+            slice.start_index = cvGetSeqReaderPos(&reader);
             slice.end_index = right_slice.start_index += slice.start_index;
 
             right_slice.start_index -= right_slice.start_index >= count ? count : 0;
             right_slice.end_index = slice.start_index;
-            if( right_slice.end_index < right_slice.start_index )
+            if (right_slice.end_index < right_slice.start_index)
                 right_slice.end_index += count;
 
-            cvSeqPush( stack, &right_slice );
-            cvSeqPush( stack, &slice );
+            cvSeqPush(stack, &right_slice);
+            cvSeqPush(stack, &slice);
         }
         else
-            CV_WRITE_SEQ_ELEM( start_pt, writer );
+            CV_WRITE_SEQ_ELEM(start_pt, writer);
     }
 
     /* 3. run recursive process */
-    while( stack->total != 0 )
+    while (stack->total != 0)
     {
-        cvSeqPop( stack, &slice );
+        cvSeqPop(stack, &slice);
 
-        if( slice.end_index > slice.start_index + 1 )
+        if (slice.end_index > slice.start_index + 1)
         {
             int dx, dy, dist, max_dist = 0;
 
-            cvSetSeqReaderPos( &reader, slice.end_index );
-            CV_READ_SEQ_ELEM( end_pt, reader );
+            cvSetSeqReaderPos(&reader, slice.end_index);
+            CV_READ_SEQ_ELEM(end_pt, reader);
 
-            cvSetSeqReaderPos( &reader, slice.start_index );
-            CV_READ_SEQ_ELEM( start_pt, reader );
+            cvSetSeqReaderPos(&reader, slice.start_index);
+            CV_READ_SEQ_ELEM(start_pt, reader);
 
             dx = end_pt.x - start_pt.x;
             dy = end_pt.y - start_pt.y;
 
-            assert( dx != 0 || dy != 0 );
+            assert(dx != 0 || dy != 0);
 
-            for( i = slice.start_index + 1; i < slice.end_index; i++ )
+            for (i = slice.start_index + 1; i < slice.end_index; i++)
             {
-                CV_READ_SEQ_ELEM( pt, reader );
+                CV_READ_SEQ_ELEM(pt, reader);
                 dist = abs((pt.y - start_pt.y) * dx - (pt.x - start_pt.x) * dy);
 
-                if( dist > max_dist )
+                if (dist > max_dist)
                 {
                     max_dist = dist;
                     right_slice.start_index = i;
@@ -144,404 +141,185 @@ icvApproxPolyDP_32s( CvSeq* src_contour, int header_size,
         }
         else
         {
-            assert( slice.end_index > slice.start_index );
+            assert(slice.end_index > slice.start_index);
             le_eps = 1;
             /* read starting point */
-            cvSetSeqReaderPos( &reader, slice.start_index );
-            CV_READ_SEQ_ELEM( start_pt, reader );
+            cvSetSeqReaderPos(&reader, slice.start_index);
+            CV_READ_SEQ_ELEM(start_pt, reader);
         }
 
-        if( le_eps )
+        if (le_eps)
         {
-            CV_WRITE_SEQ_ELEM( start_pt, writer );
+            CV_WRITE_SEQ_ELEM(start_pt, writer);
         }
         else
         {
             right_slice.end_index = slice.end_index;
             slice.end_index = right_slice.start_index;
-            cvSeqPush( stack, &right_slice );
-            cvSeqPush( stack, &slice );
+            cvSeqPush(stack, &right_slice);
+            cvSeqPush(stack, &slice);
         }
     }
 
-    is_closed = CV_IS_SEQ_CLOSED( src_contour );
-    if( !is_closed )
-        CV_WRITE_SEQ_ELEM( end_pt, writer );
+    is_closed = CV_IS_SEQ_CLOSED(src_contour);
+    if (!is_closed)
+        CV_WRITE_SEQ_ELEM(end_pt, writer);
 
-    *dst_contour = cvEndWriteSeq( &writer );
+    *dst_contour = cvEndWriteSeq(&writer);
 
-    cvStartReadSeq( *dst_contour, &reader, is_closed );
-    CV_READ_SEQ_ELEM( start_pt, reader );
+    cvStartReadSeq(*dst_contour, &reader, is_closed);
+    CV_READ_SEQ_ELEM(start_pt, reader);
 
     reader2 = reader;
-    CV_READ_SEQ_ELEM( pt, reader );
+    CV_READ_SEQ_ELEM(pt, reader);
 
     new_count = count = (*dst_contour)->total;
-    for( i = !is_closed; i < count - !is_closed && new_count > 2; i++ )
+    for (i = !is_closed; i < count - !is_closed && new_count > 2; i++)
     {
         int dx, dy, dist;
-        CV_READ_SEQ_ELEM( end_pt, reader );
+        CV_READ_SEQ_ELEM(end_pt, reader);
 
         dx = end_pt.x - start_pt.x;
         dy = end_pt.y - start_pt.y;
-        dist = abs((pt.x - start_pt.x)*dy - (pt.y - start_pt.y)*dx);
-        if( (double)dist * dist <= 0.5*eps*((double)dx*dx + (double)dy*dy) && dx != 0 && dy != 0 )
+        dist = abs((pt.x - start_pt.x) * dy - (pt.y - start_pt.y) * dx);
+        if ((double)dist * dist <= 0.5 * eps * ((double)dx * dx + (double)dy * dy) && dx != 0 && dy != 0)
         {
             new_count--;
-            *((CvPoint*)reader2.ptr) = start_pt = end_pt;
-            CV_NEXT_SEQ_ELEM( sizeof(pt), reader2 );
-            CV_READ_SEQ_ELEM( pt, reader );
+            *((CvPoint *)reader2.ptr) = start_pt = end_pt;
+            CV_NEXT_SEQ_ELEM(sizeof(pt), reader2);
+            CV_READ_SEQ_ELEM(pt, reader);
             i++;
             continue;
         }
-        *((CvPoint*)reader2.ptr) = start_pt = pt;
-        CV_NEXT_SEQ_ELEM( sizeof(pt), reader2 );
+        *((CvPoint *)reader2.ptr) = start_pt = pt;
+        CV_NEXT_SEQ_ELEM(sizeof(pt), reader2);
         pt = end_pt;
     }
 
-    if( !is_closed )
-        *((CvPoint*)reader2.ptr) = pt;
+    if (!is_closed)
+        *((CvPoint *)reader2.ptr) = pt;
 
-    if( new_count < count )
-        cvSeqPopMulti( *dst_contour, 0, count - new_count );
+    if (new_count < count)
+        cvSeqPopMulti(*dst_contour, 0, count - new_count);
 
-    cvReleaseMemStorage( &temp_storage );
+    cvReleaseMemStorage(&temp_storage);
 
     return CV_OK;
 }
 
-
-/* the version for integer point coordinates */
-static CvStatus
-icvApproxPolyDP_32f( CvSeq* src_contour, int header_size,
-                     CvMemStorage* storage,
-                     CvSeq** dst_contour, float eps )
+CV_IMPL CvSeq *
+cvApproxPoly(const void *array, int header_size,
+             CvMemStorage *storage, int method,
+             double parameter, int parameter2)
 {
-    int             init_iters = 3;
-    CvSlice         slice = {0, 0}, right_slice = {0, 0};
-    CvSeqReader     reader, reader2;
-    CvSeqWriter     writer;
-    CvPoint2D32f    start_pt = {-1e6f, -1e6f}, end_pt = {0, 0}, pt = {0,0};
-    int             i = 0, j, count = src_contour->total, new_count;
-    int             is_closed = CV_IS_SEQ_CLOSED( src_contour );
-    int             le_eps = 0;
-    CvMemStorage*   temp_storage = 0;
-    CvSeq*          stack = 0;
-
-    assert( CV_SEQ_ELTYPE(src_contour) == CV_32FC2 );
-    cvStartWriteSeq( src_contour->flags, header_size, sizeof(pt), storage, &writer );
-
-    if( src_contour->total == 0  )
-    {
-        *dst_contour = cvEndWriteSeq( &writer );
-        return CV_OK;
-    }
-
-    temp_storage = cvCreateChildMemStorage( storage );
-
-    assert( src_contour->first != 0 );
-    stack = cvCreateSeq( 0, sizeof(CvSeq), sizeof(CvSlice), temp_storage );
-    eps *= eps;
-    cvStartReadSeq( src_contour, &reader, 0 );
-
-    if( !is_closed )
-    {
-        right_slice.start_index = count;
-        end_pt = *(CvPoint2D32f*)(reader.ptr);
-        start_pt = *(CvPoint2D32f*)cvGetSeqElem( src_contour, -1 );
-
-        if( fabs(start_pt.x - end_pt.x) > FLT_EPSILON ||
-            fabs(start_pt.y - end_pt.y) > FLT_EPSILON )
-        {
-            slice.start_index = 0;
-            slice.end_index = count - 1;
-            cvSeqPush( stack, &slice );
-        }
-        else
-        {
-            is_closed = 1;
-            init_iters = 1;
-        }
-    }
-
-    if( is_closed )
-    {
-        /* 1. Find approximately two farthest points of the contour */
-        right_slice.start_index = 0;
-
-        for( i = 0; i < init_iters; i++ )
-        {
-            double max_dist = 0;
-            cvSetSeqReaderPos( &reader, right_slice.start_index, 1 );
-            CV_READ_SEQ_ELEM( start_pt, reader );   /* read the first point */
-
-            for( j = 1; j < count; j++ )
-            {
-                double dx, dy, dist;
-
-                CV_READ_SEQ_ELEM( pt, reader );
-                dx = pt.x - start_pt.x;
-                dy = pt.y - start_pt.y;
-
-                dist = dx * dx + dy * dy;
-
-                if( dist > max_dist )
-                {
-                    max_dist = dist;
-                    right_slice.start_index = j;
-                }
-            }
-
-            le_eps = max_dist <= eps;
-        }
-
-        /* 2. initialize the stack */
-        if( !le_eps )
-        {
-            slice.start_index = cvGetSeqReaderPos( &reader );
-            slice.end_index = right_slice.start_index += slice.start_index;
-
-            right_slice.start_index -= right_slice.start_index >= count ? count : 0;
-            right_slice.end_index = slice.start_index;
-            if( right_slice.end_index < right_slice.start_index )
-                right_slice.end_index += count;
-
-            cvSeqPush( stack, &right_slice );
-            cvSeqPush( stack, &slice );
-        }
-        else
-            CV_WRITE_SEQ_ELEM( start_pt, writer );
-    }
-
-    /* 3. run recursive process */
-    while( stack->total != 0 )
-    {
-        cvSeqPop( stack, &slice );
-
-        if( slice.end_index > slice.start_index + 1 )
-        {
-            double dx, dy, dist, max_dist = 0;
-
-            cvSetSeqReaderPos( &reader, slice.end_index );
-            CV_READ_SEQ_ELEM( end_pt, reader );
-
-            cvSetSeqReaderPos( &reader, slice.start_index );
-            CV_READ_SEQ_ELEM( start_pt, reader );
-
-            dx = end_pt.x - start_pt.x;
-            dy = end_pt.y - start_pt.y;
-
-            assert( dx != 0 || dy != 0 );
-
-            for( i = slice.start_index + 1; i < slice.end_index; i++ )
-            {
-                CV_READ_SEQ_ELEM( pt, reader );
-                dist = fabs((pt.y - start_pt.y) * dx - (pt.x - start_pt.x) * dy);
-
-                if( dist > max_dist )
-                {
-                    max_dist = dist;
-                    right_slice.start_index = i;
-                }
-            }
-
-            le_eps = (double)max_dist * max_dist <= eps * ((double)dx * dx + (double)dy * dy);
-        }
-        else
-        {
-            assert( slice.end_index > slice.start_index );
-            le_eps = 1;
-            /* read starting point */
-            cvSetSeqReaderPos( &reader, slice.start_index );
-            CV_READ_SEQ_ELEM( start_pt, reader );
-        }
-
-        if( le_eps )
-        {
-            CV_WRITE_SEQ_ELEM( start_pt, writer );
-        }
-        else
-        {
-            right_slice.end_index = slice.end_index;
-            slice.end_index = right_slice.start_index;
-            cvSeqPush( stack, &right_slice );
-            cvSeqPush( stack, &slice );
-        }
-    }
-
-    is_closed = CV_IS_SEQ_CLOSED( src_contour );
-    if( !is_closed )
-        CV_WRITE_SEQ_ELEM( end_pt, writer );
-
-    *dst_contour = cvEndWriteSeq( &writer );
-
-    cvStartReadSeq( *dst_contour, &reader, is_closed );
-    CV_READ_SEQ_ELEM( start_pt, reader );
-
-    reader2 = reader;
-    CV_READ_SEQ_ELEM( pt, reader );
-
-    new_count = count = (*dst_contour)->total;
-    for( i = !is_closed; i < count - !is_closed && new_count > 2; i++ )
-    {
-        double dx, dy, dist;
-        CV_READ_SEQ_ELEM( end_pt, reader );
-
-        dx = end_pt.x - start_pt.x;
-        dy = end_pt.y - start_pt.y;
-        dist = fabs((pt.x - start_pt.x)*dy - (pt.y - start_pt.y)*dx);
-        if( (double)dist * dist <= 0.5*eps*((double)dx*dx + (double)dy*dy) )
-        {
-            new_count--;
-            *((CvPoint2D32f*)reader2.ptr) = start_pt = end_pt;
-            CV_NEXT_SEQ_ELEM( sizeof(pt), reader2 );
-            CV_READ_SEQ_ELEM( pt, reader );
-            i++;
-            continue;
-        }
-        *((CvPoint2D32f*)reader2.ptr) = start_pt = pt;
-        CV_NEXT_SEQ_ELEM( sizeof(pt), reader2 );
-        pt = end_pt;
-    }
-
-    if( !is_closed )
-        *((CvPoint2D32f*)reader2.ptr) = pt;
-
-    if( new_count < count )
-        cvSeqPopMulti( *dst_contour, 0, count - new_count );
-
-    cvReleaseMemStorage( &temp_storage );
-
-    return CV_OK;
-}
-
-
-CV_IMPL CvSeq*
-cvApproxPoly( const void*  array, int  header_size,
-              CvMemStorage*  storage, int  method,
-              double  parameter, int parameter2 )
-{
-    CvSeq* dst_seq = 0;
+    CvSeq *dst_seq = 0;
     CvSeq *prev_contour = 0, *parent = 0;
-    CvSeq* src_seq = 0;
+    CvSeq *src_seq = 0;
     int recursive = 0;
 
-    CV_FUNCNAME( "cvApproxPoly" );
+    CV_FUNCNAME("cvApproxPoly");
 
     __BEGIN__;
 
-    if( CV_IS_SEQ( array ))
+    if (CV_IS_SEQ(array))
     {
-        src_seq = (CvSeq*)array;
-        if( !CV_IS_SEQ_POLYLINE( src_seq ))
-            CV_ERROR( CV_StsBadArg, "Unsupported sequence type" );
+        src_seq = (CvSeq *)array;
+        if (!CV_IS_SEQ_POLYLINE(src_seq))
+            CV_ERROR(CV_StsBadArg, "Unsupported sequence type");
 
         recursive = parameter2;
 
-        if( !storage )
+        if (!storage)
             storage = src_seq->storage;
     }
     else
     {
-       CV_ERROR( CV_StsBadArg, "Unsupported sequence type" );
+        CV_ERROR(CV_StsBadArg, "Unsupported sequence type");
     }
 
-    if( !storage )
-        CV_ERROR( CV_StsNullPtr, "NULL storage pointer " );
+    if (!storage)
+        CV_ERROR(CV_StsNullPtr, "NULL storage pointer ");
 
-    if( header_size < 0 )
-        CV_ERROR( CV_StsOutOfRange, "header_size is negative. "
-                  "Pass 0 to make the destination header_size == input header_size" );
+    if (header_size < 0)
+        CV_ERROR(CV_StsOutOfRange, "header_size is negative. "
+                                   "Pass 0 to make the destination header_size == input header_size");
 
-    if( header_size == 0 )
+    if (header_size == 0)
         header_size = src_seq->header_size;
 
-    if( !CV_IS_SEQ_POLYLINE( src_seq ))
+    if (!CV_IS_SEQ_POLYLINE(src_seq))
     {
-        if( CV_IS_SEQ_CHAIN( src_seq ))
+        if (CV_IS_SEQ_CHAIN(src_seq))
         {
-            CV_ERROR( CV_StsBadArg, "Input curves are not polygonal. "
-                                    "Use cvApproxChains first" );
+            CV_ERROR(CV_StsBadArg, "Input curves are not polygonal. "
+                                   "Use cvApproxChains first");
         }
         else
         {
-            CV_ERROR( CV_StsBadArg, "Input curves have uknown type" );
+            CV_ERROR(CV_StsBadArg, "Input curves have uknown type");
         }
     }
 
-    if( header_size == 0 )
+    if (header_size == 0)
         header_size = src_seq->header_size;
 
-    if( header_size < (int)sizeof(CvContour) )
-        CV_ERROR( CV_StsBadSize, "New header size must be non-less than sizeof(CvContour)" );
+    if (header_size < (int)sizeof(CvContour))
+        CV_ERROR(CV_StsBadSize, "New header size must be non-less than sizeof(CvContour)");
 
-    if( method != CV_POLY_APPROX_DP )
-        CV_ERROR( CV_StsOutOfRange, "Unknown approximation method" );
+    if (method != CV_POLY_APPROX_DP)
+        CV_ERROR(CV_StsOutOfRange, "Unknown approximation method");
 
-    while( src_seq != 0 )
+    if (CV_SEQ_ELTYPE(src_seq) != CV_32SC2)
+        CV_ERROR(CV_StsOutOfRange, "Unknown type");
+
+    if (parameter < 0)
+        CV_ERROR(CV_StsOutOfRange, "Accuracy must be non-negative");
+
+    while (src_seq != 0)
     {
         CvSeq *contour = 0;
 
-        switch (method)
-        {
-        case CV_POLY_APPROX_DP:
-            if( parameter < 0 )
-                CV_ERROR( CV_StsOutOfRange, "Accuracy must be non-negative" );
+        IPPI_CALL(icvApproxPolyDP_32s(src_seq, header_size, storage,
+                                      &contour, (float)parameter));
 
-            if( CV_SEQ_ELTYPE(src_seq) == CV_32SC2 )
-            {
-                IPPI_CALL( icvApproxPolyDP_32s( src_seq, header_size, storage,
-                                                &contour, (float)parameter ));
-            }
-            else
-            {
-                IPPI_CALL( icvApproxPolyDP_32f( src_seq, header_size, storage,
-                                                &contour, (float)parameter ));
-            }
-            break;
-        default:
-            assert(0);
-            CV_ERROR( CV_StsBadArg, "Invalid approximation method" );
-        }
+        assert(contour);
 
-        assert( contour );
-
-        if( header_size >= (int)sizeof(CvContour))
-            cvBoundingRect( contour, 1 );
+        if (header_size >= (int)sizeof(CvContour))
+            cvBoundingRect(contour, 1);
 
         contour->v_prev = parent;
         contour->h_prev = prev_contour;
 
-        if( prev_contour )
+        if (prev_contour)
             prev_contour->h_next = contour;
-        else if( parent )
+        else if (parent)
             parent->v_next = contour;
         prev_contour = contour;
-        if( !dst_seq )
+        if (!dst_seq)
             dst_seq = prev_contour;
 
-        if( !recursive )
+        if (!recursive)
             break;
 
-        if( src_seq->v_next )
+        if (src_seq->v_next)
         {
-            assert( prev_contour != 0 );
+            assert(prev_contour != 0);
             parent = prev_contour;
             prev_contour = 0;
             src_seq = src_seq->v_next;
         }
         else
         {
-            while( src_seq->h_next == 0 )
+            while (src_seq->h_next == 0)
             {
                 src_seq = src_seq->v_prev;
-                if( src_seq == 0 )
+                if (src_seq == 0)
                     break;
                 prev_contour = parent;
-                if( parent )
+                if (parent)
                     parent = parent->v_prev;
             }
-            if( src_seq )
+            if (src_seq)
                 src_seq = src_seq->h_next;
         }
     }

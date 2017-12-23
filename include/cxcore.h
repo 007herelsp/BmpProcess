@@ -39,7 +39,6 @@ CVAPI(IplImage*) cvInitImageHeader( IplImage* image, CvSize size, int depth,
 /* Creates IPL image (header and data) */
 CVAPI(IplImage*)  cvCreateImage( CvSize size, int depth, int channels );
 
-/* Releases (i.e. deallocates) IPL image header */
 CVAPI(void)  cvReleaseImageHeader( IplImage** image );
 
 /* Releases IPL image header and data */
@@ -84,31 +83,6 @@ assert("herelsp remove" && 0);
 	}
 }
 
-/* Increments CvMat data reference counter */
-CV_INLINE  int  cvIncRefData( CvArr* arr )
-{
-    int refcount = 0;
-    if( CV_IS_MAT( arr ))
-    {
-        CvMat* mat = (CvMat*)arr;
-        if( mat->refcount != NULL )
-            refcount = ++*mat->refcount;
-    }
-    else{
-assert("herelsp remove" && 0);
-	}
-    return refcount;
-}
-
-
-/* Creates an exact copy of the input matrix (except, may be, step value) */
-CVAPI(CvMat*) cvCloneMat( const CvMat* mat );
-
-
-
-
-
-
 /* low-level scalar <-> raw data conversion functions */
 CVAPI(void) cvScalarToRawData( const CvScalar* scalar, void* data, int type,
                               int extend_to_12 CV_DEFAULT(0) );
@@ -122,11 +96,7 @@ CVAPI(void) cvScalarToRawData( const CvScalar* scalar, void* data, int type,
    CV_8UC1 ... CV_64FC4 ... */
 CVAPI(int) cvGetElemType( const CvArr* arr );
 
-/* Converts CvArr (IplImage or CvMat,...) to CvMat.
-   If the last parameter is non-zero, function can
-   convert multi(>2)-dimensional array to CvMat as long as
-   the last array's dimension is continous. The resultant
-   matrix will be have appropriate (a huge) number of rows */
+
 CVAPI(CvMat*) cvGetMat( const CvArr* arr, CvMat* header,
                        int* coi CV_DEFAULT(NULL),
                        int allowND CV_DEFAULT(0));
@@ -172,28 +142,6 @@ CVAPI(void)  cvConvertScale( const CvArr* src, CvArr* dst,
 #define cvConvert( src, dst )  cvConvertScale( (src), (dst), 1, 0 )
 
 /****************************************************************************************\
-*                   Arithmetic, logic and comparison operations                          *
-\****************************************************************************************/
-
-/* dst(idx) = src1(idx) * src2(idx) * scale
-   (scaled element-wise multiplication of 2 arrays) */
-CVAPI(void)  cvMul( const CvArr* src1, const CvArr* src2,
-                    CvArr* dst, double scale CV_DEFAULT(1) );
-
-/* element-wise division/inversion with scaling: 
-    dst(idx) = src1(idx) * scale / src2(idx)
-    or dst(idx) = scale / src2(idx) if src1 == 0 */
-CVAPI(void)  cvDiv( const CvArr* src1, const CvArr* src2,
-                    CvArr* dst, double scale CV_DEFAULT(1));
-
-#define CV_CMP_EQ   0
-#define CV_CMP_GT   1
-#define CV_CMP_GE   2
-#define CV_CMP_LT   3
-#define CV_CMP_LE   4
-#define CV_CMP_NE   5
-
-/****************************************************************************************\
 *                                Math operations                                         *
 \****************************************************************************************/
 
@@ -234,80 +182,6 @@ CVAPI(void)   cvSVBkSb( const CvArr* W, const CvArr* U,
 CVAPI(int)  cvSolve( const CvArr* src1, const CvArr* src2, CvArr* dst,
                      int method CV_DEFAULT(CV_LU));
 
-
-
-/* Fills matrix with given range of numbers */
-CVAPI(CvArr*)  cvRange( CvArr* mat, double start, double end );
-
-/* Calculates covariation matrix for a set of vectors */
-/* transpose([v1-avg, v2-avg,...]) * [v1-avg,v2-avg,...] */
-#define CV_COVAR_SCRAMBLED 0
-
-/* [v1-avg, v2-avg,...] * transpose([v1-avg,v2-avg,...]) */
-#define CV_COVAR_NORMAL    1
-
-/* do not calc average (i.e. mean vector) - use the input vector instead
-   (useful for calculating covariance matrix by parts) */
-#define CV_COVAR_USE_AVG   2
-
-/* scale the covariance matrix coefficients by number of the vectors */
-#define CV_COVAR_SCALE     4
-
-/* all the input vectors are stored in a single matrix, as its rows */
-#define CV_COVAR_ROWS      8
-
-/* all the input vectors are stored in a single matrix, as its columns */
-#define CV_COVAR_COLS     16
-
-
-/****************************************************************************************\
-*                                    Array Statistics                                    *
-\****************************************************************************************/
-
-
-
-/* Calculates number of non-zero pixels */
-CVAPI(int)  cvCountNonZero( const CvArr* arr );
-
-
-/* types of array norm */
-#define CV_C            1
-#define CV_L1           2
-#define CV_L2           4
-#define CV_NORM_MASK    7
-#define CV_RELATIVE     8
-#define CV_DIFF         16
-#define CV_MINMAX       32
-
-#define CV_DIFF_C       (CV_DIFF | CV_C)
-#define CV_DIFF_L1      (CV_DIFF | CV_L1)
-#define CV_DIFF_L2      (CV_DIFF | CV_L2)
-#define CV_RELATIVE_C   (CV_RELATIVE | CV_C)
-#define CV_RELATIVE_L1  (CV_RELATIVE | CV_L1)
-#define CV_RELATIVE_L2  (CV_RELATIVE | CV_L2)
-
-#define CV_REDUCE_SUM 0
-#define CV_REDUCE_AVG 1
-#define CV_REDUCE_MAX 2
-#define CV_REDUCE_MIN 3
-
-
-
-/****************************************************************************************\
-*                      Discrete Linear Transforms and Related Functions                  *
-\****************************************************************************************/
-
-#define CV_DXT_FORWARD  0
-#define CV_DXT_INVERSE  1
-#define CV_DXT_SCALE    2 /* divide result by size of array */
-#define CV_DXT_INV_SCALE (CV_DXT_INVERSE + CV_DXT_SCALE)
-#define CV_DXT_INVERSE_SCALE CV_DXT_INV_SCALE
-#define CV_DXT_ROWS     4 /* transform each row individually */
-#define CV_DXT_MUL_CONJ 8 /* conjugate the second argument of cvMulSpectrums */
-
-
-
-/* Discrete Cosine Transform */
 
 /****************************************************************************************\
 *                              Dynamic data structures                                   *
@@ -366,10 +240,6 @@ CVAPI(char*)  cvSeqPush( CvSeq* seq, void* element CV_DEFAULT(NULL));
 /* Removes the last element from sequence and optionally saves it */
 CVAPI(void)  cvSeqPop( CvSeq* seq, void* element CV_DEFAULT(NULL));
 
-
-
-
-
 #define CV_FRONT 1
 #define CV_BACK 0
 
@@ -378,19 +248,15 @@ CVAPI(void)  cvSeqPop( CvSeq* seq, void* element CV_DEFAULT(NULL));
 CVAPI(void)  cvSeqPopMulti( CvSeq* seq, void* elements,
                             int count, int in_front CV_DEFAULT(0) );
 
-
-
 /* Removes all the elements from the sequence. The freed memory
    can be reused later only by the same sequence unless cvClearMemStorage
    or cvRestoreMemStoragePos is called */
 CVAPI(void)  cvClearSeq( CvSeq* seq );
 
-
 /* Retrives pointer to specified sequence element.
    Negative indices are supported and mean counting from the end
    (e.g -1 means the last sequence element) */
 CVAPI(char*)  cvGetSeqElem( const CvSeq* seq, int index );
-
 
 
 /* Initializes sequence writer. The new elements will be added to the end of sequence */
@@ -444,28 +310,6 @@ CVAPI(int)  cvSetAdd( CvSet* set_header, CvSetElem* elem CV_DEFAULT(NULL),
                       CvSetElem** inserted_elem CV_DEFAULT(NULL) );
 
 
-/* Removes set element given its pointer */
-CV_INLINE  void cvSetRemoveByPtr( CvSet* set_header, void* elem )
-{
-    CvSetElem* _elem = (CvSetElem*)elem;
-    assert( _elem->flags >= 0 /*&& (elem->flags & CV_SET_ELEM_IDX_MASK) < set_header->total*/ );
-    _elem->next_free = set_header->free_elems;
-    _elem->flags = (_elem->flags & CV_SET_ELEM_IDX_MASK) | CV_SET_ELEM_FREE_FLAG;
-    set_header->free_elems = _elem;
-    set_header->active_count--;
-}
-
-/* Removes element from the set by its index  */
-CVAPI(void)   cvSetRemove( CvSet* set_header, int index );
-
-/* Returns a set element by index. If the element doesn't belong to the set,
-   NULL is returned */
-CV_INLINE CvSetElem* cvGetSetElem( const CvSet* set_header, int index )
-{
-    CvSetElem* elem = (CvSetElem*)cvGetSeqElem( (CvSeq*)set_header, index );
-    return elem && CV_IS_SET_ELEM( elem ) ? elem : 0;
-}
-
 /* Removes all the elements from the set */
 CVAPI(void)  cvClearSet( CvSet* set_header );
 
@@ -510,28 +354,13 @@ CVAPI(void) cvError( int status, const char* func_name,
 /* Retrieves textual description of the error given its code */
 CVAPI(const char*) cvErrorStr( int status );
 
-
-
 /* Maps IPP error codes to the counterparts from OpenCV */
 CVAPI(int) cvErrorFromIppStatus( int ipp_status );
 
 typedef int (CV_CDECL *CvErrorCallback)( int status, const char* func_name,
                     const char* err_msg, const char* file_name, int line, void* userdata );
-
-
 typedef void* (CV_CDECL *CvAllocFunc)(size_t size, void* userdata);
 typedef int (CV_CDECL *CvFreeFunc)(void* pptr, void* userdata);
-
-
-
-
-typedef IplImage* (CV_STDCALL* Cv_iplCreateImageHeader)
-                            (int,int,int,char*,char*,int,int,int,int,int,
-                            IplImage*,void*,IplTileInfo*);
-typedef void (CV_STDCALL* Cv_iplAllocateImageData)(IplImage*,int,int);
-typedef void (CV_STDCALL* Cv_iplDeallocate)(IplImage*,int);
-typedef IplImage* (CV_STDCALL* Cv_iplCloneImage)(const IplImage*);
-
 
 #ifdef __cplusplus
 }

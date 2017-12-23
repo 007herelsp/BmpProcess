@@ -840,26 +840,6 @@ cvEndFindContours( CvContourScanner * _scanner )
 }
 
 
-/*F///////////////////////////////////////////////////////////////////////////////////////
-//    Name: cvFindContours
-//    Purpose:
-//      Finds all the contours on the bi-level image.
-//    Context:
-//    Parameters:
-//      img  - source image.
-//             Non-zero pixels are considered as 1-pixels
-//             and zero pixels as 0-pixels.
-//      step - full width of source image in bytes.
-//      size - width and height of the image in pixels
-//      storage - pointer to storage where will the output contours be placed.
-//      header_size - header size of resulting contours
-//      mode - mode of contour retrieval.
-//      method - method of approximation that is applied to contours
-//      first_contour - pointer to first contour pointer
-//    Returns:
-//      CV_OK or error code
-//    Notes:
-//F*/
 CV_IMPL int
 cvFindContours( void*  img,  CvMemStorage*  storage,                
                 CvSeq**  firstContour, int  cntHeaderSize,                 
