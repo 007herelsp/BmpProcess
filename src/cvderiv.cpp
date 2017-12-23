@@ -1,9 +1,4 @@
-
-
 #include "_cv.h"
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
 
 CV_IMPL void
 cvSobel( const void* srcarr, void* dstarr, int dx, int dy, int aperture_size )

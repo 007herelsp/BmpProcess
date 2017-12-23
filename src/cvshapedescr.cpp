@@ -1,80 +1,80 @@
 
 #include "_cv.h"
 
-CV_IMPL  double
-cvArcLength( const void *array, CvSlice slice, int is_closed )
+CV_IMPL double
+cvArcLength(const void *array, CvSlice slice, int is_closed)
 {
     double perimeter = 0;
 
-    CV_FUNCNAME( "cvArcLength" );
+    CV_FUNCNAME("cvArcLength");
 
     __BEGIN__;
 
     int i, j = 0, count;
     const int N = 16;
     float buf[N];
-    CvMat buffer = cvMat( 1, N, CV_32F, buf );
+    CvMat buffer = cvMat(1, N, CV_32F, buf);
     CvSeqReader reader;
-    CvSeq* contour = 0;
+    CvSeq *contour = 0;
 
-    if( CV_IS_SEQ( array ))
+    if (CV_IS_SEQ(array))
     {
-        contour = (CvSeq*)array;
-        if( !CV_IS_SEQ_POLYLINE( contour ))
-            CV_ERROR( CV_StsBadArg, "Unsupported sequence type" );
-        if( is_closed < 0 )
-            is_closed = CV_IS_SEQ_CLOSED( contour );
+        contour = (CvSeq *)array;
+        if (!CV_IS_SEQ_POLYLINE(contour))
+            CV_ERROR(CV_StsBadArg, "Unsupported sequence type");
+        if (is_closed < 0)
+            is_closed = CV_IS_SEQ_CLOSED(contour);
     }
     else
     {
-        CV_ERROR( CV_StsBadArg, "Unsupported sequence type" );
+        CV_ERROR(CV_StsBadArg, "Unsupported sequence type");
     }
 
-    if( contour->total > 1 )
+    if (contour->total > 1)
     {
-        int is_float = CV_SEQ_ELTYPE( contour ) == CV_32FC2;
+        int is_float = CV_SEQ_ELTYPE(contour) == CV_32FC2;
 
-        cvStartReadSeq( contour, &reader, 0 );
-        cvSetSeqReaderPos( &reader, slice.start_index );
-        count = cvSliceLength( slice, contour );
+        cvStartReadSeq(contour, &reader, 0);
+        cvSetSeqReaderPos(&reader, slice.start_index);
+        count = cvSliceLength(slice, contour);
 
         count -= !is_closed && count == contour->total;
 
         /* scroll the reader by 1 point */
         reader.prev_elem = reader.ptr;
-        CV_NEXT_SEQ_ELEM( sizeof(CvPoint), reader );
+        CV_NEXT_SEQ_ELEM(sizeof(CvPoint), reader);
 
-        for( i = 0; i < count; i++ )
+        for (i = 0; i < count; i++)
         {
             float dx, dy;
 
-            if( !is_float )
+            if (!is_float)
             {
-                CvPoint* pt = (CvPoint*)reader.ptr;
-                CvPoint* prev_pt = (CvPoint*)reader.prev_elem;
+                CvPoint *pt = (CvPoint *)reader.ptr;
+                CvPoint *prev_pt = (CvPoint *)reader.prev_elem;
 
                 dx = (float)pt->x - (float)prev_pt->x;
                 dy = (float)pt->y - (float)prev_pt->y;
             }
             else
             {
-                CvPoint2D32f* pt = (CvPoint2D32f*)reader.ptr;
-                CvPoint2D32f* prev_pt = (CvPoint2D32f*)reader.prev_elem;
+                CvPoint2D32f *pt = (CvPoint2D32f *)reader.ptr;
+                CvPoint2D32f *prev_pt = (CvPoint2D32f *)reader.prev_elem;
 
                 dx = pt->x - prev_pt->x;
                 dy = pt->y - prev_pt->y;
             }
 
             reader.prev_elem = reader.ptr;
-            CV_NEXT_SEQ_ELEM( contour->elem_size, reader );
+            CV_NEXT_SEQ_ELEM(contour->elem_size, reader);
 
             buffer.data.fl[j] = dx * dx + dy * dy;
-            if( ++j == N || i == count - 1 )
+            if (++j == N || i == count - 1)
             {
                 buffer.cols = j;
-                cvPow( &buffer, &buffer, 0.5 );
-                for( ; j > 0; j-- )
-                    perimeter += buffer.data.fl[j-1];
+                cvPow(&buffer, &buffer, 0.5);
+                for (; j > 0; j--)
+                    perimeter += buffer.data.fl[j - 1];
             }
         }
     }
@@ -84,48 +84,46 @@ cvArcLength( const void *array, CvSlice slice, int is_closed )
     return perimeter;
 }
 
-
-
 /* area of a whole sequence */
 static CvStatus
-icvContourArea( const CvSeq* contour, double *area )
+icvContourArea(const CvSeq *contour, double *area)
 {
-    if( contour->total )
+    if (contour->total)
     {
         CvSeqReader reader;
         int lpt = contour->total;
         double a00 = 0, xi_1, yi_1;
         int is_float = CV_SEQ_ELTYPE(contour) == CV_32FC2;
 
-        cvStartReadSeq( contour, &reader, 0 );
+        cvStartReadSeq(contour, &reader, 0);
 
-        if( !is_float )
+        if (!is_float)
         {
-            xi_1 = ((CvPoint*)(reader.ptr))->x;
-            yi_1 = ((CvPoint*)(reader.ptr))->y;
+            xi_1 = ((CvPoint *)(reader.ptr))->x;
+            yi_1 = ((CvPoint *)(reader.ptr))->y;
         }
         else
         {
-            xi_1 = ((CvPoint2D32f*)(reader.ptr))->x;
-            yi_1 = ((CvPoint2D32f*)(reader.ptr))->y;
+            xi_1 = ((CvPoint2D32f *)(reader.ptr))->x;
+            yi_1 = ((CvPoint2D32f *)(reader.ptr))->y;
         }
-        CV_NEXT_SEQ_ELEM( contour->elem_size, reader );
+        CV_NEXT_SEQ_ELEM(contour->elem_size, reader);
 
-        while( lpt-- > 0 )
+        while (lpt-- > 0)
         {
             double dxy, xi, yi;
 
-            if( !is_float )
+            if (!is_float)
             {
-                xi = ((CvPoint*)(reader.ptr))->x;
-                yi = ((CvPoint*)(reader.ptr))->y;
+                xi = ((CvPoint *)(reader.ptr))->x;
+                yi = ((CvPoint *)(reader.ptr))->y;
             }
             else
             {
-                xi = ((CvPoint2D32f*)(reader.ptr))->x;
-                yi = ((CvPoint2D32f*)(reader.ptr))->y;
+                xi = ((CvPoint2D32f *)(reader.ptr))->x;
+                yi = ((CvPoint2D32f *)(reader.ptr))->y;
             }
-            CV_NEXT_SEQ_ELEM( contour->elem_size, reader );
+            CV_NEXT_SEQ_ELEM(contour->elem_size, reader);
 
             dxy = xi_1 * yi - xi * yi_1;
             a00 += dxy;
@@ -141,7 +139,6 @@ icvContourArea( const CvSeq* contour, double *area )
     return CV_OK;
 }
 
-
 /****************************************************************************************\
 
  copy data from one buffer to other buffer
@@ -149,109 +146,108 @@ icvContourArea( const CvSeq* contour, double *area )
 \****************************************************************************************/
 
 static CvStatus
-icvMemCopy( double **buf1, double **buf2, double **buf3, int *b_max )
+icvMemCopy(double **buf1, double **buf2, double **buf3, int *b_max)
 {
     int bb;
 
-    if( *buf1 == NULL && *buf2 == NULL || *buf3 == NULL )
+    if (*buf1 == NULL && *buf2 == NULL || *buf3 == NULL)
         return CV_NULLPTR_ERR;
 
     bb = *b_max;
-    if( *buf2 == NULL )
+    if (*buf2 == NULL)
     {
         *b_max = 2 * (*b_max);
-        *buf2 = (double *)cvAlloc( (*b_max) * sizeof( double ));
+        *buf2 = (double *)cvAlloc((*b_max) * sizeof(double));
 
-        if( *buf2 == NULL )
+        if (*buf2 == NULL)
             return CV_OUTOFMEM_ERR;
 
-        memcpy( *buf2, *buf3, bb * sizeof( double ));
+        memcpy(*buf2, *buf3, bb * sizeof(double));
 
         *buf3 = *buf2;
-        cvFree( buf1 );
+        cvFree(buf1);
         *buf1 = NULL;
     }
     else
     {
         *b_max = 2 * (*b_max);
-        *buf1 = (double *) cvAlloc( (*b_max) * sizeof( double ));
+        *buf1 = (double *)cvAlloc((*b_max) * sizeof(double));
 
-        if( *buf1 == NULL )
+        if (*buf1 == NULL)
             return CV_OUTOFMEM_ERR;
 
-        memcpy( *buf1, *buf3, bb * sizeof( double ));
+        memcpy(*buf1, *buf3, bb * sizeof(double));
 
         *buf3 = *buf1;
-        cvFree( buf2 );
+        cvFree(buf2);
         *buf2 = NULL;
     }
     return CV_OK;
 }
 
-
 /* area of a contour sector */
-static CvStatus icvContourSecArea( CvSeq * contour, CvSlice slice, double *area )
+static CvStatus icvContourSecArea(CvSeq *contour, CvSlice slice, double *area)
 {
-    CvPoint pt;                 /*  pointer to points   */
-    CvPoint pt_s, pt_e;         /*  first and last points  */
-    CvSeqReader reader;         /*  points reader of contour   */
+    CvPoint pt;         /*  pointer to points   */
+    CvPoint pt_s, pt_e; /*  first and last points  */
+    CvSeqReader reader; /*  points reader of contour   */
 
     int p_max = 2, p_ind;
     int lpt, flag, i;
-    double a00;                 /* unnormalized moments m00    */
+    double a00; /* unnormalized moments m00    */
     double xi, yi, xi_1, yi_1, x0, y0, dxy, sk, sk1, t;
     double x_s, y_s, nx, ny, dx, dy, du, dv;
     double eps = 1.e-5;
     double *p_are1, *p_are2, *p_are;
 
-    assert( contour != NULL );
+    assert(contour != NULL);
 
-    if( contour == NULL )
+    if (contour == NULL)
         return CV_NULLPTR_ERR;
 
-    if( !CV_IS_SEQ_POLYGON( contour ))
+    if (!CV_IS_SEQ_POLYGON(contour))
         return CV_BADFLAG_ERR;
 
-    lpt = cvSliceLength( slice, contour );
+    lpt = cvSliceLength(slice, contour);
     /*if( n2 >= n1 )
         lpt = n2 - n1 + 1;
     else
         lpt = contour->total - n1 + n2 + 1;*/
 
-    if( contour->total && lpt > 2 )
+    if (contour->total && lpt > 2)
     {
         a00 = x0 = y0 = xi_1 = yi_1 = 0;
         sk1 = 0;
         flag = 0;
         dxy = 0;
-        p_are1 = (double *) cvAlloc( p_max * sizeof( double ));
+        p_are1 = (double *)cvAlloc(p_max * sizeof(double));
 
-        if( p_are1 == NULL )
+        if (p_are1 == NULL)
             return CV_OUTOFMEM_ERR;
 
         p_are = p_are1;
         p_are2 = NULL;
 
-        cvStartReadSeq( contour, &reader, 0 );
-        cvSetSeqReaderPos( &reader, slice.start_index );
-        CV_READ_SEQ_ELEM( pt_s, reader );
+        cvStartReadSeq(contour, &reader, 0);
+        cvSetSeqReaderPos(&reader, slice.start_index);
+        CV_READ_SEQ_ELEM(pt_s, reader);
         p_ind = 0;
-        cvSetSeqReaderPos( &reader, slice.end_index );
-        CV_READ_SEQ_ELEM( pt_e, reader );
+        cvSetSeqReaderPos(&reader, slice.end_index);
+        CV_READ_SEQ_ELEM(pt_e, reader);
 
-/*    normal coefficients    */
+        /*    normal coefficients    */
         nx = pt_s.y - pt_e.y;
         ny = pt_e.x - pt_s.x;
-        cvSetSeqReaderPos( &reader, slice.start_index );
+        cvSetSeqReaderPos(&reader, slice.start_index);
 
-        while( lpt-- > 0 )
+        while (lpt-- > 0)
         {
-            CV_READ_SEQ_ELEM( pt, reader );
+            CV_READ_SEQ_ELEM(pt, reader);
 
-            if( flag == 0 )
+            if (flag == 0)
             {
-                xi_1 = (double) pt.x;
-                yi_1 = (double) pt.y;
+                xi_1 = (double)pt.x;
+                yi_1 = (double)pt.y;
                 x0 = xi_1;
                 y0 = yi_1;
                 sk1 = 0;
@@ -259,22 +255,22 @@ static CvStatus icvContourSecArea( CvSeq * contour, CvSlice slice, double *area 
             }
             else
             {
-                xi = (double) pt.x;
-                yi = (double) pt.y;
+                xi = (double)pt.x;
+                yi = (double)pt.y;
 
-/****************   edges intersection examination   **************************/
+                /****************   edges intersection examination   **************************/
                 sk = nx * (xi - pt_s.x) + ny * (yi - pt_s.y);
-                if( fabs( sk ) < eps && lpt > 0 || sk * sk1 < -eps )
+                if (fabs(sk) < eps && lpt > 0 || sk * sk1 < -eps)
                 {
-                    if( fabs( sk ) < eps )
+                    if (fabs(sk) < eps)
                     {
                         dxy = xi_1 * yi - xi * yi_1;
                         a00 = a00 + dxy;
                         dxy = xi * y0 - x0 * yi;
                         a00 = a00 + dxy;
 
-                        if( p_ind >= p_max )
-                            icvMemCopy( &p_are1, &p_are2, &p_are, &p_max );
+                        if (p_ind >= p_max)
+                            icvMemCopy(&p_are1, &p_are2, &p_are, &p_max);
 
                         p_are[p_ind] = a00 / 2.;
                         p_ind++;
@@ -286,17 +282,17 @@ static CvStatus icvContourSecArea( CvSeq * contour, CvSlice slice, double *area 
                     }
                     else
                     {
-/*  define intersection point    */
+                        /*  define intersection point    */
                         dv = yi - yi_1;
                         du = xi - xi_1;
                         dx = ny;
                         dy = -nx;
-                        if( fabs( du ) > eps )
+                        if (fabs(du) > eps)
                             t = ((yi_1 - pt_s.y) * du + dv * (pt_s.x - xi_1)) /
                                 (du * dy - dx * dv);
                         else
                             t = (xi_1 - pt_s.x) / dx;
-                        if( t > eps && t < 1 - eps )
+                        if (t > eps && t < 1 - eps)
                         {
                             x_s = pt_s.x + t * dx;
                             y_s = pt_s.y + t * dy;
@@ -304,8 +300,8 @@ static CvStatus icvContourSecArea( CvSeq * contour, CvSlice slice, double *area 
                             a00 += dxy;
                             dxy = x_s * y0 - x0 * y_s;
                             a00 += dxy;
-                            if( p_ind >= p_max )
-                                icvMemCopy( &p_are1, &p_are2, &p_are, &p_max );
+                            if (p_ind >= p_max)
+                                icvMemCopy(&p_are1, &p_are2, &p_are, &p_max);
 
                             p_are[p_ind] = a00 / 2.;
                             p_ind++;
@@ -325,7 +321,6 @@ static CvStatus icvContourSecArea( CvSeq * contour, CvSlice slice, double *area 
                 xi_1 = xi;
                 yi_1 = yi;
                 sk1 = sk;
-
             }
         }
 
@@ -335,21 +330,21 @@ static CvStatus icvContourSecArea( CvSeq * contour, CvSlice slice, double *area 
 
         a00 += dxy;
 
-        if( p_ind >= p_max )
-            icvMemCopy( &p_are1, &p_are2, &p_are, &p_max );
+        if (p_ind >= p_max)
+            icvMemCopy(&p_are1, &p_are2, &p_are, &p_max);
 
         p_are[p_ind] = a00 / 2.;
         p_ind++;
 
-/*     common area calculation    */
+        /*     common area calculation    */
         *area = 0;
-        for( i = 0; i < p_ind; i++ )
-            (*area) += fabs( p_are[i] );
+        for (i = 0; i < p_ind; i++)
+            (*area) += fabs(p_are[i]);
 
-        if( p_are1 != NULL )
-            cvFree( &p_are1 );
-        else if( p_are2 != NULL )
-            cvFree( &p_are2 );
+        if (p_are1 != NULL)
+            cvFree(&p_are1);
+        else if (p_are2 != NULL)
+            cvFree(&p_are2);
 
         return CV_OK;
     }
@@ -357,39 +352,38 @@ static CvStatus icvContourSecArea( CvSeq * contour, CvSlice slice, double *area 
         return CV_BADSIZE_ERR;
 }
 
-
 /* external contour area function */
 CV_IMPL double
-cvContourArea( const void *array, CvSlice slice )
+cvContourArea(const void *array, CvSlice slice)
 {
     double area = 0;
 
-    CV_FUNCNAME( "cvContourArea" );
+    CV_FUNCNAME("cvContourArea");
 
     __BEGIN__;
 
-    CvSeq* contour = 0;
-    if( CV_IS_SEQ( array ))
+    CvSeq *contour = 0;
+    if (CV_IS_SEQ(array))
     {
-        contour = (CvSeq*)array;
-        if( !CV_IS_SEQ_POLYLINE( contour ))
-            CV_ERROR( CV_StsBadArg, "Unsupported sequence type" );
+        contour = (CvSeq *)array;
+        if (!CV_IS_SEQ_POLYLINE(contour))
+            CV_ERROR(CV_StsBadArg, "Unsupported sequence type");
     }
     else
     {
-        CV_ERROR( CV_StsBadArg, "Unsupported sequence type" );
+        CV_ERROR(CV_StsBadArg, "Unsupported sequence type");
     }
 
-    if( cvSliceLength( slice, contour ) == contour->total )
+    if (cvSliceLength(slice, contour) == contour->total)
     {
-        IPPI_CALL( icvContourArea( contour, &area ));
+        IPPI_CALL(icvContourArea(contour, &area));
     }
     else
     {
-        if( CV_SEQ_ELTYPE( contour ) != CV_32SC2 )
-            CV_ERROR( CV_StsUnsupportedFormat,
-            "Only curves with integer coordinates are supported in case of contour slice" );
-        IPPI_CALL( icvContourSecArea( contour, slice, &area ));
+        if (CV_SEQ_ELTYPE(contour) != CV_32SC2)
+            CV_ERROR(CV_StsUnsupportedFormat,
+                     "Only curves with integer coordinates are supported in case of contour slice");
+        IPPI_CALL(icvContourSecArea(contour, slice, &area));
     }
 
     __END__;
@@ -397,31 +391,29 @@ cvContourArea( const void *array, CvSlice slice )
     return area;
 }
 
-
-
 /* Calculates bounding rectagnle of a point set or retrieves already calculated */
-CV_IMPL  CvRect
-cvBoundingRect( CvArr* array, int update )
+CV_IMPL CvRect
+cvBoundingRect(CvArr *array, int update)
 {
     CvSeqReader reader;
-    CvRect  rect = { 0, 0, 0, 0 };
-    CvSeq* ptseq = 0;
+    CvRect rect = {0, 0, 0, 0};
+    CvSeq *ptseq = 0;
 
-    CV_FUNCNAME( "cvBoundingRect" );
+    CV_FUNCNAME("cvBoundingRect");
 
     __BEGIN__;
 
     CvMat *mat = 0;
-    int  xmin = 0, ymin = 0, xmax = -1, ymax = -1, i, j, k;
+    int xmin = 0, ymin = 0, xmax = -1, ymax = -1, i, j, k;
     int calculate = update;
 
-    if( CV_IS_SEQ( array ))
+    if (CV_IS_SEQ(array))
     {
-        ptseq = (CvSeq*)array;
-        if( !CV_IS_SEQ_POINT_SET( ptseq ))
-            CV_ERROR( CV_StsBadArg, "Unsupported sequence type" );
+        ptseq = (CvSeq *)array;
+        if (!CV_IS_SEQ_POINT_SET(ptseq))
+            CV_ERROR(CV_StsBadArg, "Unsupported sequence type");
 
-        if( ptseq->header_size < (int)sizeof(CvContour))
+        if (ptseq->header_size < (int)sizeof(CvContour))
         {
             /*if( update == 1 )
                 CV_ERROR( CV_StsBadArg, "The header is too small to fit the rectangle, "
@@ -432,171 +424,42 @@ cvBoundingRect( CvArr* array, int update )
     }
     else
     {
-       CV_ERROR( CV_StsBadArg, "Unsupported sequence type" );
+        CV_ERROR(CV_StsBadArg, "Unsupported sequence type");
     }
 
-    if( !calculate )
+    if (!calculate)
     {
-        rect = ((CvContour*)ptseq)->rect;
+        rect = ((CvContour *)ptseq)->rect;
         EXIT;
     }
 
-    if( mat )
+    if (ptseq->total)
     {
-        CvSize size = cvGetMatSize(mat);
-        xmin = size.width;
-        ymin = -1;
+        int is_float = CV_SEQ_ELTYPE(ptseq) == CV_32FC2;
+        cvStartReadSeq(ptseq, &reader, 0);
+        assert(!is_float);
 
-        for( i = 0; i < size.height; i++ )
+        CvPoint pt;
+        /* init values */
+        CV_READ_SEQ_ELEM(pt, reader);
+        xmin = xmax = pt.x;
+        ymin = ymax = pt.y;
+
+        for (i = 1; i < ptseq->total; i++)
         {
-            uchar* _ptr = mat->data.ptr + i*mat->step;
-            uchar* ptr = (uchar*)cvAlignPtr(_ptr, 4);
-            int have_nz = 0, k_min, offset = (int)(ptr - _ptr);
-            j = 0;
-            offset = MIN(offset, size.width);
-            for( ; j < offset; j++ )
-                if( _ptr[j] )
-                {
-                    have_nz = 1;
-                    break;
-                }
-            if( j < offset )
-            {
-                if( j < xmin )
-                    xmin = j;
-                if( j > xmax )
-                    xmax = j;
-            }
-            if( offset < size.width )
-            {
-                xmin -= offset;
-                xmax -= offset;
-                size.width -= offset;
-                j = 0;
-                for( ; j <= xmin - 4; j += 4 )
-                    if( *((int*)(ptr+j)) )
-                        break;
-                for( ; j < xmin; j++ )
-                    if( ptr[j] )
-                    {
-                        xmin = j;
-                        if( j > xmax )
-                            xmax = j;
-                        have_nz = 1;
-                        break;
-                    }
-                k_min = MAX(j-1, xmax);
-                k = size.width - 1;
-                for( ; k > k_min && (k&3) != 3; k-- )
-                    if( ptr[k] )
-                        break;
-                if( k > k_min && (k&3) == 3 )
-                {
-                    for( ; k > k_min+3; k -= 4 )
-                        if( *((int*)(ptr+k-3)) )
-                            break;
-                }
-                for( ; k > k_min; k-- )
-                    if( ptr[k] )
-                    {
-                        xmax = k;
-                        have_nz = 1;
-                        break;
-                    }
-                if( !have_nz )
-                {
-                    j &= ~3;
-                    for( ; j <= k - 3; j += 4 )
-                        if( *((int*)(ptr+j)) )
-                            break;
-                    for( ; j <= k; j++ )
-                        if( ptr[j] )
-                        {
-                            have_nz = 1;
-                            break;
-                        }
-                }
-                xmin += offset;
-                xmax += offset;
-                size.width += offset;
-            }
-            if( have_nz )
-            {
-                if( ymin < 0 )
-                    ymin = i;
-                ymax = i;
-            }
-        }
+            CV_READ_SEQ_ELEM(pt, reader);
 
-        if( xmin >= size.width )
-            xmin = ymin = 0;
-    }
-    else if( ptseq->total )
-    {
-        int  is_float = CV_SEQ_ELTYPE(ptseq) == CV_32FC2;
-        cvStartReadSeq( ptseq, &reader, 0 );
+            if (xmin > pt.x)
+                xmin = pt.x;
 
-        if( !is_float )
-        {
-            CvPoint pt;
-            /* init values */
-            CV_READ_SEQ_ELEM( pt, reader );
-            xmin = xmax = pt.x;
-            ymin = ymax = pt.y;
+            if (xmax < pt.x)
+                xmax = pt.x;
 
-            for( i = 1; i < ptseq->total; i++ )
-            {
-                CV_READ_SEQ_ELEM( pt, reader );
+            if (ymin > pt.y)
+                ymin = pt.y;
 
-                if( xmin > pt.x )
-                    xmin = pt.x;
-
-                if( xmax < pt.x )
-                    xmax = pt.x;
-
-                if( ymin > pt.y )
-                    ymin = pt.y;
-
-                if( ymax < pt.y )
-                    ymax = pt.y;
-            }
-        }
-        else
-        {
-            CvPoint pt;
-            Cv32suf v;
-            /* init values */
-            CV_READ_SEQ_ELEM( pt, reader );
-            xmin = xmax = CV_TOGGLE_FLT(pt.x);
-            ymin = ymax = CV_TOGGLE_FLT(pt.y);
-
-            for( i = 1; i < ptseq->total; i++ )
-            {
-                CV_READ_SEQ_ELEM( pt, reader );
-                pt.x = CV_TOGGLE_FLT(pt.x);
-                pt.y = CV_TOGGLE_FLT(pt.y);
-
-                if( xmin > pt.x )
-                    xmin = pt.x;
-
-                if( xmax < pt.x )
-                    xmax = pt.x;
-
-                if( ymin > pt.y )
-                    ymin = pt.y;
-
-                if( ymax < pt.y )
-                    ymax = pt.y;
-            }
-
-            v.i = CV_TOGGLE_FLT(xmin); xmin = cvFloor(v.f);
-            v.i = CV_TOGGLE_FLT(ymin); ymin = cvFloor(v.f);
-            /* because right and bottom sides of
-               the bounding rectangle are not inclusive
-               (note +1 in width and height calculation below),
-               cvFloor is used here instead of cvCeil */
-            v.i = CV_TOGGLE_FLT(xmax); xmax = cvFloor(v.f);
-            v.i = CV_TOGGLE_FLT(ymax); ymax = cvFloor(v.f);
+            if (ymax < pt.y)
+                ymax = pt.y;
         }
     }
 
@@ -605,13 +468,12 @@ cvBoundingRect( CvArr* array, int update )
     rect.width = xmax - xmin + 1;
     rect.height = ymax - ymin + 1;
 
-    if( update )
-        ((CvContour*)ptseq)->rect = rect;
+    if (update)
+        ((CvContour *)ptseq)->rect = rect;
 
     __END__;
 
     return rect;
 }
-
 
 /* End of file. */

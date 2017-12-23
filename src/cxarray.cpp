@@ -6,6 +6,18 @@
 // */
 
 #include "_cxcore.h"
+
+
+static const signed char icvDepthToType[] =
+{
+    -1, -1, CV_8U, CV_8S, CV_16U, CV_16S, -1, -1,
+    CV_32F, CV_32S, -1, -1, -1, -1, -1, -1, CV_64F, -1
+};
+	
+
+#define icvIplToCvDepth( depth ) \
+    icvDepthToType[(((depth) & 255) >> 2) + ((depth) < 0)]
+
 /****************************************************************************************\
 *                               CvMat creation and basic operations                      *
 \****************************************************************************************/
@@ -599,49 +611,6 @@ cvReshape(const CvArr *array, CvMat *header,
     return result;
 }
 
-// convert array (CvMat or IplImage) to IplImage
-CV_IMPL IplImage *
-cvGetImage(const CvArr *array, IplImage *img)
-{
-    IplImage *result = 0;
-    const IplImage *src = (const IplImage *)array;
-
-    CV_FUNCNAME("cvGetImage");
-
-    __BEGIN__;
-
-    int depth;
-
-    if (!img)
-        CV_ERROR_FROM_CODE(CV_StsNullPtr);
-
-    if (!CV_IS_IMAGE_HDR(src))
-    {
-        const CvMat *mat = (const CvMat *)src;
-
-        if (!CV_IS_MAT_HDR(mat))
-            CV_ERROR_FROM_CODE(CV_StsBadFlag);
-
-        if (mat->data.ptr == 0)
-            CV_ERROR_FROM_CODE(CV_StsNullPtr);
-
-        depth = cvCvToIplDepth(mat->type);
-
-        cvInitImageHeader(img, cvSize(mat->cols, mat->rows),
-                          depth, CV_MAT_CN(mat->type));
-        cvSetData(img, mat->data.ptr, mat->step);
-
-        result = img;
-    }
-    else
-    {
-        result = (IplImage *)src;
-    }
-
-    __END__;
-
-    return result;
-}
 
 /****************************************************************************************\
 *                               IplImage-specific functions                              *

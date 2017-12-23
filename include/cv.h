@@ -43,10 +43,7 @@ CVAPI(void) cvSobel( const CvArr* src, CvArr* dst,
 /* Converts input array pixels from one color space to another */
 CVAPI(void)  cvCvtColor( const CvArr* src, CvArr* dst, int code );
 
-#define  CV_INTER_NN        0
 #define  CV_INTER_LINEAR    1
-#define  CV_INTER_CUBIC     2
-#define  CV_INTER_AREA      3
 
 #define  CV_WARP_FILL_OUTLIERS 8
 #define  CV_WARP_INVERSE_MAP  16

@@ -636,6 +636,10 @@ cvSVD(CvArr *aarr, CvArr *warr, CvArr *uarr, CvArr *varr, int flags)
     if (!CV_ARE_TYPES_EQ(a, w))
         CV_ERROR(CV_StsUnmatchedFormats, "");
 
+    if (flags != (CV_SVD_U_T | CV_SVD_V_T))
+    {
+        CV_ERROR(CV_StsUnsupportedFormat, "");
+    }
     if (a->rows >= a->cols)
     {
         m = a->rows;
@@ -648,9 +652,6 @@ cvSVD(CvArr *aarr, CvArr *warr, CvArr *uarr, CvArr *varr, int flags)
     {
         CvArr *t;
         CV_SWAP(uarr, varr, t);
-
-        flags = (flags & CV_SVD_U_T ? CV_SVD_V_T : 0) |
-                (flags & CV_SVD_V_T ? CV_SVD_U_T : 0);
         m = a->cols;
         n = a->rows;
         w_rows = w->cols;
@@ -677,16 +678,8 @@ cvSVD(CvArr *aarr, CvArr *warr, CvArr *uarr, CvArr *varr, int flags)
         if (!CV_IS_MAT(u))
             CV_CALL(u = cvGetMat(u, &ustub));
 
-        if (!(flags & CV_SVD_U_T))
-        {
-            u_rows = u->rows;
-            u_cols = u->cols;
-        }
-        else
-        {
-            u_rows = u->cols;
-            u_cols = u->rows;
-        }
+        u_rows = u->cols;
+        u_cols = u->rows;
 
         if (!CV_ARE_TYPES_EQ(a, u))
             CV_ERROR(CV_StsUnmatchedFormats, "");
@@ -694,7 +687,7 @@ cvSVD(CvArr *aarr, CvArr *warr, CvArr *uarr, CvArr *varr, int flags)
         if (u_rows != m || (u_cols != m && u_cols != n))
             CV_ERROR(CV_StsUnmatchedSizes, !t_svd ? "U matrix has unappropriate size" : "V matrix has unappropriate size");
 
-        temp_u = (u_rows != u_cols && !(flags & CV_SVD_U_T)) || u->data.ptr == a->data.ptr;
+        temp_u = (u_rows != u_cols) || (u->data.ptr == a->data.ptr);
 
         if (w_is_mat && u_cols != w_rows)
             CV_ERROR(CV_StsUnmatchedSizes, !t_svd ? "U and W have incompatible sizes" : "V and W have incompatible sizes");
@@ -713,16 +706,8 @@ cvSVD(CvArr *aarr, CvArr *warr, CvArr *uarr, CvArr *varr, int flags)
         if (!CV_IS_MAT(v))
             CV_CALL(v = cvGetMat(v, &vstub));
 
-        if (!(flags & CV_SVD_V_T))
-        {
-            v_rows = v->rows;
-            v_cols = v->cols;
-        }
-        else
-        {
-            v_rows = v->cols;
-            v_cols = v->rows;
-        }
+        v_rows = v->cols;
+        v_cols = v->rows;
 
         if (!CV_ARE_TYPES_EQ(a, v))
             CV_ERROR(CV_StsUnmatchedFormats, "");
@@ -744,11 +729,8 @@ cvSVD(CvArr *aarr, CvArr *warr, CvArr *uarr, CvArr *varr, int flags)
     pix_size = CV_ELEM_SIZE(type);
     buf_size = n * 2 + m;
 
-    if (!(flags & CV_SVD_MODIFY_A))
-    {
-        a_buf_offset = buf_size;
-        buf_size += a->rows * a->cols;
-    }
+    a_buf_offset = buf_size;
+    buf_size += a->rows * a->cols;
 
     if (temp_u)
     {
@@ -768,16 +750,16 @@ cvSVD(CvArr *aarr, CvArr *warr, CvArr *uarr, CvArr *varr, int flags)
         CV_CALL(buffer = (uchar *)cvAlloc(buf_size));
     }
 
-    if (!(flags & CV_SVD_MODIFY_A))
+    cvInitMatHeader(&tmat, m, n, type,
+                    buffer + a_buf_offset * pix_size);
+    if (!t_svd)
+        cvCopy(a, &tmat);
+    else
     {
-        cvInitMatHeader(&tmat, m, n, type,
-                        buffer + a_buf_offset * pix_size);
-        if (!t_svd)
-            cvCopy(a, &tmat);
-        else
-            cvT(a, &tmat);
-        a = &tmat;
+        CV_ERROR(CV_StsUnmatchedFormats, "");
     }
+
+    a = &tmat;
 
     if (temp_u)
     {
@@ -801,17 +783,13 @@ cvSVD(CvArr *aarr, CvArr *warr, CvArr *uarr, CvArr *varr, int flags)
 
     if (uarr)
     {
-        if (!(flags & CV_SVD_U_T))
-            cvT(u, uarr);
-        else if (temp_u)
+        if (temp_u)
             cvCopy(u, uarr);
         /*CV_CHECK_NANS( uarr );*/
     }
 
     if (varr)
     {
-        if (!(flags & CV_SVD_V_T))
-            cvT(v, varr);
         /*CV_CHECK_NANS( varr );*/
     }
 
@@ -864,36 +842,19 @@ cvSVBkSb(const CvArr *warr, const CvArr *uarr,
     if (!CV_ARE_TYPES_EQ(w, u) || !CV_ARE_TYPES_EQ(w, v) || !CV_ARE_TYPES_EQ(w, x))
         CV_ERROR(CV_StsUnmatchedFormats, "All matrices must have the same type");
 
+    if (flags != (CV_SVD_U_T | CV_SVD_V_T))
+    {
+        CV_ERROR(CV_StsUnsupportedFormat, "");
+    }
+
     type = CV_MAT_TYPE(w->type);
     pix_size = CV_ELEM_SIZE(type);
 
-    if (!(flags & CV_SVD_U_T))
-    {
-        temp_u = 1;
-        u_buf_offset = buf_size;
-        buf_size += u->cols * u->rows * pix_size;
-        u_rows = u->rows;
-        u_cols = u->cols;
-    }
-    else
-    {
-        u_rows = u->cols;
-        u_cols = u->rows;
-    }
+    u_rows = u->cols;
+    u_cols = u->rows;
 
-    if (!(flags & CV_SVD_V_T))
-    {
-        temp_v = 1;
-        v_buf_offset = buf_size;
-        buf_size += v->cols * v->rows * pix_size;
-        v_rows = v->rows;
-        v_cols = v->cols;
-    }
-    else
-    {
-        v_rows = v->cols;
-        v_cols = v->rows;
-    }
+    v_rows = v->cols;
+    v_cols = v->rows;
 
     m = u_rows;
     n = v_rows;
@@ -946,20 +907,6 @@ cvSVBkSb(const CvArr *warr, const CvArr *uarr,
     }
     else
         CV_CALL(buffer = (uchar *)cvAlloc(buf_size));
-
-    if (temp_u)
-    {
-        cvInitMatHeader(&ustub2, u_cols, u_rows, type, buffer + u_buf_offset);
-        cvT(u, &ustub2);
-        u = &ustub2;
-    }
-
-    if (temp_v)
-    {
-        cvInitMatHeader(&vstub2, v_cols, v_rows, type, buffer + v_buf_offset);
-        cvT(v, &vstub2);
-        v = &vstub2;
-    }
 
     if (!tw)
     {

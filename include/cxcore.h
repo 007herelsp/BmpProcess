@@ -101,10 +101,6 @@ CVAPI(CvMat*) cvGetMat( const CvArr* arr, CvMat* header,
                        int* coi CV_DEFAULT(NULL),
                        int allowND CV_DEFAULT(0));
 
-/* Converts CvArr (IplImage or CvMat) to IplImage */
-CVAPI(IplImage*) cvGetImage( const CvArr* arr, IplImage* image_header );
-
-
 
 
 CVAPI(CvMat*) cvReshape( const CvArr* arr, CvMat* header,
@@ -153,10 +149,6 @@ CVAPI(void)  cvPow( const CvArr* src, CvArr* dst, double power );
 *                                Matrix operations                                       *
 \****************************************************************************************/
 
-
-/* Tranposes matrix. Square matrices can be transposed in-place */
-CVAPI(void)  cvTranspose( const CvArr* src, CvArr* dst );
-#define cvT cvTranspose
 
 #define CV_SVD_MODIFY_A   1
 #define CV_SVD_U_T        2
@@ -308,12 +300,6 @@ CVAPI(CvSet*)  cvCreateSet( int set_flags, int header_size,
 /* Adds new element to the set and returns pointer to it */
 CVAPI(int)  cvSetAdd( CvSet* set_header, CvSetElem* elem CV_DEFAULT(NULL),
                       CvSetElem** inserted_elem CV_DEFAULT(NULL) );
-
-
-/* Removes all the elements from the set */
-CVAPI(void)  cvClearSet( CvSet* set_header );
-
-
 
 
 CVAPI(int) cvStdErrReport( int status, const char* func_name, const char* err_msg,

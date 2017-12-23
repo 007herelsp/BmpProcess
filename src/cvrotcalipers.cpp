@@ -4,7 +4,6 @@
 
 #define CV_CALIPERS_MAXHEIGHT      0
 #define CV_CALIPERS_MINAREARECT    1
-#define CV_CALIPERS_MAXDIST        2
 
 
 static void

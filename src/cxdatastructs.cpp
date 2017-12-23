@@ -1375,22 +1375,6 @@ cvSetAdd( CvSet* set, CvSetElem* element, CvSetElem** inserted_element )
     return id;
 }
 
-/* removes all elements from the set */
-CV_IMPL void
-cvClearSet( CvSet* set )
-{
-    CV_FUNCNAME( "cvClearSet" );
-
-    __BEGIN__;
-
-    CV_CALL( cvClearSeq( (CvSeq*)set ));
-    set->free_elems = 0;
-    set->active_count = 0;
-
-    __END__;
-}
-
-
 /****************************************************************************************\
 *                                 Working with sequence tree                             *
 \****************************************************************************************/

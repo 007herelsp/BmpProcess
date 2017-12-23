@@ -1,8 +1,5 @@
 #include "_cv.h"
 
-/////////////////////////////////////////////////////////////////////////////////////////
-
-
 /****************************************************************************************\
 *                                 Color to/from Grayscale                                *
 \****************************************************************************************/
@@ -124,6 +121,7 @@ cvCvtColor( const CvArr* srcarr, CvArr* dstarr, int code )
         param[1] = 0;
 		  IPPI_CALL( icvBGRx2Gray_8u_CnC1R( src->data.ptr, src_step,
             dst->data.ptr, dst_step, size, param[0], param[1] ));
+		  
         break;
 
     default:

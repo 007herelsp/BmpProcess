@@ -289,7 +289,7 @@ int process_v2(IplImage *lpImg, IplImage *lpTargetImg, int argc, char *argv[])
 
 			temp = lpSrcImg;
 
-			warp_mat = cvCreateMat(3, 3, CV_32FC1);
+			warp_mat = cvCreateMat(3, 3, CV_64FC1);
 
 			//����
 			CvPoint pt;

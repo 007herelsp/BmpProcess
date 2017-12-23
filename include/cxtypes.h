@@ -1,7 +1,6 @@
 #ifndef _CXCORE_TYPES_H_
 #define _CXCORE_TYPES_H_
 
-#ifndef SKIP_INCLUDES
   #include <assert.h>
   #include <stdlib.h>
   #include <string.h>
@@ -12,7 +11,6 @@
     #include <math.h>
 
 
-#endif // SKIP_INCLUDES
 
 
     #define CV_CDECL
@@ -81,13 +79,6 @@ typedef union Cv32suf
 }
 Cv32suf;
 
-typedef union Cv64suf
-{
-    int64 i;
-    uint64 u;
-    double f;
-}
-Cv64suf;
 
 /****************************************************************************************\
 *                             Common macros and inline functions                         *

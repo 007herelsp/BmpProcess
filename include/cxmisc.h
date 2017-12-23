@@ -502,22 +502,6 @@ CvStatus;
             CV_ERROR_FROM_STATUS( (ippi_call_result));                 \
 }
 
-#define CV_PLUGIN_NONE      0
-#define CV_PLUGIN_OPTCV     1 /* custom "emerged" ippopencv library */
-#define CV_PLUGIN_IPPCV     2 /* IPP: computer vision */
-#define CV_PLUGIN_IPPI      3 /* IPP: image processing */
-#define CV_PLUGIN_IPPS      4 /* IPP: signal processing */
-#define CV_PLUGIN_IPPVM     5 /* IPP: vector math functions */
-#define CV_PLUGIN_IPPCC     6 /* IPP: color space conversion */
-#define CV_PLUGIN_MKL       8 /* Intel Math Kernel Library */
-
-#define CV_PLUGIN_MAX      16
-
-#define CV_PLUGINS1(lib1) ((lib1)&15)
-#define CV_PLUGINS2(lib1,lib2) (((lib1)&15)|(((lib2)&15)<<4))
-#define CV_PLUGINS3(lib1,lib2,lib3) (((lib1)&15)|(((lib2)&15)<<4)|(((lib2)&15)<<8))
-
-#define CV_NOTHROW throw()
 
 #ifndef IPCVAPI
 #define IPCVAPI(type,declspec,name,args)                        \
@@ -551,13 +535,6 @@ typedef enum CvDataType {
     cv64u, cv64s, cv64sc,
     cv64f, cv64fc
 } CvDataType;
-
-typedef enum CvHintAlgorithm {
-    cvAlgHintNone,
-    cvAlgHintFast,
-    cvAlgHintAccurate
-} CvHintAlgorithm;
-
 
 typedef struct CvFuncTable
 {
@@ -732,23 +709,6 @@ static void  icvInit##FUNCNAME##FLAG##Table( CvBigFuncTable* tab )  \
     tab->fn_2d[CV_64FC4] = (void*)icv##FUNCNAME##_64f_C4##FLAG;     \
 }
 
-#define CV_DEF_INIT_FUNC_TAB_1D  CV_DEF_INIT_FUNC_TAB_0D
-
-
-#define CV_DEF_INIT_PIXSIZE_TAB_2D( FUNCNAME, FLAG )                \
-static void icvInit##FUNCNAME##FLAG##Table( CvBtFuncTable* table )  \
-{                                                                   \
-    table->fn_2d[1]  = (void*)icv##FUNCNAME##_8u_C1##FLAG;          \
-    table->fn_2d[2]  = (void*)icv##FUNCNAME##_8u_C2##FLAG;          \
-    table->fn_2d[3]  = (void*)icv##FUNCNAME##_8u_C3##FLAG;          \
-    table->fn_2d[4]  = (void*)icv##FUNCNAME##_16u_C2##FLAG;         \
-    table->fn_2d[6]  = (void*)icv##FUNCNAME##_16u_C3##FLAG;         \
-    table->fn_2d[8]  = (void*)icv##FUNCNAME##_32s_C2##FLAG;         \
-    table->fn_2d[12] = (void*)icv##FUNCNAME##_32s_C3##FLAG;         \
-    table->fn_2d[16] = (void*)icv##FUNCNAME##_64s_C2##FLAG;         \
-    table->fn_2d[24] = (void*)icv##FUNCNAME##_64s_C3##FLAG;         \
-    table->fn_2d[32] = (void*)icv##FUNCNAME##_64s_C4##FLAG;         \
-}
 
 
 #endif /*_CXCORE_MISC_H_*/

@@ -12,6 +12,7 @@
 #define CV_START   1
 #define CV_END     2
 #define CV_MIDDLE  4
+
 #define CV_ISOLATED_ROI 8
 
 typedef void (*CvRowFilterFunc)( const uchar* src, uchar* dst, void* params );
