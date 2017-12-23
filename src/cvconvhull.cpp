@@ -163,7 +163,7 @@ icvCalcAndWritePtIndices( CvPoint** pointer, int* stack, int start, int end,
     CV_FUNCNAME( "icvCalcAndWritePtIndices" );
 
     __BEGIN__;
-    
+
     int i, incr = start < end ? 1 : -1;
     int idx, first_idx = ptseq->first->start_index;
 
@@ -193,9 +193,9 @@ cvConvexHull2( const CvArr* array, void* hull_storage,
     CvPoint** pointer = 0;
     CvPoint2D32f** pointerf = 0;
     int* stack = 0;
-    
+
     CV_FUNCNAME( "cvConvexHull2" );
-    
+
     hull.s = 0;
 
     __BEGIN__;
@@ -205,7 +205,7 @@ cvConvexHull2( const CvArr* array, void* hull_storage,
     CvSeqWriter writer;
     CvContour contour_header;
     union { CvContour c; CvSeq s; } hull_header;
-    CvSeqBlock block, hullblock;
+    CvSeqBlock hullblock;
     CvSeq* ptseq = 0;
     CvSeq* hullseq = 0;
     int is_float;
@@ -227,7 +227,7 @@ cvConvexHull2( const CvArr* array, void* hull_storage,
     else
     {
     CV_ERROR( CV_StsBadArg, "herelsp removed Unsupported sequence type" );
-        
+
     }
 
     if( CV_IS_STORAGE( hull_storage ))
@@ -458,7 +458,7 @@ finish_hull:
         hull.c->rect = cvBoundingRect( ptseq,
             ptseq->header_size < (int)sizeof(CvContour) ||
             &ptseq->flags == &contour_header.flags );
-        
+
         /*if( ptseq != (CvSeq*)&contour_header )
             hullseq->v_prev = ptseq;*/
     }
@@ -485,7 +485,7 @@ cvCheckContourConvexity( const CvArr* array )
     int orientation = 0;
     CvSeqReader reader;
     CvContour contour_header;
-    CvSeqBlock block;
+
     CvSeq* contour = (CvSeq*)array;
 
     if( CV_IS_SEQ(contour) )
@@ -497,21 +497,21 @@ cvCheckContourConvexity( const CvArr* array )
     else
     {
     CV_ERROR( CV_StsBadArg, "Unsupported sequence type" );
-       
+
     }
 
     if( contour->total == 0 )
         EXIT;
 
     cvStartReadSeq( contour, &reader, 0 );
-    
+
     flag = 1;
 
     if( CV_SEQ_ELTYPE( contour ) == CV_32SC2 )
     {
         CvPoint *prev_pt = (CvPoint*)reader.prev_elem;
         CvPoint *cur_pt = (CvPoint*)reader.ptr;
-    
+
         int dx0 = cur_pt->x - prev_pt->x;
         int dy0 = cur_pt->y - prev_pt->y;
 
@@ -552,7 +552,7 @@ cvCheckContourConvexity( const CvArr* array )
 
         CvPoint2D32f *prev_pt = (CvPoint2D32f*)reader.prev_elem;
         CvPoint2D32f *cur_pt = (CvPoint2D32f*)reader.ptr;
-    
+
         float dx0 = cur_pt->x - prev_pt->x;
         float dy0 = cur_pt->y - prev_pt->y;
 

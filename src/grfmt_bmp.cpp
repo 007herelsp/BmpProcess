@@ -183,13 +183,10 @@ bool GrFmtBmpReader::ReadData(uchar *data, int step, int color)
     const int buffer_size = 1 << 12;
     uchar buffer[buffer_size];
     uchar bgr_buffer[buffer_size];
-    uchar gray_palette[256];
     bool result = false;
     uchar *src = buffer;
-    uchar *bgr = bgr_buffer;
     int src_pitch = ((m_width * (m_bpp != 15 ? m_bpp : 16) + 7) / 8 + 3) & -4;
     int nch = color ? 3 : 1;
-    int width3 = m_width * nch;
     int y;
 
     if (m_offset < 0 || !m_strm.IsOpened())

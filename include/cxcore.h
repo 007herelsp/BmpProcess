@@ -155,31 +155,7 @@ CVAPI(void)  cvReleaseSparseMat( CvSparseMat** mat );
 /* Creates a copy of CvSparseMat (except, may be, zero items) */
 CVAPI(CvSparseMat*) cvCloneSparseMat( const CvSparseMat* mat );
 
-/* Initializes sparse array iterator
-   (returns the first node or NULL if the array is empty) */
-CVAPI(CvSparseNode*) cvInitSparseMatIterator( const CvSparseMat* mat,
-                                              CvSparseMatIterator* mat_iterator );
 
-// returns next sparse array node (or NULL if there is no more nodes)
-CV_INLINE CvSparseNode* cvGetNextSparseNode( CvSparseMatIterator* mat_iterator )
-{
-    if( mat_iterator->node->next )
-        return mat_iterator->node = mat_iterator->node->next;
-    else
-    {
-        int idx;
-        for( idx = ++mat_iterator->curidx; idx < mat_iterator->mat->hashsize; idx++ )
-        {
-            CvSparseNode* node = (CvSparseNode*)mat_iterator->mat->hashtable[idx];
-            if( node )
-            {
-                mat_iterator->curidx = idx;
-                return mat_iterator->node = node;
-            }
-        }
-        return NULL;
-    }
-}
 
 /**************** matrix iterator: used for n-ary operations on dense arrays *********/
 
@@ -217,18 +193,9 @@ CVAPI(int) cvNextNArraySlice( CvNArrayIterator* array_iterator );
    CV_8UC1 ... CV_64FC4 ... */
 CVAPI(int) cvGetElemType( const CvArr* arr );
 
-/* Retrieves number of an array dimensions and
-   optionally sizes of the dimensions */
-CVAPI(int) cvGetDims( const CvArr* arr, int* sizes CV_DEFAULT(NULL) );
 
 
 
-/* ptr = &arr(idx0,idx1,...). All indexes are zero-based,
-   the major dimensions go first (e.g. (y,x) for 2D, (z,y,x) for 3D */
-CVAPI(uchar*) cvPtr1D( const CvArr* arr, int idx0, int* type CV_DEFAULT(NULL));
-CVAPI(uchar*) cvPtr2D( const CvArr* arr, int idx0, int idx1, int* type CV_DEFAULT(NULL) );
-CVAPI(uchar*) cvPtr3D( const CvArr* arr, int idx0, int idx1, int idx2,
-                      int* type CV_DEFAULT(NULL));
 
 /* For CvMat or IplImage number of indices should be 2
    (row index (y) goes first, column index (x) goes next).
@@ -255,16 +222,6 @@ CVAPI(void) cvSet2D( CvArr* arr, int idx0, int idx1, CvScalar value );
 CVAPI(void) cvSet3D( CvArr* arr, int idx0, int idx1, int idx2, CvScalar value );
 CVAPI(void) cvSetND( CvArr* arr, const int* idx, CvScalar value );
 
-/* for 1-channel arrays */
-CVAPI(void) cvSetReal1D( CvArr* arr, int idx0, double value );
-CVAPI(void) cvSetReal2D( CvArr* arr, int idx0, int idx1, double value );
-CVAPI(void) cvSetReal3D( CvArr* arr, int idx0,
-                        int idx1, int idx2, double value );
-CVAPI(void) cvSetRealND( CvArr* arr, const int* idx, double value );
-
-/* clears element of ND dense array,
-   in case of sparse arrays it deletes the specified node */
-CVAPI(void) cvClearND( CvArr* arr, const int* idx );
 
 /* Converts CvArr (IplImage or CvMat,...) to CvMat.
    If the last parameter is non-zero, function can
@@ -279,30 +236,11 @@ CVAPI(CvMat*) cvGetMat( const CvArr* arr, CvMat* header,
 CVAPI(IplImage*) cvGetImage( const CvArr* arr, IplImage* image_header );
 
 
-/* Changes a shape of multi-dimensional array.
-   new_cn == 0 means that number of channels remains unchanged.
-   new_dims == 0 means that number and sizes of dimensions remain the same
-   (unless they need to be changed to set the new number of channels)
-   if new_dims == 1, there is no need to specify new dimension sizes
-   The resultant configuration should be achievable w/o data copying.
-   If the resultant array is sparse, CvSparseMat header should be passed
-   to the function else if the result is 1 or 2 dimensional,
-   CvMat header should be passed to the function
-   else CvMatND header should be passed */
-CVAPI(CvArr*) cvReshapeMatND( const CvArr* arr,
-                             int sizeof_header, CvArr* header,
-                             int new_cn, int new_dims, int* new_sizes );
 
-#define cvReshapeND( arr, header, new_cn, new_dims, new_sizes )   \
-      cvReshapeMatND( (arr), sizeof(*(header)), (header),         \
-                      (new_cn), (new_dims), (new_sizes))
 
 CVAPI(CvMat*) cvReshape( const CvArr* arr, CvMat* header,
                         int new_cn, int new_rows CV_DEFAULT(0) );
 
-/* Repeats source 2d array several times in both horizontal and
-   vertical direction to fill destination array */
-CVAPI(void) cvRepeat( const CvArr* src, CvArr* dst );
 
 /* Allocates array data */
 CVAPI(void)  cvCreateData( CvArr* arr );
@@ -315,12 +253,7 @@ CVAPI(void)  cvReleaseData( CvArr* arr );
    must be joint (w/o gaps) */
 CVAPI(void)  cvSetData( CvArr* arr, void* data, int step );
 
-/* Retrieves raw data of CvMat, IplImage or CvMatND.
-   In the latter case the function raises an error if
-   the array can not be represented as a matrix */
-CVAPI(void) cvGetRawData( const CvArr* arr, uchar** data,
-                         int* step CV_DEFAULT(NULL),
-                         CvSize* roi_size CV_DEFAULT(NULL));
+
 
 /* Returns width and height of array in elements */
 CVAPI(CvSize) cvGetSize( const CvArr* arr );
@@ -339,22 +272,6 @@ CVAPI(void)  cvSetZero( CvArr* arr );
 #define cvZero  cvSetZero
 
 
-/* Splits a multi-channel array into the set of single-channel arrays or
-   extracts particular [color] plane */
-CVAPI(void)  cvSplit( const CvArr* src, CvArr* dst0, CvArr* dst1,
-                      CvArr* dst2, CvArr* dst3 );
-
-/* Merges a set of single-channel arrays into the single multi-channel array
-   or inserts one particular [color] plane to the array */
-CVAPI(void)  cvMerge( const CvArr* src0, const CvArr* src1,
-                      const CvArr* src2, const CvArr* src3,
-                      CvArr* dst );
-
-/* Copies several channels from input arrays to
-   certain channels of output arrays */
-CVAPI(void)  cvMixChannels( const CvArr** src, int src_count,
-                            CvArr** dst, int dst_count,
-                            const int* from_to, int pair_count );
 
 /* Performs linear transformation on every source array element:
    dst(x,y,c) = scale*src(x,y,c)+shift.
@@ -369,15 +286,6 @@ CVAPI(void)  cvConvertScale( const CvArr* src, CvArr* dst,
 #define cvConvert( src, dst )  cvConvertScale( (src), (dst), 1, 0 )
 
 
-/* Performs linear transformation on every source array element,
-   stores absolute value of the result:
-   dst(x,y,c) = abs(scale*src(x,y,c)+shift).
-   destination array must have 8u type.
-   In other cases one may use cvConvertScale + cvAbsDiffS */
-CVAPI(void)  cvConvertScaleAbs( const CvArr* src, CvArr* dst,
-                                double scale CV_DEFAULT(1),
-                                double shift CV_DEFAULT(0) );
-#define cvCvtScaleAbs  cvConvertScaleAbs
 
 
 /* checks termination criteria validity and
@@ -394,15 +302,6 @@ CVAPI(CvTermCriteria) cvCheckTermCriteria( CvTermCriteria criteria,
 
 
 
-/* dst(mask) = src1(mask) - src2(mask) */
-CVAPI(void)  cvSub( const CvArr* src1, const CvArr* src2, CvArr* dst,
-                    const CvArr* mask CV_DEFAULT(NULL));
-
-
-
-/* dst(mask) = value - src(mask) */
-CVAPI(void)  cvSubRS( const CvArr* src, CvScalar value, CvArr* dst,
-                      const CvArr* mask CV_DEFAULT(NULL));
 
 /* dst(idx) = src1(idx) * src2(idx) * scale
    (scaled element-wise multiplication of 2 arrays) */
@@ -486,7 +385,6 @@ CVAPI(void)   cvSVBkSb( const CvArr* W, const CvArr* U,
 /* Inverts matrix */
 CVAPI(double)  cvInvert( const CvArr* src, CvArr* dst,
                          int method CV_DEFAULT(CV_LU));
-#define cvInv cvInvert
 
 /* Solves linear system (src1)*(dst) = (src2)
    (returns 0 if src1 is a singular and CV_LU method is used) */

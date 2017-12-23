@@ -242,10 +242,6 @@ void CvMorphology::start_process( CvSlice x_range, int width )
     CvBaseImageFilter::start_process( x_range, width );
     if( el_shape == RECT )
     {
-        // cut the cyclic buffer off by 1 line if need, to make
-        // the vertical part of separable morphological filter
-        // always process 2 rows at once (except, may be,
-        // for the last one in a stripe).
         int t = buf_max_count - max_ky*2;
         if( t > 1 && t % 2 != 0 )
         {

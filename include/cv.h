@@ -271,11 +271,7 @@ CVAPI(CvMat*) cvGetPerspectiveTransform( const CvPoint2D32f* src,
                                          const CvPoint2D32f* dst,
                                          CvMat* map_matrix );
 
-/* Performs generic geometric transformation using the specified coordinate maps */
-CVAPI(void)  cvRemap( const CvArr* src, CvArr* dst,
-                      const CvArr* mapx, const CvArr* mapy,
-                      int flags CV_DEFAULT(CV_INTER_LINEAR+CV_WARP_FILL_OUTLIERS),
-                      CvScalar fillval CV_DEFAULT(cvScalarAll(0)) );
+
 
 
 #define  CV_SHAPE_RECT      0

@@ -1,43 +1,4 @@
-/*M///////////////////////////////////////////////////////////////////////////////////////
-//
-//  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.
-//
-//  By downloading, copying, installing or using the software you agree to this license.
-//  If you do not agree to this license, do not download, install,
-//  copy or use the software.
-//
-//
-//                        Intel License Agreement
-//                For Open Source Computer Vision Library
-//
-// Copyright (C) 2000, Intel Corporation, all rights reserved.
-// Third party copyrights are property of their respective owners.
-//
-// Redistribution and use in source and binary forms, with or without modification,
-// are permitted provided that the following conditions are met:
-//
-//   * Redistribution's of source code must retain the above copyright notice,
-//     this list of conditions and the following disclaimer.
-//
-//   * Redistribution's in binary form must reproduce the above copyright notice,
-//     this list of conditions and the following disclaimer in the documentation
-//     and/or other materials provided with the distribution.
-//
-//   * The name of Intel Corporation may not be used to endorse or promote products
-//     derived from this software without specific prior written permission.
-//
-// This software is provided by the copyright holders and contributors "as is" and
-// any express or implied warranties, including, but not limited to, the implied
-// warranties of merchantability and fitness for a particular purpose are disclaimed.
-// In no event shall the Intel Corporation or contributors be liable for any direct,
-// indirect, incidental, special, exemplary, or consequential damages
-// (including, but not limited to, procurement of substitute goods or services;
-// loss of use, data, or profits; or business interruption) however caused
-// and on any theory of liability, whether in contract, strict liability,
-// or tort (including negligence or otherwise) arising in any way out of
-// the use of this software, even if advised of the possibility of such damage.
-//
-//M*/
+
 
 /* ////////////////////////////////////////////////////////////////////
 //
@@ -296,120 +257,7 @@ cvCopy( const void* srcarr, void* dstarr, const void* maskarr )
     CvMat srcstub, *src = (CvMat*)srcarr;
     CvMat dststub, *dst = (CvMat*)dstarr;
     CvSize size;
-
-    if( !CV_IS_MAT(src) || !CV_IS_MAT(dst) )
-    {
-        if( CV_IS_SPARSE_MAT(src) && CV_IS_SPARSE_MAT(dst))
-        {
-            CvSparseMat* src1 = (CvSparseMat*)src;
-            CvSparseMat* dst1 = (CvSparseMat*)dst;
-            CvSparseMatIterator iterator;
-            CvSparseNode* node;
-
-            dst1->dims = src1->dims;
-            memcpy( dst1->size, src1->size, src1->dims*sizeof(src1->size[0]));
-            dst1->valoffset = src1->valoffset;
-            dst1->idxoffset = src1->idxoffset;
-            cvClearSet( dst1->heap );
-
-            if( src1->heap->active_count >= dst1->hashsize*CV_SPARSE_HASH_RATIO )
-            {
-                CV_CALL( cvFree( &dst1->hashtable ));
-                dst1->hashsize = src1->hashsize;
-                CV_CALL( dst1->hashtable =
-                    (void**)cvAlloc( dst1->hashsize*sizeof(dst1->hashtable[0])));
-            }
-
-            memset( dst1->hashtable, 0, dst1->hashsize*sizeof(dst1->hashtable[0]));
-
-            for( node = cvInitSparseMatIterator( src1, &iterator );
-                 node != 0; node = cvGetNextSparseNode( &iterator ))
-            {
-                CvSparseNode* node_copy = (CvSparseNode*)cvSetNew( dst1->heap );
-                int tabidx = node->hashval & (dst1->hashsize - 1);
-                CV_MEMCPY_AUTO( node_copy, node, dst1->heap->elem_size );
-                node_copy->next = (CvSparseNode*)dst1->hashtable[tabidx];
-                dst1->hashtable[tabidx] = node_copy;
-            }
-            EXIT;
-        }
-        else if( CV_IS_MATND(src) || CV_IS_MATND(dst) )
-        {
-            CvArr* arrs[] = { src, dst };
-            CvMatND stubs[3];
-            CvNArrayIterator iterator;
-
-            CV_CALL( cvInitNArrayIterator( 2, arrs, maskarr, stubs, &iterator ));
-            pix_size = CV_ELEM_SIZE(iterator.hdr[0]->type);
-
-            if( !maskarr )
-            {
-                iterator.size.width *= pix_size;
-                if( iterator.size.width <= CV_MAX_INLINE_MAT_OP_SIZE*(int)sizeof(double))
-                {
-                    do
-                    {
-                        memcpy( iterator.ptr[1], iterator.ptr[0], iterator.size.width );
-                    }
-                    while( cvNextNArraySlice( &iterator ));
-                }
-                else
-                {
-                    do
-                    {
-                        icvCopy_8u_C1R( iterator.ptr[0], CV_STUB_STEP,
-                                        iterator.ptr[1], CV_STUB_STEP, iterator.size );
-                    }
-                    while( cvNextNArraySlice( &iterator ));
-                }
-            }
-            else
-            {
-                CvCopyMaskFunc func = icvGetCopyMaskFunc( pix_size );
-                if( !func )
-                    CV_ERROR( CV_StsUnsupportedFormat, "" );
-
-                do
-                {
-                    func( iterator.ptr[0], CV_STUB_STEP,
-                          iterator.ptr[1], CV_STUB_STEP,
-                          iterator.size,
-                          iterator.ptr[2], CV_STUB_STEP );
-                }
-                while( cvNextNArraySlice( &iterator ));
-            }
-            EXIT;
-        }
-        else
-        {
-            int coi1 = 0, coi2 = 0;
-            CV_CALL( src = cvGetMat( src, &srcstub, &coi1 ));
-            CV_CALL( dst = cvGetMat( dst, &dststub, &coi2 ));
-
-            if( coi1 )
-            {
-                CvArr* planes[] = { 0, 0, 0, 0 };
-
-                if( maskarr )
-                    CV_ERROR( CV_StsBadArg, "COI + mask are not supported" );
-
-                planes[coi1-1] = dst;
-                CV_CALL( cvSplit( src, planes[0], planes[1], planes[2], planes[3] ));
-                EXIT;
-            }
-            else if( coi2 )
-            {
-                CvArr* planes[] = { 0, 0, 0, 0 };
-            
-                if( maskarr )
-                    CV_ERROR( CV_StsBadArg, "COI + mask are not supported" );
-
-                planes[coi2-1] = src;
-                CV_CALL( cvMerge( planes[0], planes[1], planes[2], planes[3], dst ));
-                EXIT;
-            }
-        }
-    }
+    assert("herelsp remove" && (CV_IS_MAT(src) && CV_IS_MAT(dst)));
 
     if( !CV_ARE_TYPES_EQ( src, dst ))
         CV_ERROR_FROM_CODE( CV_StsUnmatchedFormats );
@@ -419,6 +267,7 @@ cvCopy( const void* srcarr, void* dstarr, const void* maskarr )
 
     size = cvGetMatSize( src );
     pix_size = CV_ELEM_SIZE(src->type);
+
 
     if( !maskarr )
     {
@@ -445,34 +294,7 @@ cvCopy( const void* srcarr, void* dstarr, const void* maskarr )
     }
     else
     {
-        CvCopyMaskFunc func = icvGetCopyMaskFunc(pix_size);
-        CvMat maskstub, *mask = (CvMat*)maskarr;
-        int src_step = src->step;
-        int dst_step = dst->step;
-        int mask_step;
-
-        if( !CV_IS_MAT( mask ))
-            CV_CALL( mask = cvGetMat( mask, &maskstub ));
-        if( !CV_IS_MASK_ARR( mask ))
-            CV_ERROR( CV_StsBadMask, "" );
-
-        if( !CV_ARE_SIZES_EQ( src, mask ))
-            CV_ERROR( CV_StsUnmatchedSizes, "" );
-
-        mask_step = mask->step;
-        
-        if( CV_IS_MAT_CONT( src->type & dst->type & mask->type ))
-        {
-            size.width *= size.height;
-            size.height = 1;
-            src_step = dst_step = mask_step = CV_STUB_STEP;
-        }
-
-        if( !func )
-            CV_ERROR( CV_StsUnsupportedFormat, "" );
-
-        IPPI_CALL( func( src->data.ptr, src_step, dst->data.ptr, dst_step,
-                         size, mask->data.ptr, mask_step ));
+        CV_ERROR( CV_StsBadMask, "not supported" );
     }
 
     __END__;

@@ -54,44 +54,6 @@ IPCVAPI_IMPL(CvStatus, icvInvSqrt_64f, (const double *src, double *dst, int len)
     return CV_OK;
 }
 
-#define ICV_DEF_SQR_MAGNITUDE_FUNC(flavor, arrtype, magtype)        \
-    \
-static CvStatus CV_STDCALL \
-icvSqrMagnitude_##flavor(const arrtype *x, const arrtype *y,        \
-                         magtype *mag, int len)                     \
-    \
-{                                                              \
-        int i;                                                      \
-                                                                    \
-        for (i = 0; i <= len - 4; i += 4)                           \
-        {                                                           \
-            magtype x0 = (magtype)x[i], y0 = (magtype)y[i];         \
-            magtype x1 = (magtype)x[i + 1], y1 = (magtype)y[i + 1]; \
-                                                                    \
-            x0 = x0 * x0 + y0 * y0;                                 \
-            x1 = x1 * x1 + y1 * y1;                                 \
-            mag[i] = x0;                                            \
-            mag[i + 1] = x1;                                        \
-            x0 = (magtype)x[i + 2], y0 = (magtype)y[i + 2];         \
-            x1 = (magtype)x[i + 3], y1 = (magtype)y[i + 3];         \
-            x0 = x0 * x0 + y0 * y0;                                 \
-            x1 = x1 * x1 + y1 * y1;                                 \
-            mag[i + 2] = x0;                                        \
-            mag[i + 3] = x1;                                        \
-        }                                                           \
-                                                                    \
-        for (; i < len; i++)                                        \
-        {                                                           \
-            magtype x0 = (magtype)x[i], y0 = (magtype)y[i];         \
-            mag[i] = x0 * x0 + y0 * y0;                             \
-        }                                                           \
-                                                                    \
-        return CV_OK;                                               \
-    \
-}
-
-ICV_DEF_SQR_MAGNITUDE_FUNC(32f, float, float)
-ICV_DEF_SQR_MAGNITUDE_FUNC(64f, double, double)
 
 
     /****************************************************************************************\
@@ -135,22 +97,17 @@ ICV_DEF_IPOW_OP(64f, double, double, CV_CAST_64F)
 
 #define icvIPow_8s 0
 
-CV_DEF_INIT_FUNC_TAB_1D(IPow)
 
 typedef CvStatus(CV_STDCALL *CvIPowFunc)(const void *src, void *dst, int len, int power);
 typedef CvStatus(CV_STDCALL *CvSqrtFunc)(const void *src, void *dst, int len);
 
 CV_IMPL void cvPow(const CvArr *srcarr, CvArr *dstarr, double power)
 {
-    static CvFuncTable ipow_tab;
-    static int inittab = 0;
-
     CV_FUNCNAME("cvPow");
 
     __BEGIN__;
 
-    void *temp_buffer = 0;
-    int block_size = 0;
+
     CvMat srcstub, *src = (CvMat *)srcarr;
     CvMat dststub, *dst = (CvMat *)dstarr;
     int coi1 = 0, coi2 = 0;
@@ -210,11 +167,10 @@ CV_IMPL void cvPow(const CvArr *srcarr, CvArr *dstarr, double power)
                  "Fractional or negative integer power factor can be used "
                  "with floating-point types only");
     }
-    
+
 
     __END__;
 }
 
-/************************** CheckArray for NaN's, Inf's *********************************/
 
 /* End of file. */

@@ -78,13 +78,7 @@ icvCrossCorr( const CvArr* _img, const CvArr* _templ,
 #define ICV_WARP_MASK           ((1 << ICV_WARP_SHIFT) - 1)
 
 #define ICV_LINEAR_TAB_SIZE     (ICV_WARP_MASK+1)
-extern float icvLinearCoeffs[(ICV_LINEAR_TAB_SIZE+1)*2];
-void icvInitLinearCoeffTab();
 
-#define ICV_CUBIC_TAB_SIZE   (ICV_WARP_MASK+1)
-extern float icvCubicCoeffs[(ICV_CUBIC_TAB_SIZE+1)*2];
-
-void icvInitCubicCoeffTab();
 
 CvStatus CV_STDCALL icvGetRectSubPix_8u_C1R
 ( const uchar* src, int src_step, CvSize src_size,

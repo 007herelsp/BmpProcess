@@ -107,7 +107,7 @@
 #endif
 
 #if 0 /*def  CV_CHECK_FOR_NANS*/
-    #define CV_CHECK_NANS( arr ) cvCheckArray((arr))  
+    #define CV_CHECK_NANS( arr ) cvCheckArray((arr))
 #else
     #define CV_CHECK_NANS( arr )
 #endif
@@ -190,7 +190,7 @@
 #define  CV_NONZERO(a)      ((a) != 0)
 #define  CV_NONZERO_FLT(a)  (((a)+(a)) != 0)
 
-/* general-purpose saturation macros */ 
+/* general-purpose saturation macros */
 #define  CV_CAST_8U(t)  (uchar)(!((t) & ~255) ? (t) : (t) > 0 ? 255 : 0)
 #define  CV_CAST_8S(t)  (char)(!(((t)+128) & ~255) ? (t) : (t) > 0 ? 127 : -128)
 #define  CV_CAST_16U(t) (ushort)(!((t) & ~65535) ? (t) : (t) > 0 ? 65535 : 0)
@@ -222,7 +222,7 @@
 
 #define  CV_UN_ENTRY_C1(worktype)           \
     worktype s0 = scalar[0]
-    
+
 #define  CV_UN_ENTRY_C2(worktype)           \
     worktype s0 = scalar[0], s1 = scalar[1]
 
@@ -326,7 +326,7 @@ CV_INLINE  CvSize  cvGetMatSize( const CvMat* mat )
 
 
 /****************************************************************************************\
-  
+
   Generic implementation of QuickSort algorithm.
   ----------------------------------------------
   Using this macro user can declare customized sort function that can be much faster
@@ -560,7 +560,7 @@ void func_name( T *array, size_t total, user_data_type aux )                    
 
 /* IPP-compatible return codes */
 typedef enum CvStatus
-{         
+{
     CV_BADMEMBLOCK_ERR          = -113,
     CV_INPLACE_NOT_SUPPORTED_ERR= -112,
     CV_UNMATCHED_ROI_ERR        = -111,
@@ -636,10 +636,10 @@ CvStatus;
 #endif
 
 #define IPCVAPI_EX(type,name,ipp_name,ipp_search_modules,args)  \
-    IPCVAPI(type,CV_STDCALL,name,args) 
+    IPCVAPI(type,CV_STDCALL,name,args)
 
 #define IPCVAPI_C_EX(type,name,ipp_name,ipp_search_modules,args)\
-    IPCVAPI(type,CV_CDECL,name,args) 
+    IPCVAPI(type,CV_CDECL,name,args)
 
 #ifndef IPCVAPI_IMPL
 #define IPCVAPI_IMPL(type,name,args,arg_names)                  \
@@ -845,18 +845,6 @@ static void  icvInit##FUNCNAME##FLAG##Table( CvBigFuncTable* tab )  \
     tab->fn_2d[CV_64FC2] = (void*)icv##FUNCNAME##_64f_C2##FLAG;     \
     tab->fn_2d[CV_64FC3] = (void*)icv##FUNCNAME##_64f_C3##FLAG;     \
     tab->fn_2d[CV_64FC4] = (void*)icv##FUNCNAME##_64f_C4##FLAG;     \
-}
-
-#define CV_DEF_INIT_FUNC_TAB_0D( FUNCNAME )                         \
-static void  icvInit##FUNCNAME##Table( CvFuncTable* tab )           \
-{                                                                   \
-    tab->fn_2d[CV_8U]  = (void*)icv##FUNCNAME##_8u;                 \
-    tab->fn_2d[CV_8S]  = (void*)icv##FUNCNAME##_8s;                 \
-    tab->fn_2d[CV_16U] = (void*)icv##FUNCNAME##_16u;                \
-    tab->fn_2d[CV_16S] = (void*)icv##FUNCNAME##_16s;                \
-    tab->fn_2d[CV_32S] = (void*)icv##FUNCNAME##_32s;                \
-    tab->fn_2d[CV_32F] = (void*)icv##FUNCNAME##_32f;                \
-    tab->fn_2d[CV_64F] = (void*)icv##FUNCNAME##_64f;                \
 }
 
 #define CV_DEF_INIT_FUNC_TAB_1D  CV_DEF_INIT_FUNC_TAB_0D

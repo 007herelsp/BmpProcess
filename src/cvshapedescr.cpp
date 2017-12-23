@@ -14,11 +14,9 @@ cvArcLength( const void *array, CvSlice slice, int is_closed )
     int i, j = 0, count;
     const int N = 16;
     float buf[N];
-    CvMat buffer = cvMat( 1, N, CV_32F, buf ); 
+    CvMat buffer = cvMat( 1, N, CV_32F, buf );
     CvSeqReader reader;
-    CvContour contour_header;
     CvSeq* contour = 0;
-    CvSeqBlock block;
 
     if( CV_IS_SEQ( array ))
     {
@@ -36,7 +34,7 @@ cvArcLength( const void *array, CvSlice slice, int is_closed )
     if( contour->total > 1 )
     {
         int is_float = CV_SEQ_ELTYPE( contour ) == CV_32FC2;
-        
+
         cvStartReadSeq( contour, &reader, 0 );
         cvSetSeqReaderPos( &reader, slice.start_index );
         count = cvSliceLength( slice, contour );
@@ -113,7 +111,7 @@ icvContourArea( const CvSeq* contour, double *area )
             yi_1 = ((CvPoint2D32f*)(reader.ptr))->y;
         }
         CV_NEXT_SEQ_ELEM( contour->elem_size, reader );
-        
+
         while( lpt-- > 0 )
         {
             double dxy, xi, yi;
@@ -147,7 +145,7 @@ icvContourArea( const CvSeq* contour, double *area )
 
 /****************************************************************************************\
 
- copy data from one buffer to other buffer 
+ copy data from one buffer to other buffer
 
 \****************************************************************************************/
 
@@ -371,9 +369,7 @@ cvContourArea( const void *array, CvSlice slice )
 
     __BEGIN__;
 
-    CvContour contour_header;
     CvSeq* contour = 0;
-    CvSeqBlock block;
     if( CV_IS_SEQ( array ))
     {
         contour = (CvSeq*)array;
@@ -410,15 +406,13 @@ cvBoundingRect( CvArr* array, int update )
 {
     CvSeqReader reader;
     CvRect  rect = { 0, 0, 0, 0 };
-    CvContour contour_header;
     CvSeq* ptseq = 0;
-    CvSeqBlock block;
 
     CV_FUNCNAME( "cvBoundingRect" );
 
     __BEGIN__;
 
-    CvMat stub, *mat = 0;
+    CvMat *mat = 0;
     int  xmin = 0, ymin = 0, xmax = -1, ymax = -1, i, j, k;
     int calculate = update;
 
@@ -539,7 +533,7 @@ cvBoundingRect( CvArr* array, int update )
             xmin = ymin = 0;
     }
     else if( ptseq->total )
-    {   
+    {
         int  is_float = CV_SEQ_ELTYPE(ptseq) == CV_32FC2;
         cvStartReadSeq( ptseq, &reader, 0 );
 
@@ -552,12 +546,12 @@ cvBoundingRect( CvArr* array, int update )
             ymin = ymax = pt.y;
 
             for( i = 1; i < ptseq->total; i++ )
-            {            
+            {
                 CV_READ_SEQ_ELEM( pt, reader );
-        
+
                 if( xmin > pt.x )
                     xmin = pt.x;
-        
+
                 if( xmax < pt.x )
                     xmax = pt.x;
 
@@ -578,14 +572,14 @@ cvBoundingRect( CvArr* array, int update )
             ymin = ymax = CV_TOGGLE_FLT(pt.y);
 
             for( i = 1; i < ptseq->total; i++ )
-            {            
+            {
                 CV_READ_SEQ_ELEM( pt, reader );
                 pt.x = CV_TOGGLE_FLT(pt.x);
                 pt.y = CV_TOGGLE_FLT(pt.y);
-        
+
                 if( xmin > pt.x )
                     xmin = pt.x;
-        
+
                 if( xmax < pt.x )
                     xmax = pt.x;
 

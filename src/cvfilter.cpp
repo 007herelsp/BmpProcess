@@ -147,9 +147,8 @@ void CvBaseImageFilter::init( int _max_width, int _src_type, int _dst_type,
 
     buf_start = ptr;
     const_row = 0;
+    assert("herelsp remove" && (IPL_BORDER_REPLICATE == border_mode));
 
-    if( border_mode == IPL_BORDER_CONSTANT )
-        cvScalarToRawData( &border_value, border_tab, src_type, 0 );
 
     __END__;
 }

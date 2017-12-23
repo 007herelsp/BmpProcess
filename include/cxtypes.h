@@ -336,7 +336,6 @@ typedef struct _IplImage
                            OpenCV ignores it and uses widthStep instead */
     int  width;         /* image width in pixels */
     int  height;        /* image height in pixels */
-    struct _IplROI *roi;/* image ROI. if NULL, the whole image is selected */
     struct _IplImage *maskROI; /* must be NULL */
     void  *imageId;     /* ditto */
     struct _IplTileInfo *tileInfo; /* ditto */
