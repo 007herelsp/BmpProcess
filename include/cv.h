@@ -1,57 +1,5 @@
-/*M///////////////////////////////////////////////////////////////////////////////////////
-//
-//  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.
-//
-//  By downloading, copying, installing or using the software you agree to this license.
-//  If you do not agree to this license, do not download, install,
-//  copy or use the software.
-//
-//
-//                        Intel License Agreement
-//                For Open Source Computer Vision Library
-//
-// Copyright (C) 2000, Intel Corporation, all rights reserved.
-// Third party copyrights are property of their respective owners.
-//
-// Redistribution and use in source and binary forms, with or without modification,
-// are permitted provided that the following conditions are met:
-//
-//   * Redistribution's of source code must retain the above copyright notice,
-//     this list of conditions and the following disclaimer.
-//
-//   * Redistribution's in binary form must reproduce the above copyright notice,
-//     this list of conditions and the following disclaimer in the documentation
-//     and/or other materials provided with the distribution.
-//
-//   * The name of Intel Corporation may not be used to endorse or promote products
-//     derived from this software without specific prior written permission.
-//
-// This software is provided by the copyright holders and contributors "as is" and
-// any express or implied warranties, including, but not limited to, the implied
-// warranties of merchantability and fitness for a particular purpose are disclaimed.
-// In no event shall the Intel Corporation or contributors be liable for any direct,
-// indirect, incidental, special, exemplary, or consequential damages
-// (including, but not limited to, procurement of substitute goods or services;
-// loss of use, data, or profits; or business interruption) however caused
-// and on any theory of liability, whether in contract, strict liability,
-// or tort (including negligence or otherwise) arising in any way out of
-// the use of this software, even if advised of the possibility of such damage.
-//
-//M*/
-
-
 #ifndef _CV_H_
 #define _CV_H_
-
-
-
-#ifndef SKIP_INCLUDES
-  #if defined(_CH_)
-    #pragma package <chopencv>
-    #include <chdl.h>
-    LOAD_CHDL(cv)
-  #endif
-#endif
 
 #include "cxcore.h"
 #include "cvtypes.h"
@@ -63,11 +11,6 @@ extern "C" {
 /****************************************************************************************\
 *                                    Image Processing                                    *
 \****************************************************************************************/
-
-/* Copies source 2D array inside of the larger destination array and
-   makes a border of the specified type (IPL_BORDER_*) around the copied area. */
-CVAPI(void) cvCopyMakeBorder( const CvArr* src, CvArr* dst, CvPoint offset,
-                              int bordertype, CvScalar value CV_DEFAULT(cvScalarAll(0)));
 
 #define CV_BLUR_NO_SCALE 0
 #define CV_BLUR  1
@@ -82,31 +25,6 @@ CVAPI(void) cvSmooth( const CvArr* src, CvArr* dst,
                       int param2 CV_DEFAULT(0),
                       double param3 CV_DEFAULT(0),
                       double param4 CV_DEFAULT(0));
-
-
-
-/* Finds integral image: SUM(X,Y) = sum(x<X,y<Y)I(x,y) */
-CVAPI(void) cvIntegral( const CvArr* image, CvArr* sum,
-                       CvArr* sqsum CV_DEFAULT(NULL),
-                       CvArr* tilted_sum CV_DEFAULT(NULL));
-
-/*
-   Smoothes the input image with gaussian kernel and then down-samples it.
-   dst_width = floor(src_width/2)[+1],
-   dst_height = floor(src_height/2)[+1]
-*/
-CVAPI(void)  cvPyrDown( const CvArr* src, CvArr* dst,
-                        int filter CV_DEFAULT(CV_GAUSSIAN_5x5) );
-
-/* 
-   Up-samples image and smoothes the result with gaussian kernel.
-   dst_width = src_width*2,
-   dst_height = src_height*2
-*/
-CVAPI(void)  cvPyrUp( const CvArr* src, CvArr* dst,
-                      int filter CV_DEFAULT(CV_GAUSSIAN_5x5) );
-
-
 #define CV_SCHARR -1
 #define CV_MAX_SOBEL_KSIZE 7
 
@@ -119,99 +37,8 @@ CVAPI(void) cvSobel( const CvArr* src, CvArr* dst,
 
 
 /* Constants for color conversion */
-#define  CV_BGR2BGRA    0
-#define  CV_RGB2RGBA    CV_BGR2BGRA
-
-#define  CV_BGRA2BGR    1
-#define  CV_RGBA2RGB    CV_BGRA2BGR
-
-#define  CV_BGR2RGBA    2
-#define  CV_RGB2BGRA    CV_BGR2RGBA
-
-#define  CV_RGBA2BGR    3
-#define  CV_BGRA2RGB    CV_RGBA2BGR
-
-#define  CV_BGR2RGB     4
-#define  CV_RGB2BGR     CV_BGR2RGB
-
-#define  CV_BGRA2RGBA   5
-#define  CV_RGBA2BGRA   CV_BGRA2RGBA
-
 #define  CV_BGR2GRAY    6
 #define  CV_RGB2GRAY    7
-#define  CV_GRAY2BGR    8
-#define  CV_GRAY2RGB    CV_GRAY2BGR
-#define  CV_GRAY2BGRA   9
-#define  CV_GRAY2RGBA   CV_GRAY2BGRA
-#define  CV_BGRA2GRAY   10
-#define  CV_RGBA2GRAY   11
-
-#define  CV_BGR2BGR565  12
-#define  CV_RGB2BGR565  13
-#define  CV_BGR5652BGR  14
-#define  CV_BGR5652RGB  15
-#define  CV_BGRA2BGR565 16
-#define  CV_RGBA2BGR565 17
-#define  CV_BGR5652BGRA 18
-#define  CV_BGR5652RGBA 19
-
-#define  CV_GRAY2BGR565 20
-#define  CV_BGR5652GRAY 21
-
-#define  CV_BGR2BGR555  22
-#define  CV_RGB2BGR555  23
-#define  CV_BGR5552BGR  24
-#define  CV_BGR5552RGB  25
-#define  CV_BGRA2BGR555 26
-#define  CV_RGBA2BGR555 27
-#define  CV_BGR5552BGRA 28
-#define  CV_BGR5552RGBA 29
-
-#define  CV_GRAY2BGR555 30
-#define  CV_BGR5552GRAY 31
-
-#define  CV_BGR2XYZ     32
-#define  CV_RGB2XYZ     33
-#define  CV_XYZ2BGR     34
-#define  CV_XYZ2RGB     35
-
-#define  CV_BGR2YCrCb   36
-#define  CV_RGB2YCrCb   37
-#define  CV_YCrCb2BGR   38
-#define  CV_YCrCb2RGB   39
-
-#define  CV_BGR2HSV     40
-#define  CV_RGB2HSV     41
-
-#define  CV_BGR2Lab     44
-#define  CV_RGB2Lab     45
-
-#define  CV_BayerBG2BGR 46
-#define  CV_BayerGB2BGR 47
-#define  CV_BayerRG2BGR 48
-#define  CV_BayerGR2BGR 49
-
-#define  CV_BayerBG2RGB CV_BayerRG2BGR
-#define  CV_BayerGB2RGB CV_BayerGR2BGR
-#define  CV_BayerRG2RGB CV_BayerBG2BGR
-#define  CV_BayerGR2RGB CV_BayerGB2BGR
-
-#define  CV_BGR2Luv     50
-#define  CV_RGB2Luv     51
-#define  CV_BGR2HLS     52
-#define  CV_RGB2HLS     53
-
-#define  CV_HSV2BGR     54
-#define  CV_HSV2RGB     55
-
-#define  CV_Lab2BGR     56
-#define  CV_Lab2RGB     57
-#define  CV_Luv2BGR     58
-#define  CV_Luv2RGB     59
-#define  CV_HLS2BGR     60
-#define  CV_HLS2RGB     61
-
-#define  CV_COLORCVT_MAX  100
 
 /* Converts input array pixels from one color space to another */
 CVAPI(void)  cvCvtColor( const CvArr* src, CvArr* dst, int code );
@@ -342,10 +169,6 @@ CVAPI(CvSeq*) cvConvexHull2( const CvArr* input,
 CVAPI(int)  cvCheckContourConvexity( const CvArr* contour );
 
 /* Finds minimum rectangle containing two given rectangles */
-CVAPI(CvRect)  cvMaxRect( const CvRect* rect1, const CvRect* rect2 );
-
-/* Finds coordinates of the box vertices */
-CVAPI(void) cvBoxPoints( CvBox2D box, CvPoint2D32f pt[4] );
 
 /* Types of thresholding */
 #define CV_THRESH_BINARY      0  /* value = value > threshold ? max_value : 0       */

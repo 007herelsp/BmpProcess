@@ -196,8 +196,6 @@ icvThresh_32f_C1R( const float *src, int src_step, float *dst, int dst_step,
 CV_IMPL void
 cvThreshold( const void* srcarr, void* dstarr, double thresh, double maxval, int type )
 {
-    CvHistogram* hist = 0;
-
     CV_FUNCNAME( "cvThreshold" );
 
     __BEGIN__;

@@ -16,7 +16,7 @@
 
 /* BGR/RGB -> Gray */
 #define csc_shift  14
-#define cscGr  fix(cscGr_32f,csc_shift) 
+#define cscGr  fix(cscGr_32f,csc_shift)
 #define cscGg  fix(cscGg_32f,csc_shift)
 #define cscGb  /*fix(cscGb_32f,csc_shift)*/ ((1 << csc_shift) - cscGr - cscGg)
 
@@ -34,7 +34,7 @@ icvBGRx2Gray_8u_CnC1R( const uchar* src, int srcstep,
     {
         int* tab = (int*)cvStackAlloc( 256*3*sizeof(tab[0]) );
         int r = 0, g = 0, b = (1 << (csc_shift-1));
-    
+
         for( i = 0; i < 256; i++ )
         {
             tab[i] = b;
@@ -81,17 +81,17 @@ cvCvtColor( const CvArr* srcarr, CvArr* dstarr, int code )
     CV_FUNCNAME( "cvCvtColor" );
 
     __BEGIN__;
-    
+
     CvMat srcstub, *src = (CvMat*)srcarr;
     CvMat dststub, *dst = (CvMat*)dstarr;
     CvSize size;
     int src_step, dst_step;
     int src_cn, dst_cn, depth;
     int param[] = { 0, 0, 0, 0 };
-    
+
     CV_CALL( src = cvGetMat( srcarr, &srcstub ));
     CV_CALL( dst = cvGetMat( dstarr, &dststub ));
-    
+
     if( !CV_ARE_SIZES_EQ( src, dst ))
         CV_ERROR( CV_StsUnmatchedSizes, "" );
 
@@ -108,10 +108,10 @@ cvCvtColor( const CvArr* srcarr, CvArr* dstarr, int code )
     src_step = src->step;
     dst_step = dst->step;
 
-    
+
     switch( code )
     {
-   
+
     case CV_BGR2GRAY:
     case CV_RGB2GRAY:
         if( (src_cn != 3 && src_cn != 4) || dst_cn != 1 )
@@ -119,9 +119,9 @@ cvCvtColor( const CvArr* srcarr, CvArr* dstarr, int code )
             "Incorrect number of channels for this conversion code" );
 
 		assert("herelsp remove" && (depth == CV_8U ));
-               
+
         param[0] = src_cn;
-        param[1] = code == CV_BGR2GRAY || code == CV_BGRA2GRAY ? 0 : 2;
+        param[1] = 0;
 		  IPPI_CALL( icvBGRx2Gray_8u_CnC1R( src->data.ptr, src_step,
             dst->data.ptr, dst_step, size, param[0], param[1] ));
         break;

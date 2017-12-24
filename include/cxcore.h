@@ -48,17 +48,7 @@ CVAPI(void)  cvReleaseImage( IplImage** image );
 /* Creates a copy of IPL image (widthStep may differ) */
 CVAPI(IplImage*) cvCloneImage( const IplImage* image );
 
-/* Sets a Channel Of Interest (only a few functions support COI) - 
-   use cvCopy to extract the selected channel and/or put it back */
 
-/* Retrieves image Channel Of Interest */
-
-/* Sets image ROI (region of interest) (COI is not changed) */
-CVAPI(void)  cvSetImageROI( IplImage* image, CvRect rect );
-
-/* Resets image ROI and COI */
-
-/* Retrieves image ROI */
 
 /* Allocates and initalizes CvMat header */
 CVAPI(CvMat*)  cvCreateMatHeader( int rows, int cols, int type );
@@ -89,14 +79,9 @@ CV_INLINE  void  cvDecRefData( CvArr* arr )
             cvFree( &mat->refcount );
         mat->refcount = NULL;
     }
-    else if( CV_IS_MATND( arr ))
-    {
-        CvMatND* mat = (CvMatND*)arr;
-        mat->data.ptr = NULL;
-        if( mat->refcount != NULL && --*mat->refcount == 0 )
-            cvFree( &mat->refcount );
-        mat->refcount = NULL;
-    }
+       else{
+assert("herelsp remove" && 0);
+	}
 }
 
 /* Increments CvMat data reference counter */
@@ -109,12 +94,9 @@ CV_INLINE  int  cvIncRefData( CvArr* arr )
         if( mat->refcount != NULL )
             refcount = ++*mat->refcount;
     }
-    else if( CV_IS_MATND( arr ))
-    {
-        CvMatND* mat = (CvMatND*)arr;
-        if( mat->refcount != NULL )
-            refcount = ++*mat->refcount;
-    }
+    else{
+assert("herelsp remove" && 0);
+	}
     return refcount;
 }
 
@@ -132,55 +114,8 @@ CVAPI(void) cvScalarToRawData( const CvScalar* scalar, void* data, int type,
                               int extend_to_12 CV_DEFAULT(0) );
 
 
-/* Allocates and initializes CvMatND header */
-CVAPI(CvMatND*)  cvCreateMatNDHeader( int dims, const int* sizes, int type );
-
-/* Allocates and initializes CvMatND header and allocates data */
-
-
-/* Releases CvMatND */
-CV_INLINE  void  cvReleaseMatND( CvMatND** mat )
-{
-    cvReleaseMat( (CvMat**)mat );
-}
-
-
-
-/* Allocates and initializes CvSparseMat header and allocates data */
-CVAPI(CvSparseMat*)  cvCreateSparseMat( int dims, const int* sizes, int type );
-
-/* Releases CvSparseMat */
-CVAPI(void)  cvReleaseSparseMat( CvSparseMat** mat );
-
-/* Creates a copy of CvSparseMat (except, may be, zero items) */
-CVAPI(CvSparseMat*) cvCloneSparseMat( const CvSparseMat* mat );
-
-
-
 /**************** matrix iterator: used for n-ary operations on dense arrays *********/
-
-#define CV_MAX_ARR 10
-
-typedef struct CvNArrayIterator
-{
-    int count; /* number of arrays */
-    int dims; /* number of dimensions to iterate */
-    CvSize size; /* maximal common linear size: { width = size, height = 1 } */
-    uchar* ptr[CV_MAX_ARR]; /* pointers to the array slices */
-    int stack[CV_MAX_DIM]; /* for internal use */
-    CvMatND* hdr[CV_MAX_ARR]; /* pointers to the headers of the
-                                 matrices that are processed */
-}
-CvNArrayIterator;
-
-#define CV_NO_DEPTH_CHECK     1
-#define CV_NO_CN_CHECK        2
-#define CV_NO_SIZE_CHECK      4
-
-
-
 /* returns zero value if iteration is finished, non-zero (slice length) otherwise */
-CVAPI(int) cvNextNArraySlice( CvNArrayIterator* array_iterator );
 
 
 /* Returns type of array elements:
@@ -236,17 +171,9 @@ CVAPI(void)  cvConvertScale( const CvArr* src, CvArr* dst,
                              double shift CV_DEFAULT(0) );
 #define cvConvert( src, dst )  cvConvertScale( (src), (dst), 1, 0 )
 
-
-
-
-
-
 /****************************************************************************************\
 *                   Arithmetic, logic and comparison operations                          *
 \****************************************************************************************/
-
-
-
 
 /* dst(idx) = src1(idx) * src2(idx) * scale
    (scaled element-wise multiplication of 2 arrays) */
@@ -265,13 +192,6 @@ CVAPI(void)  cvDiv( const CvArr* src1, const CvArr* src2,
 #define CV_CMP_LT   3
 #define CV_CMP_LE   4
 #define CV_CMP_NE   5
-
-/* The comparison operation support single-channel arrays only.
-   Destination image should be 8uC1 or 8sC1 */
-
-/* dst(idx) = src1(idx) _cmp_op_ src2(idx) */
-
-/* dst(idx) = src1(idx) _cmp_op_ value */
 
 /****************************************************************************************\
 *                                Math operations                                         *
@@ -386,10 +306,6 @@ CVAPI(int)  cvCountNonZero( const CvArr* arr );
 #define CV_DXT_MUL_CONJ 8 /* conjugate the second argument of cvMulSpectrums */
 
 
-
-
-/* Finds optimal DFT vector size >= size0 */
-CVAPI(int)  cvGetOptimalDFTSize( int size0 );
 
 /* Discrete Cosine Transform */
 
@@ -527,20 +443,6 @@ CVAPI(CvSet*)  cvCreateSet( int set_flags, int header_size,
 CVAPI(int)  cvSetAdd( CvSet* set_header, CvSetElem* elem CV_DEFAULT(NULL),
                       CvSetElem** inserted_elem CV_DEFAULT(NULL) );
 
-/* Fast variant of cvSetAdd */
-CV_INLINE  CvSetElem* cvSetNew( CvSet* set_header )
-{
-    CvSetElem* elem = set_header->free_elems;
-    if( elem )
-    {
-        set_header->free_elems = elem->next_free;
-        elem->flags = elem->flags & CV_SET_ELEM_IDX_MASK;
-        set_header->active_count++;
-    }
-    else
-        cvSetAdd( set_header, NULL, (CvSetElem**)&elem );
-    return elem;
-}
 
 /* Removes set element given its pointer */
 CV_INLINE  void cvSetRemoveByPtr( CvSet* set_header, void* elem )
@@ -567,319 +469,21 @@ CV_INLINE CvSetElem* cvGetSetElem( const CvSet* set_header, int index )
 /* Removes all the elements from the set */
 CVAPI(void)  cvClearSet( CvSet* set_header );
 
-/* Creates new graph */
-CVAPI(CvGraph*)  cvCreateGraph( int graph_flags, int header_size,
-                                int vtx_size, int edge_size,
-                                CvMemStorage* storage );
-
-/* Adds new vertex to the graph */
-CVAPI(int)  cvGraphAddVtx( CvGraph* graph, const CvGraphVtx* vtx CV_DEFAULT(NULL),
-                           CvGraphVtx** inserted_vtx CV_DEFAULT(NULL) );
 
 
-/* Removes vertex from the graph together with all incident edges */
 
+CVAPI(int) cvStdErrReport( int status, const char* func_name, const char* err_msg,
+                          const char* file_name, int line, void* userdata );
 
-/* Link two vertices specifed by indices or pointers if they
-   are not connected or return pointer to already existing edge
-   connecting the vertices.
-   Functions return 1 if a new edge was created, 0 otherwise */
-CVAPI(int)  cvGraphAddEdge( CvGraph* graph,
-                            int start_idx, int end_idx,
-                            const CvGraphEdge* edge CV_DEFAULT(NULL),
-                            CvGraphEdge** inserted_edge CV_DEFAULT(NULL) );
-
-CVAPI(int)  cvGraphAddEdgeByPtr( CvGraph* graph,
-                               CvGraphVtx* start_vtx, CvGraphVtx* end_vtx,
-                               const CvGraphEdge* edge CV_DEFAULT(NULL),
-                               CvGraphEdge** inserted_edge CV_DEFAULT(NULL) );
-
-/* Remove edge connecting two vertices */
-CVAPI(void)  cvGraphRemoveEdge( CvGraph* graph, int start_idx, int end_idx );
-CVAPI(void)  cvGraphRemoveEdgeByPtr( CvGraph* graph, CvGraphVtx* start_vtx,
-                                     CvGraphVtx* end_vtx );
-
-/* Find edge connecting two vertices */
-CVAPI(CvGraphEdge*)  cvFindGraphEdge( const CvGraph* graph, int start_idx, int end_idx );
-CVAPI(CvGraphEdge*)  cvFindGraphEdgeByPtr( const CvGraph* graph,
-                                           const CvGraphVtx* start_vtx,
-                                           const CvGraphVtx* end_vtx );
-#define cvGraphFindEdge cvFindGraphEdge
-#define cvGraphFindEdgeByPtr cvFindGraphEdgeByPtr
-
-/* Remove all vertices and edges from the graph */
-CVAPI(void)  cvClearGraph( CvGraph* graph );
-
-
-/* Count number of edges incident to the vertex */
-CVAPI(int)  cvGraphVtxDegree( const CvGraph* graph, int vtx_idx );
-CVAPI(int)  cvGraphVtxDegreeByPtr( const CvGraph* graph, const CvGraphVtx* vtx );
-
-
-/* Retrieves graph vertex by given index */
-#define cvGetGraphVtx( graph, idx ) (CvGraphVtx*)cvGetSetElem((CvSet*)(graph), (idx))
-
-/* Retrieves index of a graph vertex given its pointer */
-#define cvGraphVtxIdx( graph, vtx ) ((vtx)->flags & CV_SET_ELEM_IDX_MASK)
-
-/* Retrieves index of a graph edge given its pointer */
-#define cvGraphEdgeIdx( graph, edge ) ((edge)->flags & CV_SET_ELEM_IDX_MASK)
-
-#define cvGraphGetVtxCount( graph ) ((graph)->active_count)
-#define cvGraphGetEdgeCount( graph ) ((graph)->edges->active_count)
-
-#define  CV_GRAPH_VERTEX        1
-#define  CV_GRAPH_TREE_EDGE     2
-#define  CV_GRAPH_BACK_EDGE     4
-#define  CV_GRAPH_FORWARD_EDGE  8
-#define  CV_GRAPH_CROSS_EDGE    16
-#define  CV_GRAPH_ANY_EDGE      30
-#define  CV_GRAPH_NEW_TREE      32
-#define  CV_GRAPH_BACKTRACKING  64
-#define  CV_GRAPH_OVER          -1
-
-#define  CV_GRAPH_ALL_ITEMS    -1
-
-/* flags for graph vertices and edges */
-#define  CV_GRAPH_ITEM_VISITED_FLAG  (1 << 30)
-#define  CV_IS_GRAPH_VERTEX_VISITED(vtx) \
-    (((CvGraphVtx*)(vtx))->flags & CV_GRAPH_ITEM_VISITED_FLAG)
-#define  CV_IS_GRAPH_EDGE_VISITED(edge) \
-    (((CvGraphEdge*)(edge))->flags & CV_GRAPH_ITEM_VISITED_FLAG)
-#define  CV_GRAPH_SEARCH_TREE_NODE_FLAG   (1 << 29)
-#define  CV_GRAPH_FORWARD_EDGE_FLAG       (1 << 28)
-
-typedef struct CvGraphScanner
-{
-    CvGraphVtx* vtx;       /* current graph vertex (or current edge origin) */
-    CvGraphVtx* dst;       /* current graph edge destination vertex */
-    CvGraphEdge* edge;     /* current edge */
-
-    CvGraph* graph;        /* the graph */
-    CvSeq*   stack;        /* the graph vertex stack */
-    int      index;        /* the lower bound of certainly visited vertices */
-    int      mask;         /* event mask */
-}
-CvGraphScanner;
-
-/* Releases graph scanner. */
-CVAPI(void) cvReleaseGraphScanner( CvGraphScanner** scanner );
-
-/* Get next graph element */
-CVAPI(int)  cvNextGraphItem( CvGraphScanner* scanner );
-
-/* Creates a copy of graph */
-CVAPI(CvGraph*) cvCloneGraph( const CvGraph* graph, CvMemStorage* storage );
-
-/****************************************************************************************\
-*                                     Drawing                                            *
-\****************************************************************************************/
-
-/****************************************************************************************\
-*       Drawing functions work with images/matrices of arbitrary type.                   *
-*       For color images the channel order is BGR[A]                                     *
-*       Antialiasing is supported only for 8-bit image now.                              *
-*       All the functions include parameter color that means rgb value (that may be      *
-*       constructed with CV_RGB macro) for color images and brightness                   *
-*       for grayscale images.                                                            *
-*       If a drawn figure is partially or completely outside of the image, it is clipped.*
-\****************************************************************************************/
-
-#define CV_RGB( r, g, b )  cvScalar( (b), (g), (r), 0 )
-#define CV_FILLED -1
-
-#define CV_AA 16
-
-/* Draws 4-connected, 8-connected or antialiased line segment connecting two points */
-CVAPI(void)  cvLine( CvArr* img, CvPoint pt1, CvPoint pt2,
-                     CvScalar color, int thickness CV_DEFAULT(1),
-                     int line_type CV_DEFAULT(8), int shift CV_DEFAULT(0) );
-
-/* Draws a rectangle given two opposite corners of the rectangle (pt1 & pt2),
-   if thickness<0 (e.g. thickness == CV_FILLED), the filled box is drawn */
-CVAPI(void)  cvRectangle( CvArr* img, CvPoint pt1, CvPoint pt2,
-                          CvScalar color, int thickness CV_DEFAULT(1),
-                          int line_type CV_DEFAULT(8),
-                          int shift CV_DEFAULT(0));
-
-/* Draws a circle with specified center and radius.
-   Thickness works in the same way as with cvRectangle */
-CVAPI(void)  cvCircle( CvArr* img, CvPoint center, int radius,
-                       CvScalar color, int thickness CV_DEFAULT(1),
-                       int line_type CV_DEFAULT(8), int shift CV_DEFAULT(0));
-
-/* Draws ellipse outline, filled ellipse, elliptic arc or filled elliptic sector,
-   depending on <thickness>, <start_angle> and <end_angle> parameters. The resultant figure
-   is rotated by <angle>. All the angles are in degrees */
-CVAPI(void)  cvEllipse( CvArr* img, CvPoint center, CvSize axes,
-                        double angle, double start_angle, double end_angle,
-                        CvScalar color, int thickness CV_DEFAULT(1),
-                        int line_type CV_DEFAULT(8), int shift CV_DEFAULT(0));
-
-CV_INLINE  void  cvEllipseBox( CvArr* img, CvBox2D box, CvScalar color,
-                               int thickness CV_DEFAULT(1),
-                               int line_type CV_DEFAULT(8), int shift CV_DEFAULT(0) )
-{
-    CvSize axes;
-    axes.width = cvRound(box.size.height*0.5);
-    axes.height = cvRound(box.size.width*0.5);
-    
-    cvEllipse( img, cvPointFrom32f( box.center ), axes, box.angle,
-               0, 360, color, thickness, line_type, shift );
-}
-
-/* Fills convex or monotonous polygon. */
-CVAPI(void)  cvFillConvexPoly( CvArr* img, CvPoint* pts, int npts, CvScalar color,
-                               int line_type CV_DEFAULT(8), int shift CV_DEFAULT(0));
-
-/* Fills an area bounded by one or more arbitrary polygons */
-CVAPI(void)  cvFillPoly( CvArr* img, CvPoint** pts, int* npts, int contours, CvScalar color,
-                         int line_type CV_DEFAULT(8), int shift CV_DEFAULT(0) );
-
-/* Draws one or more polygonal curves */
-CVAPI(void)  cvPolyLine( CvArr* img, CvPoint** pts, int* npts, int contours,
-                         int is_closed, CvScalar color, int thickness CV_DEFAULT(1),
-                         int line_type CV_DEFAULT(8), int shift CV_DEFAULT(0) );
-
-#define cvDrawRect cvRectangle
-#define cvDrawLine cvLine
-#define cvDrawCircle cvCircle
-#define cvDrawEllipse cvEllipse
-#define cvDrawPolyLine cvPolyLine
-
-/* Clips the line segment connecting *pt1 and *pt2
-   by the rectangular window
-   (0<=x<img_size.width, 0<=y<img_size.height). */
-CVAPI(int) cvClipLine( CvSize img_size, CvPoint* pt1, CvPoint* pt2 );
-
-/* Initializes line iterator. Initially, line_iterator->ptr will point
-   to pt1 (or pt2, see left_to_right description) location in the image.
-   Returns the number of pixels on the line between the ending points. */
-CVAPI(int)  cvInitLineIterator( const CvArr* image, CvPoint pt1, CvPoint pt2,
-                                CvLineIterator* line_iterator,
-                                int connectivity CV_DEFAULT(8),
-                                int left_to_right CV_DEFAULT(0));
-
-/* Moves iterator to the next line point */
-#define CV_NEXT_LINE_POINT( line_iterator )                     \
-{                                                               \
-    int _line_iterator_mask = (line_iterator).err < 0 ? -1 : 0; \
-    (line_iterator).err += (line_iterator).minus_delta +        \
-        ((line_iterator).plus_delta & _line_iterator_mask);     \
-    (line_iterator).ptr += (line_iterator).minus_step +         \
-        ((line_iterator).plus_step & _line_iterator_mask);      \
-}
-
-
-/* basic font types */
-#define CV_FONT_HERSHEY_SIMPLEX         0
-#define CV_FONT_HERSHEY_PLAIN           1
-#define CV_FONT_HERSHEY_DUPLEX          2
-#define CV_FONT_HERSHEY_COMPLEX         3 
-#define CV_FONT_HERSHEY_TRIPLEX         4
-#define CV_FONT_HERSHEY_COMPLEX_SMALL   5
-#define CV_FONT_HERSHEY_SCRIPT_SIMPLEX  6
-#define CV_FONT_HERSHEY_SCRIPT_COMPLEX  7
-
-/* font flags */
-#define CV_FONT_ITALIC                 16  
-
-#define CV_FONT_VECTOR0    CV_FONT_HERSHEY_SIMPLEX
-
-/* Font structure */
-typedef struct CvFont
-{
-    int         font_face; /* =CV_FONT_* */
-    const int*  ascii; /* font data and metrics */
-    const int*  greek;
-    const int*  cyrillic;
-    float       hscale, vscale;
-    float       shear; /* slope coefficient: 0 - normal, >0 - italic */
-    int         thickness; /* letters thickness */
-    float       dx; /* horizontal interval between letters */
-    int         line_type;
-}
-CvFont;
-
-/* Initializes font structure used further in cvPutText */
-CVAPI(void)  cvInitFont( CvFont* font, int font_face,
-                         double hscale, double vscale,
-                         double shear CV_DEFAULT(0),
-                         int thickness CV_DEFAULT(1),
-                         int line_type CV_DEFAULT(8));
-
-CV_INLINE CvFont cvFont( double scale, int thickness CV_DEFAULT(1) )
-{
-    CvFont font;
-    cvInitFont( &font, CV_FONT_HERSHEY_PLAIN, scale, scale, 0, thickness, CV_AA );
-    return font;
-}
-
-/* Renders text stroke with specified font and color at specified location.
-   CvFont should be initialized with cvInitFont */
-CVAPI(void)  cvPutText( CvArr* img, const char* text, CvPoint org,
-                        const CvFont* font, CvScalar color );
-
-/* Calculates bounding box of text stroke (useful for alignment) */
-CVAPI(void)  cvGetTextSize( const char* text_string, const CvFont* font,
-                            CvSize* text_size, int* baseline );
-
-/* Unpacks color value, if arrtype is CV_8UC?, <color> is treated as
-   packed color value, otherwise the first channels (depending on arrtype)
-   of destination scalar are set to the same value = <color> */
-CVAPI(CvScalar)  cvColorToScalar( double packed_color, int arrtype );
-
-/* Returns the polygon points which make up the given ellipse.  The ellipse is define by
-   the box of size 'axes' rotated 'angle' around the 'center'.  A partial sweep
-   of the ellipse arc can be done by spcifying arc_start and arc_end to be something
-   other than 0 and 360, respectively.  The input array 'pts' must be large enough to
-   hold the result.  The total number of points stored into 'pts' is returned by this
-   function. */
-CVAPI(int) cvEllipse2Poly( CvPoint center, CvSize axes,
-                 int angle, int arc_start, int arc_end, CvPoint * pts, int delta );
-
-/* Draws contour outlines or filled interiors on the image */
-CVAPI(void)  cvDrawContours( CvArr *img, CvSeq* contour,
-                            CvScalar external_color, CvScalar hole_color,
-                            int max_level, int thickness CV_DEFAULT(1),
-                            int line_type CV_DEFAULT(8),
-                            CvPoint offset CV_DEFAULT(cvPoint(0,0)));
-
-/* Does look-up transformation. Elements of the source array
-   (that should be 8uC1 or 8sC1) are used as indexes in lutarr 256-element table */
-CVAPI(void) cvLUT( const CvArr* src, CvArr* dst, const CvArr* lut );
-
-
-/******************* Iteration through the sequence tree *****************/
-typedef struct CvTreeNodeIterator
-{
-    const void* node;
-    int level;
-    int max_level;
-}
-CvTreeNodeIterator;
-
-CVAPI(void) cvInitTreeNodeIterator( CvTreeNodeIterator* tree_iterator,
-                                   const void* first, int max_level );
-CVAPI(void*) cvNextTreeNode( CvTreeNodeIterator* tree_iterator );
-CVAPI(void*) cvPrevTreeNode( CvTreeNodeIterator* tree_iterator );
 
 /* Inserts sequence into tree with specified "parent" sequence.
    If parent is equal to frame (e.g. the most external contour),
    then added contour will have null pointer to parent. */
 CVAPI(void) cvInsertNodeIntoTree( void* node, void* parent, void* frame );
 
-/* Removes contour from tree (together with the contour children). */
-CVAPI(void) cvRemoveNodeFromTree( void* node, void* frame );
-
-
-
 /****************************************************************************************\
 *                                    System functions                                    *
 \****************************************************************************************/
-
-
-
 
 /* Get current OpenCV error status */
 CVAPI(int) cvGetErrStatus( void );
@@ -915,22 +519,6 @@ typedef int (CV_CDECL *CvErrorCallback)( int status, const char* func_name,
                     const char* err_msg, const char* file_name, int line, void* userdata );
 
 
-
-/*
-    Output to:
-        cvNulDevReport - nothing
-        cvStdErrReport - console(fprintf(stderr,...))
-        cvGuiBoxReport - MessageBox(WIN32)
-*/
-CVAPI(int) cvNulDevReport( int status, const char* func_name, const char* err_msg,
-                          const char* file_name, int line, void* userdata );
-
-CVAPI(int) cvStdErrReport( int status, const char* func_name, const char* err_msg,
-                          const char* file_name, int line, void* userdata );
-
-CVAPI(int) cvGuiBoxReport( int status, const char* func_name, const char* err_msg,
-                          const char* file_name, int line, void* userdata );
-
 typedef void* (CV_CDECL *CvAllocFunc)(size_t size, void* userdata);
 typedef int (CV_CDECL *CvFreeFunc)(void* pptr, void* userdata);
 
@@ -944,55 +532,6 @@ typedef void (CV_STDCALL* Cv_iplAllocateImageData)(IplImage*,int,int);
 typedef void (CV_STDCALL* Cv_iplDeallocate)(IplImage*,int);
 typedef IplImage* (CV_STDCALL* Cv_iplCloneImage)(const IplImage*);
 
-/* Makes OpenCV use IPL functions for IplImage allocation/deallocation */
-CVAPI(void) cvSetIPLAllocators( Cv_iplCreateImageHeader create_header,
-                               Cv_iplAllocateImageData allocate_data,
-                               Cv_iplDeallocate deallocate,
-                               Cv_iplCloneImage clone_image );
-
-
-
-/****************************************************************************************\
-*                                    Data Persistence                                    *
-\****************************************************************************************/
-
-
-/*********************************** Adding own types ***********************************/
-
-CVAPI(void) cvRegisterType( const CvTypeInfo* info );
-CVAPI(void) cvUnregisterType( const char* type_name );
-CVAPI(CvTypeInfo*) cvFirstType(void);
-CVAPI(CvTypeInfo*) cvFindType( const char* type_name );
-CVAPI(CvTypeInfo*) cvTypeOf( const void* struct_ptr );
-
-/* universal functions */
-CVAPI(void) cvRelease( void** struct_ptr );
-CVAPI(void*) cvClone( const void* struct_ptr );
-
-/* simple API for reading/writing data */
-CVAPI(void) cvSave( const char* filename, const void* struct_ptr,
-                    const char* name CV_DEFAULT(NULL),
-                    const char* comment CV_DEFAULT(NULL),
-                    CvAttrList attributes CV_DEFAULT(cvAttrList()));
-CVAPI(void*) cvLoad( const char* filename,
-                     CvMemStorage* memstorage CV_DEFAULT(NULL),
-                     const char* name CV_DEFAULT(NULL),
-                     const char** real_name CV_DEFAULT(NULL) );
-
-/*********************************** Measuring Execution Time ***************************/
-
-/* helper functions for RNG initialization and accurate time measurement:
-   uses internal clock counter on x86 */
-CVAPI(int64)  cvGetTickCount( void );
-CVAPI(double) cvGetTickFrequency( void );
-
-/*********************************** Multi-Threading ************************************/
-
-/* retrieve/set the number of threads used in OpenMP implementations */
-CVAPI(int)  cvGetNumThreads( void );
-CVAPI(void) cvSetNumThreads( int threads CV_DEFAULT(0) );
-/* get index of the thread being executed */
-CVAPI(int)  cvGetThreadNum( void );
 
 #ifdef __cplusplus
 }

@@ -674,97 +674,10 @@ CvMatND;
 *                      Multi-dimensional sparse array (CvSparseMat)                      *
 \****************************************************************************************/
 
-#define CV_SPARSE_MAT_MAGIC_VAL    0x42440000
-#define CV_TYPE_NAME_SPARSE_MAT    "opencv-sparse-matrix"
 
 struct CvSet;
 
-typedef struct CvSparseMat
-{
-    int type;
-    int dims;
-    int* refcount;
-    int hdr_refcount;
 
-    struct CvSet* heap;
-    void** hashtable;
-    int hashsize;
-    int valoffset;
-    int idxoffset;
-    int size[CV_MAX_DIM];
-}
-CvSparseMat;
-
-#define CV_IS_SPARSE_MAT_HDR(mat) \
-    ((mat) != NULL && \
-    (((const CvSparseMat*)(mat))->type & CV_MAGIC_MASK) == CV_SPARSE_MAT_MAGIC_VAL)
-
-#define CV_IS_SPARSE_MAT(mat) \
-    CV_IS_SPARSE_MAT_HDR(mat)
-
-/**************** iteration through a sparse array *****************/
-
-typedef struct CvSparseNode
-{
-    unsigned hashval;
-    struct CvSparseNode* next;
-}
-CvSparseNode;
-
-typedef struct CvSparseMatIterator
-{
-    CvSparseMat* mat;
-    CvSparseNode* node;
-    int curidx;
-}
-CvSparseMatIterator;
-
-#define CV_NODE_VAL(mat,node)   ((void*)((uchar*)(node) + (mat)->valoffset))
-#define CV_NODE_IDX(mat,node)   ((int*)((uchar*)(node) + (mat)->idxoffset))
-
-/****************************************************************************************\
-*                                         Histogram                                      *
-\****************************************************************************************/
-
-typedef int CvHistType;
-
-#define CV_HIST_MAGIC_VAL     0x42450000
-#define CV_HIST_UNIFORM_FLAG  (1 << 10)
-
-/* indicates whether bin ranges are set already or not */
-#define CV_HIST_RANGES_FLAG   (1 << 11)
-
-#define CV_HIST_ARRAY         0
-#define CV_HIST_SPARSE        1
-#define CV_HIST_TREE          CV_HIST_SPARSE
-
-/* should be used as a parameter only,
-   it turns to CV_HIST_UNIFORM_FLAG of hist->type */
-#define CV_HIST_UNIFORM       1
-
-typedef struct CvHistogram
-{
-    int     type;
-    CvArr*  bins;
-    float   thresh[CV_MAX_DIM][2]; /* for uniform histograms */
-    float** thresh2; /* for non-uniform histograms */
-    CvMatND mat; /* embedded matrix header for array histograms */
-}
-CvHistogram;
-
-#define CV_IS_HIST( hist ) \
-    ((hist) != NULL  && \
-     (((CvHistogram*)(hist))->type & CV_MAGIC_MASK) == CV_HIST_MAGIC_VAL && \
-     (hist)->bins != NULL)
-
-#define CV_IS_UNIFORM_HIST( hist ) \
-    (((hist)->type & CV_HIST_UNIFORM_FLAG) != 0)
-
-#define CV_IS_SPARSE_HIST( hist ) \
-    CV_IS_SPARSE_MAT((hist)->bins)
-
-#define CV_HIST_HAS_RANGES( hist ) \
-    (((hist)->type & CV_HIST_RANGES_FLAG) != 0)
 
 /****************************************************************************************\
 *                      Other supplementary data type definitions                         *
@@ -1152,70 +1065,6 @@ CvSet;
 /* Checks whether the element pointed by ptr belongs to a set or not */
 #define CV_IS_SET_ELEM( ptr )  (((CvSetElem*)(ptr))->flags >= 0)
 
-/************************************* Graph ********************************************/
-
-/*
-  Graph is represented as a set of vertices.
-  Vertices contain their adjacency lists (more exactly, pointers to first incoming or
-  outcoming edge (or 0 if isolated vertex)). Edges are stored in another set.
-  There is a single-linked list of incoming/outcoming edges for each vertex.
-
-  Each edge consists of:
-    two pointers to the starting and the ending vertices (vtx[0] and vtx[1],
-    respectively). Graph may be oriented or not. In the second case, edges between
-    vertex i to vertex j are not distingueshed (during the search operations).
-
-    two pointers to next edges for the starting and the ending vertices.
-    next[0] points to the next edge in the vtx[0] adjacency list and
-    next[1] points to the next edge in the vtx[1] adjacency list.
-*/
-#define CV_GRAPH_EDGE_FIELDS()      \
-    int flags;                      \
-    float weight;                   \
-    struct CvGraphEdge* next[2];    \
-    struct CvGraphVtx* vtx[2];
-
-
-#define CV_GRAPH_VERTEX_FIELDS()    \
-    int flags;                      \
-    struct CvGraphEdge* first;
-
-
-typedef struct CvGraphEdge
-{
-    CV_GRAPH_EDGE_FIELDS()
-}
-CvGraphEdge;
-
-typedef struct CvGraphVtx
-{
-    CV_GRAPH_VERTEX_FIELDS()
-}
-CvGraphVtx;
-
-typedef struct CvGraphVtx2D
-{
-    CV_GRAPH_VERTEX_FIELDS()
-    CvPoint2D32f* ptr;
-}
-CvGraphVtx2D;
-
-/*
-   Graph is "derived" from the set (this is set a of vertices)
-   and includes another set (edges)
-*/
-#define  CV_GRAPH_FIELDS()   \
-    CV_SET_FIELDS()          \
-    CvSet* edges;
-
-typedef struct CvGraph
-{
-    CV_GRAPH_FIELDS()
-}
-CvGraph;
-
-#define CV_TYPE_NAME_GRAPH "opencv-graph"
-
 /*********************************** Chain/Countour *************************************/
 
 typedef struct CvChain
@@ -1512,16 +1361,6 @@ CvSeqReader;
 *             Data structures for persistence (a.k.a serialization) functionality        *
 \****************************************************************************************/
 
-/* "black box" file storage */
-typedef struct CvFileStorage CvFileStorage;
-
-/* storage flags */
-#define CV_STORAGE_READ          0
-#define CV_STORAGE_WRITE         1
-#define CV_STORAGE_WRITE_TEXT    CV_STORAGE_WRITE
-#define CV_STORAGE_WRITE_BINARY  CV_STORAGE_WRITE
-#define CV_STORAGE_APPEND        2
-
 /* list of attributes */
 typedef struct CvAttrList
 {
@@ -1612,33 +1451,6 @@ typedef struct CvFileNode
 }
 CvFileNode;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-typedef int (CV_CDECL *CvIsInstanceFunc)( const void* struct_ptr );
-typedef void (CV_CDECL *CvReleaseFunc)( void** struct_dblptr );
-typedef void* (CV_CDECL *CvReadFunc)( CvFileStorage* storage, CvFileNode* node );
-typedef void (CV_CDECL *CvWriteFunc)( CvFileStorage* storage, const char* name,
-                                      const void* struct_ptr, CvAttrList attributes );
-typedef void* (CV_CDECL *CvCloneFunc)( const void* struct_ptr );
-#ifdef __cplusplus
-}
-#endif
-
-typedef struct CvTypeInfo
-{
-    int flags;
-    int header_size;
-    struct CvTypeInfo* prev;
-    struct CvTypeInfo* next;
-    const char* type_name;
-    CvIsInstanceFunc is_instance;
-    CvReleaseFunc release;
-    CvReadFunc read;
-    CvWriteFunc write;
-    CvCloneFunc clone;
-}
-CvTypeInfo;
 
 
 #endif /*_CXCORE_TYPES_H_*/

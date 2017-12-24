@@ -161,7 +161,7 @@ cvReleaseMat( CvMat** array )
     {
         CvMat* arr = *array;
 
-        if( !CV_IS_MAT_HDR(arr) && !CV_IS_MATND_HDR(arr) )
+        if( !CV_IS_MAT_HDR(arr))
             CV_ERROR_FROM_CODE( CV_StsBadFlag );
 
         *array = 0;
@@ -198,34 +198,6 @@ cvCloneMat( const CvMat* src )
 
     return dst;
 }
-
-
-
-// returns zero value if iteration is finished, non-zero otherwise
-CV_IMPL  int  cvNextNArraySlice( CvNArrayIterator* iterator )
-{
-    assert( iterator != 0 );
-    int i, dims, size = 0;
-
-    for( dims = iterator->dims; dims > 0; dims-- )
-    {
-        for( i = 0; i < iterator->count; i++ )
-            iterator->ptr[i] += iterator->hdr[i]->dim[dims-1].step;
-
-        if( --iterator->stack[dims-1] > 0 )
-            break;
-
-        size = iterator->hdr[0]->dim[dims-1].size;
-
-        for( i = 0; i < iterator->count; i++ )
-            iterator->ptr[i] -= (size_t)size*iterator->hdr[i]->dim[dims-1].step;
-
-        iterator->stack[dims-1] = size;
-    }
-
-    return dims > 0;
-}
-
 
 
 /****************************************************************************************\
@@ -286,36 +258,6 @@ cvCreateData( CvArr* arr )
             img->depth = depth;
         }
     }
-    else if( CV_IS_MATND_HDR( arr ))
-    {
-        CvMatND* mat = (CvMatND*)arr;
-        int i;
-        size_t total_size = CV_ELEM_SIZE(mat->type);
-
-        if( mat->data.ptr != 0 )
-            CV_ERROR( CV_StsError, "Data is already allocated" );
-
-        if( CV_IS_MAT_CONT( mat->type ))
-        {
-            total_size = (size_t)mat->dim[0].size*(mat->dim[0].step != 0 ?
-                         mat->dim[0].step : total_size);
-        }
-        else
-        {
-            for( i = mat->dims - 1; i >= 0; i-- )
-            {
-                size_t size = (size_t)mat->dim[i].step*mat->dim[i].size;
-
-                if( total_size < size )
-                    total_size = size;
-            }
-        }
-
-        CV_CALL( mat->refcount = (int*)cvAlloc( total_size +
-                                        sizeof(int) + CV_MALLOC_ALIGN ));
-        mat->data.ptr = (uchar*)cvAlignPtr( mat->refcount + 1, CV_MALLOC_ALIGN );
-        *mat->refcount = 1;
-    }
     else
     {
         CV_ERROR( CV_StsBadArg, "unrecognized or unsupported array type" );
@@ -335,7 +277,7 @@ cvSetData( CvArr* arr, void* data, int step )
 
     int pix_size, min_step;
 
-    if( CV_IS_MAT_HDR(arr) || CV_IS_MATND_HDR(arr) )
+    if( CV_IS_MAT_HDR(arr))
         cvReleaseData( arr );
 
     if( CV_IS_MAT_HDR( arr ))
@@ -393,28 +335,7 @@ cvSetData( CvArr* arr, void* data, int step )
             img->align = 4;
         }
     }
-    else if( CV_IS_MATND_HDR( arr ))
-    {
-        CvMatND* mat = (CvMatND*)arr;
-        int i;
-        int64 cur_step;
-
-        if( step != CV_AUTOSTEP )
-            CV_ERROR( CV_BadStep,
-            "For multidimensional array only CV_AUTOSTEP is allowed here" );
-
-        mat->data.ptr = (uchar*)data;
-        cur_step = CV_ELEM_SIZE(mat->type);
-
-        for( i = mat->dims - 1; i >= 0; i-- )
-        {
-            if( cur_step > INT_MAX )
-                CV_ERROR( CV_StsOutOfRange, "The array is too big" );
-            mat->dim[i].step = (int)cur_step;
-            cur_step *= mat->dim[i].size;
-        }
-    }
-    else
+     else
     {
         CV_ERROR( CV_StsBadArg, "unrecognized or unsupported array type" );
     }
@@ -431,7 +352,7 @@ cvReleaseData( CvArr* arr )
 
     __BEGIN__;
 
-    if( CV_IS_MAT_HDR( arr ) || CV_IS_MATND_HDR( arr ))
+    if( CV_IS_MAT_HDR( arr ))
     {
         CvMat* mat = (CvMat*)arr;
         cvDecRefData( mat );
@@ -470,7 +391,7 @@ cvGetElemType( const CvArr* arr )
 
     __BEGIN__;
 
-    if( CV_IS_MAT_HDR(arr) || CV_IS_MATND_HDR(arr) || CV_IS_SPARSE_MAT_HDR(arr))
+    if( CV_IS_MAT_HDR(arr))
     {
         type = CV_MAT_TYPE( ((CvMat*)arr)->type );
     }

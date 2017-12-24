@@ -666,13 +666,6 @@ typedef enum CvHintAlgorithm {
     cvAlgHintAccurate
 } CvHintAlgorithm;
 
-typedef enum CvCmpOp {
-    cvCmpLess,
-    cvCmpLessEq,
-    cvCmpEq,
-    cvCmpGreaterEq,
-    cvCmpGreater
-} CvCmpOp;
 
 typedef struct CvFuncTable
 {
