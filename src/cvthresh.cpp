@@ -6,42 +6,14 @@ icvThresh_8u_C1R(const uchar *src, int src_step, uchar *dst, int dst_step,
 {
     int i, j;
     uchar tab[256];
-
-    switch (type)
+    if (CV_THRESH_BINARY != type)
     {
-    case CV_THRESH_BINARY:
-        for (i = 0; i <= thresh; i++)
-            tab[i] = 0;
-        for (; i < 256; i++)
-            tab[i] = maxval;
-        break;
-    case CV_THRESH_BINARY_INV:
-        for (i = 0; i <= thresh; i++)
-            tab[i] = maxval;
-        for (; i < 256; i++)
-            tab[i] = 0;
-        break;
-    case CV_THRESH_TRUNC:
-        for (i = 0; i <= thresh; i++)
-            tab[i] = (uchar)i;
-        for (; i < 256; i++)
-            tab[i] = thresh;
-        break;
-    case CV_THRESH_TOZERO:
-        for (i = 0; i <= thresh; i++)
-            tab[i] = 0;
-        for (; i < 256; i++)
-            tab[i] = (uchar)i;
-        break;
-    case CV_THRESH_TOZERO_INV:
-        for (i = 0; i <= thresh; i++)
-            tab[i] = (uchar)i;
-        for (; i < 256; i++)
-            tab[i] = 0;
-        break;
-    default:
         return CV_BADFLAG_ERR;
     }
+    for (i = 0; i <= thresh; i++)
+        tab[i] = 0;
+    for (; i < 256; i++)
+        tab[i] = maxval;
 
     for (i = 0; i < roi.height; i++, src += src_step, dst += dst_step)
     {

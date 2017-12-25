@@ -37,36 +37,32 @@ cvSmooth(const void *srcarr, void *dstarr, int smooth_type,
     if (!CV_ARE_SIZES_EQ(src, dst))
         CV_ERROR(CV_StsUnmatchedSizes, "");
 
-    if (smooth_type != CV_BLUR_NO_SCALE && !CV_ARE_TYPES_EQ(src, dst))
+    if (!CV_ARE_TYPES_EQ(src, dst))
         CV_ERROR(CV_StsUnmatchedFormats,
                  "The specified smoothing algorithm requires input and ouput arrays be of the same type");
 
-    if (smooth_type == CV_BLUR || smooth_type == CV_BLUR_NO_SCALE ||
-        smooth_type == CV_GAUSSIAN || smooth_type == CV_MEDIAN)
+    // automatic detection of kernel size from sigma
+    if (smooth_type == CV_GAUSSIAN)
     {
-        // automatic detection of kernel size from sigma
-        if (smooth_type == CV_GAUSSIAN)
-        {
-            sigma1 = param3;
-            sigma2 = param4 ? param4 : param3;
+        sigma1 = param3;
+        sigma2 = param4 ? param4 : param3;
 
-            if (param1 == 0 && sigma1 > 0)
-                param1 = cvRound(sigma1 * (depth == CV_8U ? 3 : 4) * 2 + 1) | 1;
-            if (param2 == 0 && sigma2 > 0)
-                param2 = cvRound(sigma2 * (depth == CV_8U ? 3 : 4) * 2 + 1) | 1;
-        }
+        if (param1 == 0 && sigma1 > 0)
+            param1 = cvRound(sigma1 * (depth == CV_8U ? 3 : 4) * 2 + 1) | 1;
+        if (param2 == 0 && sigma2 > 0)
+            param2 = cvRound(sigma2 * (depth == CV_8U ? 3 : 4) * 2 + 1) | 1;
+    }
 
-        if (param2 == 0)
-            param2 = size.height == 1 ? 1 : param1;
-        if (param1 < 1 || (param1 & 1) == 0 || param2 < 1 || (param2 & 1) == 0)
-            CV_ERROR(CV_StsOutOfRange,
-                     "Both mask width and height must be >=1 and odd");
+    if (param2 == 0)
+        param2 = size.height == 1 ? 1 : param1;
+    if (param1 < 1 || (param1 & 1) == 0 || param2 < 1 || (param2 & 1) == 0)
+        CV_ERROR(CV_StsOutOfRange,
+                 "Both mask width and height must be >=1 and odd");
 
-        if (param1 == 1 && param2 == 1)
-        {
-            cvConvert(src, dst);
-            EXIT;
-        }
+    if (param1 == 1 && param2 == 1)
+    {
+        cvConvert(src, dst);
+        EXIT;
     }
 
     if (smooth_type == CV_GAUSSIAN)

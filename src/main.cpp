@@ -118,7 +118,7 @@ typedef struct stBox
 	bool isRect;
 } Box;
 
-#define MAX_P 40.0
+#define MAX_P 10.0
 
 bool isEqu(float x1, float x2)
 {
@@ -154,6 +154,7 @@ struct SymUBoxCmp
 {
 	bool operator()(const Box &x, const Box &y) const
 	{
+		return true;
         if (fabs(x.box.center.x - y.box.center.x) <= MAX_P && fabs(x.box.center.y - y.box.center.y) <= MAX_P)
 		{
             if (fabs(x.box.size.width - y.box.size.width) <= MAX_P && fabs(x.box.size.height - y.box.size.height) <= MAX_P)
