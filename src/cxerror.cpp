@@ -63,17 +63,17 @@ typedef struct CvContext
     CvStackRecord err_ctx;
 } CvContext;
 
-#define CV_DEFAULT_ERROR_CALLBACK cvStdErrReport
+#define VOS_DEFAULT_ERROR_CALLBACK cvStdErrReport
 
 static CvContext *
 icvCreateContext(void)
 {
     CvContext *context = (CvContext *)malloc(sizeof(*context));
 
-    context->err_mode = CV_ErrModeLeaf;
-    context->err_code = CV_StsOk;
+    context->err_mode = VOS_ErrModeLeaf;
+    context->err_code = VOS_StsOk;
 
-    context->error_callback = CV_DEFAULT_ERROR_CALLBACK;
+    context->error_callback = VOS_DEFAULT_ERROR_CALLBACK;
     context->userdata = 0;
 
     return context;
@@ -94,7 +94,7 @@ static pthread_key_t g_TlsIndex;
 static CvContext *
 icvGetContext(void)
 {
-#ifdef CV_DLL
+#ifdef VOS_DLL
 #if defined WIN32 || defined WIN64
     CvContext *context;
 
@@ -103,7 +103,7 @@ icvGetContext(void)
     {
         g_TlsIndex = TlsAlloc();
         if (g_TlsIndex == TLS_OUT_OF_INDEXES)
-            FatalAppExit(0, "Only set CV_DLL for DLL usage");
+            FatalAppExit(0, "Only set VOS_DLL for DLL usage");
     }
 
     context = (CvContext *)TlsGetValue(g_TlsIndex);
@@ -140,11 +140,11 @@ icvGetContext(void)
 #endif
 }
 
-CV_IMPL int
+VOS_IMPL int
 cvStdErrReport(int code, const char *func_name, const char *err_msg,
                const char *file, int line, void *)
 {
-    if (code == CV_StsBackTrace || code == CV_StsAutoTrace)
+    if (code == VOS_StsBackTrace || code == VOS_StsAutoTrace)
         fprintf(stderr, "\tcalled from ");
     else
         fprintf(stderr, "OpenCV ERROR: %s (%s)\n\tin function ",
@@ -153,7 +153,7 @@ cvStdErrReport(int code, const char *func_name, const char *err_msg,
     fprintf(stderr, "%s, %s(%d)\n", func_name ? func_name : "<unknown>",
             file != NULL ? file : "", line);
 
-    if (cvGetErrMode() == CV_ErrModeLeaf)
+    if (cvGetErrMode() == VOS_ErrModeLeaf)
     {
         fprintf(stderr, "Terminating the application...\n");
         return 1;
@@ -162,65 +162,65 @@ cvStdErrReport(int code, const char *func_name, const char *err_msg,
         return 0;
 }
 
-CV_IMPL const char *cvErrorStr(int status)
+VOS_IMPL const char *cvErrorStr(int status)
 {
     static char buf[256];
 
     switch (status)
     {
-    case CV_StsOk:
+    case VOS_StsOk:
         return "No Error";
-    case CV_StsBackTrace:
+    case VOS_StsBackTrace:
         return "Backtrace";
-    case CV_StsError:
+    case VOS_StsError:
         return "Unspecified error";
-    case CV_StsInternal:
+    case VOS_StsInternal:
         return "Internal error";
-    case CV_StsNoMem:
+    case VOS_StsNoMem:
         return "Insufficient memory";
-    case CV_StsBadArg:
+    case VOS_StsBadArg:
         return "Bad argument";
-    case CV_StsNoConv:
+    case VOS_StsNoConv:
         return "Iterations do not converge";
-    case CV_StsAutoTrace:
+    case VOS_StsAutoTrace:
         return "Autotrace call";
-    case CV_StsBadSize:
+    case VOS_StsBadSize:
         return "Incorrect size of input array";
-    case CV_StsNullPtr:
+    case VOS_StsNullPtr:
         return "Null pointer";
-    case CV_StsDivByZero:
+    case VOS_StsDivByZero:
         return "Divizion by zero occured";
-    case CV_BadStep:
+    case VOS_BadStep:
         return "Image step is wrong";
-    case CV_StsInplaceNotSupported:
+    case VOS_StsInplaceNotSupported:
         return "Inplace operation is not supported";
-    case CV_StsObjectNotFound:
+    case VOS_StsObjectNotFound:
         return "Requested object was not found";
-    case CV_BadDepth:
+    case VOS_BadDepth:
         return "Input image depth is not supported by function";
-    case CV_StsUnmatchedFormats:
+    case VOS_StsUnmatchedFormats:
         return "Formats of input arguments do not match";
-    case CV_StsUnmatchedSizes:
+    case VOS_StsUnmatchedSizes:
         return "Sizes of input arguments do not match";
-    case CV_StsOutOfRange:
+    case VOS_StsOutOfRange:
         return "One of arguments\' values is out of range";
-    case CV_StsUnsupportedFormat:
+    case VOS_StsUnsupportedFormat:
         return "Unsupported format or combination of formats";
-    case CV_BadCOI:
+    case VOS_BadCOI:
         return "Input COI is not supported";
-    case CV_BadNumChannels:
+    case VOS_BadNumChannels:
         return "Bad number of channels";
-    case CV_StsBadFlag:
+    case VOS_StsBadFlag:
         return "Bad flag (parameter or structure field)";
-    case CV_StsBadPoint:
+    case VOS_StsBadPoint:
         return "Bad parameter of type CvPoint";
-    case CV_StsBadMask:
+    case VOS_StsBadMask:
         return "Bad type of mask argument";
-    case CV_StsParseError:
+    case VOS_StsParseError:
         return "Parsing error";
-    case CV_StsNotImplemented:
+    case VOS_StsNotImplemented:
         return "The function/feature is not implemented";
-    case CV_StsBadMemBlock:
+    case VOS_StsBadMemBlock:
         return "Memory block has been corrupted";
     };
 
@@ -228,12 +228,12 @@ CV_IMPL const char *cvErrorStr(int status)
     return buf;
 }
 
-CV_IMPL int cvGetErrMode(void)
+VOS_IMPL int cvGetErrMode(void)
 {
     return icvGetContext()->err_mode;
 }
 
-CV_IMPL int cvSetErrMode(int mode)
+VOS_IMPL int cvSetErrMode(int mode)
 {
     CvContext *context = icvGetContext();
     int prev_mode = context->err_mode;
@@ -241,27 +241,27 @@ CV_IMPL int cvSetErrMode(int mode)
     return prev_mode;
 }
 
-CV_IMPL int cvGetErrStatus()
+VOS_IMPL int cvGetErrStatus()
 {
     return icvGetContext()->err_code;
 }
 
-CV_IMPL void cvSetErrStatus(int code)
+VOS_IMPL void cvSetErrStatus(int code)
 {
     icvGetContext()->err_code = code;
 }
 
-CV_IMPL void cvError(int code, const char *func_name,
+VOS_IMPL void cvError(int code, const char *func_name,
                      const char *err_msg,
                      const char *file_name, int line)
 {
-    if (code == CV_StsOk)
+    if (code == VOS_StsOk)
         cvSetErrStatus(code);
     else
     {
         CvContext *context = icvGetContext();
 
-        if (code != CV_StsBackTrace && code != CV_StsAutoTrace)
+        if (code != VOS_StsBackTrace && code != VOS_StsAutoTrace)
         {
             char *message = context->err_msg;
             context->err_code = code;
@@ -271,7 +271,7 @@ CV_IMPL void cvError(int code, const char *func_name,
             context->err_ctx.line = line;
         }
 
-        if (context->err_mode != CV_ErrModeSilent)
+        if (context->err_mode != VOS_ErrModeSilent)
         {
             int terminate = context->error_callback(code, func_name, err_msg,
                                                     file_name, line, context->userdata);
@@ -290,54 +290,54 @@ CV_IMPL void cvError(int code, const char *func_name,
 
 
 /* function, which converts int to int */
-CV_IMPL int
+VOS_IMPL int
 cvErrorFromIppStatus(int status)
 {
     switch (status)
     {
-    case CV_BADSIZE_ERR:
-        return CV_StsBadSize;
-    case CV_BADMEMBLOCK_ERR:
-        return CV_StsBadMemBlock;
-    case CV_NULLPTR_ERR:
-        return CV_StsNullPtr;
-    case CV_DIV_BY_ZERO_ERR:
-        return CV_StsDivByZero;
-    case CV_BADSTEP_ERR:
-        return CV_BadStep;
-    case CV_OUTOFMEM_ERR:
-        return CV_StsNoMem;
-    case CV_BADARG_ERR:
-        return CV_StsBadArg;
-    case CV_NOTDEFINED_ERR:
-        return CV_StsError;
-    case CV_INPLACE_NOT_SUPPORTED_ERR:
-        return CV_StsInplaceNotSupported;
-    case CV_NOTFOUND_ERR:
-        return CV_StsObjectNotFound;
-    case CV_BADCONVERGENCE_ERR:
-        return CV_StsNoConv;
-    case CV_BADDEPTH_ERR:
-        return CV_BadDepth;
-    case CV_UNMATCHED_FORMATS_ERR:
-        return CV_StsUnmatchedFormats;
-    case CV_UNSUPPORTED_COI_ERR:
-        return CV_BadCOI;
-    case CV_UNSUPPORTED_CHANNELS_ERR:
-        return CV_BadNumChannels;
-    case CV_BADFLAG_ERR:
-        return CV_StsBadFlag;
-    case CV_BADRANGE_ERR:
-        return CV_StsBadArg;
-    case CV_BADCOEF_ERR:
-        return CV_StsBadArg;
-    case CV_BADFACTOR_ERR:
-        return CV_StsBadArg;
-    case CV_BADPOINT_ERR:
-        return CV_StsBadPoint;
+    case VOS_BADSIZE_ERR:
+        return VOS_StsBadSize;
+    case VOS_BADMEMBLOCK_ERR:
+        return VOS_StsBadMemBlock;
+    case VOS_NULLPTR_ERR:
+        return VOS_StsNullPtr;
+    case VOS_DIV_BY_ZERO_ERR:
+        return VOS_StsDivByZero;
+    case VOS_BADSTEP_ERR:
+        return VOS_BadStep;
+    case VOS_OUTOFMEM_ERR:
+        return VOS_StsNoMem;
+    case VOS_BADARG_ERR:
+        return VOS_StsBadArg;
+    case VOS_NOTDEFINED_ERR:
+        return VOS_StsError;
+    case VOS_INPLACE_NOT_SUPPORTED_ERR:
+        return VOS_StsInplaceNotSupported;
+    case VOS_NOTFOUND_ERR:
+        return VOS_StsObjectNotFound;
+    case VOS_BADCONVERGENCE_ERR:
+        return VOS_StsNoConv;
+    case VOS_BADDEPTH_ERR:
+        return VOS_BadDepth;
+    case VOS_UNMATCHED_FORMATS_ERR:
+        return VOS_StsUnmatchedFormats;
+    case VOS_UNSUPPORTED_COI_ERR:
+        return VOS_BadCOI;
+    case VOS_UNSUPPORTED_CHANNELS_ERR:
+        return VOS_BadNumChannels;
+    case VOS_BADFLAG_ERR:
+        return VOS_StsBadFlag;
+    case VOS_BADRANGE_ERR:
+        return VOS_StsBadArg;
+    case VOS_BADCOEF_ERR:
+        return VOS_StsBadArg;
+    case VOS_BADFACTOR_ERR:
+        return VOS_StsBadArg;
+    case VOS_BADPOINT_ERR:
+        return VOS_StsBadPoint;
 
     default:
-        return CV_StsError;
+        return VOS_StsError;
     }
 }
 /* End of file */

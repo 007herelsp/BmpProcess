@@ -1,38 +1,38 @@
 
 #include "_cv.h"
 
-CV_IMPL double
+VOS_IMPL double
 cvArcLength(const void *array, CvSlice slice, int is_closed)
 {
     double perimeter = 0;
 
-    CV_FUNCNAME("cvArcLength");
+    VOS_FUNCNAME("cvArcLength");
 
     __BEGIN__;
 
     int i, j = 0, count;
     const int N = 16;
     float buf[N];
-    CvMat buffer = cvMat(1, N, CV_32F, buf);
+    CvMat buffer = cvMat(1, N, VOS_32F, buf);
     CvSeqReader reader;
     CvSeq *contour = 0;
 
-    if (CV_IS_SEQ(array))
+    if (VOS_IS_SEQ(array))
     {
         contour = (CvSeq *)array;
-        if (!CV_IS_SEQ_POLYLINE(contour))
-            CV_ERROR(CV_StsBadArg, "Unsupported sequence type");
+        if (!VOS_IS_SEQ_POLYLINE(contour))
+            VOS_ERROR(VOS_StsBadArg, "Unsupported sequence type");
         if (is_closed < 0)
-            is_closed = CV_IS_SEQ_CLOSED(contour);
+            is_closed = VOS_IS_SEQ_CLOSED(contour);
     }
     else
     {
-        CV_ERROR(CV_StsBadArg, "Unsupported sequence type");
+        VOS_ERROR(VOS_StsBadArg, "Unsupported sequence type");
     }
 
     if (contour->total > 1)
     {
-        int is_float = CV_SEQ_ELTYPE(contour) == CV_32FC2;
+        int is_float = VOS_SEQ_ELTYPE(contour) == VOS_32FC2;
 
         cvStartReadSeq(contour, &reader, 0);
         cvSetSeqReaderPos(&reader, slice.start_index);
@@ -42,7 +42,7 @@ cvArcLength(const void *array, CvSlice slice, int is_closed)
 
         /* scroll the reader by 1 point */
         reader.prev_elem = reader.ptr;
-        CV_NEXT_SEQ_ELEM(sizeof(CvPoint), reader);
+        VOS_NEXT_SEQ_ELEM(sizeof(CvPoint), reader);
 
         for (i = 0; i < count; i++)
         {
@@ -66,7 +66,7 @@ cvArcLength(const void *array, CvSlice slice, int is_closed)
             }
 
             reader.prev_elem = reader.ptr;
-            CV_NEXT_SEQ_ELEM(contour->elem_size, reader);
+            VOS_NEXT_SEQ_ELEM(contour->elem_size, reader);
 
             buffer.data.fl[j] = dx * dx + dy * dy;
             if (++j == N || i == count - 1)
@@ -93,7 +93,7 @@ icvContourArea(const CvSeq *contour, double *area)
         CvSeqReader reader;
         int lpt = contour->total;
         double a00 = 0, xi_1, yi_1;
-        int is_float = CV_SEQ_ELTYPE(contour) == CV_32FC2;
+        int is_float = VOS_SEQ_ELTYPE(contour) == VOS_32FC2;
 
         cvStartReadSeq(contour, &reader, 0);
 
@@ -107,7 +107,7 @@ icvContourArea(const CvSeq *contour, double *area)
             xi_1 = ((CvPoint2D32f *)(reader.ptr))->x;
             yi_1 = ((CvPoint2D32f *)(reader.ptr))->y;
         }
-        CV_NEXT_SEQ_ELEM(contour->elem_size, reader);
+        VOS_NEXT_SEQ_ELEM(contour->elem_size, reader);
 
         while (lpt-- > 0)
         {
@@ -123,7 +123,7 @@ icvContourArea(const CvSeq *contour, double *area)
                 xi = ((CvPoint2D32f *)(reader.ptr))->x;
                 yi = ((CvPoint2D32f *)(reader.ptr))->y;
             }
-            CV_NEXT_SEQ_ELEM(contour->elem_size, reader);
+            VOS_NEXT_SEQ_ELEM(contour->elem_size, reader);
 
             dxy = xi_1 * yi - xi * yi_1;
             a00 += dxy;
@@ -136,7 +136,7 @@ icvContourArea(const CvSeq *contour, double *area)
     else
         *area = 0;
 
-    return CV_OK;
+    return VOS_OK;
 }
 
 /****************************************************************************************\
@@ -151,7 +151,7 @@ icvMemCopy(double **buf1, double **buf2, double **buf3, int *b_max)
     int bb;
 
     if (*buf1 == NULL && *buf2 == NULL || *buf3 == NULL)
-        return CV_NULLPTR_ERR;
+        return VOS_NULLPTR_ERR;
 
     bb = *b_max;
     if (*buf2 == NULL)
@@ -160,7 +160,7 @@ icvMemCopy(double **buf1, double **buf2, double **buf3, int *b_max)
         *buf2 = (double *)cvAlloc((*b_max) * sizeof(double));
 
         if (*buf2 == NULL)
-            return CV_OUTOFMEM_ERR;
+            return VOS_OUTOFMEM_ERR;
 
         memcpy(*buf2, *buf3, bb * sizeof(double));
 
@@ -174,7 +174,7 @@ icvMemCopy(double **buf1, double **buf2, double **buf3, int *b_max)
         *buf1 = (double *)cvAlloc((*b_max) * sizeof(double));
 
         if (*buf1 == NULL)
-            return CV_OUTOFMEM_ERR;
+            return VOS_OUTOFMEM_ERR;
 
         memcpy(*buf1, *buf3, bb * sizeof(double));
 
@@ -182,7 +182,7 @@ icvMemCopy(double **buf1, double **buf2, double **buf3, int *b_max)
         cvFree(buf2);
         *buf2 = NULL;
     }
-    return CV_OK;
+    return VOS_OK;
 }
 
 /* area of a contour sector */
@@ -203,10 +203,10 @@ static CvStatus icvContourSecArea(CvSeq *contour, CvSlice slice, double *area)
     assert(contour != NULL);
 
     if (contour == NULL)
-        return CV_NULLPTR_ERR;
+        return VOS_NULLPTR_ERR;
 
-    if (!CV_IS_SEQ_POLYGON(contour))
-        return CV_BADFLAG_ERR;
+    if (!VOS_IS_SEQ_POLYGON(contour))
+        return VOS_BADFLAG_ERR;
 
     lpt = cvSliceLength(slice, contour);
     /*if( n2 >= n1 )
@@ -223,17 +223,17 @@ static CvStatus icvContourSecArea(CvSeq *contour, CvSlice slice, double *area)
         p_are1 = (double *)cvAlloc(p_max * sizeof(double));
 
         if (p_are1 == NULL)
-            return CV_OUTOFMEM_ERR;
+            return VOS_OUTOFMEM_ERR;
 
         p_are = p_are1;
         p_are2 = NULL;
 
         cvStartReadSeq(contour, &reader, 0);
         cvSetSeqReaderPos(&reader, slice.start_index);
-        CV_READ_SEQ_ELEM(pt_s, reader);
+        VOS_READ_SEQ_ELEM(pt_s, reader);
         p_ind = 0;
         cvSetSeqReaderPos(&reader, slice.end_index);
-        CV_READ_SEQ_ELEM(pt_e, reader);
+        VOS_READ_SEQ_ELEM(pt_e, reader);
 
         /*    normal coefficients    */
         nx = pt_s.y - pt_e.y;
@@ -242,7 +242,7 @@ static CvStatus icvContourSecArea(CvSeq *contour, CvSlice slice, double *area)
 
         while (lpt-- > 0)
         {
-            CV_READ_SEQ_ELEM(pt, reader);
+            VOS_READ_SEQ_ELEM(pt, reader);
 
             if (flag == 0)
             {
@@ -346,44 +346,44 @@ static CvStatus icvContourSecArea(CvSeq *contour, CvSlice slice, double *area)
         else if (p_are2 != NULL)
             cvFree(&p_are2);
 
-        return CV_OK;
+        return VOS_OK;
     }
     else
-        return CV_BADSIZE_ERR;
+        return VOS_BADSIZE_ERR;
 }
 
 /* external contour area function */
-CV_IMPL double
+VOS_IMPL double
 cvContourArea(const void *array, CvSlice slice)
 {
     double area = 0;
 
-    CV_FUNCNAME("cvContourArea");
+    VOS_FUNCNAME("cvContourArea");
 
     __BEGIN__;
 
     CvSeq *contour = 0;
-    if (CV_IS_SEQ(array))
+    if (VOS_IS_SEQ(array))
     {
         contour = (CvSeq *)array;
-        if (!CV_IS_SEQ_POLYLINE(contour))
-            CV_ERROR(CV_StsBadArg, "Unsupported sequence type");
+        if (!VOS_IS_SEQ_POLYLINE(contour))
+            VOS_ERROR(VOS_StsBadArg, "Unsupported sequence type");
     }
     else
     {
-        CV_ERROR(CV_StsBadArg, "Unsupported sequence type");
+        VOS_ERROR(VOS_StsBadArg, "Unsupported sequence type");
     }
 
     if (cvSliceLength(slice, contour) == contour->total)
     {
-        IPPI_CALL(icvContourArea(contour, &area));
+        FUN_CALL(icvContourArea(contour, &area));
     }
     else
     {
-        if (CV_SEQ_ELTYPE(contour) != CV_32SC2)
-            CV_ERROR(CV_StsUnsupportedFormat,
+        if (VOS_SEQ_ELTYPE(contour) != VOS_32SC2)
+            VOS_ERROR(VOS_StsUnsupportedFormat,
                      "Only curves with integer coordinates are supported in case of contour slice");
-        IPPI_CALL(icvContourSecArea(contour, slice, &area));
+        FUN_CALL(icvContourSecArea(contour, slice, &area));
     }
 
     __END__;
@@ -392,14 +392,14 @@ cvContourArea(const void *array, CvSlice slice)
 }
 
 /* Calculates bounding rectagnle of a point set or retrieves already calculated */
-CV_IMPL CvRect
+VOS_IMPL CvRect
 cvBoundingRect(CvArr *array, int update)
 {
     CvSeqReader reader;
     CvRect rect = {0, 0, 0, 0};
     CvSeq *ptseq = 0;
 
-    CV_FUNCNAME("cvBoundingRect");
+    VOS_FUNCNAME("cvBoundingRect");
 
     __BEGIN__;
 
@@ -407,16 +407,16 @@ cvBoundingRect(CvArr *array, int update)
     int xmin = 0, ymin = 0, xmax = -1, ymax = -1, i, j, k;
     int calculate = update;
 
-    if (CV_IS_SEQ(array))
+    if (VOS_IS_SEQ(array))
     {
         ptseq = (CvSeq *)array;
-        if (!CV_IS_SEQ_POINT_SET(ptseq))
-            CV_ERROR(CV_StsBadArg, "Unsupported sequence type");
+        if (!VOS_IS_SEQ_POINT_SET(ptseq))
+            VOS_ERROR(VOS_StsBadArg, "Unsupported sequence type");
 
         if (ptseq->header_size < (int)sizeof(CvContour))
         {
             /*if( update == 1 )
-                CV_ERROR( CV_StsBadArg, "The header is too small to fit the rectangle, "
+                VOS_ERROR( VOS_StsBadArg, "The header is too small to fit the rectangle, "
                                         "so it could not be updated" );*/
             update = 0;
             calculate = 1;
@@ -424,7 +424,7 @@ cvBoundingRect(CvArr *array, int update)
     }
     else
     {
-        CV_ERROR(CV_StsBadArg, "Unsupported sequence type");
+        VOS_ERROR(VOS_StsBadArg, "Unsupported sequence type");
     }
 
     if (!calculate)
@@ -435,19 +435,19 @@ cvBoundingRect(CvArr *array, int update)
 
     if (ptseq->total)
     {
-        int is_float = CV_SEQ_ELTYPE(ptseq) == CV_32FC2;
+        int is_float = VOS_SEQ_ELTYPE(ptseq) == VOS_32FC2;
         cvStartReadSeq(ptseq, &reader, 0);
         assert(!is_float);
 
         CvPoint pt;
         /* init values */
-        CV_READ_SEQ_ELEM(pt, reader);
+        VOS_READ_SEQ_ELEM(pt, reader);
         xmin = xmax = pt.x;
         ymin = ymax = pt.y;
 
         for (i = 1; i < ptseq->total; i++)
         {
-            CV_READ_SEQ_ELEM(pt, reader);
+            VOS_READ_SEQ_ELEM(pt, reader);
 
             if (xmin > pt.x)
                 xmin = pt.x;

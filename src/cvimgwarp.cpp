@@ -2,8 +2,8 @@
 
 /************** interpolation constants and tables ***************/
 
-#define ICV_WARP_CLIP_X(x) ((unsigned)(x) < (unsigned)ssize.width ? (x) : (x) < 0 ? 0 : ssize.width - 1)
-#define ICV_WARP_CLIP_Y(y) ((unsigned)(y) < (unsigned)ssize.height ? (y) : (y) < 0 ? 0 : ssize.height - 1)
+#define IVOS_WARP_CLIP_X(x) ((unsigned)(x) < (unsigned)ssize.width ? (x) : (x) < 0 ? 0 : ssize.width - 1)
+#define IVOS_WARP_CLIP_Y(y) ((unsigned)(y) < (unsigned)ssize.height ? (y) : (y) < 0 ? 0 : ssize.height - 1)
 
 static CvStatus icvWarpPerspective_Bilinear_8u_CnR(const uchar *src, int step,
                                                    CvSize ssize, uchar *dst, int dststep, CvSize dsize,
@@ -42,10 +42,10 @@ static CvStatus icvWarpPerspective_Bilinear_8u_CnR(const uchar *src, int step,
             }
             else if ((unsigned)(ixs + 1) < (unsigned)(ssize.width + 1) && (unsigned)(iys + 1) < (unsigned)(ssize.height + 1))
             {
-                int x0 = ICV_WARP_CLIP_X(ixs);
-                int y0 = ICV_WARP_CLIP_Y(iys);
-                int x1 = ICV_WARP_CLIP_Y(ixs + 1);
-                int y1 = ICV_WARP_CLIP_Y(iys + 1);
+                int x0 = IVOS_WARP_CLIP_X(ixs);
+                int y0 = IVOS_WARP_CLIP_Y(iys);
+                int x1 = IVOS_WARP_CLIP_Y(ixs + 1);
+                int y1 = IVOS_WARP_CLIP_Y(iys + 1);
                 const uchar *ptr0, *ptr1, *ptr2, *ptr3;
                 ptr0 = src + y0 * step + x0 * cn;
                 ptr1 = src + y0 * step + x1 * cn;
@@ -63,14 +63,14 @@ static CvStatus icvWarpPerspective_Bilinear_8u_CnR(const uchar *src, int step,
                     dst[x * cn + k] = fillval[k];
         }
     }
-    return CV_OK;
+    return VOS_OK;
 }
 
-CV_IMPL void
+VOS_IMPL void
 cvWarpPerspective(const CvArr *srcarr, CvArr *dstarr,
                   const CvMat *matrix, int flags, CvScalar fillval)
 {
-    CV_FUNCNAME("cvWarpPerspective");
+    VOS_FUNCNAME("cvWarpPerspective");
 
     __BEGIN__;
 
@@ -79,67 +79,67 @@ cvWarpPerspective(const CvArr *srcarr, CvArr *dstarr,
     int type, depth, cn;
     double src_matrix[9], dst_matrix[9];
     double fillbuf[4];
-    CvMat A = cvMat(3, 3, CV_64F, src_matrix),
-          invA = cvMat(3, 3, CV_64F, dst_matrix);
+    CvMat A = cvMat(3, 3, VOS_64F, src_matrix),
+          invA = cvMat(3, 3, VOS_64F, dst_matrix);
 
     CvSize ssize, dsize;
-    CV_CALL(src = cvGetMat(srcarr, &srcstub));
-    CV_CALL(dst = cvGetMat(dstarr, &dststub));
+    VOS_CALL(src = cvGetMat(srcarr, &srcstub));
+    VOS_CALL(dst = cvGetMat(dstarr, &dststub));
 
-    if (!CV_ARE_TYPES_EQ(src, dst))
-        CV_ERROR(CV_StsUnmatchedFormats, "");
+    if (!VOS_ARE_TYPES_EQ(src, dst))
+        VOS_ERROR(VOS_StsUnmatchedFormats, "");
 
-    if (!CV_IS_MAT(matrix) || CV_MAT_CN(matrix->type) != 1 ||
-        CV_MAT_DEPTH(matrix->type) < CV_32F || matrix->rows != 3 || matrix->cols != 3)
-        CV_ERROR(CV_StsBadArg,
+    if (!VOS_IS_MAT(matrix) || VOS_MAT_CN(matrix->type) != 1 ||
+        VOS_MAT_DEPTH(matrix->type) < VOS_32F || matrix->rows != 3 || matrix->cols != 3)
+        VOS_ERROR(VOS_StsBadArg,
                  "Transformation matrix should be 3x3 floating-point single-channel matrix");
 
-    if (flags & CV_WARP_INVERSE_MAP)
+    if (flags & VOS_WARP_INVERSE_MAP)
         cvConvertScale(matrix, &invA);
     else
     {
-        CV_ERROR(CV_StsUnmatchedFormats, "herelsp remove");
+        VOS_ERROR(VOS_StsUnmatchedFormats, "herelsp remove");
     }
 
-    type = CV_MAT_TYPE(src->type);
-    depth = CV_MAT_DEPTH(type);
+    type = VOS_MAT_TYPE(src->type);
+    depth = VOS_MAT_DEPTH(type);
     assert(depth == 0);
-    cn = CV_MAT_CN(type);
+    cn = VOS_MAT_CN(type);
     if (cn > 4)
-        CV_ERROR(CV_BadNumChannels, "");
+        VOS_ERROR(VOS_BadNumChannels, "");
 
     ssize = cvGetMatSize(src);
     dsize = cvGetMatSize(dst);
 
-    cvScalarToRawData(&fillval, fillbuf, CV_MAT_TYPE(src->type), 0);
+    cvScalarToRawData(&fillval, fillbuf, VOS_MAT_TYPE(src->type), 0);
 
-    IPPI_CALL(icvWarpPerspective_Bilinear_8u_CnR(src->data.ptr, src->step, ssize, dst->data.ptr,
+    FUN_CALL(icvWarpPerspective_Bilinear_8u_CnR(src->data.ptr, src->step, ssize, dst->data.ptr,
                                                  dst->step, dsize, dst_matrix, cn,
-                                                 (const uchar *)(flags & CV_WARP_FILL_OUTLIERS ? fillbuf : 0)));
+                                                 (const uchar *)(flags & VOS_WARP_FILL_OUTLIERS ? fillbuf : 0)));
 
     __END__;
 }
 
-CV_IMPL CvMat *
+VOS_IMPL CvMat *
 cvGetPerspectiveTransform(const CvPoint2D32f *src,
                           const CvPoint2D32f *dst,
                           CvMat *matrix)
 {
-    CV_FUNCNAME("cvGetPerspectiveTransform");
+    VOS_FUNCNAME("cvGetPerspectiveTransform");
 
     __BEGIN__;
 
     double a[8][8];
     double b[8], x[9];
 
-    CvMat A = cvMat(8, 8, CV_64FC1, a);
-    CvMat B = cvMat(8, 1, CV_64FC1, b);
-    CvMat X = cvMat(8, 1, CV_64FC1, x);
+    CvMat A = cvMat(8, 8, VOS_64FC1, a);
+    CvMat B = cvMat(8, 1, VOS_64FC1, b);
+    CvMat X = cvMat(8, 1, VOS_64FC1, x);
 
     int i;
 
     if (!src || !dst || !matrix)
-        CV_ERROR(CV_StsNullPtr, "");
+        VOS_ERROR(VOS_StsNullPtr, "");
 
     for (i = 0; i < 4; ++i)
     {
@@ -156,10 +156,10 @@ cvGetPerspectiveTransform(const CvPoint2D32f *src,
         b[i + 4] = dst[i].y;
     }
 
-    cvSolve(&A, &B, &X, CV_SVD);
+    cvSolve(&A, &B, &X, VOS_SVD);
     x[8] = 1;
 
-    X = cvMat(3, 3, CV_64FC1, x);
+    X = cvMat(3, 3, VOS_64FC1, x);
     cvConvert(&X, matrix);
 
     __END__;

@@ -5,7 +5,7 @@
 \****************************************************************************************/
 
 #define fix(x,n)      (int)((x)*(1 << (n)) + 0.5)
-#define descale       CV_DESCALE
+#define descale       VOS_DESCALE
 
 #define cscGr_32f  0.299f
 #define cscGg_32f  0.587f
@@ -19,7 +19,7 @@
 
 
 
-static CvStatus CV_STDCALL
+static CvStatus VOS_STDCALL
 icvBGRx2Gray_8u_CnC1R( const uchar* src, int srcstep,
                        uchar* dst, int dststep, CvSize size,
                        int src_cn, int blue_idx )
@@ -60,11 +60,11 @@ icvBGRx2Gray_8u_CnC1R( const uchar* src, int srcstep,
             for( i = 0; i < size.width; i++, src += src_cn )
             {
                 int t0 = src[blue_idx]*cscGb + src[1]*cscGg + src[blue_idx^2]*cscGr;
-                dst[i] = (uchar)CV_DESCALE(t0, csc_shift);
+                dst[i] = (uchar)VOS_DESCALE(t0, csc_shift);
             }
         }
     }
-    return CV_OK;
+    return VOS_OK;
 }
 
 
@@ -72,10 +72,10 @@ icvBGRx2Gray_8u_CnC1R( const uchar* src, int srcstep,
 *                                   The main function                                    *
 \****************************************************************************************/
 
-CV_IMPL void
+VOS_IMPL void
 cvCvtColor( const CvArr* srcarr, CvArr* dstarr, int code )
 {
-    CV_FUNCNAME( "cvCvtColor" );
+    VOS_FUNCNAME( "cvCvtColor" );
 
     __BEGIN__;
 
@@ -86,21 +86,21 @@ cvCvtColor( const CvArr* srcarr, CvArr* dstarr, int code )
     int src_cn, dst_cn, depth;
     int param[] = { 0, 0, 0, 0 };
 
-    CV_CALL( src = cvGetMat( srcarr, &srcstub ));
-    CV_CALL( dst = cvGetMat( dstarr, &dststub ));
+    VOS_CALL( src = cvGetMat( srcarr, &srcstub ));
+    VOS_CALL( dst = cvGetMat( dstarr, &dststub ));
 
-    if( !CV_ARE_SIZES_EQ( src, dst ))
-        CV_ERROR( CV_StsUnmatchedSizes, "" );
+    if( !VOS_ARE_SIZES_EQ( src, dst ))
+        VOS_ERROR( VOS_StsUnmatchedSizes, "" );
 
-    if( !CV_ARE_DEPTHS_EQ( src, dst ))
-        CV_ERROR( CV_StsUnmatchedFormats, "" );
+    if( !VOS_ARE_DEPTHS_EQ( src, dst ))
+        VOS_ERROR( VOS_StsUnmatchedFormats, "" );
 
-    depth = CV_MAT_DEPTH(src->type);
-    if( depth != CV_8U && depth != CV_16U && depth != CV_32F )
-        CV_ERROR( CV_StsUnsupportedFormat, "" );
+    depth = VOS_MAT_DEPTH(src->type);
+    if( depth != VOS_8U && depth != VOS_16U && depth != VOS_32F )
+        VOS_ERROR( VOS_StsUnsupportedFormat, "" );
 
-    src_cn = CV_MAT_CN( src->type );
-    dst_cn = CV_MAT_CN( dst->type );
+    src_cn = VOS_MAT_CN( src->type );
+    dst_cn = VOS_MAT_CN( dst->type );
     size = cvGetMatSize( src );
     src_step = src->step;
     dst_step = dst->step;
@@ -109,23 +109,23 @@ cvCvtColor( const CvArr* srcarr, CvArr* dstarr, int code )
     switch( code )
     {
 
-    case CV_BGR2GRAY:
-    case CV_RGB2GRAY:
+    case VOS_BGR2GRAY:
+    case VOS_RGB2GRAY:
         if( (src_cn != 3 && src_cn != 4) || dst_cn != 1 )
-            CV_ERROR( CV_BadNumChannels,
+            VOS_ERROR( VOS_BadNumChannels,
             "Incorrect number of channels for this conversion code" );
 
-		assert("herelsp remove" && (depth == CV_8U ));
+		assert("herelsp remove" && (depth == VOS_8U ));
 
         param[0] = src_cn;
         param[1] = 2;
-		  IPPI_CALL( icvBGRx2Gray_8u_CnC1R( src->data.ptr, src_step,
+		  FUN_CALL( icvBGRx2Gray_8u_CnC1R( src->data.ptr, src_step,
             dst->data.ptr, dst_step, size, param[0], param[1] ));
 		  
         break;
 
     default:
-        CV_ERROR( CV_StsBadFlag, "Unknown/unsupported color conversion code" );
+        VOS_ERROR( VOS_StsBadFlag, "Unknown/unsupported color conversion code" );
     }
 
     __END__;

@@ -1,10 +1,10 @@
 #include "_cxcore.h"
 
-CV_IMPL void
+VOS_IMPL void
 cvConvertScale( const void* srcarr, void* dstarr,
                 double scale, double shift )
 {
-    CV_FUNCNAME( "cvConvertScale" );
+    VOS_FUNCNAME( "cvConvertScale" );
 
     __BEGIN__;
     CvMat  *src = (CvMat*)srcarr;
@@ -12,12 +12,12 @@ cvConvertScale( const void* srcarr, void* dstarr,
 
     int no_scale = scale == 1 && shift == 0;
 
-    if( (!CV_IS_MAT(src)) || (!CV_IS_MAT(dst)) )
+    if( (!VOS_IS_MAT(src)) || (!VOS_IS_MAT(dst)) )
     {
-       CV_ERROR( CV_BadCOI, "herelsp remove" );
+       VOS_ERROR( VOS_BadCOI, "herelsp remove" );
     }
 
-    if( no_scale && CV_ARE_TYPES_EQ( src, dst ) )
+    if( no_scale && VOS_ARE_TYPES_EQ( src, dst ) )
     {
         if( src != dst )
           cvCopy( src, dst );
@@ -25,7 +25,7 @@ cvConvertScale( const void* srcarr, void* dstarr,
     }
     else
     {
-         CV_ERROR( CV_BadCOI, "herelsp remove" );
+         VOS_ERROR( VOS_BadCOI, "herelsp remove" );
     }
 
     __END__;

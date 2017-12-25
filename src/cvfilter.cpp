@@ -14,7 +14,7 @@ static void default_y_filter_func(uchar **, uchar *, int, int, void *)
 
 CvBaseImageFilter::CvBaseImageFilter()
 {
-    min_depth = CV_8U;
+    min_depth = VOS_8U;
     buffer = 0;
     rows = 0;
     max_width = 0;
@@ -40,18 +40,18 @@ void CvBaseImageFilter::get_work_params()
 
     if (is_separable)
     {
-        int max_depth = MAX(CV_MAT_DEPTH(src_type), CV_MAT_DEPTH(dst_type));
-        int max_cn = MAX(CV_MAT_CN(src_type), CV_MAT_CN(dst_type));
+        int max_depth = MAX(VOS_MAT_DEPTH(src_type), VOS_MAT_DEPTH(dst_type));
+        int max_cn = MAX(VOS_MAT_CN(src_type), VOS_MAT_CN(dst_type));
         max_depth = MAX(max_depth, min_depth);
-        work_type = CV_MAKETYPE(max_depth, max_cn);
-        trow_sz = cvAlign((max_width + ksize.width - 1) * CV_ELEM_SIZE(src_type), ALIGN);
+        work_type = VOS_MAKETYPE(max_depth, max_cn);
+        trow_sz = cvAlign((max_width + ksize.width - 1) * VOS_ELEM_SIZE(src_type), ALIGN);
     }
     else
     {
         work_type = src_type;
         width += ksize.width - 1;
     }
-    row_sz = cvAlign(width * CV_ELEM_SIZE(work_type), ALIGN);
+    row_sz = cvAlign(width * VOS_ELEM_SIZE(work_type), ALIGN);
     buf_size = rows * row_sz;
     buf_size = MIN(buf_size, 1 << 16);
     buf_size = MAX(buf_size, min_rows * row_sz);
@@ -63,7 +63,7 @@ void CvBaseImageFilter::init(int _max_width, int _src_type, int _dst_type,
                              bool _is_separable, CvSize _ksize, CvPoint _anchor,
                              int _border_mode, CvScalar _border_value)
 {
-    CV_FUNCNAME("CvBaseImageFilter::init");
+    VOS_FUNCNAME("CvBaseImageFilter::init");
 
     __BEGIN__;
 
@@ -78,8 +78,8 @@ void CvBaseImageFilter::init(int _max_width, int _src_type, int _dst_type,
 
     is_separable = _is_separable != 0;
     max_width = _max_width; //MAX(_max_width,_ksize.width);
-    src_type = CV_MAT_TYPE(_src_type);
-    dst_type = CV_MAT_TYPE(_dst_type);
+    src_type = VOS_MAT_TYPE(_src_type);
+    dst_type = VOS_MAT_TYPE(_dst_type);
     ksize = _ksize;
     anchor = _anchor;
 
@@ -95,10 +95,10 @@ void CvBaseImageFilter::init(int _max_width, int _src_type, int _dst_type,
     if (ksize.width <= 0 || ksize.height <= 0 ||
         (unsigned)anchor.x >= (unsigned)ksize.width ||
         (unsigned)anchor.y >= (unsigned)ksize.height)
-        CV_ERROR(CV_StsOutOfRange, "invalid kernel size and/or anchor position");
+        VOS_ERROR(VOS_StsOutOfRange, "invalid kernel size and/or anchor position");
 
     if (border_mode != IPL_BORDER_REPLICATE)
-        CV_ERROR(CV_StsBadArg, "Invalid/unsupported border mode");
+        VOS_ERROR(VOS_StsBadArg, "Invalid/unsupported border mode");
 
     get_work_params();
 
@@ -107,7 +107,7 @@ void CvBaseImageFilter::init(int _max_width, int _src_type, int _dst_type,
 
     buf_size = cvAlign(buf_size, ALIGN);
 
-    src_pix_sz = CV_ELEM_SIZE(src_type);
+    src_pix_sz = VOS_ELEM_SIZE(src_type);
     border_tab_sz1 = anchor.x * src_pix_sz;
     border_tab_sz = (ksize.width - 1) * src_pix_sz;
     bsz = cvAlign(border_tab_sz * sizeof(int), ALIGN);
@@ -116,7 +116,7 @@ void CvBaseImageFilter::init(int _max_width, int _src_type, int _dst_type,
     row_tab_sz = cvAlign(max_rows * sizeof(uchar *), ALIGN);
     total_buf_sz = buf_size + row_tab_sz + bsz;
 
-    CV_CALL(ptr = buffer = (uchar *)cvAlloc(total_buf_sz));
+    VOS_CALL(ptr = buffer = (uchar *)cvAlloc(total_buf_sz));
 
     rows = (uchar **)ptr;
     ptr += row_tab_sz;
@@ -133,7 +133,7 @@ void CvBaseImageFilter::init(int _max_width, int _src_type, int _dst_type,
 void CvBaseImageFilter::start_process(CvSlice x_range, int width)
 {
     int mode = border_mode;
-    int pix_sz = CV_ELEM_SIZE(src_type), work_pix_sz = CV_ELEM_SIZE(work_type);
+    int pix_sz = VOS_ELEM_SIZE(src_type), work_pix_sz = VOS_ELEM_SIZE(work_type);
     int bsz = buf_size, bw = x_range.end_index - x_range.start_index, bw1 = bw + ksize.width - 1;
     int tr_step = cvAlign(bw1 * pix_sz, ALIGN);
     int i, j, k, ofs;
@@ -273,7 +273,7 @@ int CvBaseImageFilter::fill_cyclic_buffer(const uchar *src, int src_step,
                                           int y0, int y1, int y2)
 {
     int i, y = y0, bsz1 = border_tab_sz1, bsz = border_tab_sz;
-    int pix_size = CV_ELEM_SIZE(src_type);
+    int pix_size = VOS_ELEM_SIZE(src_type);
     int width = prev_x_range.end_index - prev_x_range.start_index, width_n = width * pix_size;
     bool can_use_src_as_trow = is_separable && width >= ksize.width;
 
@@ -345,22 +345,22 @@ int CvBaseImageFilter::process(const CvMat *src, CvMat *dst,
 {
     int rows_processed = 0;
 
-    CV_FUNCNAME("CvBaseImageFilter::process");
+    VOS_FUNCNAME("CvBaseImageFilter::process");
 
     __BEGIN__;
 
     int i, width, _src_y1, _src_y2;
     int src_x, src_y, src_y1, src_y2, dst_y;
-    int pix_size = CV_ELEM_SIZE(src_type);
+    int pix_size = VOS_ELEM_SIZE(src_type);
     uchar *sptr = 0, *dptr;
-    int phase = flags & (CV_START | CV_END | CV_MIDDLE);
-    bool isolated_roi = (flags & CV_ISOLATED_ROI) != 0;
+    int phase = flags & (VOS_START | VOS_END | VOS_MIDDLE);
+    bool isolated_roi = (flags & VOS_ISOLATED_ROI) != 0;
 
-    if (!CV_IS_MAT(src))
-        CV_ERROR(CV_StsBadArg, "");
+    if (!VOS_IS_MAT(src))
+        VOS_ERROR(VOS_StsBadArg, "");
 
-    if (CV_MAT_TYPE(src->type) != src_type)
-        CV_ERROR(CV_StsUnmatchedFormats, "");
+    if (VOS_MAT_TYPE(src->type) != src_type)
+        VOS_ERROR(VOS_StsUnmatchedFormats, "");
 
     width = src->cols;
 
@@ -378,7 +378,7 @@ int CvBaseImageFilter::process(const CvMat *src, CvMat *dst,
         src_roi.y < 0 || src_roi.height < 0 ||
         src_roi.x + src_roi.width > width ||
         src_roi.y + src_roi.height > src->rows)
-        CV_ERROR(CV_StsOutOfRange, "Too large source image or its ROI");
+        VOS_ERROR(VOS_StsOutOfRange, "Too large source image or its ROI");
 
     src_x = src_roi.x;
     _src_y1 = 0;
@@ -392,32 +392,32 @@ int CvBaseImageFilter::process(const CvMat *src, CvMat *dst,
         _src_y2 = src_roi.y + src_roi.height;
     }
 
-    if (!CV_IS_MAT(dst))
-        CV_ERROR(CV_StsBadArg, "");
+    if (!VOS_IS_MAT(dst))
+        VOS_ERROR(VOS_StsBadArg, "");
 
-    if (CV_MAT_TYPE(dst->type) != dst_type)
-        CV_ERROR(CV_StsUnmatchedFormats, "");
+    if (VOS_MAT_TYPE(dst->type) != dst_type)
+        VOS_ERROR(VOS_StsUnmatchedFormats, "");
 
     if (dst_origin.x < 0 || dst_origin.y < 0)
-        CV_ERROR(CV_StsOutOfRange, "Incorrect destination ROI origin");
+        VOS_ERROR(VOS_StsOutOfRange, "Incorrect destination ROI origin");
 
-    if (phase == CV_WHOLE)
-        phase = CV_START | CV_END;
-    phase &= CV_START | CV_END | CV_MIDDLE;
+    if (phase == VOS_WHOLE)
+        phase = VOS_START | VOS_END;
+    phase &= VOS_START | VOS_END | VOS_MIDDLE;
 
     // initialize horizontal border relocation tab if it is not initialized yet
-    if (phase & CV_START)
+    if (phase & VOS_START)
         start_process(cvSlice(src_roi.x, src_roi.x + src_roi.width), width);
     else if (prev_width != width || prev_x_range.start_index != src_roi.x ||
              prev_x_range.end_index != src_roi.x + src_roi.width)
-        CV_ERROR(CV_StsBadArg,
+        VOS_ERROR(VOS_StsBadArg,
                  "In a middle or at the end the horizontal placement of the stripe can not be changed");
 
     dst_y = dst_origin.y;
     src_y1 = src_roi.y;
     src_y2 = src_roi.y + src_roi.height;
 
-    if (phase & CV_START)
+    if (phase & VOS_START)
     {
         for (i = 0; i <= max_ky * 2; i++)
             rows[i] = 0;
@@ -435,7 +435,7 @@ int CvBaseImageFilter::process(const CvMat *src, CvMat *dst,
         buf_count = 0;
     }
 
-    if (phase & CV_END)
+    if (phase & VOS_END)
     {
         src_y2 += max_ky;
 
@@ -446,7 +446,7 @@ int CvBaseImageFilter::process(const CvMat *src, CvMat *dst,
         }
     }
 
-    dptr = dst->data.ptr + dst_origin.y * dst->step + dst_origin.x * CV_ELEM_SIZE(dst_type);
+    dptr = dst->data.ptr + dst_origin.y * dst->step + dst_origin.x * VOS_ELEM_SIZE(dst_type);
     sptr = src->data.ptr + src_y1 * src->step + src_x * pix_size;
 
     for (src_y = src_y1; src_y < src_y2;)
@@ -471,9 +471,9 @@ int CvBaseImageFilter::process(const CvMat *src, CvMat *dst,
 
         row_count = top_rows + buf_count;
 
-        if (!rows[0] || (phase & CV_END) && src_y == src_y2)
+        if (!rows[0] || (phase & VOS_END) && src_y == src_y2)
         {
-            int br = (phase & CV_END) && src_y == src_y2 ? bottom_rows : 0;
+            int br = (phase & VOS_END) && src_y == src_y2 ? bottom_rows : 0;
             make_y_border(row_count, top_rows, br);
             row_count += br;
         }
@@ -482,7 +482,7 @@ int CvBaseImageFilter::process(const CvMat *src, CvMat *dst,
         {
             int count = row_count - max_ky * 2;
             if (dst_y + count > dst->rows)
-                CV_ERROR(CV_StsOutOfRange, "The destination image can not fit the result");
+                VOS_ERROR(VOS_StsOutOfRange, "The destination image can not fit the result");
 
             assert(count >= 0);
             y_func(rows + max_ky - anchor.y, dptr, dst->step, count, this);
@@ -526,7 +526,7 @@ static void icvFilterCol_32f16s(const float **src, short *dst, int dst_step,
 
 CvSepFilter::CvSepFilter()
 {
-    min_depth = CV_32F;
+    min_depth = VOS_32F;
     kx = ky = 0;
     kx_flags = ky_flags = 0;
 }
@@ -551,7 +551,7 @@ void CvSepFilter::init(int _max_width, int _src_type, int _dst_type,
                        CvPoint _anchor, int _border_mode,
                        CvScalar _border_value)
 {
-    CV_FUNCNAME("CvSepFilter::init");
+    VOS_FUNCNAME("CvSepFilter::init");
 
     __BEGIN__;
 
@@ -562,39 +562,39 @@ void CvSepFilter::init(int _max_width, int _src_type, int _dst_type,
     double xsum = 0, ysum = 0;
     const float eps = FLT_EPSILON * 100.f;
 
-    if (!CV_IS_MAT(_kx) || !CV_IS_MAT(_ky) ||
+    if (!VOS_IS_MAT(_kx) || !VOS_IS_MAT(_ky) ||
         _kx->cols != 1 && _kx->rows != 1 ||
         _ky->cols != 1 && _ky->rows != 1 ||
-        CV_MAT_CN(_kx->type) != 1 || CV_MAT_CN(_ky->type) != 1 ||
-        !CV_ARE_TYPES_EQ(_kx, _ky))
-        CV_ERROR(CV_StsBadArg,
+        VOS_MAT_CN(_kx->type) != 1 || VOS_MAT_CN(_ky->type) != 1 ||
+        !VOS_ARE_TYPES_EQ(_kx, _ky))
+        VOS_ERROR(VOS_StsBadArg,
                  "Both kernels must be valid 1d single-channel vectors of the same types");
 
-    if (CV_MAT_CN(_src_type) != CV_MAT_CN(_dst_type))
-        CV_ERROR(CV_StsUnmatchedFormats, "Input and output must have the same number of channels");
+    if (VOS_MAT_CN(_src_type) != VOS_MAT_CN(_dst_type))
+        VOS_ERROR(VOS_StsUnmatchedFormats, "Input and output must have the same number of channels");
 
-    filter_type = MAX(CV_32F, CV_MAT_DEPTH(_kx->type));
+    filter_type = MAX(VOS_32F, VOS_MAT_DEPTH(_kx->type));
 
     _ksize.width = _kx->rows + _kx->cols - 1;
     _ksize.height = _ky->rows + _ky->cols - 1;
 
-    CV_CALL(CvBaseImageFilter::init(_max_width, _src_type, _dst_type, 1, _ksize,
+    VOS_CALL(CvBaseImageFilter::init(_max_width, _src_type, _dst_type, 1, _ksize,
                                     _anchor, _border_mode, _border_value));
 
-    if (!(kx && CV_ARE_SIZES_EQ(kx, _kx)))
+    if (!(kx && VOS_ARE_SIZES_EQ(kx, _kx)))
     {
         cvReleaseMat(&kx);
-        CV_CALL(kx = cvCreateMat(_kx->rows, _kx->cols, filter_type));
+        VOS_CALL(kx = cvCreateMat(_kx->rows, _kx->cols, filter_type));
     }
 
-    if (!(ky && CV_ARE_SIZES_EQ(ky, _ky)))
+    if (!(ky && VOS_ARE_SIZES_EQ(ky, _ky)))
     {
         cvReleaseMat(&ky);
-        CV_CALL(ky = cvCreateMat(_ky->rows, _ky->cols, filter_type));
+        VOS_CALL(ky = cvCreateMat(_ky->rows, _ky->cols, filter_type));
     }
 
-    CV_CALL(cvConvert(_kx, kx));
-    CV_CALL(cvConvert(_ky, ky));
+    VOS_CALL(cvConvert(_kx, kx));
+    VOS_CALL(cvConvert(_ky, ky));
 
     xsz = kx->rows + kx->cols - 1;
     ysz = ky->rows + ky->cols - 1;
@@ -642,9 +642,9 @@ void CvSepFilter::init(int _max_width, int _src_type, int _dst_type,
     x_func = 0;
     y_func = 0;
 
-    if (CV_MAT_DEPTH(src_type) == CV_8U)
+    if (VOS_MAT_DEPTH(src_type) == VOS_8U)
     {
-        if (CV_MAT_DEPTH(dst_type) == CV_8U &&
+        if (VOS_MAT_DEPTH(dst_type) == VOS_8U &&
             ((kx_flags & ky_flags) & (SYMMETRICAL + POSITIVE + SUM_TO_1)) == SYMMETRICAL + POSITIVE + SUM_TO_1)
         {
             x_func = (CvRowFilterFunc)icvFilterRowSymm_8u32s;
@@ -653,7 +653,7 @@ void CvSepFilter::init(int _max_width, int _src_type, int _dst_type,
             ky_flags &= ~INTEGER;
             convert_filters = 1;
         }
-        else if (CV_MAT_DEPTH(dst_type) == CV_16S &&
+        else if (VOS_MAT_DEPTH(dst_type) == VOS_16S &&
                  (kx_flags & (SYMMETRICAL + ASYMMETRICAL)) && (kx_flags & INTEGER) &&
                  (ky_flags & (SYMMETRICAL + ASYMMETRICAL)) && (ky_flags & INTEGER))
         {
@@ -663,24 +663,24 @@ void CvSepFilter::init(int _max_width, int _src_type, int _dst_type,
         }
         else
         {
-            CV_ERROR(CV_StsUnsupportedFormat, "Unknown or unsupported input data type");
+            VOS_ERROR(VOS_StsUnsupportedFormat, "Unknown or unsupported input data type");
         }
     }
     else
     {
-        CV_ERROR(CV_StsUnsupportedFormat, "Unknown or unsupported input data type");
+        VOS_ERROR(VOS_StsUnsupportedFormat, "Unknown or unsupported input data type");
     }
 
     if (!y_func)
     {
-        if (CV_MAT_DEPTH(dst_type) == CV_8U)
+        if (VOS_MAT_DEPTH(dst_type) == VOS_8U)
         {
             if (ky_flags & (SYMMETRICAL + ASYMMETRICAL))
                 y_func = (CvColumnFilterFunc)icvFilterColSymm_32f8u;
             else
                 y_func = (CvColumnFilterFunc)icvFilterCol_32f8u;
         }
-        else if (CV_MAT_DEPTH(dst_type) == CV_16S)
+        else if (VOS_MAT_DEPTH(dst_type) == VOS_16S)
         {
             if (ky_flags & (SYMMETRICAL + ASYMMETRICAL))
                 y_func = (CvColumnFilterFunc)icvFilterColSymm_32f16s;
@@ -688,7 +688,7 @@ void CvSepFilter::init(int _max_width, int _src_type, int _dst_type,
                 y_func = (CvColumnFilterFunc)icvFilterCol_32f16s;
         }
         else
-            CV_ERROR(CV_StsUnsupportedFormat, "Unknown or unsupported input data type");
+            VOS_ERROR(VOS_StsUnsupportedFormat, "Unknown or unsupported input data type");
     }
 
     if (convert_filters)
@@ -713,8 +713,8 @@ void CvSepFilter::init(int _max_width, int _src_type, int _dst_type,
         }
         if (scale > 1)
             ky->data.i[ysz / 2] += scale - sum;
-        kx->type = (kx->type & ~CV_MAT_DEPTH_MASK) | CV_32S;
-        ky->type = (ky->type & ~CV_MAT_DEPTH_MASK) | CV_32S;
+        kx->type = (kx->type & ~VOS_MAT_DEPTH_MASK) | VOS_32S;
+        ky->type = (ky->type & ~VOS_MAT_DEPTH_MASK) | VOS_32S;
     }
 
     __END__;
@@ -737,7 +737,7 @@ icvFilterRowSymm_8u32s(const uchar *src, int *dst, void *params)
     const int *kx = _kx->data.i;
     int ksize = _kx->cols + _kx->rows - 1;
     int i = 0, j, k, width = state->get_width();
-    int cn = CV_MAT_CN(state->get_src_type());
+    int cn = VOS_MAT_CN(state->get_src_type());
     int ksize2 = ksize / 2, ksize2n = ksize2 * cn;
     int is_symm = state->get_x_kernel_flags() & CvSepFilter::SYMMETRICAL;
     const uchar *s = src + ksize2n;
@@ -886,7 +886,7 @@ icvFilterColSymm_32s8u(const int **src, uchar *dst, int dst_step, int count, voi
     const int *ky = _ky->data.i;
     int ksize = _ky->cols + _ky->rows - 1, ksize2 = ksize / 2;
     int i, k, width = state->get_width();
-    int cn = CV_MAT_CN(state->get_src_type());
+    int cn = VOS_MAT_CN(state->get_src_type());
 
     width *= cn;
     src += ksize2;
@@ -902,8 +902,8 @@ icvFilterColSymm_32s8u(const int **src, uchar *dst, int dst_step, int count, voi
             {
                 int s0 = sptr1[i] * k0 + (sptr0[i] + sptr2[i]) * k1;
                 int s1 = sptr1[i + 1] * k0 + (sptr0[i + 1] + sptr2[i + 1]) * k1;
-                s0 = CV_DESCALE(s0, FILTER_BITS * 2);
-                s1 = CV_DESCALE(s1, FILTER_BITS * 2);
+                s0 = VOS_DESCALE(s0, FILTER_BITS * 2);
+                s1 = VOS_DESCALE(s1, FILTER_BITS * 2);
                 dst[i] = (uchar)s0;
                 dst[i + 1] = (uchar)s1;
             }
@@ -917,8 +917,8 @@ icvFilterColSymm_32s8u(const int **src, uchar *dst, int dst_step, int count, voi
             {
                 int s0 = sptr2[i] * k0 + (sptr1[i] + sptr3[i]) * k1 + (sptr0[i] + sptr4[i]) * k2;
                 int s1 = sptr2[i + 1] * k0 + (sptr1[i + 1] + sptr3[i + 1]) * k1 + (sptr0[i + 1] + sptr4[i + 1]) * k2;
-                s0 = CV_DESCALE(s0, FILTER_BITS * 2);
-                s1 = CV_DESCALE(s1, FILTER_BITS * 2);
+                s0 = VOS_DESCALE(s0, FILTER_BITS * 2);
+                s1 = VOS_DESCALE(s1, FILTER_BITS * 2);
                 dst[i] = (uchar)s0;
                 dst[i + 1] = (uchar)s1;
             }
@@ -940,12 +940,12 @@ icvFilterColSymm_32s8u(const int **src, uchar *dst, int dst_step, int count, voi
                     s3 += f * (sptr[3] + sptr2[3]);
                 }
 
-                s0 = CV_DESCALE(s0, FILTER_BITS * 2);
-                s1 = CV_DESCALE(s1, FILTER_BITS * 2);
+                s0 = VOS_DESCALE(s0, FILTER_BITS * 2);
+                s1 = VOS_DESCALE(s1, FILTER_BITS * 2);
                 dst[i] = (uchar)s0;
                 dst[i + 1] = (uchar)s1;
-                s2 = CV_DESCALE(s2, FILTER_BITS * 2);
-                s3 = CV_DESCALE(s3, FILTER_BITS * 2);
+                s2 = VOS_DESCALE(s2, FILTER_BITS * 2);
+                s3 = VOS_DESCALE(s3, FILTER_BITS * 2);
                 dst[i + 2] = (uchar)s2;
                 dst[i + 3] = (uchar)s3;
             }
@@ -956,7 +956,7 @@ icvFilterColSymm_32s8u(const int **src, uchar *dst, int dst_step, int count, voi
             for (k = 1; k <= ksize2; k++)
                 s0 += ky[k] * (src[k][i] + src[-k][i]);
 
-            s0 = CV_DESCALE(s0, FILTER_BITS * 2);
+            s0 = VOS_DESCALE(s0, FILTER_BITS * 2);
             dst[i] = (uchar)s0;
         }
     }
@@ -971,7 +971,7 @@ icvFilterColSymm_32s16s(const int **src, short *dst,
     const int *ky = (const int *)_ky->data.ptr;
     int ksize = _ky->cols + _ky->rows - 1, ksize2 = ksize / 2;
     int i = 0, k, width = state->get_width();
-    int cn = CV_MAT_CN(state->get_src_type());
+    int cn = VOS_MAT_CN(state->get_src_type());
     int is_symm = state->get_y_kernel_flags() & CvSepFilter::SYMMETRICAL;
     int is_1_2_1 = is_symm && ksize == 3 && ky[1] == 2 && ky[2] == 1;
     int is_3_10_3 = is_symm && ksize == 3 && ky[1] == 10 && ky[2] == 3;
@@ -1033,10 +1033,10 @@ icvFilterColSymm_32s16s(const int **src, short *dst,
                         s3 += f * (sptr[3] + sptr2[3]);
                     }
 
-                    dst[i] = CV_CAST_16S(s0);
-                    dst[i + 1] = CV_CAST_16S(s1);
-                    dst[i + 2] = CV_CAST_16S(s2);
-                    dst[i + 3] = CV_CAST_16S(s3);
+                    dst[i] = VOS_CAST_16S(s0);
+                    dst[i + 1] = VOS_CAST_16S(s1);
+                    dst[i + 2] = VOS_CAST_16S(s2);
+                    dst[i + 3] = VOS_CAST_16S(s3);
                 }
 
             for (; i < width; i++)
@@ -1044,7 +1044,7 @@ icvFilterColSymm_32s16s(const int **src, short *dst,
                 int s0 = ky[0] * src[0][i];
                 for (k = 1; k <= ksize2; k++)
                     s0 += ky[k] * (src[k][i] + src[-k][i]);
-                dst[i] = CV_CAST_16S(s0);
+                dst[i] = VOS_CAST_16S(s0);
             }
         }
     }
@@ -1080,10 +1080,10 @@ icvFilterColSymm_32s16s(const int **src, short *dst,
                         s3 += f * (sptr[3] - sptr2[3]);
                     }
 
-                    dst[i] = CV_CAST_16S(s0);
-                    dst[i + 1] = CV_CAST_16S(s1);
-                    dst[i + 2] = CV_CAST_16S(s2);
-                    dst[i + 3] = CV_CAST_16S(s3);
+                    dst[i] = VOS_CAST_16S(s0);
+                    dst[i + 1] = VOS_CAST_16S(s1);
+                    dst[i + 2] = VOS_CAST_16S(s2);
+                    dst[i + 3] = VOS_CAST_16S(s3);
                 }
 
             for (; i < width; i++)
@@ -1091,13 +1091,13 @@ icvFilterColSymm_32s16s(const int **src, short *dst,
                 int s0 = ky[0] * src[0][i];
                 for (k = 1; k <= ksize2; k++)
                     s0 += ky[k] * (src[k][i] - src[-k][i]);
-                dst[i] = CV_CAST_16S(s0);
+                dst[i] = VOS_CAST_16S(s0);
             }
         }
     }
 }
 
-#define ICV_FILTER_COL(flavor, srctype, dsttype, worktype,      \
+#define IVOS_FILTER_COL(flavor, srctype, dsttype, worktype,      \
                        cast_macro1, cast_macro2)                \
     \
 static void \
@@ -1110,7 +1110,7 @@ icvFilterCol_##flavor(const srctype **src, dsttype *dst,        \
         const srctype *ky = (const srctype *)_ky->data.ptr;     \
         int ksize = _ky->cols + _ky->rows - 1;                  \
         int i, k, width = state->get_width();                   \
-        int cn = CV_MAT_CN(state->get_src_type());              \
+        int cn = VOS_MAT_CN(state->get_src_type());              \
                                                                 \
         width *= cn;                                            \
         dst_step /= sizeof(dst[0]);                             \
@@ -1157,11 +1157,11 @@ icvFilterCol_##flavor(const srctype **src, dsttype *dst,        \
     \
 }
 
-ICV_FILTER_COL(32f8u, float, uchar, int, cvRound, CV_CAST_8U)
-ICV_FILTER_COL(32f16s, float, short, int, cvRound, CV_CAST_16S)
-ICV_FILTER_COL(32f16u, float, ushort, int, cvRound, CV_CAST_16U)
+IVOS_FILTER_COL(32f8u, float, uchar, int, cvRound, VOS_CAST_8U)
+IVOS_FILTER_COL(32f16s, float, short, int, cvRound, VOS_CAST_16S)
+IVOS_FILTER_COL(32f16u, float, ushort, int, cvRound, VOS_CAST_16U)
 
-#define ICV_FILTER_COL_SYMM(flavor, srctype, dsttype, worktype,               \
+#define IVOS_FILTER_COL_SYMM(flavor, srctype, dsttype, worktype,               \
                             cast_macro1, cast_macro2)                         \
     \
 static void \
@@ -1174,7 +1174,7 @@ icvFilterColSymm_##flavor(const srctype **src, dsttype *dst,                  \
         const srctype *ky = (const srctype *)_ky->data.ptr;                   \
         int ksize = _ky->cols + _ky->rows - 1, ksize2 = ksize / 2;            \
         int i, k, width = state->get_width();                                 \
-        int cn = CV_MAT_CN(state->get_src_type());                            \
+        int cn = VOS_MAT_CN(state->get_src_type());                            \
         int is_symm = state->get_y_kernel_flags() & CvSepFilter::SYMMETRICAL; \
                                                                               \
         width *= cn;                                                          \
@@ -1270,9 +1270,9 @@ icvFilterColSymm_##flavor(const srctype **src, dsttype *dst,                  \
     \
 }
 
-ICV_FILTER_COL_SYMM(32f8u, float, uchar, int, cvRound, CV_CAST_8U)
-ICV_FILTER_COL_SYMM(32f16s, float, short, int, cvRound, CV_CAST_16S)
-ICV_FILTER_COL_SYMM(32f16u, float, ushort, int, cvRound, CV_CAST_16U)
+IVOS_FILTER_COL_SYMM(32f8u, float, uchar, int, cvRound, VOS_CAST_8U)
+IVOS_FILTER_COL_SYMM(32f16s, float, short, int, cvRound, VOS_CAST_16S)
+IVOS_FILTER_COL_SYMM(32f16u, float, ushort, int, cvRound, VOS_CAST_16U)
 
 
 #define SMALL_GAUSSIAN_SIZE 7
@@ -1286,7 +1286,7 @@ void CvSepFilter::init_gaussian_kernel(CvMat *kernel, double sigma)
             {0.375f, 0.25f, 0.0625f},
             {0.28125f, 0.21875f, 0.109375f, 0.03125f}};
 
-    CV_FUNCNAME("CvSepFilter::init_gaussian_kernel");
+    VOS_FUNCNAME("CvSepFilter::init_gaussian_kernel");
 
     __BEGIN__;
 
@@ -1296,15 +1296,15 @@ void CvSepFilter::init_gaussian_kernel(CvMat *kernel, double sigma)
     float *cf;
     double *cd;
 
-    if (!CV_IS_MAT(kernel))
-        CV_ERROR(CV_StsBadArg, "kernel is not a valid matrix");
+    if (!VOS_IS_MAT(kernel))
+        VOS_ERROR(VOS_StsBadArg, "kernel is not a valid matrix");
 
-    type = CV_MAT_TYPE(kernel->type);
+    type = VOS_MAT_TYPE(kernel->type);
 
     if (kernel->cols != 1 && kernel->rows != 1 ||
         (kernel->cols + kernel->rows - 1) % 2 == 0 ||
-        type != CV_32FC1 && type != CV_64FC1)
-        CV_ERROR(CV_StsBadSize, "kernel should be 1D floating-point vector of odd (2*k+1) size");
+        type != VOS_32FC1 && type != VOS_64FC1)
+        VOS_ERROR(VOS_StsBadSize, "kernel should be 1D floating-point vector of odd (2*k+1) size");
 
     n = kernel->cols + kernel->rows - 1;
 
@@ -1313,7 +1313,7 @@ void CvSepFilter::init_gaussian_kernel(CvMat *kernel, double sigma)
 
     sigmaX = sigma > 0 ? sigma : (n / 2 - 1) * 0.3 + 0.8;
     scale2X = -0.5 / (sigmaX * sigmaX);
-    step = kernel->rows == 1 ? 1 : kernel->step / CV_ELEM_SIZE1(type);
+    step = kernel->rows == 1 ? 1 : kernel->step / VOS_ELEM_SIZE1(type);
     cf = kernel->data.fl;
     cd = kernel->data.db;
 
@@ -1322,7 +1322,7 @@ void CvSepFilter::init_gaussian_kernel(CvMat *kernel, double sigma)
     for (i = 0; i <= n / 2; i++)
     {
         double t = fixed_kernel ? (double)fixed_kernel[i] : exp(scale2X * i * i);
-        if (type == CV_32FC1)
+        if (type == VOS_32FC1)
         {
             cf[(n / 2 + i) * step] = (float)t;
             sum += cf[(n / 2 + i) * step] * 2;
@@ -1337,7 +1337,7 @@ void CvSepFilter::init_gaussian_kernel(CvMat *kernel, double sigma)
     sum = 1. / sum;
     for (i = 0; i <= n / 2; i++)
     {
-        if (type == CV_32FC1)
+        if (type == VOS_32FC1)
             cf[(n / 2 + i) * step] = cf[(n / 2 - i) * step] = (float)(cf[(n / 2 + i) * step] * sum);
         else
             cd[(n / 2 + i) * step] = cd[(n / 2 - i) * step] = cd[(n / 2 + i) * step] * sum;
@@ -1348,7 +1348,7 @@ void CvSepFilter::init_gaussian_kernel(CvMat *kernel, double sigma)
 
 void CvSepFilter::init_sobel_kernel(CvMat *_kx, CvMat *_ky, int dx, int dy, int flags)
 {
-    CV_FUNCNAME("CvSepFilter::init_sobel_kernel");
+    VOS_FUNCNAME("CvSepFilter::init_sobel_kernel");
 
     __BEGIN__;
 
@@ -1357,17 +1357,17 @@ void CvSepFilter::init_sobel_kernel(CvMat *_kx, CvMat *_ky, int dx, int dy, int 
     bool normalize = (flags & NORMALIZE_KERNEL) != 0;
     bool flip = (flags & FLIP_KERNEL) != 0;
 
-    if (!CV_IS_MAT(_kx) || !CV_IS_MAT(_ky))
-        CV_ERROR(CV_StsBadArg, "One of the kernel matrices is not valid");
+    if (!VOS_IS_MAT(_kx) || !VOS_IS_MAT(_ky))
+        VOS_ERROR(VOS_StsBadArg, "One of the kernel matrices is not valid");
 
     msz = MAX(_kx->cols + _kx->rows, _ky->cols + _ky->rows);
     if (msz > 32)
-        CV_ERROR(CV_StsOutOfRange, "Too large kernel size");
+        VOS_ERROR(VOS_StsOutOfRange, "Too large kernel size");
 
     kerI = (int *)cvStackAlloc(msz * sizeof(kerI[0]));
 
     if (dx < 0 || dy < 0 || dx + dy <= 0)
-        CV_ERROR(CV_StsOutOfRange,
+        VOS_ERROR(VOS_StsOutOfRange,
                  "Both derivative orders (dx and dy) must be non-negative "
                  "and at least one of them must be positive.");
 
@@ -1376,21 +1376,21 @@ void CvSepFilter::init_sobel_kernel(CvMat *_kx, CvMat *_ky, int dx, int dy, int 
         CvMat *kernel = k == 0 ? _kx : _ky;
         int order = k == 0 ? dx : dy;
         int n = kernel->cols + kernel->rows - 1, step;
-        int type = CV_MAT_TYPE(kernel->type);
+        int type = VOS_MAT_TYPE(kernel->type);
         double scale = !normalize ? 1. : 1. / (1 << (n - order - 1));
         int iscale = 1;
 
         if (kernel->cols != 1 && kernel->rows != 1 ||
             (kernel->cols + kernel->rows - 1) % 2 == 0 ||
-            type != CV_32FC1 && type != CV_64FC1 && type != CV_32SC1)
-            CV_ERROR(CV_StsOutOfRange,
+            type != VOS_32FC1 && type != VOS_64FC1 && type != VOS_32SC1)
+            VOS_ERROR(VOS_StsOutOfRange,
                      "Both kernels must be 1D floating-point or integer vectors of odd (2*k+1) size.");
 
-        if (normalize && n > 1 && type == CV_32SC1)
-            CV_ERROR(CV_StsBadArg, "Integer kernel can not be normalized");
+        if (normalize && n > 1 && type == VOS_32SC1)
+            VOS_ERROR(VOS_StsBadArg, "Integer kernel can not be normalized");
 
         if (n <= order)
-            CV_ERROR(CV_StsOutOfRange,
+            VOS_ERROR(VOS_StsOutOfRange,
                      "Derivative order must be smaller than the corresponding kernel size");
 
         if (n == 1)
@@ -1434,15 +1434,15 @@ void CvSepFilter::init_sobel_kernel(CvMat *_kx, CvMat *_ky, int dx, int dy, int 
             }
         }
 
-        step = kernel->rows == 1 ? 1 : kernel->step / CV_ELEM_SIZE1(type);
+        step = kernel->rows == 1 ? 1 : kernel->step / VOS_ELEM_SIZE1(type);
         if (flip && (order & 1) && k)
             iscale = -iscale, scale = -scale;
 
         for (i = 0; i < n; i++)
         {
-            if (type == CV_32SC1)
+            if (type == VOS_32SC1)
                 kernel->data.i[i * step] = kerI[i] * iscale;
-            else if (type == CV_32FC1)
+            else if (type == VOS_32FC1)
                 kernel->data.fl[i * step] = (float)(kerI[i] * scale);
             else
                 kernel->data.db[i * step] = kerI[i] * scale;
@@ -1455,35 +1455,35 @@ void CvSepFilter::init_sobel_kernel(CvMat *_kx, CvMat *_ky, int dx, int dy, int 
 void CvSepFilter::init_deriv(int _max_width, int _src_type, int _dst_type,
                              int dx, int dy, int aperture_size, int flags)
 {
-    CV_FUNCNAME("CvSepFilter::init_deriv");
+    VOS_FUNCNAME("CvSepFilter::init_deriv");
 
     __BEGIN__;
 
-    int kx_size = aperture_size == CV_SCHARR ? 3 : aperture_size, ky_size = kx_size;
-    float kx_data[CV_MAX_SOBEL_KSIZE], ky_data[CV_MAX_SOBEL_KSIZE];
+    int kx_size = aperture_size == VOS_SCHARR ? 3 : aperture_size, ky_size = kx_size;
+    float kx_data[VOS_MAX_SOBEL_KSIZE], ky_data[VOS_MAX_SOBEL_KSIZE];
     CvMat _kx, _ky;
 
-    if (kx_size <= 0 || ky_size > CV_MAX_SOBEL_KSIZE)
-        CV_ERROR(CV_StsOutOfRange, "Incorrect aperture_size");
+    if (kx_size <= 0 || ky_size > VOS_MAX_SOBEL_KSIZE)
+        VOS_ERROR(VOS_StsOutOfRange, "Incorrect aperture_size");
 
     if (kx_size == 1 && dx)
         kx_size = 3;
     if (ky_size == 1 && dy)
         ky_size = 3;
 
-    _kx = cvMat(1, kx_size, CV_32FC1, kx_data);
-    _ky = cvMat(1, ky_size, CV_32FC1, ky_data);
+    _kx = cvMat(1, kx_size, VOS_32FC1, kx_data);
+    _ky = cvMat(1, ky_size, VOS_32FC1, ky_data);
 
-    if (aperture_size == CV_SCHARR)
+    if (aperture_size == VOS_SCHARR)
     {
-        CV_ERROR(CV_StsNotImplemented, "herelsp remove");
+        VOS_ERROR(VOS_StsNotImplemented, "herelsp remove");
     }
     else
     {
-        CV_CALL(init_sobel_kernel(&_kx, &_ky, dx, dy, flags));
+        VOS_CALL(init_sobel_kernel(&_kx, &_ky, dx, dy, flags));
     }
 
-    CV_CALL(init(_max_width, _src_type, _dst_type, &_kx, &_ky));
+    VOS_CALL(init(_max_width, _src_type, _dst_type, &_kx, &_ky));
 
     __END__;
 }
@@ -1493,20 +1493,20 @@ void CvSepFilter::init_gaussian(int _max_width, int _src_type, int _dst_type,
 {
     float *kdata = 0;
 
-    CV_FUNCNAME("CvSepFilter::init_gaussian");
+    VOS_FUNCNAME("CvSepFilter::init_gaussian");
 
     __BEGIN__;
 
     CvMat _kernel;
 
     if (gaussian_size <= 0 || gaussian_size > 1024)
-        CV_ERROR(CV_StsBadSize, "Incorrect size of gaussian kernel");
+        VOS_ERROR(VOS_StsBadSize, "Incorrect size of gaussian kernel");
 
     kdata = (float *)cvStackAlloc(gaussian_size * sizeof(kdata[0]));
-    _kernel = cvMat(1, gaussian_size, CV_32F, kdata);
+    _kernel = cvMat(1, gaussian_size, VOS_32F, kdata);
 
-    CV_CALL(init_gaussian_kernel(&_kernel, sigma));
-    CV_CALL(init(_max_width, _src_type, _dst_type, &_kernel, &_kernel));
+    VOS_CALL(init_gaussian_kernel(&_kernel, sigma));
+    VOS_CALL(init(_max_width, _src_type, _dst_type, &_kernel, &_kernel));
 
     __END__;
 }

@@ -8,27 +8,27 @@
 #else // SKIP_INCLUDES
 
 
-    #define CV_CDECL
-    #define CV_STDCALL
+    #define VOS_CDECL
+    #define VOS_STDCALL
 
 
 
-  #ifndef CV_INLINE
+  #ifndef VOS_INLINE
     #if defined __cplusplus
-      #define CV_INLINE inline
+      #define VOS_INLINE inline
     #elif (defined WIN32 || defined WIN64) && !defined __GNUC__
-      #define CV_INLINE __inline
+      #define VOS_INLINE __inline
     #else
-      #define CV_INLINE static
+      #define VOS_INLINE static
     #endif
-  #endif /* CV_INLINE */
+  #endif /* VOS_INLINE */
 
 
-    #define CV_EXPORTS
+    #define VOS_EXPORTS
 
 
   #ifndef CVAPI
-    #define CVAPI(rettype) CV_EXTERN_C CV_EXPORTS rettype CV_CDECL
+    #define CVAPI(rettype) VOS_EXTERN_C VOS_EXPORTS rettype VOS_CDECL
   #endif
 
 #endif // SKIP_INCLUDES
@@ -46,14 +46,14 @@
 /* 8bit, color or not */
 /* 8bit, gray */
 /* ?, color */
-#define CV_LOAD_IMAGE_COLOR       1
+#define VOS_LOAD_IMAGE_COLOR       1
 /* any depth, ? */ 
-#define CV_LOAD_IMAGE_ANYDEPTH    2
+#define VOS_LOAD_IMAGE_ANYDEPTH    2
 /* ?, any color */
-#define CV_LOAD_IMAGE_ANYCOLOR    4
+#define VOS_LOAD_IMAGE_ANYCOLOR    4
 
 
-CVAPI(IplImage*) cvLoadImage( const char* filename, int iscolor CV_DEFAULT(CV_LOAD_IMAGE_COLOR));
+CVAPI(IplImage*) cvLoadImage( const char* filename, int iscolor VOS_DEFAULT(VOS_LOAD_IMAGE_COLOR));
 
 /* save image to file */
 CVAPI(int) cvSaveImage( const char* filename, const CvArr* image );

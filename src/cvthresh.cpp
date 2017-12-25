@@ -1,14 +1,14 @@
 #include "_cv.h"
 
-static CvStatus CV_STDCALL
+static CvStatus VOS_STDCALL
 icvThresh_8u_C1R(const uchar *src, int src_step, uchar *dst, int dst_step,
                  CvSize roi, uchar thresh, uchar maxval, int type)
 {
     int i, j;
     uchar tab[256];
-    if (CV_THRESH_BINARY != type)
+    if (VOS_THRESH_BINARY != type)
     {
-        return CV_BADFLAG_ERR;
+        return VOS_BADFLAG_ERR;
     }
     for (i = 0; i <= thresh; i++)
         tab[i] = 0;
@@ -36,13 +36,13 @@ icvThresh_8u_C1R(const uchar *src, int src_step, uchar *dst, int dst_step,
             dst[j] = tab[src[j]];
     }
 
-    return CV_NO_ERR;
+    return VOS_NO_ERR;
 }
 
-CV_IMPL void
+VOS_IMPL void
 cvThreshold(const void *srcarr, void *dstarr, double thresh, double maxval, int type)
 {
-    CV_FUNCNAME("cvThreshold");
+    VOS_FUNCNAME("cvThreshold");
 
     __BEGIN__;
 
@@ -55,60 +55,60 @@ cvThreshold(const void *srcarr, void *dstarr, double thresh, double maxval, int 
     int ithresh, imaxval, cn;
     bool use_otsu;
 
-    CV_CALL(src = cvGetMat(src, &src_stub, &coi1));
-    CV_CALL(dst = cvGetMat(dst, &dst_stub, &coi2));
+    VOS_CALL(src = cvGetMat(src, &src_stub, &coi1));
+    VOS_CALL(dst = cvGetMat(dst, &dst_stub, &coi2));
 
     if (coi1 + coi2)
-        CV_ERROR(CV_BadCOI, "COI is not supported by the function");
+        VOS_ERROR(VOS_BadCOI, "COI is not supported by the function");
 
-    if (!CV_ARE_CNS_EQ(src, dst))
-        CV_ERROR(CV_StsUnmatchedFormats, "Both arrays must have equal number of channels");
+    if (!VOS_ARE_CNS_EQ(src, dst))
+        VOS_ERROR(VOS_StsUnmatchedFormats, "Both arrays must have equal number of channels");
 
-    cn = CV_MAT_CN(src->type);
+    cn = VOS_MAT_CN(src->type);
     if (cn > 1)
     {
         src = cvReshape(src, &src0, 1);
         dst = cvReshape(dst, &dst0, 1);
     }
 
-    use_otsu = (type & ~CV_THRESH_MASK) == CV_THRESH_OTSU;
-    type &= CV_THRESH_MASK;
+    use_otsu = (type & ~VOS_THRESH_MASK) == VOS_THRESH_OTSU;
+    type &= VOS_THRESH_MASK;
 
     if (use_otsu)
     {
         assert("herelsp remove" && 0);
     }
 
-    if (!CV_ARE_DEPTHS_EQ(src, dst))
+    if (!VOS_ARE_DEPTHS_EQ(src, dst))
     {
-        CV_ERROR(CV_BadDepth, cvUnsupportedFormat);
+        VOS_ERROR(VOS_BadDepth, cvUnsupportedFormat);
     }
 
-    if (!CV_ARE_SIZES_EQ(src, dst))
-        CV_ERROR(CV_StsUnmatchedSizes, "");
+    if (!VOS_ARE_SIZES_EQ(src, dst))
+        VOS_ERROR(VOS_StsUnmatchedSizes, "");
 
     roi = cvGetMatSize(src);
-    if (CV_IS_MAT_CONT(src->type & dst->type))
+    if (VOS_IS_MAT_CONT(src->type & dst->type))
     {
         roi.width *= roi.height;
         roi.height = 1;
-        src_step = dst_step = CV_STUB_STEP;
+        src_step = dst_step = VOS_STUB_STEP;
     }
     else
     {
         src_step = src->step;
         dst_step = dst->step;
     }
-    if (CV_MAT_DEPTH(src->type) != CV_8U)
+    if (VOS_MAT_DEPTH(src->type) != VOS_8U)
     {
-        CV_ERROR(CV_BadDepth, "herelsp remove");
+        VOS_ERROR(VOS_BadDepth, "herelsp remove");
     }
 
     ithresh = cvFloor(thresh);
     imaxval = cvRound(maxval);
-    if (type == CV_THRESH_TRUNC)
+    if (type == VOS_THRESH_TRUNC)
         imaxval = ithresh;
-    imaxval = CV_CAST_8U(imaxval);
+    imaxval = VOS_CAST_8U(imaxval);
 
     icvThresh_8u_C1R(src->data.ptr, src_step,
                      dst->data.ptr, dst_step, roi,

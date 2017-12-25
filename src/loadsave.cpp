@@ -21,7 +21,7 @@ icvLoadImage( const char* filename, int flags, bool load_as_matrix )
     CvMat hdr, *matrix = 0;
     int depth = 8;
 
-    CV_FUNCNAME( "cvLoadImage" );
+    VOS_FUNCNAME( "cvLoadImage" );
 
     __BEGIN__;
 
@@ -30,7 +30,7 @@ icvLoadImage( const char* filename, int flags, bool load_as_matrix )
     int cn;
 
     if( !filename || strlen(filename) == 0 )
-        CV_ERROR( CV_StsNullPtr, "null filename" );
+        VOS_ERROR( VOS_StsNullPtr, "null filename" );
 
     reader = new GrFmtBmpReader(filename);
     if( !reader )
@@ -46,13 +46,13 @@ icvLoadImage( const char* filename, int flags, bool load_as_matrix )
         iscolor = reader->IsColor();
     else
     {
-        if( (flags & CV_LOAD_IMAGE_COLOR) != 0 ||
-           ((flags & CV_LOAD_IMAGE_ANYCOLOR) != 0 && reader->IsColor()) )
+        if( (flags & VOS_LOAD_IMAGE_COLOR) != 0 ||
+           ((flags & VOS_LOAD_IMAGE_ANYCOLOR) != 0 && reader->IsColor()) )
             iscolor = 1;
         else
             iscolor = 0;
 
-        if( (flags & CV_LOAD_IMAGE_ANYDEPTH) != 0 )
+        if( (flags & VOS_LOAD_IMAGE_ANYDEPTH) != 0 )
         {
             reader->UseNativeDepth(true);
             depth = reader->GetDepth();
@@ -66,7 +66,7 @@ icvLoadImage( const char* filename, int flags, bool load_as_matrix )
             type = IPL_DEPTH_32F;
         else
             type = ( depth <= 8 ) ? IPL_DEPTH_8U : ( depth <= 16 ) ? IPL_DEPTH_16U : IPL_DEPTH_32S;
-        CV_CALL( image = cvCreateImage( size, type, cn ));
+        VOS_CALL( image = cvCreateImage( size, type, cn ));
         matrix = cvGetMat( image, &hdr );
     }
 
@@ -95,7 +95,7 @@ icvLoadImage( const char* filename, int flags, bool load_as_matrix )
 }
 
 
-CV_IMPL IplImage*
+VOS_IMPL IplImage*
 cvLoadImage( const char* filename, int iscolor )
 {
     return (IplImage*)icvLoadImage( filename, iscolor, false );
@@ -103,14 +103,14 @@ cvLoadImage( const char* filename, int iscolor )
 
 
 
-CV_IMPL int
+VOS_IMPL int
 cvSaveImage( const char* filename, const CvArr* arr )
 {
     int origin = 0;
     GrFmtBmpWriter* writer = 0;
     CvMat *temp = 0, *temp2 = 0;
 
-    CV_FUNCNAME( "cvSaveImage" );
+    VOS_FUNCNAME( "cvSaveImage" );
 
     __BEGIN__;
 
@@ -118,24 +118,24 @@ cvSaveImage( const char* filename, const CvArr* arr )
     int channels, ipl_depth;
 
     if( !filename || strlen(filename) == 0 )
-        CV_ERROR( CV_StsNullPtr, "null filename" );
+        VOS_ERROR( VOS_StsNullPtr, "null filename" );
 
-    CV_CALL( image = cvGetMat( arr, &stub ));
+    VOS_CALL( image = cvGetMat( arr, &stub ));
 
-    if( CV_IS_IMAGE( arr ))
+    if( VOS_IS_IMAGE( arr ))
         origin = ((IplImage*)arr)->origin;
 
-    channels = CV_MAT_CN( image->type );
+    channels = VOS_MAT_CN( image->type );
     if( channels != 1 && channels != 3 && channels != 4 )
-        CV_ERROR( CV_BadNumChannels, "" );
+        VOS_ERROR( VOS_BadNumChannels, "" );
 
     writer = new GrFmtBmpWriter(filename);
     if( !writer )
-        CV_ERROR( CV_StsError, "could not find a filter for the specified extension" );
+        VOS_ERROR( VOS_StsError, "could not find a filter for the specified extension" );
 
     if( origin )
     {
-       CV_ERROR( CV_StsError, "could not find a filter for the specified extension" );
+       VOS_ERROR( VOS_StsError, "could not find a filter for the specified extension" );
     }
 
     ipl_depth = cvCvToIplDepth(image->type);
@@ -144,7 +144,7 @@ cvSaveImage( const char* filename, const CvArr* arr )
 
     if( !writer->WriteImage( image->data.ptr, image->step, image->width,
                              image->height, ipl_depth, channels ))
-        CV_ERROR( CV_StsError, "could not save the image" );
+        VOS_ERROR( VOS_StsError, "could not save the image" );
 
     __END__;
 

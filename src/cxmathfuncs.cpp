@@ -7,12 +7,12 @@ static CvStatus icvInvSqrt_32f(const float *src, float *dst, int len)
     int i = 0;
 
     if (!(src && dst && len >= 0))
-        return CV_BADFACTOR_ERR;
+        return VOS_BADFACTOR_ERR;
 
     for (; i < len; i++)
         dst[i] = (float)(1.f / sqrt(src[i]));
 
-    return CV_OK;
+    return VOS_OK;
 }
 
 static CvStatus icvSqrt_32f(const float *src, float *dst, int len)
@@ -20,19 +20,19 @@ static CvStatus icvSqrt_32f(const float *src, float *dst, int len)
     int i = 0;
 
     if (!(src && dst && len >= 0))
-        return CV_BADFACTOR_ERR;
+        return VOS_BADFACTOR_ERR;
 
     for (; i < len; i++)
         dst[i] = (float)sqrt(src[i]);
 
-    return CV_OK;
+    return VOS_OK;
 }
 
 typedef CvStatus(*CvSqrtFunc)(const void *src, void *dst, int len);
 
-CV_IMPL void cvPow(const CvArr *srcarr, CvArr *dstarr, double power)
+VOS_IMPL void cvPow(const CvArr *srcarr, CvArr *dstarr, double power)
 {
-    CV_FUNCNAME("cvPow");
+    VOS_FUNCNAME("cvPow");
 
     __BEGIN__;
 
@@ -44,40 +44,40 @@ CV_IMPL void cvPow(const CvArr *srcarr, CvArr *dstarr, double power)
     CvSize size;
     int x, y;
 
-    if (!CV_IS_MAT(src))
-        CV_CALL(src = cvGetMat(src, &srcstub, &coi1));
+    if (!VOS_IS_MAT(src))
+        VOS_CALL(src = cvGetMat(src, &srcstub, &coi1));
 
-    if (!CV_IS_MAT(dst))
-        CV_CALL(dst = cvGetMat(dst, &dststub, &coi2));
+    if (!VOS_IS_MAT(dst))
+        VOS_CALL(dst = cvGetMat(dst, &dststub, &coi2));
 
     if (coi1 != 0 || coi2 != 0)
-        CV_ERROR(CV_BadCOI, "");
+        VOS_ERROR(VOS_BadCOI, "");
 
-    if (!CV_ARE_TYPES_EQ(src, dst))
-        CV_ERROR_FROM_CODE(CV_StsUnmatchedFormats);
+    if (!VOS_ARE_TYPES_EQ(src, dst))
+        VOS_ERROR_FROM_CODE(VOS_StsUnmatchedFormats);
 
-    if (!CV_ARE_SIZES_EQ(src, dst))
-        CV_ERROR_FROM_CODE(CV_StsUnmatchedSizes);
+    if (!VOS_ARE_SIZES_EQ(src, dst))
+        VOS_ERROR_FROM_CODE(VOS_StsUnmatchedSizes);
 
-    depth = CV_MAT_DEPTH(src->type);
+    depth = VOS_MAT_DEPTH(src->type);
 
-    if (depth < CV_32F)
+    if (depth < VOS_32F)
     {
-        CV_ERROR(CV_StsUnsupportedFormat,
+        VOS_ERROR(VOS_StsUnsupportedFormat,
                  "Fractional or negative integer power factor can be used "
                  "with floating-point types only");
     }
 
     size = cvGetMatSize(src);
-    size.width *= CV_MAT_CN(src->type);
+    size.width *= VOS_MAT_CN(src->type);
 
-    if (CV_IS_MAT_CONT(src->type & dst->type))
+    if (VOS_IS_MAT_CONT(src->type & dst->type))
     {
         size.width *= size.height;
         size.height = 1;
     }
 
-    assert(depth == CV_32F);
+    assert(depth == VOS_32F);
     if( fabs(fabs(power) - 0.5) < DBL_EPSILON )
     {
         CvSqrtFunc sqrt_func =( power < 0) ? (CvSqrtFunc)icvInvSqrt_32f : (CvSqrtFunc)icvSqrt_32f;
@@ -91,7 +91,7 @@ CV_IMPL void cvPow(const CvArr *srcarr, CvArr *dstarr, double power)
     }
     else
     {
-         CV_ERROR(CV_StsUnsupportedFormat,
+         VOS_ERROR(VOS_StsUnsupportedFormat,
                  "Fractional or negative integer power factor can be used "
                  "with floating-point types only");
     }

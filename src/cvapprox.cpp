@@ -16,18 +16,18 @@ icvApproxPolyDP_32s(CvSeq *src_contour, int header_size,
     CvSeqWriter writer;
     CvPoint start_pt = {INT_MIN, INT_MIN}, end_pt = {0, 0}, pt = {0, 0};
     int i = 0, j, count = src_contour->total, new_count;
-    int is_closed = CV_IS_SEQ_CLOSED(src_contour);
+    int is_closed = VOS_IS_SEQ_CLOSED(src_contour);
     int le_eps = 0;
     CvMemStorage *temp_storage = 0;
     CvSeq *stack = 0;
 
-    assert(CV_SEQ_ELTYPE(src_contour) == CV_32SC2);
+    assert(VOS_SEQ_ELTYPE(src_contour) == VOS_32SC2);
     cvStartWriteSeq(src_contour->flags, header_size, sizeof(pt), storage, &writer);
 
     if (src_contour->total == 0)
     {
         *dst_contour = cvEndWriteSeq(&writer);
-        return CV_OK;
+        return VOS_OK;
     }
 
     temp_storage = cvCreateChildMemStorage(storage);
@@ -65,13 +65,13 @@ icvApproxPolyDP_32s(CvSeq *src_contour, int header_size,
         {
             int max_dist = 0;
             cvSetSeqReaderPos(&reader, right_slice.start_index, 1);
-            CV_READ_SEQ_ELEM(start_pt, reader); /* read the first point */
+            VOS_READ_SEQ_ELEM(start_pt, reader); /* read the first point */
 
             for (j = 1; j < count; j++)
             {
                 int dx, dy, dist;
 
-                CV_READ_SEQ_ELEM(pt, reader);
+                VOS_READ_SEQ_ELEM(pt, reader);
                 dx = pt.x - start_pt.x;
                 dy = pt.y - start_pt.y;
 
@@ -102,7 +102,7 @@ icvApproxPolyDP_32s(CvSeq *src_contour, int header_size,
             cvSeqPush(stack, &slice);
         }
         else
-            CV_WRITE_SEQ_ELEM(start_pt, writer);
+            VOS_WRITE_SEQ_ELEM(start_pt, writer);
     }
 
     /* 3. run recursive process */
@@ -115,10 +115,10 @@ icvApproxPolyDP_32s(CvSeq *src_contour, int header_size,
             int dx, dy, dist, max_dist = 0;
 
             cvSetSeqReaderPos(&reader, slice.end_index);
-            CV_READ_SEQ_ELEM(end_pt, reader);
+            VOS_READ_SEQ_ELEM(end_pt, reader);
 
             cvSetSeqReaderPos(&reader, slice.start_index);
-            CV_READ_SEQ_ELEM(start_pt, reader);
+            VOS_READ_SEQ_ELEM(start_pt, reader);
 
             dx = end_pt.x - start_pt.x;
             dy = end_pt.y - start_pt.y;
@@ -127,7 +127,7 @@ icvApproxPolyDP_32s(CvSeq *src_contour, int header_size,
 
             for (i = slice.start_index + 1; i < slice.end_index; i++)
             {
-                CV_READ_SEQ_ELEM(pt, reader);
+                VOS_READ_SEQ_ELEM(pt, reader);
                 dist = abs((pt.y - start_pt.y) * dx - (pt.x - start_pt.x) * dy);
 
                 if (dist > max_dist)
@@ -145,12 +145,12 @@ icvApproxPolyDP_32s(CvSeq *src_contour, int header_size,
             le_eps = 1;
             /* read starting point */
             cvSetSeqReaderPos(&reader, slice.start_index);
-            CV_READ_SEQ_ELEM(start_pt, reader);
+            VOS_READ_SEQ_ELEM(start_pt, reader);
         }
 
         if (le_eps)
         {
-            CV_WRITE_SEQ_ELEM(start_pt, writer);
+            VOS_WRITE_SEQ_ELEM(start_pt, writer);
         }
         else
         {
@@ -161,23 +161,23 @@ icvApproxPolyDP_32s(CvSeq *src_contour, int header_size,
         }
     }
 
-    is_closed = CV_IS_SEQ_CLOSED(src_contour);
+    is_closed = VOS_IS_SEQ_CLOSED(src_contour);
     if (!is_closed)
-        CV_WRITE_SEQ_ELEM(end_pt, writer);
+        VOS_WRITE_SEQ_ELEM(end_pt, writer);
 
     *dst_contour = cvEndWriteSeq(&writer);
 
     cvStartReadSeq(*dst_contour, &reader, is_closed);
-    CV_READ_SEQ_ELEM(start_pt, reader);
+    VOS_READ_SEQ_ELEM(start_pt, reader);
 
     reader2 = reader;
-    CV_READ_SEQ_ELEM(pt, reader);
+    VOS_READ_SEQ_ELEM(pt, reader);
 
     new_count = count = (*dst_contour)->total;
     for (i = !is_closed; i < count - !is_closed && new_count > 2; i++)
     {
         int dx, dy, dist;
-        CV_READ_SEQ_ELEM(end_pt, reader);
+        VOS_READ_SEQ_ELEM(end_pt, reader);
 
         dx = end_pt.x - start_pt.x;
         dy = end_pt.y - start_pt.y;
@@ -186,13 +186,13 @@ icvApproxPolyDP_32s(CvSeq *src_contour, int header_size,
         {
             new_count--;
             *((CvPoint *)reader2.ptr) = start_pt = end_pt;
-            CV_NEXT_SEQ_ELEM(sizeof(pt), reader2);
-            CV_READ_SEQ_ELEM(pt, reader);
+            VOS_NEXT_SEQ_ELEM(sizeof(pt), reader2);
+            VOS_READ_SEQ_ELEM(pt, reader);
             i++;
             continue;
         }
         *((CvPoint *)reader2.ptr) = start_pt = pt;
-        CV_NEXT_SEQ_ELEM(sizeof(pt), reader2);
+        VOS_NEXT_SEQ_ELEM(sizeof(pt), reader2);
         pt = end_pt;
     }
 
@@ -204,10 +204,10 @@ icvApproxPolyDP_32s(CvSeq *src_contour, int header_size,
 
     cvReleaseMemStorage(&temp_storage);
 
-    return CV_OK;
+    return VOS_OK;
 }
 
-CV_IMPL CvSeq *
+VOS_IMPL CvSeq *
 cvApproxPoly(const void *array, int header_size,
              CvMemStorage *storage, int method,
              double parameter, int parameter2)
@@ -217,15 +217,15 @@ cvApproxPoly(const void *array, int header_size,
     CvSeq *src_seq = 0;
     int recursive = 0;
 
-    CV_FUNCNAME("cvApproxPoly");
+    VOS_FUNCNAME("cvApproxPoly");
 
     __BEGIN__;
 
-    if (CV_IS_SEQ(array))
+    if (VOS_IS_SEQ(array))
     {
         src_seq = (CvSeq *)array;
-        if (!CV_IS_SEQ_POLYLINE(src_seq))
-            CV_ERROR(CV_StsBadArg, "Unsupported sequence type");
+        if (!VOS_IS_SEQ_POLYLINE(src_seq))
+            VOS_ERROR(VOS_StsBadArg, "Unsupported sequence type");
 
         recursive = parameter2;
 
@@ -234,29 +234,29 @@ cvApproxPoly(const void *array, int header_size,
     }
     else
     {
-        CV_ERROR(CV_StsBadArg, "Unsupported sequence type");
+        VOS_ERROR(VOS_StsBadArg, "Unsupported sequence type");
     }
 
     if (!storage)
-        CV_ERROR(CV_StsNullPtr, "NULL storage pointer ");
+        VOS_ERROR(VOS_StsNullPtr, "NULL storage pointer ");
 
     if (header_size < 0)
-        CV_ERROR(CV_StsOutOfRange, "header_size is negative. "
+        VOS_ERROR(VOS_StsOutOfRange, "header_size is negative. "
                                    "Pass 0 to make the destination header_size == input header_size");
 
     if (header_size == 0)
         header_size = src_seq->header_size;
 
-    if (!CV_IS_SEQ_POLYLINE(src_seq))
+    if (!VOS_IS_SEQ_POLYLINE(src_seq))
     {
-        if (CV_IS_SEQ_CHAIN(src_seq))
+        if (VOS_IS_SEQ_CHAIN(src_seq))
         {
-            CV_ERROR(CV_StsBadArg, "Input curves are not polygonal. "
+            VOS_ERROR(VOS_StsBadArg, "Input curves are not polygonal. "
                                    "Use cvApproxChains first");
         }
         else
         {
-            CV_ERROR(CV_StsBadArg, "Input curves have uknown type");
+            VOS_ERROR(VOS_StsBadArg, "Input curves have uknown type");
         }
     }
 
@@ -264,22 +264,22 @@ cvApproxPoly(const void *array, int header_size,
         header_size = src_seq->header_size;
 
     if (header_size < (int)sizeof(CvContour))
-        CV_ERROR(CV_StsBadSize, "New header size must be non-less than sizeof(CvContour)");
+        VOS_ERROR(VOS_StsBadSize, "New header size must be non-less than sizeof(CvContour)");
 
-    if (method != CV_POLY_APPROX_DP)
-        CV_ERROR(CV_StsOutOfRange, "Unknown approximation method");
+    if (method != VOS_POLY_APPROX_DP)
+        VOS_ERROR(VOS_StsOutOfRange, "Unknown approximation method");
 
-    if (CV_SEQ_ELTYPE(src_seq) != CV_32SC2)
-        CV_ERROR(CV_StsOutOfRange, "Unknown type");
+    if (VOS_SEQ_ELTYPE(src_seq) != VOS_32SC2)
+        VOS_ERROR(VOS_StsOutOfRange, "Unknown type");
 
     if (parameter < 0)
-        CV_ERROR(CV_StsOutOfRange, "Accuracy must be non-negative");
+        VOS_ERROR(VOS_StsOutOfRange, "Accuracy must be non-negative");
 
     while (src_seq != 0)
     {
         CvSeq *contour = 0;
 
-        IPPI_CALL(icvApproxPolyDP_32s(src_seq, header_size, storage,
+        FUN_CALL(icvApproxPolyDP_32s(src_seq, header_size, storage,
                                       &contour, (float)parameter));
 
         assert(contour);

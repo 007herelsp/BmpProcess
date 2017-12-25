@@ -4,7 +4,7 @@
 
 
 
-CV_IMPL void
+VOS_IMPL void
 cvCanny( const void* srcarr, void* dstarr,
          double low_thresh, double high_thresh, int aperture_size )
 {
@@ -12,7 +12,7 @@ cvCanny( const void* srcarr, void* dstarr,
     void *buffer = 0;
     uchar **stack_top, **stack_bottom = 0;
 
-    CV_FUNCNAME( "cvCanny" );
+    VOS_FUNCNAME( "cvCanny" );
 
     __BEGIN__;
 
@@ -27,35 +27,35 @@ cvCanny( const void* srcarr, void* dstarr,
     int i, j;
     CvMat mag_row;
 
-    CV_CALL( src = cvGetMat( src, &srcstub ));
-    CV_CALL( dst = cvGetMat( dst, &dststub ));
+    VOS_CALL( src = cvGetMat( src, &srcstub ));
+    VOS_CALL( dst = cvGetMat( dst, &dststub ));
 
-    if( CV_MAT_TYPE( src->type ) != CV_8UC1 ||
-        CV_MAT_TYPE( dst->type ) != CV_8UC1 )
-        CV_ERROR( CV_StsUnsupportedFormat, "" );
+    if( VOS_MAT_TYPE( src->type ) != VOS_8UC1 ||
+        VOS_MAT_TYPE( dst->type ) != VOS_8UC1 )
+        VOS_ERROR( VOS_StsUnsupportedFormat, "" );
 
-    if( !CV_ARE_SIZES_EQ( src, dst ))
-        CV_ERROR( CV_StsUnmatchedSizes, "" );
+    if( !VOS_ARE_SIZES_EQ( src, dst ))
+        VOS_ERROR( VOS_StsUnmatchedSizes, "" );
 
     if( low_thresh > high_thresh )
     {
         double t;
-        CV_SWAP( low_thresh, high_thresh, t );
+        VOS_SWAP( low_thresh, high_thresh, t );
     }
 
     aperture_size &= INT_MAX;
     if( (aperture_size & 1) == 0 || aperture_size < 3 || aperture_size > 7 )
-        CV_ERROR( CV_StsBadFlag, "" );
+        VOS_ERROR( VOS_StsBadFlag, "" );
 
     size = cvGetMatSize( src );
 
-    dx = cvCreateMat( size.height, size.width, CV_16SC1 );
-    dy = cvCreateMat( size.height, size.width, CV_16SC1 );
+    dx = cvCreateMat( size.height, size.width, VOS_16SC1 );
+    dy = cvCreateMat( size.height, size.width, VOS_16SC1 );
     cvSobel( src, dx, 1, 0, aperture_size );
     cvSobel( src, dy, 0, 1, aperture_size );
 
 
-    if( flags & CV_CANNY_L2_GRADIENT )
+    if( flags & VOS_CANNY_L2_GRADIENT )
     {
         Cv32suf ul, uh;
         ul.f = (float)low_thresh;
@@ -70,7 +70,7 @@ cvCanny( const void* srcarr, void* dstarr,
         high = cvFloor( high_thresh );
     }
 
-    CV_CALL( buffer = cvAlloc( (size.width+2)*(size.height+2) +
+    VOS_CALL( buffer = cvAlloc( (size.width+2)*(size.height+2) +
                                 (size.width+2)*3*sizeof(int)) );
 
     mag_buf[0] = (int*)buffer;
@@ -80,7 +80,7 @@ cvCanny( const void* srcarr, void* dstarr,
     mapstep = size.width + 2;
 
     maxsize = MAX( 1 << 10, size.width*size.height/10 );
-    CV_CALL( stack_top = stack_bottom = (uchar**)cvAlloc( maxsize*sizeof(stack_top[0]) ));
+    VOS_CALL( stack_top = stack_bottom = (uchar**)cvAlloc( maxsize*sizeof(stack_top[0]) ));
 
     memset( mag_buf[0], 0, (size.width+2)*sizeof(int) );
     memset( map, 1, mapstep );
@@ -101,7 +101,7 @@ cvCanny( const void* srcarr, void* dstarr,
     #define CANNY_PUSH(d)    *(d) = (uchar)2, *stack_top++ = (d)
     #define CANNY_POP(d)     (d) = *--stack_top
 
-    mag_row = cvMat( 1, size.width, CV_32F );
+    mag_row = cvMat( 1, size.width, VOS_32F );
 
     // calculate magnitude and angle of gradient, perform non-maxima supression.
     // fill the map with one of the following values:
@@ -123,7 +123,7 @@ cvCanny( const void* srcarr, void* dstarr,
         {
             _mag[-1] = _mag[size.width] = 0;
 
-            if( !(flags & CV_CANNY_L2_GRADIENT) )
+            if( !(flags & VOS_CANNY_L2_GRADIENT) )
                 for( j = 0; j < size.width; j++ )
                     _mag[j] = abs(_dx[j]) + abs(_dy[j]);
             else if( 0 != 0 ) // check for IPP
@@ -168,7 +168,7 @@ cvCanny( const void* srcarr, void* dstarr,
         {
             uchar** new_stack_bottom;
             maxsize = MAX( maxsize * 3/2, maxsize + size.width );
-            CV_CALL( new_stack_bottom = (uchar**)cvAlloc( maxsize * sizeof(stack_top[0])) );
+            VOS_CALL( new_stack_bottom = (uchar**)cvAlloc( maxsize * sizeof(stack_top[0])) );
             memcpy( new_stack_bottom, stack_bottom, (stack_top - stack_bottom)*sizeof(stack_top[0]) );
             stack_top = new_stack_bottom + (stack_top - stack_bottom);
             cvFree( &stack_bottom );
@@ -257,7 +257,7 @@ cvCanny( const void* srcarr, void* dstarr,
         {
             uchar** new_stack_bottom;
             maxsize = MAX( maxsize * 3/2, maxsize + 8 );
-            CV_CALL( new_stack_bottom = (uchar**)cvAlloc( maxsize * sizeof(stack_top[0])) );
+            VOS_CALL( new_stack_bottom = (uchar**)cvAlloc( maxsize * sizeof(stack_top[0])) );
             memcpy( new_stack_bottom, stack_bottom, (stack_top - stack_bottom)*sizeof(stack_top[0]) );
             stack_top = new_stack_bottom + (stack_top - stack_bottom);
             cvFree( &stack_bottom );

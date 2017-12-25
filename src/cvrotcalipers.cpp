@@ -2,8 +2,8 @@
 #include "_cv.h"
 
 
-#define CV_CALIPERS_MAXHEIGHT      0
-#define CV_CALIPERS_MINAREARECT    1
+#define VOS_CALIPERS_MAXHEIGHT      0
+#define VOS_CALIPERS_MINAREARECT    1
 
 
 static void
@@ -156,7 +156,7 @@ icvRotatingCalipers( CvPoint2D32f* points, int n, int mode, float* out )
 
         switch (mode)
         {
-        case CV_CALIPERS_MAXHEIGHT:
+        case VOS_CALIPERS_MAXHEIGHT:
             {
                 /* now main element lies on edge alligned to calipers side */
 
@@ -178,7 +178,7 @@ icvRotatingCalipers( CvPoint2D32f* points, int n, int mode, float* out )
 
                 break;
             }
-        case CV_CALIPERS_MINAREARECT:
+        case VOS_CALIPERS_MINAREARECT:
             /* find area of rectangle */
             {
                 float height;
@@ -221,7 +221,7 @@ icvRotatingCalipers( CvPoint2D32f* points, int n, int mode, float* out )
 
     switch (mode)
     {
-    case CV_CALIPERS_MINAREARECT:
+    case VOS_CALIPERS_MINAREARECT:
         {
             float *buf = (float *) buffer;
 
@@ -249,7 +249,7 @@ icvRotatingCalipers( CvPoint2D32f* points, int n, int mode, float* out )
             out[5] = B2 * buf[4];
         }
         break;
-    case CV_CALIPERS_MAXHEIGHT:
+    case VOS_CALIPERS_MAXHEIGHT:
         {
             out[0] = max_dist;
         }
@@ -261,14 +261,14 @@ icvRotatingCalipers( CvPoint2D32f* points, int n, int mode, float* out )
 }
 
 
-CV_IMPL  CvBox2D
+VOS_IMPL  CvBox2D
 cvMinAreaRect2( const CvArr* array, CvMemStorage* storage )
 {
     CvMemStorage* temp_storage = 0;
     CvBox2D box;
     CvPoint2D32f* points = 0;
 
-    CV_FUNCNAME( "cvMinAreaRect2" );
+    VOS_FUNCNAME( "cvMinAreaRect2" );
 
     memset(&box, 0, sizeof(box));
 
@@ -279,51 +279,51 @@ cvMinAreaRect2( const CvArr* array, CvMemStorage* storage )
     CvSeq* ptseq = (CvSeq*)array;
     CvPoint2D32f out[3];
 
-    if( CV_IS_SEQ(ptseq) )
+    if( VOS_IS_SEQ(ptseq) )
     {
-        if( !CV_IS_SEQ_POINT_SET(ptseq) &&
-            (CV_SEQ_KIND(ptseq) != CV_SEQ_KIND_CURVE || !CV_IS_SEQ_CONVEX(ptseq) ||
-            CV_SEQ_ELTYPE(ptseq) != CV_SEQ_ELTYPE_PPOINT ))
-            CV_ERROR( CV_StsUnsupportedFormat,
+        if( !VOS_IS_SEQ_POINT_SET(ptseq) &&
+            (VOS_SEQ_KIND(ptseq) != VOS_SEQ_KIND_CURVE || !VOS_IS_SEQ_CONVEX(ptseq) ||
+            VOS_SEQ_ELTYPE(ptseq) != VOS_SEQ_ELTYPE_PPOINT ))
+            VOS_ERROR( VOS_StsUnsupportedFormat,
                 "Input sequence must consist of 2d points or pointers to 2d points" );
         if( !storage )
             storage = ptseq->storage;
     }
     else
     {
-    CV_ERROR( CV_StsBadArg, "Unsupported sequence type" );
+    VOS_ERROR( VOS_StsBadArg, "Unsupported sequence type" );
 
     }
 
     if( storage )
     {
-        CV_CALL( temp_storage = cvCreateChildMemStorage( storage ));
+        VOS_CALL( temp_storage = cvCreateChildMemStorage( storage ));
     }
     else
     {
-        CV_CALL( temp_storage = cvCreateMemStorage(1 << 10));
+        VOS_CALL( temp_storage = cvCreateMemStorage(1 << 10));
     }
 
-    if( !CV_IS_SEQ_CONVEX( ptseq ))
+    if( !VOS_IS_SEQ_CONVEX( ptseq ))
     {
-        CV_CALL( ptseq = cvConvexHull2( ptseq, temp_storage, CV_CLOCKWISE, 1 ));
+        VOS_CALL( ptseq = cvConvexHull2( ptseq, temp_storage, VOS_CLOCKWISE, 1 ));
     }
-    else if( !CV_IS_SEQ_POINT_SET( ptseq ))
+    else if( !VOS_IS_SEQ_POINT_SET( ptseq ))
     {
         CvSeqWriter writer;
 
-        if( !CV_IS_SEQ(ptseq->v_prev) || !CV_IS_SEQ_POINT_SET(ptseq->v_prev))
-            CV_ERROR( CV_StsBadArg,
+        if( !VOS_IS_SEQ(ptseq->v_prev) || !VOS_IS_SEQ_POINT_SET(ptseq->v_prev))
+            VOS_ERROR( VOS_StsBadArg,
             "Convex hull must have valid pointer to point sequence stored in v_prev" );
         cvStartReadSeq( ptseq, &reader );
-        cvStartWriteSeq( CV_SEQ_KIND_CURVE|CV_SEQ_FLAG_CONVEX|CV_SEQ_ELTYPE(ptseq->v_prev),
-                         sizeof(CvContour), CV_ELEM_SIZE(ptseq->v_prev->flags),
+        cvStartWriteSeq( VOS_SEQ_KIND_CURVE|VOS_SEQ_FLAG_CONVEX|VOS_SEQ_ELTYPE(ptseq->v_prev),
+                         sizeof(CvContour), VOS_ELEM_SIZE(ptseq->v_prev->flags),
                          temp_storage, &writer );
 
         for( i = 0; i < ptseq->total; i++ )
         {
             CvPoint pt = **(CvPoint**)(reader.ptr);
-            CV_WRITE_SEQ_ELEM( pt, writer );
+            VOS_WRITE_SEQ_ELEM( pt, writer );
         }
 
         ptseq = cvEndWriteSeq( &writer );
@@ -331,15 +331,15 @@ cvMinAreaRect2( const CvArr* array, CvMemStorage* storage )
 
     n = ptseq->total;
 
-    CV_CALL( points = (CvPoint2D32f*)cvAlloc( n*sizeof(points[0]) ));
+    VOS_CALL( points = (CvPoint2D32f*)cvAlloc( n*sizeof(points[0]) ));
     cvStartReadSeq( ptseq, &reader );
 
-    if( CV_SEQ_ELTYPE( ptseq ) == CV_32SC2 )
+    if( VOS_SEQ_ELTYPE( ptseq ) == VOS_32SC2 )
     {
         for( i = 0; i < n; i++ )
         {
             CvPoint pt;
-            CV_READ_SEQ_ELEM( pt, reader );
+            VOS_READ_SEQ_ELEM( pt, reader );
             points[i].x = (float)pt.x;
             points[i].y = (float)pt.y;
         }
@@ -348,13 +348,13 @@ cvMinAreaRect2( const CvArr* array, CvMemStorage* storage )
     {
         for( i = 0; i < n; i++ )
         {
-            CV_READ_SEQ_ELEM( points[i], reader );
+            VOS_READ_SEQ_ELEM( points[i], reader );
         }
     }
 
     if( n > 2 )
     {
-        icvRotatingCalipers( points, n, CV_CALIPERS_MINAREARECT, (float*)out );
+        icvRotatingCalipers( points, n, VOS_CALIPERS_MINAREARECT, (float*)out );
         box.center.x = out[0].x + (out[1].x + out[2].x)*0.5f;
         box.center.y = out[0].y + (out[1].y + out[2].y)*0.5f;
         box.size.height = (float)sqrt((double)out[1].x*out[1].x + (double)out[1].y*out[1].y);
@@ -377,7 +377,7 @@ cvMinAreaRect2( const CvArr* array, CvMemStorage* storage )
             box.center = points[0];
     }
 
-    box.angle = (float)(box.angle*180/CV_PI);
+    box.angle = (float)(box.angle*180/VOS_PI);
 
     __END__;
 

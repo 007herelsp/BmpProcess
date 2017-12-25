@@ -59,49 +59,49 @@ void CvMorphology::init(int _operation, int _max_width, int _src_dst_type,
                         CvSize _ksize, CvPoint _anchor,
                         int _border_mode, CvScalar _border_value)
 {
-    CV_FUNCNAME("CvMorphology::init");
+    VOS_FUNCNAME("CvMorphology::init");
 
     __BEGIN__;
 
-    int depth = CV_MAT_DEPTH(_src_dst_type);
+    int depth = VOS_MAT_DEPTH(_src_dst_type);
 
     if (_operation != ERODE && _operation != DILATE)
-        CV_ERROR(CV_StsBadArg, "Unknown/unsupported morphological operation");
+        VOS_ERROR(VOS_StsBadArg, "Unknown/unsupported morphological operation");
 
 
 
     operation = _operation;
     el_shape = _element_shape;
 
-    CV_CALL(CvBaseImageFilter::init(_max_width, _src_dst_type, _src_dst_type,
+    VOS_CALL(CvBaseImageFilter::init(_max_width, _src_dst_type, _src_dst_type,
                                     _element_shape == RECT, _ksize, _anchor, _border_mode, _border_value));
 
     if (el_shape == RECT)
     {
         if (operation == ERODE)
         {
-            if (depth == CV_8U)
+            if (depth == VOS_8U)
             {
                 x_func = (CvRowFilterFunc)icvErodeRectRow_8u;
                 y_func = (CvColumnFilterFunc)icvErodeRectCol_8u;
             }
             else
             {
-                CV_ERROR(CV_StsBadArg,
+                VOS_ERROR(VOS_StsBadArg,
                          "herelsp remove");
             }
         }
         else
         {
             assert(operation == DILATE);
-            if (depth == CV_8U)
+            if (depth == VOS_8U)
             {
                 x_func = (CvRowFilterFunc)icvDilateRectRow_8u;
                 y_func = (CvColumnFilterFunc)icvDilateRectCol_8u;
             }
             else
             {
-                CV_ERROR(CV_StsBadArg,
+                VOS_ERROR(VOS_StsBadArg,
                          "herelsp remove");
             }
         }
@@ -109,7 +109,7 @@ void CvMorphology::init(int _operation, int _max_width, int _src_dst_type,
     else
     {
         int i, j, k = 0;
-        int cn = CV_MAT_CN(src_type);
+        int cn = VOS_MAT_CN(src_type);
         CvPoint *nz_loc;
 
         if (!(element && el_sparse &&
@@ -117,38 +117,38 @@ void CvMorphology::init(int _operation, int _max_width, int _src_dst_type,
         {
             cvReleaseMat(&element);
             cvFree(&el_sparse);
-            CV_CALL(element = cvCreateMat(_ksize.height, _ksize.width, CV_8UC1));
-            CV_CALL(el_sparse = (uchar *)cvAlloc(
+            VOS_CALL(element = cvCreateMat(_ksize.height, _ksize.width, VOS_8UC1));
+            VOS_CALL(el_sparse = (uchar *)cvAlloc(
                         ksize.width * ksize.height * (2 * sizeof(int) + sizeof(uchar *))));
         }
 
         if (el_shape == CUSTOM)
         {
-            CV_CALL(cvConvert(_element, element));
+            VOS_CALL(cvConvert(_element, element));
         }
         else
         {
-            CV_CALL(init_binary_element(element, el_shape, anchor));
+            VOS_CALL(init_binary_element(element, el_shape, anchor));
         }
 
         if (operation == ERODE)
         {
-            if (depth == CV_8U)
+            if (depth == VOS_8U)
                 y_func = (CvColumnFilterFunc)icvErodeAny_8u;
             else
             {
-                CV_ERROR(CV_StsBadArg,
+                VOS_ERROR(VOS_StsBadArg,
                          "herelsp remove");
             }
         }
         else
         {
             assert(operation == DILATE);
-            if (depth == CV_8U)
+            if (depth == VOS_8U)
                 y_func = (CvColumnFilterFunc)icvDilateAny_8u;
             else
             {
-                CV_ERROR(CV_StsBadArg,
+                VOS_ERROR(VOS_StsBadArg,
                          "herelsp remove");
             }
         }
@@ -195,10 +195,10 @@ int CvMorphology::fill_cyclic_buffer(const uchar *src, int src_step,
                                      int y0, int y1, int y2)
 {
     int i, y = y0, bsz1 = border_tab_sz1, bsz = border_tab_sz;
-    int pix_size = CV_ELEM_SIZE(src_type);
+    int pix_size = VOS_ELEM_SIZE(src_type);
     int width_n = (prev_x_range.end_index - prev_x_range.start_index) * pix_size;
 
-    if (CV_MAT_DEPTH(src_type) != CV_32F)
+    if (VOS_MAT_DEPTH(src_type) != VOS_32F)
         return CvBaseImageFilter::fill_cyclic_buffer(src, src_step, y0, y1, y2);
 
     // fill the cyclic buffer
@@ -209,7 +209,7 @@ int CvMorphology::fill_cyclic_buffer(const uchar *src, int src_step,
         for (i = 0; i < width_n; i += sizeof(int))
         {
             int t = *(int *)(src + i);
-            *(int *)(trow + i + bsz1) = CV_TOGGLE_FLT(t);
+            *(int *)(trow + i + bsz1) = VOS_TOGGLE_FLT(t);
         }
 
         if (border_mode != IPL_BORDER_CONSTANT)
@@ -248,7 +248,7 @@ int CvMorphology::fill_cyclic_buffer(const uchar *src, int src_step,
 
 void CvMorphology::init_binary_element(CvMat *element, int element_shape, CvPoint anchor)
 {
-    CV_FUNCNAME("CvMorphology::init_binary_element");
+    VOS_FUNCNAME("CvMorphology::init_binary_element");
 
     __BEGIN__;
 
@@ -257,12 +257,12 @@ void CvMorphology::init_binary_element(CvMat *element, int element_shape, CvPoin
     int r = 0, c = 0;
     double inv_r2 = 0;
 
-    if (!CV_IS_MAT(element))
-        CV_ERROR(CV_StsBadArg, "element must be valid matrix");
+    if (!VOS_IS_MAT(element))
+        VOS_ERROR(VOS_StsBadArg, "element must be valid matrix");
 
-    type = CV_MAT_TYPE(element->type);
-    if (type != CV_8UC1 && type != CV_32SC1)
-        CV_ERROR(CV_StsUnsupportedFormat, "element must have 8uC1 or 32sC1 type");
+    type = VOS_MAT_TYPE(element->type);
+    if (type != VOS_8UC1 && type != VOS_32SC1)
+        VOS_ERROR(VOS_StsUnsupportedFormat, "element must have 8uC1 or 32sC1 type");
 
     if (anchor.x == -1)
         anchor.x = element->cols / 2;
@@ -272,10 +272,10 @@ void CvMorphology::init_binary_element(CvMat *element, int element_shape, CvPoin
 
     if ((unsigned)anchor.x >= (unsigned)element->cols ||
         (unsigned)anchor.y >= (unsigned)element->rows)
-        CV_ERROR(CV_StsOutOfRange, "anchor is outside of element");
+        VOS_ERROR(VOS_StsOutOfRange, "anchor is outside of element");
 
     if (element_shape != RECT && element_shape != CROSS && element_shape != ELLIPSE)
-        CV_ERROR(CV_StsBadArg, "Unknown/unsupported element shape");
+        VOS_ERROR(VOS_StsBadArg, "Unknown/unsupported element shape");
 
     rows = element->rows;
     cols = element->cols;
@@ -314,7 +314,7 @@ void CvMorphology::init_binary_element(CvMat *element, int element_shape, CvPoin
         {
             for (; j < jx; j++)
             {
-                if (type == CV_8UC1)
+                if (type == VOS_8UC1)
                     ptr[j] = (uchar)t;
                 else
                     ((int *)ptr)[j] = t;
@@ -329,7 +329,7 @@ void CvMorphology::init_binary_element(CvMat *element, int element_shape, CvPoin
     __END__;
 }
 
-#define ICV_MORPH_RECT_ROW(name, flavor, arrtype,                 \
+#define IVOS_MORPH_RECT_ROW(name, flavor, arrtype,                 \
                            worktype, update_extr_macro)           \
     \
 static void \
@@ -340,7 +340,7 @@ icv##name##RectRow_##flavor(const arrtype *src,                   \
         const CvMorphology *state = (const CvMorphology *)params; \
         int ksize = state->get_kernel_size().width;               \
         int width = state->get_width();                           \
-        int cn = CV_MAT_CN(state->get_src_type());                \
+        int cn = VOS_MAT_CN(state->get_src_type());                \
         int i, j, k;                                              \
                                                                   \
         width *= cn;                                              \
@@ -387,11 +387,11 @@ icv##name##RectRow_##flavor(const arrtype *src,                   \
     \
 }
 
-ICV_MORPH_RECT_ROW(Erode, 8u, uchar, int, CV_CALC_MIN_8U)
-ICV_MORPH_RECT_ROW(Dilate, 8u, uchar, int, CV_CALC_MAX_8U)
+IVOS_MORPH_RECT_ROW(Erode, 8u, uchar, int, VOS_CALC_MIN_8U)
+IVOS_MORPH_RECT_ROW(Dilate, 8u, uchar, int, VOS_CALC_MAX_8U)
 
 
-#define ICV_MORPH_RECT_COL(name, flavor, arrtype,                                \
+#define IVOS_MORPH_RECT_COL(name, flavor, arrtype,                                \
                            worktype, update_extr_macro, toggle_macro)            \
     \
 static void \
@@ -402,7 +402,7 @@ icv##name##RectCol_##flavor(const arrtype **src,                                
         const CvMorphology *state = (const CvMorphology *)params;                \
         int ksize = state->get_kernel_size().height;                             \
         int width = state->get_width();                                          \
-        int cn = CV_MAT_CN(state->get_src_type());                               \
+        int cn = VOS_MAT_CN(state->get_src_type());                               \
         int i, k;                                                                \
                                                                                  \
         width *= cn;                                                             \
@@ -526,11 +526,11 @@ icv##name##RectCol_##flavor(const arrtype **src,                                
     \
 }
 
-ICV_MORPH_RECT_COL(Erode, 8u, uchar, int, CV_CALC_MIN_8U, CV_NOP)
-ICV_MORPH_RECT_COL(Dilate, 8u, uchar, int, CV_CALC_MAX_8U, CV_NOP)
+IVOS_MORPH_RECT_COL(Erode, 8u, uchar, int, VOS_CALC_MIN_8U, VOS_NOP)
+IVOS_MORPH_RECT_COL(Dilate, 8u, uchar, int, VOS_CALC_MAX_8U, VOS_NOP)
 
 
-#define ICV_MORPH_ANY(name, flavor, arrtype, worktype,                     \
+#define IVOS_MORPH_ANY(name, flavor, arrtype, worktype,                     \
                       update_extr_macro, toggle_macro)                     \
     \
 static void \
@@ -540,7 +540,7 @@ icv##name##Any_##flavor(const arrtype **src, arrtype *dst,                 \
 {                                                                     \
         CvMorphology *state = (CvMorphology *)params;                      \
         int width = state->get_width();                                    \
-        int cn = CV_MAT_CN(state->get_src_type());                         \
+        int cn = VOS_MAT_CN(state->get_src_type());                         \
         int i, k;                                                          \
         CvPoint *el_sparse = (CvPoint *)state->get_element_sparse_buf();   \
         int el_count = state->get_element_sparse_count();                  \
@@ -599,12 +599,12 @@ icv##name##Any_##flavor(const arrtype **src, arrtype *dst,                 \
     \
 }
 
-ICV_MORPH_ANY(Erode, 8u, uchar, int, CV_CALC_MIN, CV_NOP)
-ICV_MORPH_ANY(Dilate, 8u, uchar, int, CV_CALC_MAX, CV_NOP)
+IVOS_MORPH_ANY(Erode, 8u, uchar, int, VOS_CALC_MIN, VOS_NOP)
+IVOS_MORPH_ANY(Dilate, 8u, uchar, int, VOS_CALC_MAX, VOS_NOP)
 
 /////////////////////////////////// External Interface /////////////////////////////////////
 
-CV_IMPL IplConvKernel *
+VOS_IMPL IplConvKernel *
 cvCreateStructuringElementEx(int cols, int rows,
                              int anchorX, int anchorY,
                              int shape, int *values)
@@ -613,40 +613,40 @@ cvCreateStructuringElementEx(int cols, int rows,
     int i, size = rows * cols;
     int element_size = sizeof(*element) + size * sizeof(element->values[0]);
 
-    CV_FUNCNAME("cvCreateStructuringElementEx");
+    VOS_FUNCNAME("cvCreateStructuringElementEx");
 
     __BEGIN__;
 
-    if (!values && shape == CV_SHAPE_CUSTOM)
-        CV_ERROR_FROM_STATUS(CV_NULLPTR_ERR);
+    if (!values && shape == VOS_SHAPE_CUSTOM)
+        VOS_ERROR_FROM_STATUS(VOS_NULLPTR_ERR);
 
     if (cols <= 0 || rows <= 0 ||
         (unsigned)anchorX >= (unsigned)cols ||
         (unsigned)anchorY >= (unsigned)rows)
-        CV_ERROR_FROM_STATUS(CV_BADSIZE_ERR);
+        VOS_ERROR_FROM_STATUS(VOS_BADSIZE_ERR);
 
-    CV_CALL(element = (IplConvKernel *)cvAlloc(element_size + 32));
+    VOS_CALL(element = (IplConvKernel *)cvAlloc(element_size + 32));
     if (!element)
-        CV_ERROR_FROM_STATUS(CV_OUTOFMEM_ERR);
+        VOS_ERROR_FROM_STATUS(VOS_OUTOFMEM_ERR);
 
     element->nCols = cols;
     element->nRows = rows;
     element->anchorX = anchorX;
     element->anchorY = anchorY;
-    element->nShiftR = shape < CV_SHAPE_ELLIPSE ? shape : CV_SHAPE_CUSTOM;
+    element->nShiftR = shape < VOS_SHAPE_ELLIPSE ? shape : VOS_SHAPE_CUSTOM;
     element->values = (int *)(element + 1);
 
-    if (shape == CV_SHAPE_CUSTOM)
+    if (shape == VOS_SHAPE_CUSTOM)
     {
         if (!values)
-            CV_ERROR(CV_StsNullPtr, "Null pointer to the custom element mask");
+            VOS_ERROR(VOS_StsNullPtr, "Null pointer to the custom element mask");
         for (i = 0; i < size; i++)
             element->values[i] = values[i];
     }
     else
     {
-        CvMat el_hdr = cvMat(rows, cols, CV_32SC1, element->values);
-        CV_CALL(CvMorphology::init_binary_element(&el_hdr,
+        CvMat el_hdr = cvMat(rows, cols, VOS_32SC1, element->values);
+        VOS_CALL(CvMorphology::init_binary_element(&el_hdr,
                                                   shape, cvPoint(anchorX, anchorY)));
     }
 
@@ -658,15 +658,15 @@ cvCreateStructuringElementEx(int cols, int rows,
     return element;
 }
 
-CV_IMPL void
+VOS_IMPL void
 cvReleaseStructuringElement(IplConvKernel **element)
 {
-    CV_FUNCNAME("cvReleaseStructuringElement");
+    VOS_FUNCNAME("cvReleaseStructuringElement");
 
     __BEGIN__;
 
     if (!element)
-        CV_ERROR(CV_StsNullPtr, "");
+        VOS_ERROR(VOS_StsNullPtr, "");
     cvFree(element);
 
     __END__;
@@ -682,7 +682,7 @@ icvMorphOp(const void *srcarr, void *dstarr, IplConvKernel *element,
     void *morphstate = 0;
     CvMat *temp = 0;
 
-    CV_FUNCNAME("icvMorphOp");
+    VOS_FUNCNAME("icvMorphOp");
 
     __BEGIN__;
 
@@ -696,8 +696,8 @@ icvMorphOp(const void *srcarr, void *dstarr, IplConvKernel *element,
     int type;
     bool inplace;
 
-    if (!CV_IS_MAT(src))
-        CV_CALL(src = cvGetMat(src, &srcstub, &coi1));
+    if (!VOS_IS_MAT(src))
+        VOS_CALL(src = cvGetMat(src, &srcstub, &coi1));
 
     if (src != &srcstub)
     {
@@ -709,13 +709,13 @@ icvMorphOp(const void *srcarr, void *dstarr, IplConvKernel *element,
         dst = src;
     else
     {
-        CV_CALL(dst = cvGetMat(dst, &dststub, &coi2));
+        VOS_CALL(dst = cvGetMat(dst, &dststub, &coi2));
 
-        if (!CV_ARE_TYPES_EQ(src, dst))
-            CV_ERROR(CV_StsUnmatchedFormats, "");
+        if (!VOS_ARE_TYPES_EQ(src, dst))
+            VOS_ERROR(VOS_StsUnmatchedFormats, "");
 
-        if (!CV_ARE_SIZES_EQ(src, dst))
-            CV_ERROR(CV_StsUnmatchedSizes, "");
+        if (!VOS_ARE_SIZES_EQ(src, dst))
+            VOS_ERROR(VOS_StsUnmatchedSizes, "");
     }
 
     if (dst != &dststub)
@@ -725,9 +725,9 @@ icvMorphOp(const void *srcarr, void *dstarr, IplConvKernel *element,
     }
 
     if (coi1 != 0 || coi2 != 0)
-        CV_ERROR(CV_BadCOI, "");
+        VOS_ERROR(VOS_BadCOI, "");
 
-    type = CV_MAT_TYPE(src->type);
+    type = VOS_MAT_TYPE(src->type);
     size = cvGetMatSize(src);
     inplace = src->data.ptr == dst->data.ptr;
 
@@ -743,16 +743,16 @@ icvMorphOp(const void *srcarr, void *dstarr, IplConvKernel *element,
         el_size = cvSize(element->nCols, element->nRows);
         el_anchor = cvPoint(element->anchorX, element->anchorY);
         el_shape = (int)(element->nShiftR);
-        el_shape = el_shape < CV_SHAPE_CUSTOM ? el_shape : CV_SHAPE_CUSTOM;
+        el_shape = el_shape < VOS_SHAPE_CUSTOM ? el_shape : VOS_SHAPE_CUSTOM;
     }
     else
     {
         el_size = cvSize(3, 3);
         el_anchor = cvPoint(1, 1);
-        el_shape = CV_SHAPE_RECT;
+        el_shape = VOS_SHAPE_RECT;
     }
 
-    if (el_shape == CV_SHAPE_RECT && iterations > 1)
+    if (el_shape == VOS_SHAPE_RECT && iterations > 1)
     {
         el_size.width += (el_size.width - 1) * iterations;
         el_size.height += (el_size.height - 1) * iterations;
@@ -761,19 +761,19 @@ icvMorphOp(const void *srcarr, void *dstarr, IplConvKernel *element,
         iterations = 1;
     }
 
-    if (el_shape != CV_SHAPE_RECT)
+    if (el_shape != VOS_SHAPE_RECT)
     {
-        el_hdr = cvMat(element->nRows, element->nCols, CV_32SC1, element->values);
+        el_hdr = cvMat(element->nRows, element->nCols, VOS_32SC1, element->values);
         el = &el_hdr;
-        el_shape = CV_SHAPE_CUSTOM;
+        el_shape = VOS_SHAPE_CUSTOM;
     }
 
-    CV_CALL(morphology.init(mop, src->cols, src->type,
+    VOS_CALL(morphology.init(mop, src->cols, src->type,
                             el_shape, el, el_size, el_anchor));
 
     for (i = 0; i < iterations; i++)
     {
-        CV_CALL(morphology.process(src, dst));
+        VOS_CALL(morphology.process(src, dst));
         src = dst;
     }
 
@@ -785,13 +785,13 @@ icvMorphOp(const void *srcarr, void *dstarr, IplConvKernel *element,
     cvReleaseMat(&temp);
 }
 
-CV_IMPL void
+VOS_IMPL void
 cvErode(const void *src, void *dst, IplConvKernel *element, int iterations)
 {
     icvMorphOp(src, dst, element, iterations, 0);
 }
 
-CV_IMPL void
+VOS_IMPL void
 cvDilate(const void *src, void *dst, IplConvKernel *element, int iterations)
 {
     icvMorphOp(src, dst, element, iterations, 1);

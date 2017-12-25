@@ -46,8 +46,8 @@
 
 
 
-typedef IplImage* (CV_CDECL * CvLoadImageFunc)( const char* filename, int colorness );
-typedef int (CV_CDECL * CvSaveImageFunc)( const char* filename, const CvArr* image );
+typedef IplImage* (VOS_CDECL * CvLoadImageFunc)( const char* filename, int colorness );
+typedef int (VOS_CDECL * CvSaveImageFunc)( const char* filename, const CvArr* image );
 
 
 #endif /*_CXCORE_HPP_*/

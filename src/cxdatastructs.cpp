@@ -1,22 +1,22 @@
 
 #include "_cxcore.h"
 
-#define ICV_FREE_PTR(storage)  \
+#define IVOS_FREE_PTR(storage)  \
     ((char*)(storage)->top + (storage)->block_size - (storage)->free_space)
 
-#define ICV_ALIGNED_SEQ_BLOCK_SIZE  \
-    (int)cvAlign(sizeof(CvSeqBlock), CV_STRUCT_ALIGN)
+#define IVOS_ALIGNED_SEQ_BLOCK_SIZE  \
+    (int)cvAlign(sizeof(CvSeqBlock), VOS_STRUCT_ALIGN)
 
-CV_INLINE int
+VOS_INLINE int
 cvAlignLeft( int size, int align )
 {
     return size & -align;
 }
 
-#define CV_GET_LAST_ELEM( seq, block ) \
+#define VOS_GET_LAST_ELEM( seq, block ) \
     ((block)->data + ((block)->count - 1)*((seq)->elem_size))
 
-#define CV_SWAP_ELEMS(a,b,elem_size)  \
+#define VOS_SWAP_ELEMS(a,b,elem_size)  \
 {                                     \
     int k;                            \
     for( k = 0; k < elem_size; k++ )  \
@@ -28,7 +28,7 @@ cvAlignLeft( int size, int align )
     }                                 \
 }
 
-#define ICV_SHIFT_TAB_MAX 32
+#define IVOS_SHIFT_TAB_MAX 32
 static const char icvPower2ShiftTab[] =
 {
     0, 1, -1, 2, -1, -1, -1, 3, -1, -1, -1, -1, -1, -1, -1, 4,
@@ -43,21 +43,21 @@ static const char icvPower2ShiftTab[] =
 static void
 icvInitMemStorage( CvMemStorage* storage, int block_size )
 {
-    CV_FUNCNAME( "icvInitMemStorage " );
+    VOS_FUNCNAME( "icvInitMemStorage " );
     
     __BEGIN__;
 
     if( !storage )
-        CV_ERROR( CV_StsNullPtr, "" );
+        VOS_ERROR( VOS_StsNullPtr, "" );
 
     if( block_size <= 0 )
-        block_size = CV_STORAGE_BLOCK_SIZE;
+        block_size = VOS_STORAGE_BLOCK_SIZE;
 
-    block_size = cvAlign( block_size, CV_STRUCT_ALIGN );
-    assert( sizeof(CvMemBlock) % CV_STRUCT_ALIGN == 0 );
+    block_size = cvAlign( block_size, VOS_STRUCT_ALIGN );
+    assert( sizeof(CvMemBlock) % VOS_STRUCT_ALIGN == 0 );
 
     memset( storage, 0, sizeof( *storage ));
-    storage->signature = CV_STORAGE_MAGIC_VAL;
+    storage->signature = VOS_STORAGE_MAGIC_VAL;
     storage->block_size = block_size;
 
     __END__;
@@ -65,17 +65,17 @@ icvInitMemStorage( CvMemStorage* storage, int block_size )
 
 
 /* creates root memory storage */
-CV_IMPL CvMemStorage*
+VOS_IMPL CvMemStorage*
 cvCreateMemStorage( int block_size )
 {
     CvMemStorage *storage = 0;
 
-    CV_FUNCNAME( "cvCreateMemStorage" );
+    VOS_FUNCNAME( "cvCreateMemStorage" );
 
     __BEGIN__;
 
-    CV_CALL( storage = (CvMemStorage *)cvAlloc( sizeof( CvMemStorage )));
-    CV_CALL( icvInitMemStorage( storage, block_size ));
+    VOS_CALL( storage = (CvMemStorage *)cvAlloc( sizeof( CvMemStorage )));
+    VOS_CALL( icvInitMemStorage( storage, block_size ));
 
     __END__;
 
@@ -87,18 +87,18 @@ cvCreateMemStorage( int block_size )
 
 
 /* creates child memory storage */
-CV_IMPL CvMemStorage *
+VOS_IMPL CvMemStorage *
 cvCreateChildMemStorage( CvMemStorage * parent )
 {
     CvMemStorage *storage = 0;
-    CV_FUNCNAME( "cvCreateChildMemStorage" );
+    VOS_FUNCNAME( "cvCreateChildMemStorage" );
 
     __BEGIN__;
 
     if( !parent )
-        CV_ERROR( CV_StsNullPtr, "" );
+        VOS_ERROR( VOS_StsNullPtr, "" );
 
-    CV_CALL( storage = cvCreateMemStorage(parent->block_size));
+    VOS_CALL( storage = cvCreateMemStorage(parent->block_size));
     storage->parent = parent;
 
     __END__;
@@ -114,7 +114,7 @@ cvCreateChildMemStorage( CvMemStorage * parent )
 static void
 icvDestroyMemStorage( CvMemStorage* storage )
 {
-    CV_FUNCNAME( "icvDestroyMemStorage" );
+    VOS_FUNCNAME( "icvDestroyMemStorage" );
 
     __BEGIN__;
 
@@ -124,7 +124,7 @@ icvDestroyMemStorage( CvMemStorage* storage )
     CvMemBlock *dst_top = 0;
 
     if( !storage )
-        CV_ERROR( CV_StsNullPtr, "" );
+        VOS_ERROR( VOS_StsNullPtr, "" );
 
     if( storage->parent )
         dst_top = storage->parent->top;
@@ -165,23 +165,23 @@ icvDestroyMemStorage( CvMemStorage* storage )
 
 
 /* releases memory storage */
-CV_IMPL void
+VOS_IMPL void
 cvReleaseMemStorage( CvMemStorage** storage )
 {
     CvMemStorage *st;
-    CV_FUNCNAME( "cvReleaseMemStorage" );
+    VOS_FUNCNAME( "cvReleaseMemStorage" );
 
     __BEGIN__;
 
     if( !storage )
-        CV_ERROR( CV_StsNullPtr, "" );
+        VOS_ERROR( VOS_StsNullPtr, "" );
 
     st = *storage;
     *storage = 0;
 
     if( st )
     {
-        CV_CALL( icvDestroyMemStorage( st ));
+        VOS_CALL( icvDestroyMemStorage( st ));
         cvFree( &st );
     }
 
@@ -190,15 +190,15 @@ cvReleaseMemStorage( CvMemStorage** storage )
 
 
 /* clears memory storage (returns blocks to the parent if any) */
-CV_IMPL void
+VOS_IMPL void
 cvClearMemStorage( CvMemStorage * storage )
 {
-    CV_FUNCNAME( "cvClearMemStorage" );
+    VOS_FUNCNAME( "cvClearMemStorage" );
 
     __BEGIN__;
 
     if( !storage )
-        CV_ERROR( CV_StsNullPtr, "" );
+        VOS_ERROR( VOS_StsNullPtr, "" );
 
     if( storage->parent )
     {
@@ -219,12 +219,12 @@ cvClearMemStorage( CvMemStorage * storage )
 static void
 icvGoNextMemBlock( CvMemStorage * storage )
 {
-    CV_FUNCNAME( "icvGoNextMemBlock" );
+    VOS_FUNCNAME( "icvGoNextMemBlock" );
     
     __BEGIN__;
     
     if( !storage )
-        CV_ERROR( CV_StsNullPtr, "" );
+        VOS_ERROR( VOS_StsNullPtr, "" );
 
     if( !storage->top || !storage->top->next )
     {
@@ -232,7 +232,7 @@ icvGoNextMemBlock( CvMemStorage * storage )
 
         if( !(storage->parent) )
         {
-            CV_CALL( block = (CvMemBlock *)cvAlloc( storage->block_size ));
+            VOS_CALL( block = (CvMemBlock *)cvAlloc( storage->block_size ));
         }
         else
         {
@@ -240,7 +240,7 @@ icvGoNextMemBlock( CvMemStorage * storage )
             CvMemStoragePos parent_pos;
 
             cvSaveMemStoragePos( parent, &parent_pos );
-            CV_CALL( icvGoNextMemBlock( parent ));
+            VOS_CALL( icvGoNextMemBlock( parent ));
 
             block = parent->top;
             cvRestoreMemStoragePos( parent, &parent_pos );
@@ -273,22 +273,22 @@ icvGoNextMemBlock( CvMemStorage * storage )
     if( storage->top->next )
         storage->top = storage->top->next;
     storage->free_space = storage->block_size - sizeof(CvMemBlock);
-    assert( storage->free_space % CV_STRUCT_ALIGN == 0 );
+    assert( storage->free_space % VOS_STRUCT_ALIGN == 0 );
 
     __END__;
 }
 
 
 /* remembers memory storage position */
-CV_IMPL void
+VOS_IMPL void
 cvSaveMemStoragePos( const CvMemStorage * storage, CvMemStoragePos * pos )
 {
-    CV_FUNCNAME( "cvSaveMemStoragePos" );
+    VOS_FUNCNAME( "cvSaveMemStoragePos" );
 
     __BEGIN__;
 
     if( !storage || !pos )
-        CV_ERROR( CV_StsNullPtr, "" );
+        VOS_ERROR( VOS_StsNullPtr, "" );
 
     pos->top = storage->top;
     pos->free_space = storage->free_space;
@@ -298,17 +298,17 @@ cvSaveMemStoragePos( const CvMemStorage * storage, CvMemStoragePos * pos )
 
 
 /* restores memory storage position */
-CV_IMPL void
+VOS_IMPL void
 cvRestoreMemStoragePos( CvMemStorage * storage, CvMemStoragePos * pos )
 {
-    CV_FUNCNAME( "cvRestoreMemStoragePos" );
+    VOS_FUNCNAME( "cvRestoreMemStoragePos" );
 
     __BEGIN__;
 
     if( !storage || !pos )
-        CV_ERROR( CV_StsNullPtr, "" );
+        VOS_ERROR( VOS_StsNullPtr, "" );
     if( pos->free_space > storage->block_size )
-        CV_ERROR( CV_StsBadSize, "" );
+        VOS_ERROR( VOS_StsBadSize, "" );
 
     /*
     // this breaks icvGoNextMemBlock, so comment it off for now
@@ -342,35 +342,35 @@ cvRestoreMemStoragePos( CvMemStorage * storage, CvMemStoragePos * pos )
 
 
 /* Allocates continuous buffer of the specified size in the storage */
-CV_IMPL void*
+VOS_IMPL void*
 cvMemStorageAlloc( CvMemStorage* storage, size_t size )
 {
     char *ptr = 0;
     
-    CV_FUNCNAME( "cvMemStorageAlloc" );
+    VOS_FUNCNAME( "cvMemStorageAlloc" );
 
     __BEGIN__;
 
     if( !storage )
-        CV_ERROR( CV_StsNullPtr, "NULL storage pointer" );
+        VOS_ERROR( VOS_StsNullPtr, "NULL storage pointer" );
 
     if( size > INT_MAX )
-        CV_ERROR( CV_StsOutOfRange, "Too large memory block is requested" );
+        VOS_ERROR( VOS_StsOutOfRange, "Too large memory block is requested" );
 
-    assert( storage->free_space % CV_STRUCT_ALIGN == 0 );
+    assert( storage->free_space % VOS_STRUCT_ALIGN == 0 );
 
     if( (size_t)storage->free_space < size )
     {
-        size_t max_free_space = cvAlignLeft(storage->block_size - sizeof(CvMemBlock), CV_STRUCT_ALIGN);
+        size_t max_free_space = cvAlignLeft(storage->block_size - sizeof(CvMemBlock), VOS_STRUCT_ALIGN);
         if( max_free_space < size )
-            CV_ERROR( CV_StsOutOfRange, "requested size is negative or too big" );
+            VOS_ERROR( VOS_StsOutOfRange, "requested size is negative or too big" );
 
-        CV_CALL( icvGoNextMemBlock( storage ));
+        VOS_CALL( icvGoNextMemBlock( storage ));
     }
 
-    ptr = ICV_FREE_PTR(storage);
-    assert( (size_t)ptr % CV_STRUCT_ALIGN == 0 );
-    storage->free_space = cvAlignLeft(storage->free_space - (int)size, CV_STRUCT_ALIGN );
+    ptr = IVOS_FREE_PTR(storage);
+    assert( (size_t)ptr % VOS_STRUCT_ALIGN == 0 );
+    storage->free_space = cvAlignLeft(storage->free_space - (int)size, VOS_STRUCT_ALIGN );
 
     __END__;
 
@@ -383,40 +383,40 @@ cvMemStorageAlloc( CvMemStorage* storage, size_t size )
 \****************************************************************************************/
 
 /* creates empty sequence */
-CV_IMPL CvSeq *
+VOS_IMPL CvSeq *
 cvCreateSeq( int seq_flags, int header_size, int elem_size, CvMemStorage * storage )
 {
     CvSeq *seq = 0;
 
-    CV_FUNCNAME( "cvCreateSeq" );
+    VOS_FUNCNAME( "cvCreateSeq" );
 
     __BEGIN__;
 
     if( !storage )
-        CV_ERROR( CV_StsNullPtr, "" );
+        VOS_ERROR( VOS_StsNullPtr, "" );
     if( header_size < (int)sizeof( CvSeq ) || elem_size <= 0 )
-        CV_ERROR( CV_StsBadSize, "" );
+        VOS_ERROR( VOS_StsBadSize, "" );
 
     /* allocate sequence header */
-    CV_CALL( seq = (CvSeq*)cvMemStorageAlloc( storage, header_size ));
+    VOS_CALL( seq = (CvSeq*)cvMemStorageAlloc( storage, header_size ));
     memset( seq, 0, header_size );
 
     seq->header_size = header_size;
-    seq->flags = (seq_flags & ~CV_MAGIC_MASK) | CV_SEQ_MAGIC_VAL;
+    seq->flags = (seq_flags & ~VOS_MAGIC_MASK) | VOS_SEQ_MAGIC_VAL;
     {
-        int elemtype = CV_MAT_TYPE(seq_flags);
-        int typesize = CV_ELEM_SIZE(elemtype);
+        int elemtype = VOS_MAT_TYPE(seq_flags);
+        int typesize = VOS_ELEM_SIZE(elemtype);
 
-        if( elemtype != CV_SEQ_ELTYPE_GENERIC &&
+        if( elemtype != VOS_SEQ_ELTYPE_GENERIC &&
             typesize != 0 && typesize != elem_size )
-            CV_ERROR( CV_StsBadSize,
+            VOS_ERROR( VOS_StsBadSize,
             "Specified element size doesn't match to the size of the specified element type "
             "(try to use 0 for element type)" );
     }
     seq->elem_size = elem_size;
     seq->storage = storage;
 
-    CV_CALL( cvSetSeqBlockSize( seq, (1 << 10)/elem_size ));
+    VOS_CALL( cvSetSeqBlockSize( seq, (1 << 10)/elem_size ));
 
     __END__;
 
@@ -426,23 +426,23 @@ cvCreateSeq( int seq_flags, int header_size, int elem_size, CvMemStorage * stora
 
 /* adjusts <delta_elems> field of sequence. It determines how much the sequence
    grows if there are no free space inside the sequence buffers */
-CV_IMPL void
+VOS_IMPL void
 cvSetSeqBlockSize( CvSeq *seq, int delta_elements )
 {
     int elem_size;
     int useful_block_size;
 
-    CV_FUNCNAME( "cvSetSeqBlockSize" );
+    VOS_FUNCNAME( "cvSetSeqBlockSize" );
 
     __BEGIN__;
 
     if( !seq || !seq->storage )
-        CV_ERROR( CV_StsNullPtr, "" );
+        VOS_ERROR( VOS_StsNullPtr, "" );
     if( delta_elements < 0 )
-        CV_ERROR( CV_StsOutOfRange, "" );
+        VOS_ERROR( VOS_StsOutOfRange, "" );
 
     useful_block_size = cvAlignLeft(seq->storage->block_size - sizeof(CvMemBlock) -
-                                    sizeof(CvSeqBlock), CV_STRUCT_ALIGN);
+                                    sizeof(CvSeqBlock), VOS_STRUCT_ALIGN);
     elem_size = seq->elem_size;
 
     if( delta_elements == 0 )
@@ -454,7 +454,7 @@ cvSetSeqBlockSize( CvSeq *seq, int delta_elements )
     {
         delta_elements = useful_block_size / elem_size;
         if( delta_elements == 0 )
-            CV_ERROR( CV_StsOutOfRange, "Storage block size is too small "
+            VOS_ERROR( VOS_StsOutOfRange, "Storage block size is too small "
                                         "to fit the sequence elements" );
     }
 
@@ -465,7 +465,7 @@ cvSetSeqBlockSize( CvSeq *seq, int delta_elements )
 
 
 /* finds sequence element by its index */
-CV_IMPL char*
+VOS_IMPL char*
 cvGetSeqElem( const CvSeq *seq, int index )
 {
     CvSeqBlock *block;
@@ -503,7 +503,7 @@ cvGetSeqElem( const CvSeq *seq, int index )
 }
 
 
-CV_IMPL int
+VOS_IMPL int
 cvSliceLength( CvSlice slice, const CvSeq* seq )
 {
     int total = seq->total;
@@ -537,14 +537,14 @@ cvSliceLength( CvSlice slice, const CvSeq* seq )
 static void
 icvGrowSeq( CvSeq *seq, int in_front_of )
 {
-    CV_FUNCNAME( "icvGrowSeq" );
+    VOS_FUNCNAME( "icvGrowSeq" );
 
     __BEGIN__;
 
     CvSeqBlock *block;
 
     if( !seq )
-        CV_ERROR( CV_StsNullPtr, "" );
+        VOS_ERROR( VOS_StsNullPtr, "" );
     block = seq->free_blocks;
 
     if( !block )
@@ -557,12 +557,12 @@ icvGrowSeq( CvSeq *seq, int in_front_of )
             cvSetSeqBlockSize( seq, delta_elems*2 );
 
         if( !storage )
-            CV_ERROR( CV_StsNullPtr, "The sequence has NULL storage pointer" );
+            VOS_ERROR( VOS_StsNullPtr, "The sequence has NULL storage pointer" );
 
         /* if there is a free space just after last allocated block
            and it's big enough then enlarge the last block
            (this can happen only if the new block is added to the end of sequence */
-        if( (unsigned)(ICV_FREE_PTR(storage) - seq->block_max) < CV_STRUCT_ALIGN &&
+        if( (unsigned)(IVOS_FREE_PTR(storage) - seq->block_max) < VOS_STRUCT_ALIGN &&
             storage->free_space >= seq->elem_size && !in_front_of )
         {
             int delta = storage->free_space / elem_size;
@@ -570,34 +570,34 @@ icvGrowSeq( CvSeq *seq, int in_front_of )
             delta = MIN( delta, delta_elems ) * elem_size;
             seq->block_max += delta;
             storage->free_space = cvAlignLeft((int)(((char*)storage->top + storage->block_size) -
-                                              seq->block_max), CV_STRUCT_ALIGN );
+                                              seq->block_max), VOS_STRUCT_ALIGN );
             EXIT;
         }
         else
         {
-            int delta = elem_size * delta_elems + ICV_ALIGNED_SEQ_BLOCK_SIZE;
+            int delta = elem_size * delta_elems + IVOS_ALIGNED_SEQ_BLOCK_SIZE;
 
             /* try to allocate <delta_elements> elements */
             if( storage->free_space < delta )
             {
                 int small_block_size = MAX(1, delta_elems/3)*elem_size +
-                                       ICV_ALIGNED_SEQ_BLOCK_SIZE;
+                                       IVOS_ALIGNED_SEQ_BLOCK_SIZE;
                 /* try to allocate smaller part */
-                if( storage->free_space >= small_block_size + CV_STRUCT_ALIGN )
+                if( storage->free_space >= small_block_size + VOS_STRUCT_ALIGN )
                 {
-                    delta = (storage->free_space - ICV_ALIGNED_SEQ_BLOCK_SIZE)/seq->elem_size;
-                    delta = delta*seq->elem_size + ICV_ALIGNED_SEQ_BLOCK_SIZE;
+                    delta = (storage->free_space - IVOS_ALIGNED_SEQ_BLOCK_SIZE)/seq->elem_size;
+                    delta = delta*seq->elem_size + IVOS_ALIGNED_SEQ_BLOCK_SIZE;
                 }
                 else
                 {
-                    CV_CALL( icvGoNextMemBlock( storage ));
+                    VOS_CALL( icvGoNextMemBlock( storage ));
                     assert( storage->free_space >= delta );
                 }
             }
 
-            CV_CALL( block = (CvSeqBlock*)cvMemStorageAlloc( storage, delta ));
-            block->data = (char*)cvAlignPtr( block + 1, CV_STRUCT_ALIGN );
-            block->count = delta - ICV_ALIGNED_SEQ_BLOCK_SIZE;
+            VOS_CALL( block = (CvSeqBlock*)cvMemStorageAlloc( storage, delta ));
+            block->data = (char*)cvAlignPtr( block + 1, VOS_STRUCT_ALIGN );
+            block->count = delta - IVOS_ALIGNED_SEQ_BLOCK_SIZE;
             block->prev = block->next = 0;
         }
     }
@@ -665,7 +665,7 @@ icvGrowSeq( CvSeq *seq, int in_front_of )
 static void
 icvFreeSeqBlock( CvSeq *seq, int in_front_of )
 {
-    /*CV_FUNCNAME( "icvFreeSeqBlock" );*/
+    /*VOS_FUNCNAME( "icvFreeSeqBlock" );*/
 
     __BEGIN__;
 
@@ -728,15 +728,15 @@ icvFreeSeqBlock( CvSeq *seq, int in_front_of )
 \****************************************************************************************/
 
 /* initializes sequence writer */
-CV_IMPL void
+VOS_IMPL void
 cvStartAppendToSeq( CvSeq *seq, CvSeqWriter * writer )
 {
-    CV_FUNCNAME( "cvStartAppendToSeq" );
+    VOS_FUNCNAME( "cvStartAppendToSeq" );
 
     __BEGIN__;
 
     if( !seq || !writer )
-        CV_ERROR( CV_StsNullPtr, "" );
+        VOS_ERROR( VOS_StsNullPtr, "" );
 
     memset( writer, 0, sizeof( *writer ));
     writer->header_size = sizeof( CvSeqWriter );
@@ -751,20 +751,20 @@ cvStartAppendToSeq( CvSeq *seq, CvSeqWriter * writer )
 
 
 /* initializes sequence writer */
-CV_IMPL void
+VOS_IMPL void
 cvStartWriteSeq( int seq_flags, int header_size,
                  int elem_size, CvMemStorage * storage, CvSeqWriter * writer )
 {
     CvSeq *seq = 0;
 
-    CV_FUNCNAME( "cvStartWriteSeq" );
+    VOS_FUNCNAME( "cvStartWriteSeq" );
 
     __BEGIN__;
 
     if( !storage || !writer )
-        CV_ERROR( CV_StsNullPtr, "" );
+        VOS_ERROR( VOS_StsNullPtr, "" );
 
-    CV_CALL( seq = cvCreateSeq( seq_flags, header_size, elem_size, storage ));
+    VOS_CALL( seq = cvCreateSeq( seq_flags, header_size, elem_size, storage ));
     cvStartAppendToSeq( seq, writer );
 
     __END__;
@@ -772,17 +772,17 @@ cvStartWriteSeq( int seq_flags, int header_size,
 
 
 /* updates sequence header */
-CV_IMPL void
+VOS_IMPL void
 cvFlushSeqWriter( CvSeqWriter * writer )
 {
     CvSeq *seq = 0;
 
-    CV_FUNCNAME( "cvFlushSeqWriter" );
+    VOS_FUNCNAME( "cvFlushSeqWriter" );
 
     __BEGIN__;
 
     if( !writer )
-        CV_ERROR( CV_StsNullPtr, "" );
+        VOS_ERROR( VOS_StsNullPtr, "" );
 
     seq = writer->seq;
     seq->ptr = writer->ptr;
@@ -811,19 +811,19 @@ cvFlushSeqWriter( CvSeqWriter * writer )
 
 
 /* calls icvFlushSeqWriter and finishes writing process */
-CV_IMPL CvSeq *
+VOS_IMPL CvSeq *
 cvEndWriteSeq( CvSeqWriter * writer )
 {
     CvSeq *seq = 0;
 
-    CV_FUNCNAME( "cvEndWriteSeq" );
+    VOS_FUNCNAME( "cvEndWriteSeq" );
 
     __BEGIN__;
 
     if( !writer )
-        CV_ERROR( CV_StsNullPtr, "" );
+        VOS_ERROR( VOS_StsNullPtr, "" );
 
-    CV_CALL( cvFlushSeqWriter( writer ));
+    VOS_CALL( cvFlushSeqWriter( writer ));
     seq = writer->seq;
 
     /* truncate the last block */
@@ -835,9 +835,9 @@ cvEndWriteSeq( CvSeqWriter * writer )
         assert( writer->block->count > 0 );
 
         if( (unsigned)((storage_block_max - storage->free_space)
-            - seq->block_max) < CV_STRUCT_ALIGN )
+            - seq->block_max) < VOS_STRUCT_ALIGN )
         {
-            storage->free_space = cvAlignLeft((int)(storage_block_max - seq->ptr), CV_STRUCT_ALIGN);
+            storage->free_space = cvAlignLeft((int)(storage_block_max - seq->ptr), VOS_STRUCT_ALIGN);
             seq->block_max = seq->ptr;
         }
     }
@@ -851,23 +851,23 @@ cvEndWriteSeq( CvSeqWriter * writer )
 
 
 /* creates new sequence block */
-CV_IMPL void
+VOS_IMPL void
 cvCreateSeqBlock( CvSeqWriter * writer )
 {
-    CV_FUNCNAME( "cvCreateSeqBlock" );
+    VOS_FUNCNAME( "cvCreateSeqBlock" );
 
     __BEGIN__;
 
     CvSeq *seq;
 
     if( !writer || !writer->seq )
-        CV_ERROR( CV_StsNullPtr, "" );
+        VOS_ERROR( VOS_StsNullPtr, "" );
 
     seq = writer->seq;
 
     cvFlushSeqWriter( writer );
 
-    CV_CALL( icvGrowSeq( seq, 0 ));
+    VOS_CALL( icvGrowSeq( seq, 0 ));
 
     writer->block = seq->first->prev;
     writer->ptr = seq->ptr;
@@ -882,13 +882,13 @@ cvCreateSeqBlock( CvSeqWriter * writer )
 \****************************************************************************************/
 
 /* initializes sequence reader */
-CV_IMPL void
+VOS_IMPL void
 cvStartReadSeq( const CvSeq *seq, CvSeqReader * reader, int reverse )
 {
     CvSeqBlock *first_block;
     CvSeqBlock *last_block;
 
-    CV_FUNCNAME( "cvStartReadSeq" );
+    VOS_FUNCNAME( "cvStartReadSeq" );
 
     if( reader )
     {
@@ -900,7 +900,7 @@ cvStartReadSeq( const CvSeq *seq, CvSeqReader * reader, int reverse )
     __BEGIN__;
 
     if( !seq || !reader )
-        CV_ERROR( CV_StsNullPtr, "" );
+        VOS_ERROR( VOS_StsNullPtr, "" );
 
     reader->header_size = sizeof( CvSeqReader );
     reader->seq = (CvSeq*)seq;
@@ -911,7 +911,7 @@ cvStartReadSeq( const CvSeq *seq, CvSeqReader * reader, int reverse )
     {
         last_block = first_block->prev;
         reader->ptr = first_block->data;
-        reader->prev_elem = CV_GET_LAST_ELEM( seq, last_block );
+        reader->prev_elem = VOS_GET_LAST_ELEM( seq, last_block );
         reader->delta_index = seq->first->start_index;
 
         if( reverse )
@@ -944,17 +944,17 @@ cvStartReadSeq( const CvSeq *seq, CvSeqReader * reader, int reverse )
 
 
 /* changes the current reading block to the previous or to the next */
-CV_IMPL void
+VOS_IMPL void
 cvChangeSeqBlock( void* _reader, int direction )
 {
-    CV_FUNCNAME( "cvChangeSeqBlock" );
+    VOS_FUNCNAME( "cvChangeSeqBlock" );
 
     __BEGIN__;
 
     CvSeqReader* reader = (CvSeqReader*)_reader;
     
     if( !reader )
-        CV_ERROR( CV_StsNullPtr, "" );
+        VOS_ERROR( VOS_StsNullPtr, "" );
 
     if( direction > 0 )
     {
@@ -964,7 +964,7 @@ cvChangeSeqBlock( void* _reader, int direction )
     else
     {
         reader->block = reader->block->prev;
-        reader->ptr = CV_GET_LAST_ELEM( reader->seq, reader->block );
+        reader->ptr = VOS_GET_LAST_ELEM( reader->seq, reader->block );
     }
     reader->block_min = reader->block->data;
     reader->block_max = reader->block_min + reader->block->count * reader->seq->elem_size;
@@ -974,21 +974,21 @@ cvChangeSeqBlock( void* _reader, int direction )
 
 
 /* returns the current reader position */
-CV_IMPL int
+VOS_IMPL int
 cvGetSeqReaderPos( CvSeqReader* reader )
 {
     int elem_size;
     int index = -1;
 
-    CV_FUNCNAME( "cvGetSeqReaderPos" );
+    VOS_FUNCNAME( "cvGetSeqReaderPos" );
 
     __BEGIN__;
 
     if( !reader || !reader->ptr )
-        CV_ERROR( CV_StsNullPtr, "" );
+        VOS_ERROR( VOS_StsNullPtr, "" );
 
     elem_size = reader->seq->elem_size;
-    if( elem_size <= ICV_SHIFT_TAB_MAX && (index = icvPower2ShiftTab[elem_size - 1]) >= 0 )
+    if( elem_size <= IVOS_SHIFT_TAB_MAX && (index = icvPower2ShiftTab[elem_size - 1]) >= 0 )
         index = (int)((reader->ptr - reader->block_min) >> index);
     else
         index = (int)((reader->ptr - reader->block_min) / elem_size);
@@ -1003,10 +1003,10 @@ cvGetSeqReaderPos( CvSeqReader* reader )
 
 /* sets reader position to given absolute or relative
    (relatively to the current one) position */
-CV_IMPL void
+VOS_IMPL void
 cvSetSeqReaderPos( CvSeqReader* reader, int index, int is_relative )
 {
-    CV_FUNCNAME( "cvSetSeqReaderPos" );
+    VOS_FUNCNAME( "cvSetSeqReaderPos" );
 
     __BEGIN__;
 
@@ -1014,7 +1014,7 @@ cvSetSeqReaderPos( CvSeqReader* reader, int index, int is_relative )
     int elem_size, count, total;
 
     if( !reader || !reader->seq )
-        CV_ERROR( CV_StsNullPtr, "" );
+        VOS_ERROR( VOS_StsNullPtr, "" );
 
     total = reader->seq->total;
     elem_size = reader->seq->elem_size;
@@ -1024,14 +1024,14 @@ cvSetSeqReaderPos( CvSeqReader* reader, int index, int is_relative )
         if( index < 0 )
         {
             if( index < -total )
-                CV_ERROR( CV_StsOutOfRange, "" );
+                VOS_ERROR( VOS_StsOutOfRange, "" );
             index += total;
         }
         else if( index >= total )
         {
             index -= total;
             if( index >= total )
-                CV_ERROR( CV_StsOutOfRange, "" );
+                VOS_ERROR( VOS_StsOutOfRange, "" );
         }
 
         block = reader->seq->first;
@@ -1102,32 +1102,32 @@ cvSetSeqReaderPos( CvSeqReader* reader, int index, int is_relative )
 
 
 /* pushes element to the sequence */
-CV_IMPL char*
+VOS_IMPL char*
 cvSeqPush( CvSeq *seq, void *element )
 {
     char *ptr = 0;
     size_t elem_size;
 
-    CV_FUNCNAME( "cvSeqPush" );
+    VOS_FUNCNAME( "cvSeqPush" );
 
     __BEGIN__;
 
     if( !seq )
-        CV_ERROR( CV_StsNullPtr, "" );
+        VOS_ERROR( VOS_StsNullPtr, "" );
 
     elem_size = seq->elem_size;
     ptr = seq->ptr;
 
     if( ptr >= seq->block_max )
     {
-        CV_CALL( icvGrowSeq( seq, 0 ));
+        VOS_CALL( icvGrowSeq( seq, 0 ));
 
         ptr = seq->ptr;
         assert( ptr + elem_size <= seq->block_max /*&& ptr == seq->block_min */  );
     }
 
     if( element )
-        CV_MEMCPY_AUTO( ptr, element, elem_size );
+        VOS_MEMCPY_AUTO( ptr, element, elem_size );
     seq->first->prev->count++;
     seq->total++;
     seq->ptr = ptr + elem_size;
@@ -1139,26 +1139,26 @@ cvSeqPush( CvSeq *seq, void *element )
 
 
 /* pops the last element out of the sequence */
-CV_IMPL void
+VOS_IMPL void
 cvSeqPop( CvSeq *seq, void *element )
 {
     char *ptr;
     int elem_size;
 
-    CV_FUNCNAME( "cvSeqPop" );
+    VOS_FUNCNAME( "cvSeqPop" );
 
     __BEGIN__;
 
     if( !seq )
-        CV_ERROR( CV_StsNullPtr, "" );
+        VOS_ERROR( VOS_StsNullPtr, "" );
     if( seq->total <= 0 )
-        CV_ERROR( CV_StsBadSize, "" );
+        VOS_ERROR( VOS_StsBadSize, "" );
 
     elem_size = seq->elem_size;
     seq->ptr = ptr = seq->ptr - elem_size;
 
     if( element )
-        CV_MEMCPY_AUTO( element, ptr, elem_size );
+        VOS_MEMCPY_AUTO( element, ptr, elem_size );
     seq->ptr = ptr;
     seq->total--;
 
@@ -1174,19 +1174,19 @@ cvSeqPop( CvSeq *seq, void *element )
 
 
 /* removes several elements from the end of sequence */
-CV_IMPL void
+VOS_IMPL void
 cvSeqPopMulti( CvSeq *seq, void *_elements, int count, int front )
 {
     char *elements = (char *) _elements;
 
-    CV_FUNCNAME( "cvSeqPopMulti" );
+    VOS_FUNCNAME( "cvSeqPopMulti" );
 
     __BEGIN__;
 
     if( !seq )
-        CV_ERROR( CV_StsNullPtr, "NULL sequence pointer" );
+        VOS_ERROR( VOS_StsNullPtr, "NULL sequence pointer" );
     if( count < 0 )
-        CV_ERROR( CV_StsBadSize, "number of removed elements is negative" );
+        VOS_ERROR( VOS_StsBadSize, "number of removed elements is negative" );
 
     count = MIN( count, seq->total );
 
@@ -1250,15 +1250,15 @@ cvSeqPopMulti( CvSeq *seq, void *_elements, int count, int front )
 
 
 /* removes all elements from the sequence */
-CV_IMPL void
+VOS_IMPL void
 cvClearSeq( CvSeq *seq )
 {
-    CV_FUNCNAME( "cvClearSeq" );
+    VOS_FUNCNAME( "cvClearSeq" );
 
     __BEGIN__;
 
     if( !seq )
-        CV_ERROR( CV_StsNullPtr, "" );
+        VOS_ERROR( VOS_StsNullPtr, "" );
     cvSeqPopMulti( seq, 0, seq->total );
 
     __END__;
@@ -1275,7 +1275,7 @@ typedef struct CvSeqReaderPos
 }
 CvSeqReaderPos;
 
-#define CV_SAVE_READER_POS( reader, pos )   \
+#define VOS_SAVE_READER_POS( reader, pos )   \
 {                                           \
     (pos).block = (reader).block;           \
     (pos).ptr = (reader).ptr;               \
@@ -1283,7 +1283,7 @@ CvSeqReaderPos;
     (pos).block_max = (reader).block_max;   \
 }
 
-#define CV_RESTORE_READER_POS( reader, pos )\
+#define VOS_RESTORE_READER_POS( reader, pos )\
 {                                           \
     (reader).block = (pos).block;           \
     (reader).ptr = (pos).ptr;               \
@@ -1297,24 +1297,24 @@ CvSeqReaderPos;
 \****************************************************************************************/
 
 /* creates empty set */
-CV_IMPL CvSet*
+VOS_IMPL CvSet*
 cvCreateSet( int set_flags, int header_size, int elem_size, CvMemStorage * storage )
 {
     CvSet *set = 0;
 
-    CV_FUNCNAME( "cvCreateSet" );
+    VOS_FUNCNAME( "cvCreateSet" );
 
     __BEGIN__;
 
     if( !storage )
-        CV_ERROR( CV_StsNullPtr, "" );
+        VOS_ERROR( VOS_StsNullPtr, "" );
     if( header_size < (int)sizeof( CvSet ) ||
         elem_size < (int)sizeof(void*)*2 ||
         (elem_size & (sizeof(void*)-1)) != 0 )
-        CV_ERROR( CV_StsBadSize, "" );
+        VOS_ERROR( VOS_StsBadSize, "" );
 
     set = (CvSet*) cvCreateSeq( set_flags, header_size, elem_size, storage );
-    set->flags = (set->flags & ~CV_MAGIC_MASK) | CV_SET_MAGIC_VAL;
+    set->flags = (set->flags & ~VOS_MAGIC_MASK) | VOS_SET_MAGIC_VAL;
 
     __END__;
 
@@ -1323,34 +1323,34 @@ cvCreateSet( int set_flags, int header_size, int elem_size, CvMemStorage * stora
 
 
 /* adds new element to the set */
-CV_IMPL int
+VOS_IMPL int
 cvSetAdd( CvSet* set, CvSetElem* element, CvSetElem** inserted_element )
 {
     int id = -1;
 
-    CV_FUNCNAME( "cvSetAdd" );
+    VOS_FUNCNAME( "cvSetAdd" );
 
     __BEGIN__;
 
     CvSetElem *free_elem;
 
     if( !set )
-        CV_ERROR( CV_StsNullPtr, "" );
+        VOS_ERROR( VOS_StsNullPtr, "" );
 
     if( !(set->free_elems) )
     {
         int count = set->total;
         int elem_size = set->elem_size;
         char *ptr;
-        CV_CALL( icvGrowSeq( (CvSeq *) set, 0 ));
+        VOS_CALL( icvGrowSeq( (CvSeq *) set, 0 ));
 
         set->free_elems = (CvSetElem*) (ptr = set->ptr);
         for( ; ptr + elem_size <= set->block_max; ptr += elem_size, count++ )
         {
-            ((CvSetElem*)ptr)->flags = count | CV_SET_ELEM_FREE_FLAG;
+            ((CvSetElem*)ptr)->flags = count | VOS_SET_ELEM_FREE_FLAG;
             ((CvSetElem*)ptr)->next_free = (CvSetElem*)(ptr + elem_size);
         }
-        assert( count <= CV_SET_ELEM_IDX_MASK+1 );
+        assert( count <= VOS_SET_ELEM_IDX_MASK+1 );
         ((CvSetElem*)(ptr - elem_size))->next_free = 0;
         set->first->prev->count += count - set->total;
         set->total = count;
@@ -1360,9 +1360,9 @@ cvSetAdd( CvSet* set, CvSetElem* element, CvSetElem** inserted_element )
     free_elem = set->free_elems;
     set->free_elems = free_elem->next_free;
 
-    id = free_elem->flags & CV_SET_ELEM_IDX_MASK;
+    id = free_elem->flags & VOS_SET_ELEM_IDX_MASK;
     if( element )
-        CV_MEMCPY_INT( free_elem, element, (size_t)set->elem_size/sizeof(int) );
+        VOS_MEMCPY_INT( free_elem, element, (size_t)set->elem_size/sizeof(int) );
 
     free_elem->flags = id;
     set->active_count++;
@@ -1395,10 +1395,10 @@ CvTreeNode;
 // Insert contour into tree given certain parent sequence.
 // If parent is equal to frame (the most external contour),
 // then added contour will have null pointer to parent.
-CV_IMPL void
+VOS_IMPL void
 cvInsertNodeIntoTree( void* _node, void* _parent, void* _frame )
 {
-    CV_FUNCNAME( "cvInsertNodeIntoTree" );
+    VOS_FUNCNAME( "cvInsertNodeIntoTree" );
 
     __BEGIN__;
 
@@ -1406,7 +1406,7 @@ cvInsertNodeIntoTree( void* _node, void* _parent, void* _frame )
     CvTreeNode* parent = (CvTreeNode*)_parent;
 
     if( !node || !parent )
-        CV_ERROR( CV_StsNullPtr, "" );
+        VOS_ERROR( VOS_StsNullPtr, "" );
 
     node->v_prev = _parent != _frame ? parent : 0;
     node->h_next = parent->v_next;

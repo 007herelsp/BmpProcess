@@ -1,6 +1,6 @@
 
-#ifndef _CV_HPP_
-#define _CV_HPP_
+#ifndef _VOS_HPP_
+#define _VOS_HPP_
 
 #ifdef __cplusplus
 
@@ -8,17 +8,17 @@
 *                    CvBaseImageFilter: Base class for filtering operations              *
 \****************************************************************************************/
 
-#define CV_WHOLE   0
-#define CV_START   1
-#define CV_END     2
-#define CV_MIDDLE  4
+#define VOS_WHOLE   0
+#define VOS_START   1
+#define VOS_END     2
+#define VOS_MIDDLE  4
 
-#define CV_ISOLATED_ROI 8
+#define VOS_ISOLATED_ROI 8
 
 typedef void (*CvRowFilterFunc)( const uchar* src, uchar* dst, void* params );
 typedef void (*CvColumnFilterFunc)( uchar** src, uchar* dst, int dst_step, int count, void* params );
 
-class CV_EXPORTS CvBaseImageFilter
+class VOS_EXPORTS CvBaseImageFilter
 {
 public:
     CvBaseImageFilter();
@@ -59,7 +59,7 @@ public:
 protected:
     /* initializes work_type, buf_size and max_rows */ 
     virtual void get_work_params();
-    /* it is called (not always) from process when _phase=CV_START or CV_WHOLE.
+    /* it is called (not always) from process when _phase=VOS_START or VOS_WHOLE.
        the method initializes ring buffer (buf_end, buf_head, buf_tail, buf_count, rows),
        prev_width, prev_x_range, const_row, border_tab, border_tab_sz* */
     virtual void start_process( CvSlice x_range, int width );
@@ -102,7 +102,7 @@ protected:
 
 
 /* Derived class, for linear separable filtering. */
-class CV_EXPORTS CvSepFilter : public CvBaseImageFilter
+class VOS_EXPORTS CvSepFilter : public CvBaseImageFilter
 {
 public:
     CvSepFilter();
@@ -147,7 +147,7 @@ protected:
 
 
 /* basic morphological operations: erosion & dilation */
-class CV_EXPORTS CvMorphology : public CvBaseImageFilter
+class VOS_EXPORTS CvMorphology : public CvBaseImageFilter
 {
 public:
     CvMorphology();
@@ -198,6 +198,6 @@ protected:
 
 #endif /* __cplusplus */
 
-#endif /* _CV_HPP_ */
+#endif /* _VOS_HPP_ */
 
 /* End of file. */

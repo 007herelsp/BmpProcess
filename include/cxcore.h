@@ -33,8 +33,8 @@ CVAPI(IplImage*)  cvCreateImageHeader( CvSize size, int depth, int channels );
 
 /* Inializes IplImage header */
 CVAPI(IplImage*) cvInitImageHeader( IplImage* image, CvSize size, int depth,
-                                   int channels, int origin CV_DEFAULT(0),
-                                   int align CV_DEFAULT(4));
+                                   int channels, int origin VOS_DEFAULT(0),
+                                   int align VOS_DEFAULT(4));
 
 /* Creates IPL image (header and data) */
 CVAPI(IplImage*)  cvCreateImage( CvSize size, int depth, int channels );
@@ -52,12 +52,12 @@ CVAPI(IplImage*) cvCloneImage( const IplImage* image );
 /* Allocates and initalizes CvMat header */
 CVAPI(CvMat*)  cvCreateMatHeader( int rows, int cols, int type );
 
-#define CV_AUTOSTEP  0x7fffffff
+#define VOS_AUTOSTEP  0x7fffffff
 
 /* Initializes CvMat header */
 CVAPI(CvMat*) cvInitMatHeader( CvMat* mat, int rows, int cols,
-                              int type, void* data CV_DEFAULT(NULL),
-                              int step CV_DEFAULT(CV_AUTOSTEP) );
+                              int type, void* data VOS_DEFAULT(NULL),
+                              int step VOS_DEFAULT(VOS_AUTOSTEP) );
 
 /* Allocates and initializes CvMat header and allocates data */
 CVAPI(CvMat*)  cvCreateMat( int rows, int cols, int type );
@@ -68,9 +68,9 @@ CVAPI(void)  cvReleaseMat( CvMat** mat );
 
 /* Decrements CvMat data reference counter and deallocates the data if
    it reaches 0 */
-CV_INLINE  void  cvDecRefData( CvArr* arr )
+VOS_INLINE  void  cvDecRefData( CvArr* arr )
 {
-    if( CV_IS_MAT( arr ))
+    if( VOS_IS_MAT( arr ))
     {
         CvMat* mat = (CvMat*)arr;
         mat->data.ptr = NULL;
@@ -85,7 +85,7 @@ assert("herelsp remove" && 0);
 
 /* low-level scalar <-> raw data conversion functions */
 CVAPI(void) cvScalarToRawData( const CvScalar* scalar, void* data, int type,
-                              int extend_to_12 CV_DEFAULT(0) );
+                              int extend_to_12 VOS_DEFAULT(0) );
 
 
 /**************** matrix iterator: used for n-ary operations on dense arrays *********/
@@ -93,18 +93,18 @@ CVAPI(void) cvScalarToRawData( const CvScalar* scalar, void* data, int type,
 
 
 /* Returns type of array elements:
-   CV_8UC1 ... CV_64FC4 ... */
+   VOS_8UC1 ... VOS_64FC4 ... */
 CVAPI(int) cvGetElemType( const CvArr* arr );
 
 
 CVAPI(CvMat*) cvGetMat( const CvArr* arr, CvMat* header,
-                       int* coi CV_DEFAULT(NULL),
-                       int allowND CV_DEFAULT(0));
+                       int* coi VOS_DEFAULT(NULL),
+                       int allowND VOS_DEFAULT(0));
 
 
 
 CVAPI(CvMat*) cvReshape( const CvArr* arr, CvMat* header,
-                        int new_cn, int new_rows CV_DEFAULT(0) );
+                        int new_cn, int new_rows VOS_DEFAULT(0) );
 
 
 /* Allocates array data */
@@ -125,7 +125,7 @@ CVAPI(CvSize) cvGetSize( const CvArr* arr );
 
 /* Copies source array to destination array */
 CVAPI(void)  cvCopy( const CvArr* src, CvArr* dst,
-                     const CvArr* mask CV_DEFAULT(NULL) );
+                     const CvArr* mask VOS_DEFAULT(NULL) );
 
 /* Performs linear transformation on every source array element:
    dst(x,y,c) = scale*src(x,y,c)+shift.
@@ -133,8 +133,8 @@ CVAPI(void)  cvCopy( const CvArr* src, CvArr* dst,
    (number of channels must be the same), thus the function can be used
    for type conversion */
 CVAPI(void)  cvConvertScale( const CvArr* src, CvArr* dst,
-                             double scale CV_DEFAULT(1),
-                             double shift CV_DEFAULT(0) );
+                             double scale VOS_DEFAULT(1),
+                             double shift VOS_DEFAULT(0) );
 #define cvConvert( src, dst )  cvConvertScale( (src), (dst), 1, 0 )
 
 /****************************************************************************************\
@@ -150,13 +150,13 @@ CVAPI(void)  cvPow( const CvArr* src, CvArr* dst, double power );
 \****************************************************************************************/
 
 
-#define CV_SVD_MODIFY_A   1
-#define CV_SVD_U_T        2
-#define CV_SVD_V_T        4
+#define VOS_SVD_MODIFY_A   1
+#define VOS_SVD_U_T        2
+#define VOS_SVD_V_T        4
 
 /* Performs Singular Value Decomposition of a matrix */
-CVAPI(void)   cvSVD( CvArr* A, CvArr* W, CvArr* U CV_DEFAULT(NULL),
-                     CvArr* V CV_DEFAULT(NULL), int flags CV_DEFAULT(0));
+CVAPI(void)   cvSVD( CvArr* A, CvArr* W, CvArr* U VOS_DEFAULT(NULL),
+                     CvArr* V VOS_DEFAULT(NULL), int flags VOS_DEFAULT(0));
 
 /* Performs Singular Value Back Substitution (solves A*X = B):
    flags must be the same as in cvSVD */
@@ -164,15 +164,15 @@ CVAPI(void)   cvSVBkSb( const CvArr* W, const CvArr* U,
                         const CvArr* V, const CvArr* B,
                         CvArr* X, int flags );
 
-#define CV_LU  0
-#define CV_SVD 1
-#define CV_SVD_SYM 2
+#define VOS_LU  0
+#define VOS_SVD 1
+#define VOS_SVD_SYM 2
 
 
 /* Solves linear system (src1)*(dst) = (src2)
-   (returns 0 if src1 is a singular and CV_LU method is used) */
+   (returns 0 if src1 is a singular and VOS_LU method is used) */
 CVAPI(int)  cvSolve( const CvArr* src1, const CvArr* src2, CvArr* dst,
-                     int method CV_DEFAULT(CV_LU));
+                     int method VOS_DEFAULT(VOS_LU));
 
 
 /****************************************************************************************\
@@ -186,7 +186,7 @@ CVAPI(int) cvSliceLength( CvSlice slice, const CvSeq* seq );
 /* Creates new memory storage.
    block_size == 0 means that default,
    somewhat optimal size, is used (currently, it is 64K) */
-CVAPI(CvMemStorage*)  cvCreateMemStorage( int block_size CV_DEFAULT(0));
+CVAPI(CvMemStorage*)  cvCreateMemStorage( int block_size VOS_DEFAULT(0));
 
 
 /* Creates a memory storage that will borrow memory blocks from parent storage */
@@ -225,20 +225,20 @@ CVAPI(void)  cvSetSeqBlockSize( CvSeq* seq, int delta_elems );
 
 
 /* Adds new element to the end of sequence. Returns pointer to the element */
-CVAPI(char*)  cvSeqPush( CvSeq* seq, void* element CV_DEFAULT(NULL));
+CVAPI(char*)  cvSeqPush( CvSeq* seq, void* element VOS_DEFAULT(NULL));
 
 
 
 /* Removes the last element from sequence and optionally saves it */
-CVAPI(void)  cvSeqPop( CvSeq* seq, void* element CV_DEFAULT(NULL));
+CVAPI(void)  cvSeqPop( CvSeq* seq, void* element VOS_DEFAULT(NULL));
 
-#define CV_FRONT 1
-#define CV_BACK 0
+#define VOS_FRONT 1
+#define VOS_BACK 0
 
 
 /* Removes several elements from the end of sequence and optionally saves them */
 CVAPI(void)  cvSeqPopMulti( CvSeq* seq, void* elements,
-                            int count, int in_front CV_DEFAULT(0) );
+                            int count, int in_front VOS_DEFAULT(0) );
 
 /* Removes all the elements from the sequence. The freed memory
    can be reused later only by the same sequence unless cvClearMemStorage
@@ -275,7 +275,7 @@ CVAPI(void)   cvFlushSeqWriter( CvSeqWriter* writer );
 /* Initializes sequence reader.
    The sequence can be read in forward or backward direction */
 CVAPI(void) cvStartReadSeq( const CvSeq* seq, CvSeqReader* reader,
-                           int reverse CV_DEFAULT(0) );
+                           int reverse VOS_DEFAULT(0) );
 
 
 /* Returns current sequence reader position (currently observed sequence element) */
@@ -285,7 +285,7 @@ CVAPI(int)  cvGetSeqReaderPos( CvSeqReader* reader );
 /* Changes sequence reader position. It may seek to an absolute or
    to relative to the current position */
 CVAPI(void)   cvSetSeqReaderPos( CvSeqReader* reader, int index,
-                                 int is_relative CV_DEFAULT(0));
+                                 int is_relative VOS_DEFAULT(0));
 
 
 /************ Internal sequence functions ************/
@@ -298,8 +298,8 @@ CVAPI(CvSet*)  cvCreateSet( int set_flags, int header_size,
                             int elem_size, CvMemStorage* storage );
 
 /* Adds new element to the set and returns pointer to it */
-CVAPI(int)  cvSetAdd( CvSet* set_header, CvSetElem* elem CV_DEFAULT(NULL),
-                      CvSetElem** inserted_elem CV_DEFAULT(NULL) );
+CVAPI(int)  cvSetAdd( CvSet* set_header, CvSetElem* elem VOS_DEFAULT(NULL),
+                      CvSetElem** inserted_elem VOS_DEFAULT(NULL) );
 
 
 CVAPI(int) cvStdErrReport( int status, const char* func_name, const char* err_msg,
@@ -321,9 +321,9 @@ CVAPI(int) cvGetErrStatus( void );
 /* Sets error status silently */
 CVAPI(void) cvSetErrStatus( int status );
 
-#define CV_ErrModeLeaf     0   /* Print error and exit program */
-#define CV_ErrModeParent   1   /* Print error and continue */
-#define CV_ErrModeSilent   2   /* Don't print and continue */
+#define VOS_ErrModeLeaf     0   /* Print error and exit program */
+#define VOS_ErrModeParent   1   /* Print error and continue */
+#define VOS_ErrModeSilent   2   /* Don't print and continue */
 
 /* Retrives current error processing mode */
 CVAPI(int)  cvGetErrMode( void );
@@ -343,10 +343,10 @@ CVAPI(const char*) cvErrorStr( int status );
 /* Maps IPP error codes to the counterparts from OpenCV */
 CVAPI(int) cvErrorFromIppStatus( int ipp_status );
 
-typedef int (CV_CDECL *CvErrorCallback)( int status, const char* func_name,
+typedef int (VOS_CDECL *CvErrorCallback)( int status, const char* func_name,
                     const char* err_msg, const char* file_name, int line, void* userdata );
-typedef void* (CV_CDECL *CvAllocFunc)(size_t size, void* userdata);
-typedef int (CV_CDECL *CvFreeFunc)(void* pptr, void* userdata);
+typedef void* (VOS_CDECL *CvAllocFunc)(size_t size, void* userdata);
+typedef int (VOS_CDECL *CvFreeFunc)(void* pptr, void* userdata);
 
 #ifdef __cplusplus
 }

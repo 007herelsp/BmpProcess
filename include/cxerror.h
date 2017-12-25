@@ -10,74 +10,74 @@ typedef int CVStatus;
 /* this part of CVStatus is compatible with IPLStatus 
   Some of below symbols are not [yet] used in OpenCV
 */
-#define CV_StsOk                    0  /* everithing is ok                */
-#define CV_StsBackTrace            -1  /* pseudo error for back trace     */
-#define CV_StsError                -2  /* unknown /unspecified error      */
-#define CV_StsInternal             -3  /* internal error (bad state)      */
-#define CV_StsNoMem                -4  /* insufficient memory             */
-#define CV_StsBadArg               -5  /* function arg/param is bad       */
-#define CV_StsBadFunc              -6  /* unsupported function            */
-#define CV_StsNoConv               -7  /* iter. didn't converge           */
-#define CV_StsAutoTrace            -8  /* tracing                         */
+#define VOS_StsOk                    0  /* everithing is ok                */
+#define VOS_StsBackTrace            -1  /* pseudo error for back trace     */
+#define VOS_StsError                -2  /* unknown /unspecified error      */
+#define VOS_StsInternal             -3  /* internal error (bad state)      */
+#define VOS_StsNoMem                -4  /* insufficient memory             */
+#define VOS_StsBadArg               -5  /* function arg/param is bad       */
+#define VOS_StsBadFunc              -6  /* unsupported function            */
+#define VOS_StsNoConv               -7  /* iter. didn't converge           */
+#define VOS_StsAutoTrace            -8  /* tracing                         */
 
-#define CV_HeaderIsNull            -9  /* image header is NULL            */
-#define CV_BadImageSize            -10 /* image size is invalid           */
-#define CV_BadOffset               -11 /* offset is invalid               */
-#define CV_BadDataPtr              -12 /**/
-#define CV_BadStep                 -13 /**/
-#define CV_BadModelOrChSeq         -14 /**/
-#define CV_BadNumChannels          -15 /**/
-#define CV_BadNumChannel1U         -16 /**/
-#define CV_BadDepth                -17 /**/
-#define CV_BadAlphaChannel         -18 /**/
-#define CV_BadOrder                -19 /**/
-#define CV_BadOrigin               -20 /**/
-#define CV_BadAlign                -21 /**/
-#define CV_BadCallBack             -22 /**/
-#define CV_BadTileSize             -23 /**/
-#define CV_BadCOI                  -24 /**/
-#define CV_BadROISize              -25 /**/
+#define VOS_HeaderIsNull            -9  /* image header is NULL            */
+#define VOS_BadImageSize            -10 /* image size is invalid           */
+#define VOS_BadOffset               -11 /* offset is invalid               */
+#define VOS_BadDataPtr              -12 /**/
+#define VOS_BadStep                 -13 /**/
+#define VOS_BadModelOrChSeq         -14 /**/
+#define VOS_BadNumChannels          -15 /**/
+#define VOS_BadNumChannel1U         -16 /**/
+#define VOS_BadDepth                -17 /**/
+#define VOS_BadAlphaChannel         -18 /**/
+#define VOS_BadOrder                -19 /**/
+#define VOS_BadOrigin               -20 /**/
+#define VOS_BadAlign                -21 /**/
+#define VOS_BadCallBack             -22 /**/
+#define VOS_BadTileSize             -23 /**/
+#define VOS_BadCOI                  -24 /**/
+#define VOS_BadROISize              -25 /**/
 
-#define CV_MaskIsTiled             -26 /**/
+#define VOS_MaskIsTiled             -26 /**/
 
-#define CV_StsNullPtr                -27 /* null pointer */
-#define CV_StsVecLengthErr           -28 /* incorrect vector length */
-#define CV_StsFilterStructContentErr -29 /* incorr. filter structure content */
-#define CV_StsKernelStructContentErr -30 /* incorr. transform kernel content */
-#define CV_StsFilterOffsetErr        -31 /* incorrect filter ofset value */
+#define VOS_StsNullPtr                -27 /* null pointer */
+#define VOS_StsVecLengthErr           -28 /* incorrect vector length */
+#define VOS_StsFilterStructContentErr -29 /* incorr. filter structure content */
+#define VOS_StsKernelStructContentErr -30 /* incorr. transform kernel content */
+#define VOS_StsFilterOffsetErr        -31 /* incorrect filter ofset value */
 
 /*extra for CV */
-#define CV_StsBadSize                -201 /* the input/output structure size is incorrect  */
-#define CV_StsDivByZero              -202 /* division by zero */
-#define CV_StsInplaceNotSupported    -203 /* in-place operation is not supported */
-#define CV_StsObjectNotFound         -204 /* request can't be completed */
-#define CV_StsUnmatchedFormats       -205 /* formats of input/output arrays differ */
-#define CV_StsBadFlag                -206 /* flag is wrong or not supported */  
-#define CV_StsBadPoint               -207 /* bad CvPoint */ 
-#define CV_StsBadMask                -208 /* bad format of mask (neither 8uC1 nor 8sC1)*/
-#define CV_StsUnmatchedSizes         -209 /* sizes of input/output structures do not match */
-#define CV_StsUnsupportedFormat      -210 /* the data format/type is not supported by the function*/
-#define CV_StsOutOfRange             -211 /* some of parameters are out of range */
-#define CV_StsParseError             -212 /* invalid syntax/structure of the parsed file */
-#define CV_StsNotImplemented         -213 /* the requested function/feature is not implemented */
-#define CV_StsBadMemBlock            -214 /* an allocated block has been corrupted */
+#define VOS_StsBadSize                -201 /* the input/output structure size is incorrect  */
+#define VOS_StsDivByZero              -202 /* division by zero */
+#define VOS_StsInplaceNotSupported    -203 /* in-place operation is not supported */
+#define VOS_StsObjectNotFound         -204 /* request can't be completed */
+#define VOS_StsUnmatchedFormats       -205 /* formats of input/output arrays differ */
+#define VOS_StsBadFlag                -206 /* flag is wrong or not supported */  
+#define VOS_StsBadPoint               -207 /* bad CvPoint */ 
+#define VOS_StsBadMask                -208 /* bad format of mask (neither 8uC1 nor 8sC1)*/
+#define VOS_StsUnmatchedSizes         -209 /* sizes of input/output structures do not match */
+#define VOS_StsUnsupportedFormat      -210 /* the data format/type is not supported by the function*/
+#define VOS_StsOutOfRange             -211 /* some of parameters are out of range */
+#define VOS_StsParseError             -212 /* invalid syntax/structure of the parsed file */
+#define VOS_StsNotImplemented         -213 /* the requested function/feature is not implemented */
+#define VOS_StsBadMemBlock            -214 /* an allocated block has been corrupted */
 
 /********************************* Error handling Macros ********************************/
 
-#define OPENCV_ERROR(status,func,context)                           \
+#define OPENVOS_ERROR(status,func,context)                           \
                 cvError((status),(func),(context),__FILE__,__LINE__)
 
-#define OPENCV_ERRCHK(func,context)                                 \
+#define OPENVOS_ERRCHK(func,context)                                 \
                 {if (cvGetErrStatus() >= 0)                         \
-                 {OPENCV_ERROR(CV_StsBackTrace,(func),(context));}}
+                 {OPENVOS_ERROR(VOS_StsBackTrace,(func),(context));}}
 
-#define OPENCV_ASSERT(expr,func,context)                            \
+#define OPENVOS_ASSERT(expr,func,context)                            \
                 {if (! (expr))                                      \
-                 {OPENCV_ERROR(CV_StsInternal,(func),(context));}}
+                 {OPENVOS_ERROR(VOS_StsInternal,(func),(context));}}
 
-#define OPENCV_RSTERR() (cvSetErrStatus(CV_StsOk))
+#define OPENVOS_RSTERR() (cvSetErrStatus(VOS_StsOk))
 
-#define OPENCV_CALL( Func )                                         \
+#define OPENVOS_CALL( Func )                                         \
 {                                                                   \
     Func;                                                           \
 } 
@@ -85,59 +85,59 @@ typedef int CVStatus;
 
 /**************************** OpenCV-style error handling *******************************/
 
-/* CV_FUNCNAME macro defines icvFuncName constant which is used by CV_ERROR macro */
-#ifdef CV_NO_FUNC_NAMES
-    #define CV_FUNCNAME( Name )
+/* VOS_FUNCNAME macro defines icvFuncName constant which is used by VOS_ERROR macro */
+#ifdef VOS_NO_FUNC_NAMES
+    #define VOS_FUNCNAME( Name )
     #define cvFuncName ""
 #else    
-    #define CV_FUNCNAME( Name )  \
+    #define VOS_FUNCNAME( Name )  \
     static char cvFuncName[] = Name
 #endif
 
 
 /*
-  CV_ERROR macro unconditionally raises error with passed code and message.
+  VOS_ERROR macro unconditionally raises error with passed code and message.
   After raising error, control will be transferred to the exit label.
 */
-#define CV_ERROR( Code, Msg )                                       \
+#define VOS_ERROR( Code, Msg )                                       \
 {                                                                   \
      cvError( (Code), cvFuncName, Msg, __FILE__, __LINE__ );        \
      EXIT;                                                          \
 }
 
-/* Simplified form of CV_ERROR */
-#define CV_ERROR_FROM_CODE( code )   \
-    CV_ERROR( code, "" )
+/* Simplified form of VOS_ERROR */
+#define VOS_ERROR_FROM_CODE( code )   \
+    VOS_ERROR( code, "" )
 
 /*
- CV_CHECK macro checks error status after CV (or IPL)
+ VOS_CHECK macro checks error status after CV (or IPL)
  function call. If error detected, control will be transferred to the exit
  label.
 */
-#define CV_CHECK()                                                  \
+#define VOS_CHECK()                                                  \
 {                                                                   \
     if( cvGetErrStatus() < 0 )                                      \
-        CV_ERROR( CV_StsBackTrace, "Inner function failed." );      \
+        VOS_ERROR( VOS_StsBackTrace, "Inner function failed." );      \
 }
 
 
 /*
- CV_CALL macro calls CV (or IPL) function, checks error status and
+ VOS_CALL macro calls CV (or IPL) function, checks error status and
  signals a error if the function failed. Useful in "parent node"
  error procesing mode
 */
-#define CV_CALL( Func )                                             \
+#define VOS_CALL( Func )                                             \
 {                                                                   \
     Func;                                                           \
-    CV_CHECK();                                                     \
+    VOS_CHECK();                                                     \
 }
 
 
 /* Runtime assertion macro */
-#define CV_ASSERT( Condition )                                          \
+#define VOS_ASSERT( Condition )                                          \
 {                                                                       \
     if( !(Condition) )                                                  \
-        CV_ERROR( CV_StsInternal, "Assertion: " #Condition " failed" ); \
+        VOS_ERROR( VOS_StsInternal, "Assertion: " #Condition " failed" ); \
 }
 
 #define __BEGIN__       {
