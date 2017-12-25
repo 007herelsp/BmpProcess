@@ -118,7 +118,7 @@ cvCvtColor( const CvArr* srcarr, CvArr* dstarr, int code )
 		assert("herelsp remove" && (depth == CV_8U ));
 
         param[0] = src_cn;
-        param[1] = 0;
+        param[1] = 2;
 		  IPPI_CALL( icvBGRx2Gray_8u_CnC1R( src->data.ptr, src_step,
             dst->data.ptr, dst_step, size, param[0], param[1] ));
 		  
