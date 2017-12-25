@@ -49,7 +49,6 @@ bool GrFmtBmpReader::ReadHeader()
     if (!m_strm.Open(m_filename))
         return false;
 
-    if (setjmp(m_strm.JmpBuf()) == 0)
     {
         m_strm.Skip(10);
         m_offset = m_strm.GetDWord();
@@ -67,37 +66,10 @@ bool GrFmtBmpReader::ReadHeader()
             m_strm.Skip(size - 36);
 
             if (m_width > 0 && m_height > 0 &&
-                (((m_bpp == 1 || m_bpp == 4 || m_bpp == 8 ||
-                   m_bpp == 24 || m_bpp == 32) &&
-                  m_rle_code == BMP_RGB) ||
-                 (m_bpp == 16 && (m_rle_code == BMP_RGB || m_rle_code == BMP_BITFIELDS)) ||
-                 (m_bpp == 4 && m_rle_code == BMP_RLE4) ||
-                 (m_bpp == 8 && m_rle_code == BMP_RLE8)))
+                ((m_bpp == 24) && (m_rle_code == BMP_RGB)))
             {
                 m_iscolor = true;
                 result = true;
-
-                if (m_bpp <= 8)
-                {
-                    memset(m_palette, 0, sizeof(m_palette));
-                    m_strm.GetBytes(m_palette, (clrused == 0 ? 1 << m_bpp : clrused) * 4);
-                    m_iscolor = IsColorPalette(m_palette, m_bpp);
-                }
-                else if (m_bpp == 16 && m_rle_code == BMP_BITFIELDS)
-                {
-                    int redmask = m_strm.GetDWord();
-                    int greenmask = m_strm.GetDWord();
-                    int bluemask = m_strm.GetDWord();
-
-                    if (bluemask == 0x1f && greenmask == 0x3e0 && redmask == 0x7c00)
-                        m_bpp = 15;
-                    else if (bluemask == 0x1f && greenmask == 0x7e0 && redmask == 0xf800)
-                        ;
-                    else
-                        result = false;
-                }
-                else if (m_bpp == 16 && m_rle_code == BMP_RGB)
-                    m_bpp = 15;
             }
         }
         else if (size == 12)
@@ -107,22 +79,8 @@ bool GrFmtBmpReader::ReadHeader()
             m_bpp = m_strm.GetDWord() >> 16;
             m_rle_code = BMP_RGB;
 
-            if (m_width > 0 && m_height > 0 &&
-                (m_bpp == 1 || m_bpp == 4 || m_bpp == 8 ||
-                 m_bpp == 24 || m_bpp == 32))
+            if (m_width > 0 && m_height > 0 &&                (m_bpp == 24))
             {
-                if (m_bpp <= 8)
-                {
-                    uchar buffer[256 * 3];
-                    int j, clrused = 1 << m_bpp;
-                    m_strm.GetBytes(buffer, clrused * 3);
-                    for (j = 0; j < clrused; j++)
-                    {
-                        m_palette[j].b = buffer[3 * j + 0];
-                        m_palette[j].g = buffer[3 * j + 1];
-                        m_palette[j].r = buffer[3 * j + 2];
-                    }
-                }
                 result = true;
             }
         }
@@ -157,7 +115,7 @@ bool GrFmtBmpReader::ReadData(uchar *data, int step, int color)
         return false;
     }
 
-    if (setjmp(m_strm.JmpBuf()) == 0)
+    
     {
         m_strm.SetPos(m_offset);
 
