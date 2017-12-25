@@ -234,25 +234,25 @@ void CvBaseImageFilter::make_y_border(int row_count, int top_rows, int bottom_ro
 {
     int i;
 
-    if (border_mode == IPL_BORDER_CONSTANT ||
-        border_mode == IPL_BORDER_REPLICATE)
+    if (IPL_BORDER_CONSTANT == border_mode ||
+        IPL_BORDER_REPLICATE == border_mode)
     {
-        uchar *row1 = border_mode == IPL_BORDER_CONSTANT ? const_row : rows[max_ky];
+        uchar *row1 =  IPL_BORDER_CONSTANT == border_mode ? const_row : rows[max_ky];
 
-        for (i = 0; i < top_rows && rows[i] == 0; i++)
+        for (i = 0; i < top_rows && 0== rows[i] ; i++)
             rows[i] = row1;
 
-        row1 = border_mode == IPL_BORDER_CONSTANT ? const_row : rows[row_count - 1];
+        row1 = IPL_BORDER_CONSTANT == border_mode ? const_row : rows[row_count - 1];
         for (i = 0; i < bottom_rows; i++)
             rows[i + row_count] = row1;
     }
     else
     {
-        int j, dj = 1, shift = border_mode == IPL_BORDER_REFLECT_101;
+        int j, dj = 1, shift = IPL_BORDER_REFLECT_101 == border_mode;
 
         for (i = top_rows - 1, j = top_rows + shift; i >= 0; i--)
         {
-            if (rows[i] == 0)
+            if (0 == rows[i] )
                 rows[i] = rows[j];
             j += dj;
             if (dj > 0 && j >= row_count)
@@ -297,7 +297,7 @@ int CvBaseImageFilter::fill_cyclic_buffer(const uchar *src, int src_step,
             for (i = 0; i < width_n; i++)
                 bptr[i + bsz1] = src[i];
 
-        if (border_mode != IPL_BORDER_CONSTANT)
+        if (  IPL_BORDER_CONSTANT != border_mode)
         {
             for (i = 0; i < bsz1; i++)
             {
@@ -364,10 +364,10 @@ int CvBaseImageFilter::process(const CvMat *src, CvMat *dst,
 
     width = src->cols;
 
-    if (src_roi.width == -1 && src_roi.x == 0)
+    if (-1 == src_roi.width &&  0 == src_roi.x)
         src_roi.width = width;
 
-    if (src_roi.height == -1 && src_roi.y == 0)
+    if (-1 == src_roi.height &&  0 == src_roi.y)
     {
         src_roi.y = 0;
         src_roi.height = src->rows;
@@ -747,7 +747,7 @@ icvFilterRowSymm_8u32s(const uchar *src, int *dst, void *params)
 
     if (is_symm)
     {
-        if (ksize == 1 && kx[0] == 1)
+        if ( 1 == ksize  &&  1 == kx[0])
         {
             for (i = 0; i <= width - 2; i += 2)
             {
@@ -757,23 +757,23 @@ icvFilterRowSymm_8u32s(const uchar *src, int *dst, void *params)
             }
             s += i;
         }
-        else if (ksize == 3)
+        else if (3 == ksize)
         {
-            if (kx[0] == 2 && kx[1] == 1)
+            if (2 == kx[0] && 1 == kx[1])
                 for (; i <= width - 2; i += 2, s += 2)
                 {
                     int s0 = s[-cn] + s[0] * 2 + s[cn], s1 = s[1 - cn] + s[1] * 2 + s[1 + cn];
                     dst[i] = s0;
                     dst[i + 1] = s1;
                 }
-            else if (kx[0] == 10 && kx[1] == 3)
+            else if (10 == kx[0] && 3 == kx[1])
                 for (; i <= width - 2; i += 2, s += 2)
                 {
                     int s0 = s[0] * 10 + (s[-cn] + s[cn]) * 3, s1 = s[1] * 10 + (s[1 - cn] + s[1 + cn]) * 3;
                     dst[i] = s0;
                     dst[i + 1] = s1;
                 }
-            else if (kx[0] == 2 * 64 && kx[1] == 1 * 64)
+            else if (2 * 64 == kx[0]  && 1 * 64 == kx[1])
                 for (; i <= width - 2; i += 2, s += 2)
                 {
                     int s0 = (s[0] * 2 + s[-cn] + s[cn]) << 6;
@@ -795,7 +795,7 @@ icvFilterRowSymm_8u32s(const uchar *src, int *dst, void *params)
         else if (ksize == 5)
         {
             int k0 = kx[0], k1 = kx[1], k2 = kx[2];
-            if (k0 == 6 * 16 && k1 == 4 * 16 && k2 == 1 * 16)
+            if (6 * 16 == k0  && 4 * 16 == k1  && 1 * 16 == k2 )
                 for (; i <= width - 2; i += 2, s += 2)
                 {
                     int s0 = (s[0] * 6 + (s[-cn] + s[cn]) * 4 + (s[-cn * 2] + s[cn * 2]) * 1) << 4;
@@ -842,7 +842,7 @@ icvFilterRowSymm_8u32s(const uchar *src, int *dst, void *params)
     }
     else
     {
-        if (ksize == 3 && kx[0] == 0 && kx[1] == 1)
+        if (3 == ksize && 0 == kx[0] && 1 == kx[1])
             for (; i <= width - 2; i += 2, s += 2)
             {
                 int s0 = s[cn] - s[-cn], s1 = s[1 + cn] - s[1 - cn];
@@ -1275,11 +1275,11 @@ IVOS_FILTER_COL_SYMM(32f16s, float, short, int, cvRound, VOS_CAST_16S)
 IVOS_FILTER_COL_SYMM(32f16u, float, ushort, int, cvRound, VOS_CAST_16U)
 
 
-#define SMALL_GAUSSIAN_SIZE 7
+#define VOS_SMALL_GAUSSIAN_SIZE 7
 
 void CvSepFilter::init_gaussian_kernel(CvMat *kernel, double sigma)
 {
-    static const float small_gaussian_tab[][SMALL_GAUSSIAN_SIZE / 2 + 1] =
+    static const float small_gaussian_tab[][VOS_SMALL_GAUSSIAN_SIZE / 2 + 1] =
         {
             {1.f},
             {0.5f, 0.25f},
@@ -1303,44 +1303,33 @@ void CvSepFilter::init_gaussian_kernel(CvMat *kernel, double sigma)
 
     if (kernel->cols != 1 && kernel->rows != 1 ||
         (kernel->cols + kernel->rows - 1) % 2 == 0 ||
-        type != VOS_32FC1 && type != VOS_64FC1)
+        type != VOS_32FC1)
         VOS_ERROR(VOS_StsBadSize, "kernel should be 1D floating-point vector of odd (2*k+1) size");
 
     n = kernel->cols + kernel->rows - 1;
 
-    if (n <= SMALL_GAUSSIAN_SIZE && sigma <= 0)
+    if (n <= VOS_SMALL_GAUSSIAN_SIZE && sigma <= 0)
         fixed_kernel = small_gaussian_tab[n >> 1];
 
     sigmaX = sigma > 0 ? sigma : (n / 2 - 1) * 0.3 + 0.8;
     scale2X = -0.5 / (sigmaX * sigmaX);
     step = kernel->rows == 1 ? 1 : kernel->step / VOS_ELEM_SIZE1(type);
     cf = kernel->data.fl;
-    cd = kernel->data.db;
 
     sum = fixed_kernel ? -fixed_kernel[0] : -1.;
 
     for (i = 0; i <= n / 2; i++)
     {
         double t = fixed_kernel ? (double)fixed_kernel[i] : exp(scale2X * i * i);
-        if (type == VOS_32FC1)
-        {
+      
             cf[(n / 2 + i) * step] = (float)t;
             sum += cf[(n / 2 + i) * step] * 2;
-        }
-        else
-        {
-            cd[(n / 2 + i) * step] = t;
-            sum += cd[(n / 2 + i) * step] * 2;
-        }
     }
 
     sum = 1. / sum;
     for (i = 0; i <= n / 2; i++)
     {
-        if (type == VOS_32FC1)
             cf[(n / 2 + i) * step] = cf[(n / 2 - i) * step] = (float)(cf[(n / 2 + i) * step] * sum);
-        else
-            cd[(n / 2 + i) * step] = cd[(n / 2 - i) * step] = cd[(n / 2 + i) * step] * sum;
     }
 
     __END__;
@@ -1382,12 +1371,9 @@ void CvSepFilter::init_sobel_kernel(CvMat *_kx, CvMat *_ky, int dx, int dy, int 
 
         if (kernel->cols != 1 && kernel->rows != 1 ||
             (kernel->cols + kernel->rows - 1) % 2 == 0 ||
-            type != VOS_32FC1 && type != VOS_64FC1 && type != VOS_32SC1)
+            type != VOS_32FC1)
             VOS_ERROR(VOS_StsOutOfRange,
                      "Both kernels must be 1D floating-point or integer vectors of odd (2*k+1) size.");
-
-        if (normalize && n > 1 && type == VOS_32SC1)
-            VOS_ERROR(VOS_StsBadArg, "Integer kernel can not be normalized");
 
         if (n <= order)
             VOS_ERROR(VOS_StsOutOfRange,
@@ -1440,12 +1426,7 @@ void CvSepFilter::init_sobel_kernel(CvMat *_kx, CvMat *_ky, int dx, int dy, int 
 
         for (i = 0; i < n; i++)
         {
-            if (type == VOS_32SC1)
-                kernel->data.i[i * step] = kerI[i] * iscale;
-            else if (type == VOS_32FC1)
                 kernel->data.fl[i * step] = (float)(kerI[i] * scale);
-            else
-                kernel->data.db[i * step] = kerI[i] * scale;
         }
     }
 
@@ -1488,6 +1469,9 @@ void CvSepFilter::init_deriv(int _max_width, int _src_type, int _dst_type,
     __END__;
 }
 
+#define VOS_MAX_GAUSSIAN_SIZE 1024
+#define VOS_MIN_GAUSSIN_SIZE 0
+
 void CvSepFilter::init_gaussian(int _max_width, int _src_type, int _dst_type,
                                 int gaussian_size, double sigma)
 {
@@ -1499,7 +1483,7 @@ void CvSepFilter::init_gaussian(int _max_width, int _src_type, int _dst_type,
 
     CvMat _kernel;
 
-    if (gaussian_size <= 0 || gaussian_size > 1024)
+    if (gaussian_size <= VOS_MIN_GAUSSIN_SIZE || gaussian_size > VOS_MAX_GAUSSIAN_SIZE)
         VOS_ERROR(VOS_StsBadSize, "Incorrect size of gaussian kernel");
 
     kdata = (float *)cvStackAlloc(gaussian_size * sizeof(kdata[0]));

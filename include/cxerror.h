@@ -62,26 +62,6 @@ typedef int CVStatus;
 #define VOS_StsNotImplemented         -213 /* the requested function/feature is not implemented */
 #define VOS_StsBadMemBlock            -214 /* an allocated block has been corrupted */
 
-/********************************* Error handling Macros ********************************/
-
-#define OPENVOS_ERROR(status,func,context)                           \
-                cvError((status),(func),(context),__FILE__,__LINE__)
-
-#define OPENVOS_ERRCHK(func,context)                                 \
-                {if (cvGetErrStatus() >= 0)                         \
-                 {OPENVOS_ERROR(VOS_StsBackTrace,(func),(context));}}
-
-#define OPENVOS_ASSERT(expr,func,context)                            \
-                {if (! (expr))                                      \
-                 {OPENVOS_ERROR(VOS_StsInternal,(func),(context));}}
-
-#define OPENVOS_RSTERR() (cvSetErrStatus(VOS_StsOk))
-
-#define OPENVOS_CALL( Func )                                         \
-{                                                                   \
-    Func;                                                           \
-} 
-
 
 /**************************** OpenCV-style error handling *******************************/
 
@@ -95,10 +75,6 @@ typedef int CVStatus;
 #endif
 
 
-/*
-  VOS_ERROR macro unconditionally raises error with passed code and message.
-  After raising error, control will be transferred to the exit label.
-*/
 #define VOS_ERROR( Code, Msg )                                       \
 {                                                                   \
      cvError( (Code), cvFuncName, Msg, __FILE__, __LINE__ );        \

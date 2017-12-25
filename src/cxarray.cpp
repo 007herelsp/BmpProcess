@@ -1,15 +1,12 @@
 #include "_cxcore.h"
 
-
 static const signed char icvDepthToType[] =
-{
-    -1, -1, VOS_8U, VOS_8S, VOS_16U, VOS_16S, -1, -1,
-    VOS_32F, VOS_32S, -1, -1, -1, -1, -1, -1, VOS_64F, -1
-};
-	
+    {
+        -1, -1, VOS_8U, VOS_8S, VOS_16U, VOS_16S, -1, -1,
+        VOS_32F, VOS_32S, -1, -1, -1, -1, -1, -1, VOS_64F, -1};
 
-#define icvIplToCvDepth( depth ) \
-    icvDepthToType[(((depth) & 255) >> 2) + ((depth) < 0)]
+#define icvIplToCvDepth(depth) \
+    icvDepthToType[(((depth)&255) >> 2) + ((depth) < 0)]
 
 /****************************************************************************************\
 *                               CvMat creation and basic operations                      *
@@ -200,7 +197,7 @@ cvCreateData(CvArr *arr)
             VOS_ERROR(VOS_StsError, "Data is already allocated");
 
         VOS_CALL(img->imageData = img->imageDataOrigin =
-                    (char *)cvAlloc((size_t)img->imageSize));
+                     (char *)cvAlloc((size_t)img->imageSize));
     }
     else
     {
@@ -381,7 +378,7 @@ cvGetSize(const CvArr *arr)
 
 // Converts CvScalar to specified type
 VOS_IMPL void
-cvScalarToRawData(const CvScalar *scalar, void *data, int type, int extend_to_12)
+cvScalarToRawData(const CvScalar *scalar, void *data, int type)
 {
     VOS_FUNCNAME("cvScalarToRawData");
 
@@ -396,65 +393,16 @@ cvScalarToRawData(const CvScalar *scalar, void *data, int type, int extend_to_12
     if ((unsigned)(cn - 1) >= 4)
         VOS_ERROR(VOS_StsOutOfRange, "The number of channels must be 1, 2, 3 or 4");
 
-    switch (depth)
+    if (VOS_8UC1 != depth)
     {
-    case VOS_8UC1:
-        while (cn--)
-        {
-            int t = cvRound(scalar->val[cn]);
-            ((uchar *)data)[cn] = VOS_CAST_8U(t);
-        }
-        break;
-    case VOS_8SC1:
-        while (cn--)
-        {
-            int t = cvRound(scalar->val[cn]);
-            ((char *)data)[cn] = VOS_CAST_8S(t);
-        }
-        break;
-    case VOS_16UC1:
-        while (cn--)
-        {
-            int t = cvRound(scalar->val[cn]);
-            ((ushort *)data)[cn] = VOS_CAST_16U(t);
-        }
-        break;
-    case VOS_16SC1:
-        while (cn--)
-        {
-            int t = cvRound(scalar->val[cn]);
-            ((short *)data)[cn] = VOS_CAST_16S(t);
-        }
-        break;
-    case VOS_32SC1:
-        while (cn--)
-            ((int *)data)[cn] = cvRound(scalar->val[cn]);
-        break;
-    case VOS_32FC1:
-        while (cn--)
-            ((float *)data)[cn] = (float)(scalar->val[cn]);
-        break;
-    case VOS_64FC1:
-        while (cn--)
-            ((double *)data)[cn] = (double)(scalar->val[cn]);
-        break;
-    default:
-        assert(0);
         VOS_ERROR_FROM_CODE(VOS_BadDepth);
     }
 
-    if (extend_to_12)
+    while (cn--)
     {
-        int pix_size = VOS_ELEM_SIZE(type);
-        int offset = VOS_ELEM_SIZE1(depth) * 12;
-
-        do
-        {
-            offset -= pix_size;
-            VOS_MEMCPY_AUTO((char *)data + offset, data, pix_size);
-        } while (offset > pix_size);
+        int t = cvRound(scalar->val[cn]);
+        ((uchar *)data)[cn] = VOS_CAST_8U(t);
     }
-
     __END__;
 }
 
@@ -505,7 +453,7 @@ cvGetMat(const CvArr *array, CvMat *mat,
                 VOS_ERROR(VOS_StsBadFlag, "Pixel order should be used with coi == 0");
 
             VOS_CALL(cvInitMatHeader(mat, img->height, img->width, type,
-                                    img->imageData, img->widthStep));
+                                     img->imageData, img->widthStep));
         }
 
         result = mat;
@@ -563,7 +511,7 @@ cvReshape(const CvArr *array, CvMat *header,
     if ((new_cn > total_width || total_width % new_cn != 0) && new_rows == 0)
         new_rows = mat->rows * total_width / new_cn;
 
-    if (new_rows == 0 || new_rows == mat->rows)
+    if (0 == new_rows || new_rows == mat->rows)
     {
         header->rows = mat->rows;
         header->step = mat->step;
@@ -573,7 +521,7 @@ cvReshape(const CvArr *array, CvMat *header,
         int total_size = total_width * mat->rows;
         if (!VOS_IS_MAT_CONT(mat->type))
             VOS_ERROR(VOS_BadStep,
-                     "The matrix is not continuous, thus its number of rows can not be changed");
+                      "The matrix is not continuous, thus its number of rows can not be changed");
 
         if ((unsigned)new_rows > (unsigned)total_size)
             VOS_ERROR(VOS_StsOutOfRange, "Bad new number of rows");
@@ -582,7 +530,7 @@ cvReshape(const CvArr *array, CvMat *header,
 
         if (total_width * new_rows != total_size)
             VOS_ERROR(VOS_StsBadArg, "The total number of matrix elements "
-                                   "is not divisible by the new number of rows");
+                                     "is not divisible by the new number of rows");
 
         header->rows = new_rows;
         header->step = total_width * VOS_ELEM_SIZE1(mat->type);
@@ -592,7 +540,7 @@ cvReshape(const CvArr *array, CvMat *header,
 
     if (new_width * new_cn != total_width)
         VOS_ERROR(VOS_BadNumChannels,
-                 "The total width is not divisible by the new number of channels");
+                  "The total width is not divisible by the new number of channels");
 
     header->cols = new_width;
     header->type = VOS_MAKETYPE(mat->type & ~VOS_MAT_CN_MASK, new_cn);
@@ -603,7 +551,6 @@ cvReshape(const CvArr *array, CvMat *header,
 
     return result;
 }
-
 
 /****************************************************************************************\
 *                               IplImage-specific functions                              *
@@ -621,7 +568,7 @@ cvCreateImageHeader(CvSize size, int depth, int channels)
 
     VOS_CALL(img = (IplImage *)cvAlloc(sizeof(*img)));
     VOS_CALL(cvInitImageHeader(img, size, depth, channels, IPL_ORIGIN_TL,
-                              VOS_DEFAULT_IMAGE_ROW_ALIGN));
+                               VOS_DEFAULT_IMAGE_ROW_ALIGN));
 
     __END__;
 
@@ -673,11 +620,8 @@ cvInitImageHeader(IplImage *image, CvSize size, int depth,
     if (size.width < 0 || size.height < 0)
         VOS_ERROR(VOS_BadROISize, "Bad input roi");
 
-    if ((depth != (int)IPL_DEPTH_1U && depth != (int)IPL_DEPTH_8U &&
-         depth != (int)IPL_DEPTH_8S && depth != (int)IPL_DEPTH_16U &&
-         depth != (int)IPL_DEPTH_16S && depth != (int)IPL_DEPTH_32S &&
-         depth != (int)IPL_DEPTH_32F && depth != (int)IPL_DEPTH_64F) ||
-        channels < 0)
+    if ((depth != (int)IPL_DEPTH_8U) ||
+        (channels < 0))
         VOS_ERROR(VOS_BadDepth, "Unsupported format");
     if (origin != VOS_ORIGIN_BL && origin != VOS_ORIGIN_TL)
         VOS_ERROR(VOS_BadOrigin, "Bad input origin");
@@ -722,9 +666,7 @@ cvReleaseImageHeader(IplImage **image)
         IplImage *img = *image;
         *image = 0;
 
-
-            cvFree(&img);
-        
+        cvFree(&img);
     }
     __END__;
 }
@@ -762,20 +704,17 @@ cvCloneImage(const IplImage *src)
     if (!VOS_IS_IMAGE_HDR(src))
         VOS_ERROR(VOS_StsBadArg, "Bad image header");
 
-   
-        VOS_CALL(dst = (IplImage *)cvAlloc(sizeof(*dst)));
+    VOS_CALL(dst = (IplImage *)cvAlloc(sizeof(*dst)));
 
-        memcpy(dst, src, sizeof(*src));
-        dst->imageData = dst->imageDataOrigin = 0;
+    memcpy(dst, src, sizeof(*src));
+    dst->imageData = dst->imageDataOrigin = 0;
 
-        if (src->imageData)
-        {
-            int size = src->imageSize;
-            cvCreateData(dst);
-            memcpy(dst->imageData, src->imageData, size);
-        }
-  
-    
+    if (src->imageData)
+    {
+        int size = src->imageSize;
+        cvCreateData(dst);
+        memcpy(dst->imageData, src->imageData, size);
+    }
 
     __END__;
 

@@ -139,11 +139,6 @@ return ceil(value);
 
 #ifndef HAVE_IPL
 
-/*
- * The following definitions (until #endif)
- * is an extract from IPL headers.
- * Copyright (c) 1995 Intel Corporation.
- */
 #define IPL_DEPTH_SIGN 0x80000000
 
 #define IPL_DEPTH_1U     1

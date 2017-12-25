@@ -111,7 +111,7 @@ cvWarpPerspective(const CvArr *srcarr, CvArr *dstarr,
     ssize = cvGetMatSize(src);
     dsize = cvGetMatSize(dst);
 
-    cvScalarToRawData(&fillval, fillbuf, VOS_MAT_TYPE(src->type), 0);
+    cvScalarToRawData(&fillval, fillbuf, VOS_MAT_TYPE(src->type));
 
     FUN_CALL(icvWarpPerspective_Bilinear_8u_CnR(src->data.ptr, src->step, ssize, dst->data.ptr,
                                                  dst->step, dsize, dst_matrix, cn,

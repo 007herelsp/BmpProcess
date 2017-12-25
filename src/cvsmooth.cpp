@@ -18,7 +18,7 @@ cvSmooth(const void *srcarr, void *dstarr, int smooth_type,
     CvMat srcstub, *src = (CvMat *)srcarr;
     CvMat dststub, *dst = (CvMat *)dstarr;
     CvSize size;
-    int src_type, dst_type, depth, cn;
+    int src_type, dst_type, depth;
     double sigma1 = 0, sigma2 = 0;
     bool have_ipp = false;
 
@@ -31,7 +31,6 @@ cvSmooth(const void *srcarr, void *dstarr, int smooth_type,
     src_type = VOS_MAT_TYPE(src->type);
     dst_type = VOS_MAT_TYPE(dst->type);
     depth = VOS_MAT_DEPTH(src_type);
-    cn = VOS_MAT_CN(src_type);
     size = cvGetMatSize(src);
 
     if (!VOS_ARE_SIZES_EQ(src, dst))

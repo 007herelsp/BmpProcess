@@ -714,7 +714,7 @@ icvFreeSeqBlock( CvSeq *seq, int in_front_of )
         block->prev->next = block->next;
         block->next->prev = block->prev;
     }
-
+    assert(0 != seq->elem_size);
     assert( block->count > 0 && block->count % seq->elem_size == 0 );
     block->next = seq->free_blocks;
     seq->free_blocks = block;

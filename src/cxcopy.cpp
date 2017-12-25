@@ -17,8 +17,8 @@ cvCopy(const void *srcarr, void *dstarr, const void *maskarr)
     __BEGIN__;
 
     int pix_size;
-    CvMat srcstub, *src = (CvMat *)srcarr;
-    CvMat dststub, *dst = (CvMat *)dstarr;
+    CvMat *src = (CvMat *)srcarr;
+    CvMat *dst = (CvMat *)dstarr;
     CvSize size;
     assert("herelsp remove" && (VOS_IS_MAT(src) && VOS_IS_MAT(dst)));
 

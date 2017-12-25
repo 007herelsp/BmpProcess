@@ -240,7 +240,6 @@ cvConvexHull2(const CvArr *array, void *hull_storage,
         CvSeq *s;
     } hull;
     CvPoint **pointer = 0;
-    CvPoint2D32f **pointerf = 0;
     int *stack = 0;
 
     VOS_FUNCNAME("cvConvexHull2");
@@ -253,18 +252,11 @@ cvConvexHull2(const CvArr *array, void *hull_storage,
     CvSeqReader reader;
     CvSeqWriter writer;
     CvContour contour_header;
-    union {
-        CvContour c;
-        CvSeq s;
-    } hull_header;
-    CvSeqBlock hullblock;
     CvSeq *ptseq = 0;
     CvSeq *hullseq = 0;
-    int is_float;
     int *t_stack;
     int t_count;
     int i, miny_ind = 0, maxy_ind = 0, total;
-    int hulltype;
     int stop_idx;
     sklansky_func sklansky;
 
@@ -315,12 +307,10 @@ cvConvexHull2(const CvArr *array, void *hull_storage,
     {
         VOS_ERROR(VOS_StsBadArg, "herelsp remove");
     }
-    hulltype = VOS_SEQ_ELTYPE(hullseq);
     sklansky = (sklansky_func)icvSklansky_32s;
 
     VOS_CALL(pointer = (CvPoint **)cvAlloc(ptseq->total * sizeof(pointer[0])));
     VOS_CALL(stack = (int *)cvAlloc((ptseq->total + 2) * sizeof(stack[0])));
-    pointerf = (CvPoint2D32f **)pointer;
 
     cvStartReadSeq(ptseq, &reader);
 

@@ -24,7 +24,6 @@ cvSolve( const CvArr* A, const CvArr* b, CvArr* x, int method )
     CvMat sstub, *src = (CvMat*)A;
     CvMat dstub, *dst = (CvMat*)x;
     CvMat bstub, *src2 = (CvMat*)b;
-    int type;
 
     if( !VOS_IS_MAT( src ))
         VOS_CALL( src = cvGetMat( src, &sstub ));

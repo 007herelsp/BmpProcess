@@ -17,7 +17,6 @@
 
 #include <set>
 
-
 #define ERR_1 -1
 using namespace std;
 
@@ -49,68 +48,6 @@ struct SymCmp
 	}
 };
 
-set<CvBox2D, SymCmp> SearchProcess(IplImage *lpSrcImg)
-{
-	CvMemStorage *storage = cvCreateMemStorage();
-	CvSeq *contours = NULL;
-	CvSeq *result = NULL;
-	double s, t;
-	double dContourArea;
-	CvBox2D End_Rage2D;
-	CvPoint2D32f rectpoint[4];
-	int index = 0;
-	set<CvBox2D, SymCmp> lstRes;
-	// ����һ�����������ڴ洢�����ǵ�
-	cvFindContours(lpSrcImg, storage, &contours, sizeof(CvContour),
-		VOS_RETR_LIST, VOS_CHAIN_APPROX_SIMPLE, cvPoint(0, 0));
-
-	// �����ҵ���ÿ������contours
-	while (contours)
-	{
-		//��ָ�����ȱƽ����������
-		result = cvApproxPoly(contours, sizeof(CvContour), storage,
-			VOS_POLY_APPROX_DP, cvContourPerimeter(contours) * 0.01, 0);
-		if (NULL != result)
-		{
-			if (result->total == 4)
-			{
-				dContourArea = fabs(cvContourArea(result, VOS_WHOLE_SEQ));
-				if (dContourArea >= 500 && dContourArea <= 1000000 && cvCheckContourConvexity(result))
-				{
-					End_Rage2D = cvMinAreaRect2(contours);
-					s = 0;
-					for (index = 0; index < 5; index++)
-					{
-						// find minimum angle between joint edges (maximum of cosine)
-						if (index >= 2)
-						{
-							t = fabs(angle(
-								(CvPoint *)cvGetSeqElem(result, index),
-								(CvPoint *)cvGetSeqElem(result, index - 2),
-								(CvPoint *)cvGetSeqElem(result, index - 1)));
-							s = s > t ? s : t;
-						}
-					}
-
-					// if ����ֵ �㹻С�������϶��Ƕ�Ϊ90��ֱ��
-					//cos0.1=83�ȣ��ܽϺõ�����ֱ��
-					if (s < 0.1)
-					{
-						// for (i = 0; i < 4; i++)
-						// {
-						//     cvSeqPush(squares, (CvPoint *)cvGetSeqElem(result, i));
-						// }
-						lstRes.insert(End_Rage2D);
-					}
-				}
-			}
-		}
-		// ����������һ������
-		contours = contours->h_next;
-	}
-	return std::move(lstRes);
-}
-
 typedef struct stBox
 {
 	CvPoint pt[4];
@@ -122,16 +59,16 @@ typedef struct stBox
 
 bool isEqu(float x1, float x2)
 {
-    return (fabs(x1 - x2) <= MAX_P);
+	return (fabs(x1 - x2) <= MAX_P);
 }
 
 struct SymBoxCmp
 {
 	bool operator()(const Box &x, const Box &y) const
 	{
-        if (fabs(x.box.center.x - y.box.center.x) <= MAX_P && fabs(x.box.center.y - y.box.center.y) <= MAX_P)
+		if (fabs(x.box.center.x - y.box.center.x) <= MAX_P && fabs(x.box.center.y - y.box.center.y) <= MAX_P)
 		{
-            if (fabs(x.box.size.width - y.box.size.width) <= MAX_P && fabs(x.box.size.height - y.box.size.height) <= MAX_P)
+			if (fabs(x.box.size.width - y.box.size.width) <= MAX_P && fabs(x.box.size.height - y.box.size.height) <= MAX_P)
 			{
 				return false;
 			}
@@ -154,9 +91,9 @@ struct SymUBoxCmp
 {
 	bool operator()(const Box &x, const Box &y) const
 	{
-        if (fabs(x.box.center.x - y.box.center.x) <= MAX_P && fabs(x.box.center.y - y.box.center.y) <= MAX_P)
+		if (fabs(x.box.center.x - y.box.center.x) <= MAX_P && fabs(x.box.center.y - y.box.center.y) <= MAX_P)
 		{
-            if (fabs(x.box.size.width - y.box.size.width) <= MAX_P && fabs(x.box.size.height - y.box.size.height) <= MAX_P)
+			if (fabs(x.box.size.width - y.box.size.width) <= MAX_P && fabs(x.box.size.height - y.box.size.height) <= MAX_P)
 			{
 				return false;
 			}
@@ -173,12 +110,11 @@ set<Box, SymUBoxCmp> SearchProcess_v2(IplImage *lpSrcImg)
 	double s, t;
 	double dContourArea;
 	CvBox2D End_Rage2D;
-	CvPoint2D32f rectpoint[4];
 	int index = 0;
 	set<Box, SymUBoxCmp> lstRes;
 	// ����һ�����������ڴ洢�����ǵ�
 	cvFindContours(lpSrcImg, storage, &contours, sizeof(CvContour),
-		VOS_RETR_LIST, VOS_CHAIN_APPROX_SIMPLE, cvPoint(0, 0));
+				   VOS_RETR_LIST, VOS_CHAIN_APPROX_SIMPLE, cvPoint(0, 0));
 	int iCount = 0;
 	cvSaveImage("c.bmp", lpSrcImg);
 	// �����ҵ���ÿ������contours
@@ -186,7 +122,7 @@ set<Box, SymUBoxCmp> SearchProcess_v2(IplImage *lpSrcImg)
 	{
 		//��ָ�����ȱƽ����������
 		result = cvApproxPoly(contours, sizeof(CvContour), storage,
-			VOS_POLY_APPROX_DP, cvContourPerimeter(contours) * 0.01, 0);
+							  VOS_POLY_APPROX_DP, cvContourPerimeter(contours) * 0.01, 0);
 		if (NULL != result)
 		{
 			if (result->total == 4)
@@ -196,7 +132,7 @@ set<Box, SymUBoxCmp> SearchProcess_v2(IplImage *lpSrcImg)
 				{
 					End_Rage2D = cvMinAreaRect2(contours);
 					s = 0;
-					Box box = { 0 };
+					Box box = {0};
 					box.box = End_Rage2D;
 					for (index = 2; index < 5; index++)
 					{
@@ -252,10 +188,8 @@ set<Box, SymUBoxCmp> SearchProcess_v2(IplImage *lpSrcImg)
 	return std::move(lstRes);
 }
 
-
 int process_v2(IplImage *lpImg, IplImage *lpTargetImg, int argc, char *argv[])
 {
-
 
 	set<Box, SymBoxCmp> lstRes;
 	set<Box, SymUBoxCmp> setURes = SearchProcess_v2(lpImg);
@@ -346,12 +280,6 @@ int process_v2(IplImage *lpImg, IplImage *lpTargetImg, int argc, char *argv[])
 				dstTri[i].y = p[i].y;
 			}
 
-			for (int i = 0; i < 4; i++)
-			{
-				CvPoint pt = cvPointFrom32f(dstTri[i]);
-
-				// cvCircle(lpTargetImg, pt, 4 + 4 * i, cvScalar(0, 0, 255), 1, 8, 0);
-			}
 			//����������任
 			if (box.box.size.width > box.box.size.height)
 			{
@@ -385,14 +313,14 @@ int process_v2(IplImage *lpImg, IplImage *lpTargetImg, int argc, char *argv[])
 				// srcTri[1].y = temp->height - 1;
 			}
 
-			cvGetPerspectiveTransform(dstTri, srcTri, warp_mat);                                     //�����Ե�������任
+			cvGetPerspectiveTransform(dstTri, srcTri, warp_mat);									   //�����Ե�������任
 			cvWarpPerspective(temp, lpTargetImg, warp_mat, VOS_INTER_LINEAR | (VOS_WARP_INVERSE_MAP)); //��ͼ��������任
 		}
 	}
 	return iCount;
 }
 
-int main(int argc, char** args)
+int main(int argc, char **args)
 {
 	if (3 > argc)
 	{
@@ -406,6 +334,7 @@ int main(int argc, char** args)
 	{
 		return ERR_1;
 	}
+
 	IplImage *gray = cvCreateImage(cvGetSize(lpTargetImg), 8, 1);
 	cvCvtColor(lpTargetImg, gray, VOS_RGB2GRAY);
 	IplImage *lpCannyImg = cvCreateImage(cvGetSize(lpTargetImg), 8, 1);
@@ -416,29 +345,31 @@ int main(int argc, char** args)
 	printf("save\n");
 	if (NULL != lpCannyImg && NULL != lpDilateImg)
 	{
+		//cvSmooth(gray, gray, VOS_GAUSSIAN, 3, 3, 0, 0);
 		cvCanny(gray, lpCannyImg, 0.5, 20, 3);
 		cvSaveImage("canny1.bmp", lpCannyImg);
 		cvDilate(lpCannyImg, lpDilateImg, 0, 1);
+		cvSaveImage("lpDilate.bmp", lpDilateImg);
 		cvErode(lpDilateImg, lpDilateImg, 0, 1);
-		cvSaveImage("lpDilateImg.bmp", lpDilateImg);
+		cvSaveImage("lpErode.bmp", lpDilateImg);
 
 		IplImage *pGrayImage = cvCreateImage(cvGetSize(lpTargetImg), IPL_DEPTH_8U, 1);
 		IplImage *pGrayEqualizeImage = cvCreateImage(cvGetSize(lpTargetImg), IPL_DEPTH_8U, 1);
-		cvSmooth(lpTargetImg, lpTargetImg, VOS_GAUSSIAN, 3, 3, 0, 0); //��˹�˲�
+		cvSmooth(lpTargetImg, lpTargetImg, VOS_GAUSSIAN, 5, 5, 0, 0); //��˹�˲�
+		cvSaveImage("pTargetImg.bmp", lpTargetImg);
 		cvCvtColor(lpTargetImg, pGrayImage, VOS_BGR2GRAY);
 		cvSaveImage("pGrayImage.bmp", pGrayImage);
 		//cvEqualizeHist(pGrayImage, pGrayEqualizeImage);
 		cvSaveImage("pGrayEqualizeImage.bmp", pGrayEqualizeImage);
 
-		cvCanny(pGrayEqualizeImage, lpCannyImg, 0.5, 20, 3);
-		cvSaveImage("canny2.bmp", lpCannyImg);
+		//cvCanny(pGrayEqualizeImage, lpCannyImg, 0.5, 20, 3);
+		//cvSaveImage("canny2.bmp", lpCannyImg);
 	}
 	//����Ŀ������
 	IplImage *lpOutImg = cvCloneImage(lpTargetImg);
 	int iCunt = 0;
 	if (NULL != lpOutImg)
 	{
-		// iCunt = process(lpDilateImg, lpOutImg, argc - 3, &args[3]);
 		iCunt = process_v2(lpDilateImg, lpOutImg, argc - 3, &args[3]);
 
 		cvSaveImage(OutputPath, lpOutImg);

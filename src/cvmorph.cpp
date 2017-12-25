@@ -679,7 +679,6 @@ icvMorphOp(const void *srcarr, void *dstarr, IplConvKernel *element,
     CvMorphology morphology;
     void *buffer = 0;
     int local_alloc = 0;
-    void *morphstate = 0;
     CvMat *temp = 0;
 
     VOS_FUNCNAME("icvMorphOp");
@@ -693,8 +692,6 @@ icvMorphOp(const void *srcarr, void *dstarr, IplConvKernel *element,
     CvSize size, el_size;
     CvPoint el_anchor;
     int el_shape;
-    int type;
-    bool inplace;
 
     if (!VOS_IS_MAT(src))
         VOS_CALL(src = cvGetMat(src, &srcstub, &coi1));
@@ -727,9 +724,7 @@ icvMorphOp(const void *srcarr, void *dstarr, IplConvKernel *element,
     if (coi1 != 0 || coi2 != 0)
         VOS_ERROR(VOS_BadCOI, "");
 
-    type = VOS_MAT_TYPE(src->type);
     size = cvGetMatSize(src);
-    inplace = src->data.ptr == dst->data.ptr;
 
     if (iterations == 0 || (element && element->nCols == 1 && element->nRows == 1))
     {

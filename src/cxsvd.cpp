@@ -96,19 +96,16 @@ pythag(double a, double b)
     if (a > b)
     {
         b /= a;
-        a *= sqrt(1. + b * b);
+        a *= cvSqrt(1. + b * b);
     }
     else if (b != 0)
     {
         a /= b;
-        a = b * sqrt(1. + a * a);
+        a = b * cvSqrt(1. + a * a);
     }
 
     return a;
 }
-
-    /****************************************************************************************/
-    /****************************************************************************************/
 
 #define MAX_ITERS 30
 
@@ -676,7 +673,9 @@ cvSVD(CvArr *aarr, CvArr *warr, CvArr *uarr, CvArr *varr, int flags)
     if (u)
     {
         if (!VOS_IS_MAT(u))
+        {
             VOS_CALL(u = cvGetMat(u, &ustub));
+        }
 
         u_rows = u->cols;
         u_cols = u->rows;
@@ -816,8 +815,8 @@ cvSVBkSb(const CvArr *warr, const CvArr *uarr,
     CvMat wstub, *w = (CvMat *)warr;
     CvMat bstub, *b = (CvMat *)barr;
     CvMat xstub, *x = (CvMat *)xarr;
-    CvMat ustub,  *u = (CvMat *)uarr;
-    CvMat vstub,  *v = (CvMat *)varr;
+    CvMat ustub, *u = (CvMat *)uarr;
+    CvMat vstub, *v = (CvMat *)varr;
     uchar *tw = 0;
     int type;
     int w_buf_offset = 0, t_buf_offset = 0;
@@ -876,7 +875,7 @@ cvSVBkSb(const CvArr *warr, const CvArr *uarr,
     {
         if (w->cols != v_cols || w->rows != u_cols)
             VOS_ERROR(VOS_StsBadSize, "W must be 1d array of MIN(m,n) elements or "
-                                    "matrix which size matches to U and V");
+                                      "matrix which size matches to U and V");
         w_buf_offset = buf_size;
         buf_size += nm * pix_size;
     }

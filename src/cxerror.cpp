@@ -85,59 +85,14 @@ icvDestroyContext(CvContext *context)
     free(context);
 }
 
-#if defined WIN32 || defined WIN64
-static DWORD g_TlsIndex = TLS_OUT_OF_INDEXES;
-#else
-static pthread_key_t g_TlsIndex;
-#endif
-
 static CvContext *
 icvGetContext(void)
 {
-#ifdef VOS_DLL
-#if defined WIN32 || defined WIN64
-    CvContext *context;
-
-    //assert(g_TlsIndex != TLS_OUT_OF_INDEXES);
-    if (g_TlsIndex == TLS_OUT_OF_INDEXES)
-    {
-        g_TlsIndex = TlsAlloc();
-        if (g_TlsIndex == TLS_OUT_OF_INDEXES)
-            FatalAppExit(0, "Only set VOS_DLL for DLL usage");
-    }
-
-    context = (CvContext *)TlsGetValue(g_TlsIndex);
-    if (!context)
-    {
-        context = icvCreateContext();
-        if (!context)
-            FatalAppExit(0, "OpenCV. Problem to allocate memory for TLS OpenCV context.");
-
-        TlsSetValue(g_TlsIndex, context);
-    }
-    return context;
-#else
-    CvContext *context = (CvContext *)pthread_getspecific(g_TlsIndex);
-    if (!context)
-    {
-        context = icvCreateContext();
-        if (!context)
-        {
-            fprintf(stderr, "OpenCV. Problem to allocate memory for OpenCV context.");
-            exit(1);
-        }
-        pthread_setspecific(g_TlsIndex, context);
-    }
-    return context;
-#endif
-#else /* static single-thread library case */
+    /* static single-thread library case */
     static CvContext *context = 0;
-
     if (!context)
         context = icvCreateContext();
-
     return context;
-#endif
 }
 
 VOS_IMPL int
@@ -252,8 +207,8 @@ VOS_IMPL void cvSetErrStatus(int code)
 }
 
 VOS_IMPL void cvError(int code, const char *func_name,
-                     const char *err_msg,
-                     const char *file_name, int line)
+                      const char *err_msg,
+                      const char *file_name, int line)
 {
     if (code == VOS_StsOk)
         cvSetErrStatus(code);
@@ -286,8 +241,7 @@ VOS_IMPL void cvError(int code, const char *func_name,
     }
 }
 
-    /******************** End of implementation of profiling stuff *********************/
-
+/******************** End of implementation of profiling stuff *********************/
 
 /* function, which converts int to int */
 VOS_IMPL int

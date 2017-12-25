@@ -42,7 +42,7 @@ VOS_IMPL void cvPow(const CvArr *srcarr, CvArr *dstarr, double power)
     int coi1 = 0, coi2 = 0;
     int depth;
     CvSize size;
-    int x, y;
+    int y;
 
     if (!VOS_IS_MAT(src))
         VOS_CALL(src = cvGetMat(src, &srcstub, &coi1));
