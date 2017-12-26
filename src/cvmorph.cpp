@@ -64,7 +64,6 @@ void CvMorphology::init(int _operation, int _max_width, int _src_dst_type,
     __BEGIN__;
 
     int depth = CV_MAT_DEPTH(_src_dst_type);
-    int el_type = 0, nz = -1;
 
     if (_operation != ERODE && _operation != DILATE)
         CV_ERROR(CV_StsBadArg, "Unknown/unsupported morphological operation");

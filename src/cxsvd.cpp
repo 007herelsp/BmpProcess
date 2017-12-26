@@ -816,12 +816,11 @@ cvSVBkSb(const CvArr *warr, const CvArr *uarr,
     CvMat wstub, *w = (CvMat *)warr;
     CvMat bstub, *b = (CvMat *)barr;
     CvMat xstub, *x = (CvMat *)xarr;
-    CvMat ustub, ustub2, *u = (CvMat *)uarr;
-    CvMat vstub, vstub2, *v = (CvMat *)varr;
+    CvMat ustub,  *u = (CvMat *)uarr;
+    CvMat vstub,  *v = (CvMat *)varr;
     uchar *tw = 0;
     int type;
-    int temp_u = 0, temp_v = 0;
-    int u_buf_offset = 0, v_buf_offset = 0, w_buf_offset = 0, t_buf_offset = 0;
+    int w_buf_offset = 0, t_buf_offset = 0;
     int buf_size = 0, pix_size;
     int m, n, nm;
     int u_rows, u_cols;

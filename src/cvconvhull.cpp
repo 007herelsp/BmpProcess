@@ -300,7 +300,6 @@ cvCheckContourConvexity(const CvArr *array)
     int i;
     int orientation = 0;
     CvSeqReader reader;
-    CvContour contour_header;
 
     CvSeq *contour = (CvSeq *)array;
 
