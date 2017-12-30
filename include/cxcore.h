@@ -14,7 +14,7 @@ extern "C" {
 
 /* <malloc> wrapper.
    If there is no enough memory, the function
-   (as well as other OpenCV functions that call cvAlloc)
+   (as well as other   functions that call cvAlloc)
    raises an error. */
 CVAPI(void *)
 cvAlloc(size_t size);
@@ -177,11 +177,6 @@ cvSVBkSb(const CvArr *W, const CvArr *U,
 #define VOS_SVD 1
 #define VOS_SVD_SYM 2
 
-/* Solves linear system (src1)*(dst) = (src2)
-   (returns 0 if src1 is a singular and VOS_LU method is used) */
-CVAPI(int)
-cvSolve(const CvArr *src1, const CvArr *src2, CvArr *dst,
-        int method VOS_DEFAULT(VOS_LU));
 
 /****************************************************************************************\
 *                              Dynamic data structures                                   *
@@ -331,7 +326,7 @@ cvInsertNodeIntoTree(void *node, void *parent, void *frame);
 *                                    System functions                                    *
 \****************************************************************************************/
 
-/* Get current OpenCV error status */
+/* Get current   error status */
 CVAPI(int)
 cvGetErrStatus(void);
 
@@ -362,14 +357,12 @@ cvError(int status, const char *func_name,
 CVAPI(const char *)
 cvErrorStr(int status);
 
-/* Maps IPP error codes to the counterparts from OpenCV */
 CVAPI(int)
-cvErrorFromIppStatus(int ipp_status);
+cvErrorFromStatus(int ipp_status);
 
 typedef int(VOS_CDECL *CvErrorCallback)(int status, const char *func_name,
                                         const char *err_msg, const char *file_name, int line, void *userdata);
-typedef void *(VOS_CDECL *CvAllocFunc)(size_t size, void *userdata);
-typedef int(VOS_CDECL *CvFreeFunc)(void *pptr, void *userdata);
+
 
 #ifdef __cplusplus
 }

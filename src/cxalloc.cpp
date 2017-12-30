@@ -3,7 +3,7 @@
 
 // default <malloc>
 static void*
-icvDefaultAlloc( size_t size, void* )
+icvDefaultAlloc( size_t size)
 {
     char *ptr, *ptr0 = (char*)malloc(
         (size_t)(size + VOS_MALLOC_ALIGN*((size >= 4096) + 1) + sizeof(char*)));
@@ -21,7 +21,7 @@ icvDefaultAlloc( size_t size, void* )
 
 // default <free>
 static int
-icvDefaultFree( void* ptr, void* )
+icvDefaultFree( void* ptr)
 {
     // Pointer must be aligned by VOS_MALLOC_ALIGN
     if( ((size_t)ptr & (VOS_MALLOC_ALIGN-1)) != 0 )
@@ -31,11 +31,6 @@ icvDefaultFree( void* ptr, void* )
     return VOS_OK;
 }
 
-
-// pointers to allocation functions, initially set to default
-static CvAllocFunc p_cvAlloc = icvDefaultAlloc;
-static CvFreeFunc p_cvFree = icvDefaultFree;
-static void* p_cvAllocUserData = 0;
 
 VOS_IMPL  void*  cvAlloc( size_t size )
 {
@@ -49,7 +44,7 @@ VOS_IMPL  void*  cvAlloc( size_t size )
         VOS_ERROR( VOS_StsOutOfRange,
                   "Negative or too large argument of cvAlloc function" );
 
-    ptr = p_cvAlloc( size, p_cvAllocUserData );
+    ptr = icvDefaultAlloc( size );
     if( !ptr )
         VOS_ERROR( VOS_StsNoMem, "Out of memory" );
 
@@ -67,7 +62,7 @@ VOS_IMPL  void  cvFree_( void* ptr )
 
     if( ptr )
     {
-        CVStatus status = p_cvFree( ptr, p_cvAllocUserData );
+        CVStatus status = icvDefaultFree( ptr );
         if( status < 0 )
             VOS_ERROR( status, "Deallocation error" );
     }

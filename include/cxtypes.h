@@ -5,14 +5,7 @@
   #include <stdlib.h>
   #include <string.h>
   #include <float.h>
-
-
-
     #include <math.h>
-
-
-
-
     #define VOS_CDECL
     #define VOS_STDCALL
 
@@ -173,8 +166,8 @@ typedef struct _IplImage
 {
     int  nSize;         /* sizeof(IplImage) */
     int  ID;            /* version (=0)*/
-    int  nChannels;     /* Most of OpenCV functions support 1,2,3 or 4 channels */
-    int  alphaChannel;  /* ignored by OpenCV */
+    int  nChannels;     /* Most of   functions support 1,2,3 or 4 channels */
+    int  alphaChannel;  /* ignored by   */
     int  depth;         /* pixel depth in bits: IPL_DEPTH_8U, IPL_DEPTH_8S, IPL_DEPTH_16S,
                            IPL_DEPTH_32S, IPL_DEPTH_32F and IPL_DEPTH_64F are supported */
     int  dataOrder;     /* 0 - interleaved color channels, 1 - separate color channels.
@@ -182,7 +175,7 @@ typedef struct _IplImage
     int  origin;        /* 0 - top-left origin,
                            1 - bottom-left origin (Windows bitmaps style) */
     int  align;         /* Alignment of image rows (4 or 8).
-                           OpenCV ignores it and uses widthStep instead */
+                             ignores it and uses widthStep instead */
     int  width;         /* image width in pixels */
     int  height;        /* image height in pixels */
     void  *imageId;     /* ditto */
@@ -221,7 +214,7 @@ IplConvKernel;
 #define IPL_BORDER_REFLECT_101    4
 
 #define IPL_IMAGE_MAGIC_VAL  ((int)sizeof(IplImage))
-#define VOS_TYPE_NAME_IMAGE "opencv-image"
+#define VOS_TYPE_NAME_IMAGE " -image"
 
 #define VOS_IS_IMAGE_HDR(img) \
     ((img) != NULL && ((const IplImage*)(img))->nSize == sizeof(IplImage))
@@ -319,7 +312,7 @@ IplConvKernel;
 
 #define VOS_MAGIC_MASK       0xFFFF0000
 #define VOS_MAT_MAGIC_VAL    0x42420000
-#define VOS_TYPE_NAME_MAT    "opencv-matrix"
+#define VOS_TYPE_NAME_MAT    " -matrix"
 
 typedef struct CvMat
 {
@@ -721,8 +714,8 @@ typedef struct CvSeq
 }
 CvSeq;
 
-#define VOS_TYPE_NAME_SEQ             "opencv-sequence"
-#define VOS_TYPE_NAME_SEQ_TREE        "opencv-sequence-tree"
+#define VOS_TYPE_NAME_SEQ             " -sequence"
+#define VOS_TYPE_NAME_SEQ_TREE        " -sequence-tree"
 
 /*************************************** Set ********************************************/
 /*

@@ -22,24 +22,3 @@ void  FillGrayPalette( PaletteEntry* palette, int bpp, bool negative )
     }
 }
 
-
-bool  IsColorPalette( PaletteEntry* palette, int bpp )
-{
-    int i, length = 1 << bpp;
-
-    for( i = 0; i < length; i++ )
-    {
-        if( palette[i].b != palette[i].g ||
-            palette[i].b != palette[i].r )
-            return true;
-    }
-
-    return false;
-}
-
-
-
-
-
-
-

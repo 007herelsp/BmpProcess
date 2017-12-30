@@ -200,15 +200,15 @@ typedef enum CvStatus
     VOS_UNSUPPORTED_DEPTH_ERR    = -101,
     VOS_UNSUPPORTED_FORMAT_ERR   = -100,
 
-    VOS_BADARG_ERR      = -49,  //ipp comp
-    VOS_NOTDEFINED_ERR  = -48,  //ipp comp
+    VOS_BADARG_ERR      = -49,  //
+    VOS_NOTDEFINED_ERR  = -48,  //
 
-    VOS_BADCHANNELS_ERR = -47,  //ipp comp
-    VOS_BADRANGE_ERR    = -44,  //ipp comp
-    VOS_BADSTEP_ERR     = -29,  //ipp comp
+    VOS_BADCHANNELS_ERR = -47,  //
+    VOS_BADRANGE_ERR    = -44,  //
+    VOS_BADSTEP_ERR     = -29,  //
 
     VOS_BADFLAG_ERR     =  -12,
-    VOS_DIV_BY_ZERO_ERR =  -11, //ipp comp
+    VOS_DIV_BY_ZERO_ERR =  -11, //
     VOS_BADCOEF_ERR     =  -10,
 
     VOS_BADFACTOR_ERR   =  -7,
@@ -223,7 +223,7 @@ typedef enum CvStatus
 CvStatus;
 
 #define VOS_ERROR_FROM_STATUS( result )                \
-    VOS_ERROR( cvErrorFromIppStatus( result ), "OpenCV function failed" )
+    VOS_ERROR( cvErrorFromStatus( result ), "function failed" )
 
 #define FUN_CALL( Func )                                              \
 {                                                                      \

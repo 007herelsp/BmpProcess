@@ -8,7 +8,7 @@
 typedef int CVStatus;
 
 /* this part of CVStatus is compatible with IPLStatus 
-  Some of below symbols are not [yet] used in OpenCV
+  Some of below symbols are not [yet] used in  
 */
 #define VOS_StsOk                    0  /* everithing is ok                */
 #define VOS_StsBackTrace            -1  /* pseudo error for back trace     */
@@ -63,7 +63,7 @@ typedef int CVStatus;
 #define VOS_StsBadMemBlock            -214 /* an allocated block has been corrupted */
 
 
-/**************************** OpenCV-style error handling *******************************/
+/****************************  -style error handling *******************************/
 
 /* VOS_FUNCNAME macro defines icvFuncName constant which is used by VOS_ERROR macro */
 #ifdef VOS_NO_FUNC_NAMES

@@ -28,14 +28,6 @@ CVAPI(void) cvSmooth( const CvArr* src, CvArr* dst,
 #define VOS_SCHARR -1
 #define VOS_MAX_SOBEL_KSIZE 7
 
-/* Calculates an image derivative using generalized Sobel
-   (aperture_size = 1,3,5,7) or Scharr (aperture_size = -1) operator.
-   Scharr can be used only for the first dx or dy derivative */
-CVAPI(void) cvSobel( const CvArr* src, CvArr* dst,
-                    int xorder, int yorder,
-                    int aperture_size VOS_DEFAULT(3));
-
-
 /* Constants for color conversion */
 #define  VOS_BGR2GRAY    6
 #define  VOS_RGB2GRAY    7

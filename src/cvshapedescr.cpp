@@ -403,8 +403,7 @@ cvBoundingRect(CvArr *array, int update)
 
     __BEGIN__;
 
-    CvMat *mat = 0;
-    int xmin = 0, ymin = 0, xmax = -1, ymax = -1, i, j, k;
+    int xmin = 0, ymin = 0, xmax = -1, ymax = -1, i;
     int calculate = update;
 
     if (VOS_IS_SEQ(array))

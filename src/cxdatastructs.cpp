@@ -1265,7 +1265,6 @@ cvClearSeq( CvSeq *seq )
 }
 
 
-
 typedef struct CvSeqReaderPos
 {
     CvSeqBlock* block;
@@ -1274,23 +1273,6 @@ typedef struct CvSeqReaderPos
     char* block_max;
 }
 CvSeqReaderPos;
-
-#define VOS_SAVE_READER_POS( reader, pos )   \
-{                                           \
-    (pos).block = (reader).block;           \
-    (pos).ptr = (reader).ptr;               \
-    (pos).block_min = (reader).block_min;   \
-    (pos).block_max = (reader).block_max;   \
-}
-
-#define VOS_RESTORE_READER_POS( reader, pos )\
-{                                           \
-    (reader).block = (pos).block;           \
-    (reader).ptr = (pos).ptr;               \
-    (reader).block_min = (pos).block_min;   \
-    (reader).block_max = (pos).block_max;   \
-}
-
 
 /****************************************************************************************\
 *                                      Set implementation                                *

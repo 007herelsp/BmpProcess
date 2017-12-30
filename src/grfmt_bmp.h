@@ -52,17 +52,4 @@ protected:
 };
 
 
-// ... and filter factory
-class GrFmtBmp : public GrFmtFilterFactory
-{
-public:
-    
-    GrFmtBmp();
-    ~GrFmtBmp();
-
-    GrFmtReader* NewReader( const char* filename );
-    GrFmtWriter* NewWriter( const char* filename );
-
-};
-
 #endif/*_GRFMT_BMP_H_*/

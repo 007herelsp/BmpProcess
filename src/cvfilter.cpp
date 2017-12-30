@@ -1294,7 +1294,6 @@ void CvSepFilter::init_gaussian_kernel(CvMat *kernel, double sigma)
     const float *fixed_kernel = 0;
     double sigmaX, scale2X, sum;
     float *cf;
-    double *cd;
 
     if (!VOS_IS_MAT(kernel))
         VOS_ERROR(VOS_StsBadArg, "kernel is not a valid matrix");
@@ -1321,7 +1320,7 @@ void CvSepFilter::init_gaussian_kernel(CvMat *kernel, double sigma)
     for (i = 0; i <= n / 2; i++)
     {
         double t = fixed_kernel ? (double)fixed_kernel[i] : exp(scale2X * i * i);
-      
+
             cf[(n / 2 + i) * step] = (float)t;
             sum += cf[(n / 2 + i) * step] * 2;
     }
