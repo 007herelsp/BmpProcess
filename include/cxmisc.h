@@ -48,18 +48,6 @@
 /* max length of strings */
 #define  VOS_MAX_STRLEN  1024
 
-/* maximum possible number of threads in parallel implementations */
-#ifdef _OPENMP
-#define VOS_MAX_THREADS 128
-#else
-#define VOS_MAX_THREADS 1
-#endif
-
-#if 0 /*def  VOS_CHECK_FOR_NANS*/
-    #define VOS_CHECK_NANS( arr ) cvCheckArray((arr))
-#else
-    #define VOS_CHECK_NANS( arr )
-#endif
 
 /****************************************************************************************\
 *                                  Common declarations                                   *

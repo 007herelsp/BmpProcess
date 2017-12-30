@@ -792,8 +792,6 @@ cvSVD(CvArr *aarr, CvArr *warr, CvArr *uarr, CvArr *varr, int flags)
         /*VOS_CHECK_NANS( varr );*/
     }
 
-    VOS_CHECK_NANS(w);
-
     __END__;
 
     if (buffer && !local_alloc)
