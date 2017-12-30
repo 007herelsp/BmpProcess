@@ -6,9 +6,6 @@
 #include "utils.h"
 #include "bitstrm.h"
 
-#define  RBS_BAD_HEADER     -125  /* invalid image header */
-#define  BAD_HEADER_ERR()   goto bad_header_exit
-
 #ifndef _MAX_PATH
     #define _MAX_PATH    1024
 #endif
