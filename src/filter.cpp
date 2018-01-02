@@ -60,8 +60,8 @@ void CvBaseImageFilter::get_work_params()
 }
 
 void CvBaseImageFilter::init(int _max_width, int _src_type, int _dst_type,
-                             bool _is_separable, CvSize _ksize, CvPoint _anchor,
-                             int _border_mode, CvScalar _border_value)
+                             bool _is_separable, Size _ksize, Point _anchor,
+                             int _border_mode, Scalar _border_value)
 {
     VOS_FUNCNAME("CvBaseImageFilter::init");
 
@@ -130,7 +130,7 @@ void CvBaseImageFilter::init(int _max_width, int _src_type, int _dst_type,
     __END__;
 }
 
-void CvBaseImageFilter::start_process(CvSlice x_range, int width)
+void CvBaseImageFilter::start_process(Slice x_range, int width)
 {
     int mode = border_mode;
     int pix_sz = VOS_ELEM_SIZE(src_type), work_pix_sz = VOS_ELEM_SIZE(work_type);
@@ -340,8 +340,8 @@ int CvBaseImageFilter::fill_cyclic_buffer(const uchar *src, int src_step,
     return y - y0;
 }
 
-int CvBaseImageFilter::process(const SysMat *src, SysMat *dst,
-                               CvRect src_roi, CvPoint dst_origin, int flags)
+int CvBaseImageFilter::process(const Mat *src, Mat *dst,
+                               Rect src_roi, Point dst_origin, int flags)
 {
     int rows_processed = 0;
 
@@ -547,15 +547,15 @@ CvSepFilter::~CvSepFilter()
 #define FILTER_BITS 8
 
 void CvSepFilter::init(int _max_width, int _src_type, int _dst_type,
-                       const SysMat *_kx, const SysMat *_ky,
-                       CvPoint _anchor, int _border_mode,
-                       CvScalar _border_value)
+                       const Mat *_kx, const Mat *_ky,
+                       Point _anchor, int _border_mode,
+                       Scalar _border_value)
 {
     VOS_FUNCNAME("CvSepFilter::init");
 
     __BEGIN__;
 
-    CvSize _ksize;
+    Size _ksize;
     int filter_type;
     int i, xsz, ysz;
     int convert_filters = 0;
@@ -721,9 +721,9 @@ void CvSepFilter::init(int _max_width, int _src_type, int _dst_type,
 }
 
 void CvSepFilter::init(int _max_width, int _src_type, int _dst_type,
-                       bool _is_separable, CvSize _ksize,
-                       CvPoint _anchor, int _border_mode,
-                       CvScalar _border_value)
+                       bool _is_separable, Size _ksize,
+                       Point _anchor, int _border_mode,
+                       Scalar _border_value)
 {
     CvBaseImageFilter::init(_max_width, _src_type, _dst_type, _is_separable,
                             _ksize, _anchor, _border_mode, _border_value);
@@ -733,7 +733,7 @@ static void
 icvFilterRowSymm_8u32s(const uchar *src, int *dst, void *params)
 {
     const CvSepFilter *state = (const CvSepFilter *)params;
-    const SysMat *_kx = state->get_x_kernel();
+    const Mat *_kx = state->get_x_kernel();
     const int *kx = _kx->data.i;
     int ksize = _kx->cols + _kx->rows - 1;
     int i = 0, j, k, width = state->get_width();
@@ -882,7 +882,7 @@ static void
 icvFilterColSymm_32s8u(const int **src, uchar *dst, int dst_step, int count, void *params)
 {
     const CvSepFilter *state = (const CvSepFilter *)params;
-    const SysMat *_ky = state->get_y_kernel();
+    const Mat *_ky = state->get_y_kernel();
     const int *ky = _ky->data.i;
     int ksize = _ky->cols + _ky->rows - 1, ksize2 = ksize / 2;
     int i, k, width = state->get_width();
@@ -967,7 +967,7 @@ icvFilterColSymm_32s16s(const int **src, short *dst,
                         int dst_step, int count, void *params)
 {
     const CvSepFilter *state = (const CvSepFilter *)params;
-    const SysMat *_ky = state->get_y_kernel();
+    const Mat *_ky = state->get_y_kernel();
     const int *ky = (const int *)_ky->data.ptr;
     int ksize = _ky->cols + _ky->rows - 1, ksize2 = ksize / 2;
     int i = 0, k, width = state->get_width();
@@ -1106,7 +1106,7 @@ icvFilterCol_##flavor(const srctype **src, dsttype *dst,        \
     \
 {                                                          \
         const CvSepFilter *state = (const CvSepFilter *)params; \
-        const SysMat *_ky = state->get_y_kernel();               \
+        const Mat *_ky = state->get_y_kernel();               \
         const srctype *ky = (const srctype *)_ky->data.ptr;     \
         int ksize = _ky->cols + _ky->rows - 1;                  \
         int i, k, width = state->get_width();                   \
@@ -1170,7 +1170,7 @@ icvFilterColSymm_##flavor(const srctype **src, dsttype *dst,                  \
     \
 {                                                                        \
         const CvSepFilter *state = (const CvSepFilter *)params;               \
-        const SysMat *_ky = state->get_y_kernel();                             \
+        const Mat *_ky = state->get_y_kernel();                             \
         const srctype *ky = (const srctype *)_ky->data.ptr;                   \
         int ksize = _ky->cols + _ky->rows - 1, ksize2 = ksize / 2;            \
         int i, k, width = state->get_width();                                 \
@@ -1277,7 +1277,7 @@ IVOS_FILTER_COL_SYMM(32f16u, float, ushort, int, cvRound, VOS_CAST_16U)
 
 #define VOS_SMALL_GAUSSIAN_SIZE 7
 
-void CvSepFilter::init_gaussian_kernel(SysMat *kernel, double sigma)
+void CvSepFilter::init_gaussian_kernel(Mat *kernel, double sigma)
 {
     static const float small_gaussian_tab[][VOS_SMALL_GAUSSIAN_SIZE / 2 + 1] =
         {
@@ -1334,7 +1334,7 @@ void CvSepFilter::init_gaussian_kernel(SysMat *kernel, double sigma)
     __END__;
 }
 
-void CvSepFilter::init_sobel_kernel(SysMat *_kx, SysMat *_ky, int dx, int dy, int flags)
+void CvSepFilter::init_sobel_kernel(Mat *_kx, Mat *_ky, int dx, int dy, int flags)
 {
     VOS_FUNCNAME("CvSepFilter::init_sobel_kernel");
 
@@ -1361,7 +1361,7 @@ void CvSepFilter::init_sobel_kernel(SysMat *_kx, SysMat *_ky, int dx, int dy, in
 
     for (k = 0; k < 2; k++)
     {
-        SysMat *kernel = k == 0 ? _kx : _ky;
+        Mat *kernel = k == 0 ? _kx : _ky;
         int order = k == 0 ? dx : dy;
         int n = kernel->cols + kernel->rows - 1, step;
         int type = VOS_MAT_TYPE(kernel->type);
@@ -1441,7 +1441,7 @@ void CvSepFilter::init_deriv(int _max_width, int _src_type, int _dst_type,
 
     int kx_size = aperture_size == VOS_SCHARR ? 3 : aperture_size, ky_size = kx_size;
     float kx_data[VOS_MAX_SOBEL_KSIZE], ky_data[VOS_MAX_SOBEL_KSIZE];
-    SysMat _kx, _ky;
+    Mat _kx, _ky;
 
     if (kx_size <= 0 || ky_size > VOS_MAX_SOBEL_KSIZE)
         VOS_ERROR(VOS_StsOutOfRange, "Incorrect aperture_size");
@@ -1480,7 +1480,7 @@ void CvSepFilter::init_gaussian(int _max_width, int _src_type, int _dst_type,
 
     __BEGIN__;
 
-    SysMat _kernel;
+    Mat _kernel;
 
     if (gaussian_size <= VOS_MIN_GAUSSIN_SIZE || gaussian_size > VOS_MAX_GAUSSIAN_SIZE)
         VOS_ERROR(VOS_StsBadSize, "Incorrect size of gaussian kernel");

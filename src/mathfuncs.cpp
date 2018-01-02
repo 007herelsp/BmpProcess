@@ -37,11 +37,11 @@ typedef CvStatus(*CvSqrtFunc)(const void *src, void *dst, int len);
     __BEGIN__;
 
 
-    SysMat srcstub, *src = (SysMat *)srcarr;
-    SysMat dststub, *dst = (SysMat *)dstarr;
+    Mat srcstub, *src = (Mat *)srcarr;
+    Mat dststub, *dst = (Mat *)dstarr;
     int coi1 = 0, coi2 = 0;
     int depth;
-    CvSize size;
+    Size size;
     int y;
 
     if (!VOS_IS_MAT(src))

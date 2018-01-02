@@ -1,6 +1,6 @@
 #include "_cxcore.h"
 static CvStatus icvCopy_8u_C1R(const uchar *src, int srcstep,
-                               uchar *dst, int dststep, CvSize size)
+                               uchar *dst, int dststep, Size size)
 {
     for (; size.height--; src += srcstep, dst += dststep)
         memcpy(dst, src, size.width);
@@ -17,9 +17,9 @@ cvCopy(const void *srcarr, void *dstarr, const void *maskarr)
     __BEGIN__;
 
     int pix_size;
-    SysMat *src = (SysMat *)srcarr;
-    SysMat *dst = (SysMat *)dstarr;
-    CvSize size;
+    Mat *src = (Mat *)srcarr;
+    Mat *dst = (Mat *)dstarr;
+    Size size;
     assert("herelsp remove" && (VOS_IS_MAT(src) && VOS_IS_MAT(dst)));
 
     if (!VOS_ARE_TYPES_EQ(src, dst))

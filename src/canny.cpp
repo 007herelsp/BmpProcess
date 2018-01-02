@@ -15,8 +15,8 @@ cvSobel( const void* srcarr, void* dstarr, int dx, int dy, int aperture_size )
 
     int origin = 0;
     int src_type, dst_type;
-    SysMat srcstub, *src = (SysMat*)srcarr;
-    SysMat dststub, *dst = (SysMat*)dstarr;
+    Mat srcstub, *src = (Mat*)srcarr;
+    Mat dststub, *dst = (Mat*)dstarr;
 
     if( !VOS_IS_MAT(src) )
         VOS_CALL( src = GetMat( src, &srcstub ));
@@ -48,7 +48,7 @@ cvSobel( const void* srcarr, void* dstarr, int dx, int dy, int aperture_size )
 Canny( const void* srcarr, void* dstarr,
          double low_thresh, double high_thresh, int aperture_size )
 {
-    SysMat *dx = 0, *dy = 0;
+    Mat *dx = 0, *dy = 0;
     void *buffer = 0;
     uchar **stack_top, **stack_bottom = 0;
 
@@ -56,16 +56,16 @@ Canny( const void* srcarr, void* dstarr,
 
     __BEGIN__;
 
-    SysMat srcstub, *src = (SysMat*)srcarr;
-    SysMat dststub, *dst = (SysMat*)dstarr;
-    CvSize size;
+    Mat srcstub, *src = (Mat*)srcarr;
+    Mat dststub, *dst = (Mat*)dstarr;
+    Size size;
     int flags = aperture_size;
     int low, high;
     int* mag_buf[3];
     uchar* map;
     int mapstep, maxsize;
     int i, j;
-    SysMat mag_row;
+    Mat mag_row;
 
     VOS_CALL( src = GetMat( src, &srcstub ));
     VOS_CALL( dst = GetMat( dst, &dststub ));

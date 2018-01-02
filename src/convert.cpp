@@ -7,8 +7,8 @@ cvConvertScale( const void* srcarr, void* dstarr,
     VOS_FUNCNAME( "cvConvertScale" );
 
     __BEGIN__;
-    SysMat  *src = (SysMat*)srcarr;
-    SysMat  *dst = (SysMat*)dstarr;
+    Mat  *src = (Mat*)srcarr;
+    Mat  *dst = (Mat*)dstarr;
 
     int no_scale = scale == 1 && shift == 0;
 

@@ -3,7 +3,7 @@
 #include "_cv.h"
 
 static int
-icvSklansky_32s(CvPoint **array, int start, int end, int *stack, int nsign, int sign2)
+icvSklansky_32s(Point **array, int start, int end, int *stack, int nsign, int sign2)
 {
     int incr = end > start ? 1 : -1;
     /* prepare first triangle */
@@ -74,22 +74,22 @@ icvSklansky_32s(CvPoint **array, int start, int end, int *stack, int nsign, int 
     return --stacksize;
 }
 
-typedef int (*sklansky_func)(CvPoint **points, int start, int end,
+typedef int (*sklansky_func)(Point **points, int start, int end,
                              int *stack, int sign, int sign2);
 
 #define cmp_pts(pt1, pt2) \
     ((pt1)->x < (pt2)->x || (pt1)->x <= (pt2)->x && (pt1)->y < (pt2)->y)
-// static VOS_IMPLEMENT_QSORT(icvSortPointsByPointers_32s, CvPoint *, cmp_pts)
+// static VOS_IMPLEMENT_QSORT(icvSortPointsByPointers_32s, Point *, cmp_pts)
 
-static void icvSortPointsByPointers_32s(CvPoint **array, size_t total, int aux)
+static void icvSortPointsByPointers_32s(Point **array, size_t total, int aux)
 {
     int isort_thresh = 7;
-    CvPoint *t;
+    Point *t;
     int sp = 0;
     struct
     {
-        CvPoint **lb;
-        CvPoint **ub;
+        Point **lb;
+        Point **ub;
     } stack[48];
     aux = aux;
     if (total <= 1)
@@ -98,13 +98,13 @@ static void icvSortPointsByPointers_32s(CvPoint **array, size_t total, int aux)
     stack[0].ub = array + (total - 1);
     while (sp >= 0)
     {
-        CvPoint **left = stack[sp].lb;
-        CvPoint **right = stack[sp--].ub;
+        Point **left = stack[sp].lb;
+        Point **right = stack[sp--].ub;
         for (;;)
         {
             int i, n = (int)(right - left) + 1, m;
-            CvPoint **ptr;
-            CvPoint **ptr2;
+            Point **ptr;
+            Point **ptr2;
             if (n <= isort_thresh)
             {
             insert_sort:
@@ -120,14 +120,14 @@ static void icvSortPointsByPointers_32s(CvPoint **array, size_t total, int aux)
             }
             else
             {
-                CvPoint **left0;
-                CvPoint **left1;
-                CvPoint **right0;
-                CvPoint **right1;
-                CvPoint **pivot;
-                CvPoint **a;
-                CvPoint **b;
-                CvPoint **c;
+                Point **left0;
+                Point **left1;
+                Point **right0;
+                Point **right1;
+                Point **pivot;
+                Point **a;
+                Point **b;
+                Point **c;
                 int swap_cnt = 0;
                 left0 = left;
                 right0 = right;
@@ -231,15 +231,15 @@ static void icvSortPointsByPointers_32s(CvPoint **array, size_t total, int aux)
     }
 }
 
- CvSeq *
+ Seq_t *
 cvConvexHull2(const CvArr *array, void *hull_storage,
               int orientation, int return_points)
 {
     union {
         CvContour *c;
-        CvSeq *s;
+        Seq_t *s;
     } hull;
-    CvPoint **pointer = 0;
+    Point **pointer = 0;
     int *stack = 0;
 
     VOS_FUNCNAME("cvConvexHull2");
@@ -248,12 +248,12 @@ cvConvexHull2(const CvArr *array, void *hull_storage,
 
     __BEGIN__;
 
-    SysMat *mat = 0;
+    Mat *mat = 0;
     CvSeqReader reader;
     CvSeqWriter writer;
     CvContour contour_header;
-    CvSeq *ptseq = 0;
-    CvSeq *hullseq = 0;
+    Seq_t *ptseq = 0;
+    Seq_t *hullseq = 0;
     int *t_stack;
     int t_count;
     int i, miny_ind = 0, maxy_ind = 0, total;
@@ -262,7 +262,7 @@ cvConvexHull2(const CvArr *array, void *hull_storage,
 
     if (VOS_IS_SEQ(array))
     {
-        ptseq = (CvSeq *)array;
+        ptseq = (Seq_t *)array;
         if (!VOS_IS_SEQ_POINT_SET(ptseq))
             VOS_ERROR(VOS_StsBadArg, "Unsupported sequence type");
         if (hull_storage == 0)
@@ -277,10 +277,10 @@ cvConvexHull2(const CvArr *array, void *hull_storage,
     {
         if (return_points)
         {
-            VOS_CALL(hullseq = cvCreateSeq(
+            VOS_CALL(hullseq = CreateSeq(
                         VOS_SEQ_KIND_CURVE | VOS_SEQ_ELTYPE(ptseq) |
                             VOS_SEQ_FLAG_CLOSED | VOS_SEQ_FLAG_CONVEX,
-                        sizeof(CvContour), sizeof(CvPoint), (CvMemStorage *)hull_storage));
+                        sizeof(CvContour), sizeof(Point), (MemStorage *)hull_storage));
         }
         else
         {
@@ -301,7 +301,7 @@ cvConvexHull2(const CvArr *array, void *hull_storage,
         EXIT;
     }
 
-    cvStartAppendToSeq(hullseq, &writer);
+    StartAppendToSeq(hullseq, &writer);
 
     if (VOS_SEQ_ELTYPE(ptseq) == VOS_32FC2)
     {
@@ -309,14 +309,14 @@ cvConvexHull2(const CvArr *array, void *hull_storage,
     }
     sklansky = (sklansky_func)icvSklansky_32s;
 
-    VOS_CALL(pointer = (CvPoint **)cvAlloc(ptseq->total * sizeof(pointer[0])));
+    VOS_CALL(pointer = (Point **)cvAlloc(ptseq->total * sizeof(pointer[0])));
     VOS_CALL(stack = (int *)cvAlloc((ptseq->total + 2) * sizeof(stack[0])));
 
-    cvStartReadSeq(ptseq, &reader);
+    StartReadSeq(ptseq, &reader);
 
     for (i = 0; i < total; i++)
     {
-        pointer[i] = (CvPoint *)reader.ptr;
+        pointer[i] = (Point *)reader.ptr;
         VOS_NEXT_SEQ_ELEM(ptseq->elem_size, reader);
     }
 
@@ -335,7 +335,7 @@ cvConvexHull2(const CvArr *array, void *hull_storage,
     if (pointer[0]->x == pointer[total - 1]->x &&
         pointer[0]->y == pointer[total - 1]->y)
     {
-        CvPoint pt = pointer[0][0];
+        Point pt = pointer[0][0];
         VOS_WRITE_SEQ_ELEM(pt, writer);
         goto finish_hull;
     }
@@ -399,7 +399,7 @@ cvConvexHull2(const CvArr *array, void *hull_storage,
     }
 
 finish_hull:
-    VOS_CALL(cvEndWriteSeq(&writer));
+    VOS_CALL(EndWriteSeq(&writer));
 
     if (mat)
     {
@@ -437,7 +437,7 @@ cvCheckContourConvexity(const CvArr *array)
     int orientation = 0;
     CvSeqReader reader;
 
-    CvSeq *contour = (CvSeq *)array;
+    Seq_t *contour = (Seq_t *)array;
 
     if (VOS_IS_SEQ(contour))
     {
@@ -453,14 +453,14 @@ cvCheckContourConvexity(const CvArr *array)
     if (contour->total == 0)
         EXIT;
 
-    cvStartReadSeq(contour, &reader, 0);
+    StartReadSeq(contour, &reader, 0);
 
     flag = 1;
 
     if (VOS_SEQ_ELTYPE(contour) == VOS_32SC2)
     {
-        CvPoint *prev_pt = (CvPoint *)reader.prev_elem;
-        CvPoint *cur_pt = (CvPoint *)reader.ptr;
+        Point *prev_pt = (Point *)reader.prev_elem;
+        Point *cur_pt = (Point *)reader.ptr;
 
         int dx0 = cur_pt->x - prev_pt->x;
         int dy0 = cur_pt->y - prev_pt->y;
@@ -471,9 +471,9 @@ cvCheckContourConvexity(const CvArr *array)
             int dx, dy;
 
             /*int orient; */
-            VOS_NEXT_SEQ_ELEM(sizeof(CvPoint), reader);
+            VOS_NEXT_SEQ_ELEM(sizeof(Point), reader);
             prev_pt = cur_pt;
-            cur_pt = (CvPoint *)reader.ptr;
+            cur_pt = (Point *)reader.ptr;
 
             dx = cur_pt->x - prev_pt->x;
             dy = cur_pt->y - prev_pt->y;

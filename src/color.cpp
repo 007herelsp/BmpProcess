@@ -17,7 +17,7 @@
 
 static CvStatus VOS_STDCALL
 BGR2Gray_8u_CnC1R(const uchar *src, int srcstep,
-                      uchar *dst, int dststep, CvSize size,
+                      uchar *dst, int dststep, Size size,
                       int src_cn, int blue_idx)
 {
     int i;
@@ -44,9 +44,9 @@ CvtColor(const CvArr *srcarr, CvArr *dstarr, int code)
 
     __BEGIN__;
 
-    SysMat srcstub, *src = (SysMat *)srcarr;
-    SysMat dststub, *dst = (SysMat *)dstarr;
-    CvSize size;
+    Mat srcstub, *src = (Mat *)srcarr;
+    Mat dststub, *dst = (Mat *)dstarr;
+    Size size;
     int src_step, dst_step;
     int src_cn, dst_cn, depth;
   

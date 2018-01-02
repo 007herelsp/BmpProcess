@@ -7,13 +7,13 @@
 
 
 static void
-icvRotatingCalipers( CvPoint2D32f* points, int n, int mode, float* out )
+icvRotatingCalipers( Point2D32f* points, int n, int mode, float* out )
 {
     float minarea = FLT_MAX;
     float max_dist = 0;
     char buffer[32];
     int i, k;
-    CvPoint2D32f* vect = (CvPoint2D32f*)cvAlloc( n * sizeof(vect[0]) );
+    Point2D32f* vect = (Point2D32f*)cvAlloc( n * sizeof(vect[0]) );
     float* inv_vect_length = (float*)cvAlloc( n * sizeof(inv_vect_length[0]) );
     int left = 0, bottom = 0, right = 0, top = 0;
     int seq[4] = { -1, -1, -1, -1 };
@@ -27,7 +27,7 @@ icvRotatingCalipers( CvPoint2D32f* points, int n, int mode, float* out )
     float base_b = 0;
 
     float left_x, right_x, top_y, bottom_y;
-    CvPoint2D32f pt0 = points[0];
+    Point2D32f pt0 = points[0];
 
     left_x = right_x = pt0.x;
     top_y = bottom_y = pt0.y;
@@ -48,7 +48,7 @@ icvRotatingCalipers( CvPoint2D32f* points, int n, int mode, float* out )
         if( pt0.y < bottom_y )
             bottom_y = pt0.y, bottom = i;
 
-        CvPoint2D32f pt = points[(i+1) & (i+1 < n ? -1 : 0)];
+        Point2D32f pt = points[(i+1) & (i+1 < n ? -1 : 0)];
 
         dx = pt.x - pt0.x;
         dy = pt.y - pt0.y;
@@ -261,12 +261,12 @@ icvRotatingCalipers( CvPoint2D32f* points, int n, int mode, float* out )
 }
 
 
-  CvBox2D
-cvMinAreaRect2( const CvArr* array, CvMemStorage* storage )
+  Box2D
+cvMinAreaRect2( const CvArr* array, MemStorage* storage )
 {
-    CvMemStorage* temp_storage = 0;
-    CvBox2D box;
-    CvPoint2D32f* points = 0;
+    MemStorage* temp_storage = 0;
+    Box2D box;
+    Point2D32f* points = 0;
 
     VOS_FUNCNAME( "cvMinAreaRect2" );
 
@@ -276,8 +276,8 @@ cvMinAreaRect2( const CvArr* array, CvMemStorage* storage )
 
     int i, n;
     CvSeqReader reader;
-    CvSeq* ptseq = (CvSeq*)array;
-    CvPoint2D32f out[3];
+    Seq_t* ptseq = (Seq_t*)array;
+    Point2D32f out[3];
 
     if( VOS_IS_SEQ(ptseq) )
     {
@@ -297,11 +297,11 @@ cvMinAreaRect2( const CvArr* array, CvMemStorage* storage )
 
     if( storage )
     {
-        VOS_CALL( temp_storage = cvCreateChildMemStorage( storage ));
+        VOS_CALL( temp_storage = CreateChildMemStorage( storage ));
     }
     else
     {
-        VOS_CALL( temp_storage = cvCreateMemStorage(1 << 10));
+        VOS_CALL( temp_storage = CreateMemStorage(1 << 10));
     }
 
     if( !VOS_IS_SEQ_CONVEX( ptseq ))
@@ -315,30 +315,30 @@ cvMinAreaRect2( const CvArr* array, CvMemStorage* storage )
         if( !VOS_IS_SEQ(ptseq->v_prev) || !VOS_IS_SEQ_POINT_SET(ptseq->v_prev))
             VOS_ERROR( VOS_StsBadArg,
             "Convex hull must have valid pointer to point sequence stored in v_prev" );
-        cvStartReadSeq( ptseq, &reader );
-        cvStartWriteSeq( VOS_SEQ_KIND_CURVE|VOS_SEQ_FLAG_CONVEX|VOS_SEQ_ELTYPE(ptseq->v_prev),
+        StartReadSeq( ptseq, &reader );
+        StartWriteSeq( VOS_SEQ_KIND_CURVE|VOS_SEQ_FLAG_CONVEX|VOS_SEQ_ELTYPE(ptseq->v_prev),
                          sizeof(CvContour), VOS_ELEM_SIZE(ptseq->v_prev->flags),
                          temp_storage, &writer );
 
         for( i = 0; i < ptseq->total; i++ )
         {
-            CvPoint pt = **(CvPoint**)(reader.ptr);
+            Point pt = **(Point**)(reader.ptr);
             VOS_WRITE_SEQ_ELEM( pt, writer );
         }
 
-        ptseq = cvEndWriteSeq( &writer );
+        ptseq = EndWriteSeq( &writer );
     }
 
     n = ptseq->total;
 
-    VOS_CALL( points = (CvPoint2D32f*)cvAlloc( n*sizeof(points[0]) ));
-    cvStartReadSeq( ptseq, &reader );
+    VOS_CALL( points = (Point2D32f*)cvAlloc( n*sizeof(points[0]) ));
+    StartReadSeq( ptseq, &reader );
 
     if( VOS_SEQ_ELTYPE( ptseq ) == VOS_32SC2 )
     {
         for( i = 0; i < n; i++ )
         {
-            CvPoint pt;
+            Point pt;
             VOS_READ_SEQ_ELEM( pt, reader );
             points[i].x = (float)pt.x;
             points[i].y = (float)pt.y;
@@ -381,7 +381,7 @@ cvMinAreaRect2( const CvArr* array, CvMemStorage* storage )
 
     __END__;
 
-    cvReleaseMemStorage( &temp_storage );
+    ReleaseMemStorage( &temp_storage );
     cvFree( &points );
 
     return box;

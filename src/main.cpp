@@ -24,7 +24,7 @@ using namespace std;
 
 #define cvWaitKey(x)
 
-double angle(CvPoint *pt1, CvPoint *pt2, CvPoint *pt0)
+double angle(Point *pt1, Point *pt2, Point *pt0)
 {
 	double dx1 = pt1->x - pt0->x;
 	double dy1 = pt1->y - pt0->y;
@@ -35,7 +35,7 @@ double angle(CvPoint *pt1, CvPoint *pt2, CvPoint *pt0)
 
 struct SymCmp
 {
-	bool operator()(const CvBox2D &x, const CvBox2D &y) const
+	bool operator()(const Box2D &x, const Box2D &y) const
 	{
 		if (x.center.x == y.center.x)
 		{
@@ -50,8 +50,8 @@ struct SymCmp
 
 typedef struct stBox
 {
-	CvPoint pt[4];
-	CvBox2D box;
+	Point pt[4];
+	Box2D box;
 	bool isRect;
 } Box;
 
@@ -104,12 +104,12 @@ struct SymUBoxCmp
 
 set<Box, SymUBoxCmp> SearchProcess_v2(IplImage *lpSrcImg)
 {
-	CvMemStorage *storage = cvCreateMemStorage();
-	CvSeq *contours = NULL;
-	CvSeq *result = NULL;
+	MemStorage *storage = CreateMemStorage();
+	Seq_t *contours = NULL;
+	Seq_t *result = NULL;
 	double s, t;
 	double dContourArea;
-	CvBox2D End_Rage2D;
+	Box2D End_Rage2D;
 	int index = 0;
 	set<Box, SymUBoxCmp> lstRes;
 	// ����һ�����������ڴ洢�����ǵ�
@@ -140,22 +140,22 @@ set<Box, SymUBoxCmp> SearchProcess_v2(IplImage *lpSrcImg)
 						if (index >= 2)
 						{
 							t = fabs(angle(
-								(CvPoint *)cvGetSeqElem(result, index % 4),
-								(CvPoint *)cvGetSeqElem(result, index - 2),
-								(CvPoint *)cvGetSeqElem(result, index - 1)));
+								(Point *)GetSeqElem(result, index % 4),
+								(Point *)GetSeqElem(result, index - 2),
+								(Point *)GetSeqElem(result, index - 1)));
 							s = s > t ? s : t;
 						}
 					}
 
 					// if ����ֵ �㹻С�������϶��Ƕ�Ϊ90��ֱ��
 					//cos0.1=83�ȣ��ܽϺõ�����ֱ��
-					CvPoint *tp;
+					Point *tp;
 					for (int i = 0; i < 4; i++)
 					{
-						tp = (CvPoint *)cvGetSeqElem(result, i);
+						tp = (Point *)GetSeqElem(result, i);
 						box.pt[i].x = tp->x;
 						box.pt[i].y = tp->y;
-						//  cvSeqPush(squares, (CvPoint *)cvGetSeqElem(result, i));
+						//  cvSeqPush(squares, (Point *)GetSeqElem(result, i));
 					}
 					if (s < 0.1)
 					{
@@ -183,7 +183,7 @@ set<Box, SymUBoxCmp> SearchProcess_v2(IplImage *lpSrcImg)
 		contours = contours->h_next;
 	}
 
-	cvReleaseMemStorage(&storage);
+	ReleaseMemStorage(&storage);
 
 	return std::move(lstRes);
 }
@@ -194,10 +194,10 @@ int process_v2(IplImage *lpImg, IplImage *lpTargetImg, int argc, char *argv[])
 	set<Box, SymBoxCmp> lstRes;
 	set<Box, SymUBoxCmp> setURes = SearchProcess_v2(lpImg);
 	set<Box, SymUBoxCmp>::iterator itu;
-	CvPoint2D32f srcTri[4], dstTri[4];
+	Point2D32f srcTri[4], dstTri[4];
 	IplImage *temp;
-	CvPoint p[4];
-	SysMat *warp_mat;
+	Point p[4];
+	Mat *warp_mat;
 	int iCount = 0;
 
 	for (itu = setURes.begin(); itu != setURes.end(); itu++)
@@ -226,7 +226,7 @@ int process_v2(IplImage *lpImg, IplImage *lpTargetImg, int argc, char *argv[])
 			warp_mat = CreateMat(3, 3, VOS_64FC1);
 
 			//����
-			CvPoint pt;
+			Point pt;
 			for (int j = 0; j < 4; j++) /* ���ݷ�Ҫ����n��*/
 			{
 				for (int i = 0; i < 4 - j; i++) /* ֵ�Ƚϴ��Ԫ�س���ȥ��ֻ��ʣ�µ�Ԫ���е����ֵ�ٳ���ȥ�Ϳ����� */

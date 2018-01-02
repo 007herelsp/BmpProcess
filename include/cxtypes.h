@@ -219,7 +219,7 @@ IplConvKernel;
     (((elemtype*)((image)->imageData + (image)->widthStep*(row)))[(col)])
 
 /****************************************************************************************\
-*                                  Matrix type (SysMat)                                   *
+*                                  Matrix type (Mat)                                   *
 \****************************************************************************************/
 
 #define VOS_CN_MAX     64
@@ -301,7 +301,7 @@ IplConvKernel;
 #define VOS_MAT_MAGIC_VAL    0x42420000
 #define VOS_TYPE_NAME_MAT    " -matrix"
 
-typedef struct SysMat
+typedef struct Mat
 {
     int type;
     int step;
@@ -337,16 +337,16 @@ typedef struct SysMat
 #endif
 
 }
-SysMat;
+Mat;
 
 
 #define VOS_IS_MAT_HDR(mat) \
     ((mat) != NULL && \
-    (((const SysMat*)(mat))->type & VOS_MAGIC_MASK) == VOS_MAT_MAGIC_VAL && \
-    ((const SysMat*)(mat))->cols > 0 && ((const SysMat*)(mat))->rows > 0)
+    (((const Mat*)(mat))->type & VOS_MAGIC_MASK) == VOS_MAT_MAGIC_VAL && \
+    ((const Mat*)(mat))->cols > 0 && ((const Mat*)(mat))->rows > 0)
 
 #define VOS_IS_MAT(mat) \
-    (VOS_IS_MAT_HDR(mat) && ((const SysMat*)(mat))->data.ptr != NULL)
+    (VOS_IS_MAT_HDR(mat) && ((const Mat*)(mat))->data.ptr != NULL)
 
 #define VOS_IS_MASK_ARR(mat) \
     (((mat)->type & (VOS_MAT_TYPE_MASK & ~VOS_8SC1)) == 0)
@@ -378,9 +378,9 @@ SysMat;
 /* inline constructor. No data is allocated internally!!!
    (use together with CreateData, or use CreateMat instead to
    get a matrix with allocated data) */
-VOS_INLINE SysMat cvMat( int rows, int cols, int type, void* data VOS_DEFAULT(NULL))
+VOS_INLINE Mat cvMat( int rows, int cols, int type, void* data VOS_DEFAULT(NULL))
 {
-    SysMat m;
+    Mat m;
 
     assert( (unsigned)VOS_MAT_DEPTH(type) <= VOS_64F );
     type = VOS_MAT_TYPE(type);
@@ -405,7 +405,7 @@ VOS_INLINE int cvCvToIplDepth( int type )
 
 
 
-struct CvSet;
+struct Set;
 
 
 
@@ -413,20 +413,20 @@ struct CvSet;
 *                      Other supplementary data type definitions                         *
 \****************************************************************************************/
 
-/*************************************** CvRect *****************************************/
+/*************************************** Rect *****************************************/
 
-typedef struct CvRect
+typedef struct Rect
 {
     int x;
     int y;
     int width;
     int height;
 }
-CvRect;
+Rect;
 
-VOS_INLINE  CvRect  cvRect( int x, int y, int width, int height )
+VOS_INLINE  Rect  cvRect( int x, int y, int width, int height )
 {
-    CvRect r;
+    Rect r;
 
     r.x = x;
     r.y = y;
@@ -437,19 +437,19 @@ VOS_INLINE  CvRect  cvRect( int x, int y, int width, int height )
 }
 
 
-/******************************* CvPoint and variants ***********************************/
+/******************************* Point and variants ***********************************/
 
-typedef struct CvPoint
+typedef struct Point
 {
     int x;
     int y;
 }
-CvPoint;
+Point;
 
 
-VOS_INLINE  CvPoint  cvPoint( int x, int y )
+VOS_INLINE  Point  cvPoint( int x, int y )
 {
-    CvPoint p;
+    Point p;
 
     p.x = x;
     p.y = y;
@@ -458,17 +458,17 @@ VOS_INLINE  CvPoint  cvPoint( int x, int y )
 }
 
 
-typedef struct CvPoint2D32f
+typedef struct Point2D32f
 {
     float x;
     float y;
 }
-CvPoint2D32f;
+Point2D32f;
 
 
-VOS_INLINE  CvPoint2D32f  cvPoint2D32f( double x, double y )
+VOS_INLINE  Point2D32f  cvPoint2D32f( double x, double y )
 {
-    CvPoint2D32f p;
+    Point2D32f p;
 
     p.x = (float)x;
     p.y = (float)y;
@@ -477,15 +477,15 @@ VOS_INLINE  CvPoint2D32f  cvPoint2D32f( double x, double y )
 }
 
 
-VOS_INLINE  CvPoint2D32f  cvPointTo32f( CvPoint point )
+VOS_INLINE  Point2D32f  cvPointTo32f( Point point )
 {
     return cvPoint2D32f( (float)point.x, (float)point.y );
 }
 
 
-VOS_INLINE  CvPoint  cvPointFrom32f( CvPoint2D32f point )
+VOS_INLINE  Point  cvPointFrom32f( Point2D32f point )
 {
-    CvPoint ipt;
+    Point ipt;
     ipt.x = cvRound(point.x);
     ipt.y = cvRound(point.y);
 
@@ -495,17 +495,17 @@ VOS_INLINE  CvPoint  cvPointFrom32f( CvPoint2D32f point )
 
 
 
-typedef struct CvPoint2D64f
+typedef struct Point2D64f
 {
     double x;
     double y;
 }
-CvPoint2D64f;
+Point2D64f;
 
 
-VOS_INLINE  CvPoint2D64f  cvPoint2D64f( double x, double y )
+VOS_INLINE  Point2D64f  cvPoint2D64f( double x, double y )
 {
-    CvPoint2D64f p;
+    Point2D64f p;
 
     p.x = x;
     p.y = y;
@@ -515,18 +515,18 @@ VOS_INLINE  CvPoint2D64f  cvPoint2D64f( double x, double y )
 
 
 
-/******************************** CvSize's & CvBox **************************************/
+/******************************** Size's & CvBox **************************************/
 
 typedef struct
 {
     int width;
     int height;
 }
-CvSize;
+Size;
 
-VOS_INLINE  CvSize  cvSize( int width, int height )
+VOS_INLINE  Size  cvSize( int width, int height )
 {
-    CvSize s;
+    Size s;
 
     s.width = width;
     s.height = height;
@@ -534,17 +534,17 @@ VOS_INLINE  CvSize  cvSize( int width, int height )
     return s;
 }
 
-typedef struct CvSize2D32f
+typedef struct Size2D32f
 {
     float width;
     float height;
 }
-CvSize2D32f;
+Size2D32f;
 
 
-VOS_INLINE  CvSize2D32f  cvSize2D32f( double width, double height )
+VOS_INLINE  Size2D32f  cvSize2D32f( double width, double height )
 {
-    CvSize2D32f s;
+    Size2D32f s;
 
     s.width = (float)width;
     s.height = (float)height;
@@ -552,27 +552,27 @@ VOS_INLINE  CvSize2D32f  cvSize2D32f( double width, double height )
     return s;
 }
 
-typedef struct CvBox2D
+typedef struct Box2D
 {
-    CvPoint2D32f center;  /* center of the box */
-    CvSize2D32f  size;    /* box width and length */
+    Point2D32f center;  /* center of the box */
+    Size2D32f  size;    /* box width and length */
     float angle;          /* angle between the horizontal axis
                              and the first side (i.e. length) in degrees */
 }
-CvBox2D;
+Box2D;
 
 
-/************************************* CvSlice ******************************************/
+/************************************* Slice ******************************************/
 
-typedef struct CvSlice
+typedef struct Slice
 {
     int  start_index, end_index;
 }
-CvSlice;
+Slice;
 
-VOS_INLINE  CvSlice  cvSlice( int start, int end )
+VOS_INLINE  Slice  cvSlice( int start, int end )
 {
-    CvSlice slice;
+    Slice slice;
     slice.start_index = start;
     slice.end_index = end;
 
@@ -583,35 +583,35 @@ VOS_INLINE  CvSlice  cvSlice( int start, int end )
 #define VOS_WHOLE_SEQ  cvSlice(0, VOS_WHOLE_SEQ_END_INDEX)
 
 
-/************************************* CvScalar *****************************************/
+/************************************* Scalar *****************************************/
 
-typedef struct CvScalar
+typedef struct Scalar
 {
     double val[4];
 }
-CvScalar;
+Scalar;
 
-VOS_INLINE  CvScalar  cvScalar( double val0, double val1 VOS_DEFAULT(0),
+VOS_INLINE  Scalar  cvScalar( double val0, double val1 VOS_DEFAULT(0),
                                double val2 VOS_DEFAULT(0), double val3 VOS_DEFAULT(0))
 {
-    CvScalar scalar;
+    Scalar scalar;
     scalar.val[0] = val0; scalar.val[1] = val1;
     scalar.val[2] = val2; scalar.val[3] = val3;
     return scalar;
 }
 
 
-VOS_INLINE  CvScalar  cvRealScalar( double val0 )
+VOS_INLINE  Scalar  cvRealScalar( double val0 )
 {
-    CvScalar scalar;
+    Scalar scalar;
     scalar.val[0] = val0;
     scalar.val[1] = scalar.val[2] = scalar.val[3] = 0;
     return scalar;
 }
 
-VOS_INLINE  CvScalar  cvScalarAll( double val0123 )
+VOS_INLINE  Scalar  cvScalarAll( double val0123 )
 {
-    CvScalar scalar;
+    Scalar scalar;
     scalar.val[0] = val0123;
     scalar.val[1] = val0123;
     scalar.val[2] = val0123;
@@ -625,51 +625,51 @@ VOS_INLINE  CvScalar  cvScalarAll( double val0123 )
 
 /******************************** Memory storage ****************************************/
 
-typedef struct CvMemBlock
+typedef struct MemBlock
 {
-    struct CvMemBlock*  prev;
-    struct CvMemBlock*  next;
+    struct MemBlock*  prev;
+    struct MemBlock*  next;
 }
-CvMemBlock;
+MemBlock;
 
 #define VOS_STORAGE_MAGIC_VAL    0x42890000
 
-typedef struct CvMemStorage
+typedef struct MemStorage
 {
     int signature;
-    CvMemBlock* bottom;/* first allocated block */
-    CvMemBlock* top;   /* current memory block - top of the stack */
-    struct  CvMemStorage* parent; /* borrows new blocks from */
+    MemBlock* bottom;/* first allocated block */
+    MemBlock* top;   /* current memory block - top of the stack */
+    struct  MemStorage* parent; /* borrows new blocks from */
     int block_size;  /* block size */
     int free_space;  /* free space in the current block */
 }
-CvMemStorage;
+MemStorage;
 
 #define VOS_IS_STORAGE(storage)  \
     ((storage) != NULL &&       \
-    (((CvMemStorage*)(storage))->signature & VOS_MAGIC_MASK) == VOS_STORAGE_MAGIC_VAL)
+    (((MemStorage*)(storage))->signature & VOS_MAGIC_MASK) == VOS_STORAGE_MAGIC_VAL)
 
 
-typedef struct CvMemStoragePos
+typedef struct MemStoragePos
 {
-    CvMemBlock* top;
+    MemBlock* top;
     int free_space;
 }
-CvMemStoragePos;
+MemStoragePos;
 
 
 /*********************************** Sequence *******************************************/
 
-typedef struct CvSeqBlock
+typedef struct SeqBlock
 {
-    struct CvSeqBlock*  prev; /* previous sequence block */
-    struct CvSeqBlock*  next; /* next sequence block */
+    struct SeqBlock*  prev; /* previous sequence block */
+    struct SeqBlock*  next; /* next sequence block */
     int    start_index;       /* index of the first element in the block +
                                  sequence->first->start_index */
     int    count;             /* number of elements in the block */
     char*  data;              /* pointer to the first element of the block */
 }
-CvSeqBlock;
+SeqBlock;
 
 
 #define VOS_TREE_NODE_FIELDS(node_type)                          \
@@ -685,21 +685,21 @@ CvSeqBlock;
    Elements can be dynamically inserted to or deleted from the sequence.
 */
 #define VOS_SEQUENCE_FIELDS()                                            \
-    VOS_TREE_NODE_FIELDS(CvSeq);                                         \
+    VOS_TREE_NODE_FIELDS(Seq_t);                                         \
     int       total;          /* total number of elements */            \
     int       elem_size;      /* size of sequence element in bytes */   \
     char*     block_max;      /* maximal bound of the last block */     \
     char*     ptr;            /* current write pointer */               \
     int       delta_elems;    /* how many elements allocated when the seq grows */  \
-    CvMemStorage* storage;    /* where the seq is stored */             \
-    CvSeqBlock* free_blocks;  /* free blocks list */                    \
-    CvSeqBlock* first; /* pointer to the first sequence block */
+    MemStorage* storage;    /* where the seq is stored */             \
+    SeqBlock* free_blocks;  /* free blocks list */                    \
+    SeqBlock* first; /* pointer to the first sequence block */
 
-typedef struct CvSeq
+typedef struct Seq_t
 {
     VOS_SEQUENCE_FIELDS()
 }
-CvSeq;
+Seq_t;
 
 #define VOS_TYPE_NAME_SEQ             " -sequence"
 #define VOS_TYPE_NAME_SEQ_TREE        " -sequence-tree"
@@ -715,42 +715,35 @@ CvSeq;
     int  flags;                         \
     struct elem_type* next_free;
 
-typedef struct CvSetElem
+typedef struct SetElem_t
 {
-    VOS_SET_ELEM_FIELDS(CvSetElem)
+    VOS_SET_ELEM_FIELDS(SetElem_t)
 }
-CvSetElem;
+SetElem_t;
 
 #define VOS_SET_FIELDS()      \
     VOS_SEQUENCE_FIELDS()     \
-    CvSetElem* free_elems;   \
+    SetElem_t* free_elems;   \
     int active_count;
 
-typedef struct CvSet
+typedef struct Set
 {
     VOS_SET_FIELDS()
 }
-CvSet;
+Set;
 
 
 #define VOS_SET_ELEM_IDX_MASK   ((1 << 26) - 1)
 #define VOS_SET_ELEM_FREE_FLAG  (1 << (sizeof(int)*8-1))
 
 /* Checks whether the element pointed by ptr belongs to a set or not */
-#define VOS_IS_SET_ELEM( ptr )  (((CvSetElem*)(ptr))->flags >= 0)
+#define VOS_IS_SET_ELEM( ptr )  (((SetElem_t*)(ptr))->flags >= 0)
 
 /*********************************** Chain/Countour *************************************/
 
-typedef struct CvChain
-{
-    VOS_SEQUENCE_FIELDS()
-    CvPoint  origin;
-}
-CvChain;
-
 #define VOS_CONTOUR_FIELDS()  \
     VOS_SEQUENCE_FIELDS()     \
-    CvRect rect;             \
+    Rect rect;             \
     int color;               \
     int reserved[3];
 
@@ -767,11 +760,11 @@ CvContour;
 #define VOS_SEQ_MAGIC_VAL             0x42990000
 
 #define VOS_IS_SEQ(seq) \
-    ((seq) != NULL && (((CvSeq*)(seq))->flags & VOS_MAGIC_MASK) == VOS_SEQ_MAGIC_VAL)
+    ((seq) != NULL && (((Seq_t*)(seq))->flags & VOS_MAGIC_MASK) == VOS_SEQ_MAGIC_VAL)
 
 #define VOS_SET_MAGIC_VAL             0x42980000
 #define VOS_IS_SET(set) \
-    ((set) != NULL && (((CvSeq*)(set))->flags & VOS_MAGIC_MASK) == VOS_SET_MAGIC_VAL)
+    ((set) != NULL && (((Seq_t*)(set))->flags & VOS_MAGIC_MASK) == VOS_SET_MAGIC_VAL)
 
 #define VOS_SEQ_ELTYPE_BITS           9
 #define VOS_SEQ_ELTYPE_MASK           ((1 << VOS_SEQ_ELTYPE_BITS) - 1)
@@ -863,8 +856,8 @@ CvContour;
 
 #define VOS_SEQ_WRITER_FIELDS()                                     \
     int          header_size;                                      \
-    CvSeq*       seq;        /* the sequence written */            \
-    CvSeqBlock*  block;      /* current block */                   \
+    Seq_t*       seq;        /* the sequence written */            \
+    SeqBlock*  block;      /* current block */                   \
     char*        ptr;        /* pointer to free space */           \
     char*        block_min;  /* pointer to the beginning of block*/\
     char*        block_max;  /* pointer to the end of block */
@@ -878,8 +871,8 @@ CvSeqWriter;
 
 #define VOS_SEQ_READER_FIELDS()                                      \
     int          header_size;                                       \
-    CvSeq*       seq;        /* sequence, beign read */             \
-    CvSeqBlock*  block;      /* current block */                    \
+    Seq_t*       seq;        /* sequence, beign read */             \
+    SeqBlock*  block;      /* current block */                    \
     char*        ptr;        /* pointer to element be read next */  \
     char*        block_min;  /* pointer to the beginning of block */\
     char*        block_max;  /* pointer to the end of block */      \
@@ -903,7 +896,7 @@ CvSeqReader;
     assert( (writer).seq->elem_size == sizeof(elem)); \
     if( (writer).ptr >= (writer).block_max )          \
     {                                                 \
-        cvCreateSeqBlock( &writer);                   \
+        CreateSeqBlock( &writer);                   \
     }                                                 \
     assert( (writer).ptr <= (writer).block_max - sizeof(elem));\
     memcpy((writer).ptr, &(elem), sizeof(elem));      \

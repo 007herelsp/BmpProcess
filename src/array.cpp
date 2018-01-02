@@ -9,14 +9,14 @@ static const signed char icvDepthToType[] =
     icvDepthToType[(((depth)&255) >> 2) + ((depth) < 0)]
 
 /****************************************************************************************\
-*                               SysMat creation and basic operations                      *
+*                               Mat creation and basic operations                      *
 \****************************************************************************************/
 
-// Creates SysMat and underlying data
- SysMat *
+// Creates Mat and underlying data
+ Mat *
 CreateMat(int height, int width, int type)
 {
-    SysMat *arr = 0;
+    Mat *arr = 0;
 
     VOS_FUNCNAME("CreateMat");
 
@@ -33,17 +33,17 @@ CreateMat(int height, int width, int type)
     return arr;
 }
 
-static void icvCheckHuge(SysMat *arr)
+static void icvCheckHuge(Mat *arr)
 {
     if ((int64)arr->step * arr->rows > INT_MAX)
         arr->type &= ~VOS_MAT_CONT_FLAG;
 }
 
-// Creates SysMat header only
- SysMat *
+// Creates Mat header only
+ Mat *
 CreateMatHeader(int rows, int cols, int type)
 {
-    SysMat *arr = 0;
+    Mat *arr = 0;
 
     VOS_FUNCNAME("CreateMatHeader");
 
@@ -59,7 +59,7 @@ CreateMatHeader(int rows, int cols, int type)
     if (min_step <= 0)
         VOS_ERROR(VOS_StsUnsupportedFormat, "Invalid matrix type");
 
-    VOS_CALL(arr = (SysMat *)cvAlloc(sizeof(*arr)));
+    VOS_CALL(arr = (Mat *)cvAlloc(sizeof(*arr)));
 
     arr->step = rows == 1 ? 0 : cvAlign(min_step, VOS_DEFAULT_MAT_ROW_ALIGN);
     arr->type = VOS_MAT_MAGIC_VAL | type |
@@ -80,9 +80,9 @@ CreateMatHeader(int rows, int cols, int type)
     return arr;
 }
 
-// Initializes SysMat header, allocated by the user
- SysMat *
-InitMatHeader(SysMat *arr, int rows, int cols,
+// Initializes Mat header, allocated by the user
+ Mat *
+InitMatHeader(Mat *arr, int rows, int cols,
                 int type, void *data, int step)
 {
     VOS_FUNCNAME("InitMatHeader");
@@ -133,9 +133,9 @@ InitMatHeader(SysMat *arr, int rows, int cols,
     return arr;
 }
 
-// Deallocates the SysMat structure and underlying data
+// Deallocates the Mat structure and underlying data
  void
-ReleaseMat(SysMat **array)
+ReleaseMat(Mat **array)
 {
     VOS_FUNCNAME("ReleaseMat");
 
@@ -146,7 +146,7 @@ ReleaseMat(SysMat **array)
 
     if (*array)
     {
-        SysMat *arr = *array;
+        Mat *arr = *array;
 
         if (!VOS_IS_MAT_HDR(arr))
             VOS_ERROR_FROM_CODE(VOS_StsBadFlag);
@@ -175,7 +175,7 @@ CreateData(CvArr *arr)
     if (VOS_IS_MAT_HDR(arr))
     {
         size_t step, total_size;
-        SysMat *mat = (SysMat *)arr;
+        Mat *mat = (Mat *)arr;
         step = mat->step;
 
         if (mat->data.ptr != 0)
@@ -222,7 +222,7 @@ SetData(CvArr *arr, void *data, int step)
 
     if (VOS_IS_MAT_HDR(arr))
     {
-        SysMat *mat = (SysMat *)arr;
+        Mat *mat = (Mat *)arr;
 
         int type = VOS_MAT_TYPE(mat->type);
         pix_size = VOS_ELEM_SIZE(type);
@@ -293,7 +293,7 @@ ReleaseData(CvArr *arr)
 
     if (VOS_IS_MAT_HDR(arr))
     {
-        SysMat *mat = (SysMat *)arr;
+        Mat *mat = (Mat *)arr;
         cvDecRefData(mat);
     }
     else if (VOS_IS_IMAGE_HDR(arr))
@@ -323,7 +323,7 @@ GetElemType(const CvArr *arr)
 
     if (VOS_IS_MAT_HDR(arr))
     {
-        type = VOS_MAT_TYPE(((SysMat *)arr)->type);
+        type = VOS_MAT_TYPE(((Mat *)arr)->type);
     }
     else if (VOS_IS_IMAGE(arr))
     {
@@ -338,11 +338,11 @@ GetElemType(const CvArr *arr)
     return type;
 }
 
-// Returns the size of SysMat or IplImage
- CvSize
+// Returns the size of Mat or IplImage
+ Size
 GetSize(const CvArr *arr)
 {
-    CvSize size = {0, 0};
+    Size size = {0, 0};
 
     VOS_FUNCNAME("GetSize");
 
@@ -350,7 +350,7 @@ GetSize(const CvArr *arr)
 
     if (VOS_IS_MAT_HDR(arr))
     {
-        SysMat *mat = (SysMat *)arr;
+        Mat *mat = (Mat *)arr;
 
         size.width = mat->cols;
         size.height = mat->rows;
@@ -364,7 +364,7 @@ GetSize(const CvArr *arr)
     }
     else
     {
-        VOS_ERROR(VOS_StsBadArg, "Array should be SysMat or IplImage");
+        VOS_ERROR(VOS_StsBadArg, "Array should be Mat or IplImage");
     }
 
     __END__;
@@ -373,12 +373,12 @@ GetSize(const CvArr *arr)
 }
 
 /****************************************************************************************\
-*                      Operations on CvScalar and accessing array elements               *
+*                      Operations on Scalar and accessing array elements               *
 \****************************************************************************************/
 
-// Converts CvScalar to specified type
+// Converts Scalar to specified type
  void
-ScalarToRawData(const CvScalar *scalar, void *data, int type)
+ScalarToRawData(const Scalar *scalar, void *data, int type)
 {
     VOS_FUNCNAME("ScalarToRawData");
 
@@ -407,16 +407,16 @@ ScalarToRawData(const CvScalar *scalar, void *data, int type)
 }
 
 /****************************************************************************************\
-*                             Conversion to SysMat or IplImage                            *
+*                             Conversion to Mat or IplImage                            *
 \****************************************************************************************/
 
-// convert array (SysMat or IplImage) to SysMat
- SysMat *
-GetMat(const CvArr *array, SysMat *mat,
+// convert array (Mat or IplImage) to Mat
+ Mat *
+GetMat(const CvArr *array, Mat *mat,
          int *pCOI, int allowND)
 {
-    SysMat *result = 0;
-    SysMat *src = (SysMat *)array;
+    Mat *result = 0;
+    Mat *src = (Mat *)array;
     int coi = 0;
 
     VOS_FUNCNAME("GetMat");
@@ -431,7 +431,7 @@ GetMat(const CvArr *array, SysMat *mat,
         if (!src->data.ptr)
             VOS_ERROR(VOS_StsNullPtr, "The matrix has NULL data pointer");
 
-        result = (SysMat *)src;
+        result = (Mat *)src;
     }
     else if (VOS_IS_IMAGE_HDR(src))
     {
@@ -471,16 +471,16 @@ GetMat(const CvArr *array, SysMat *mat,
     return result;
 }
 
- SysMat *
-Reshape(const CvArr *array, SysMat *header,
+ Mat *
+Reshape(const CvArr *array, Mat *header,
           int new_cn, int new_rows)
 {
-    SysMat *result = 0;
+    Mat *result = 0;
     VOS_FUNCNAME("Reshape");
 
     __BEGIN__;
 
-    SysMat *mat = (SysMat *)array;
+    Mat *mat = (Mat *)array;
     int total_width, new_width;
 
     if (!header)
@@ -558,7 +558,7 @@ Reshape(const CvArr *array, SysMat *header,
 
 // create IplImage header
  IplImage *
-CreateImageHeader(CvSize size, int depth, int channels)
+CreateImageHeader(Size size, int depth, int channels)
 {
     IplImage *img = 0;
 
@@ -580,7 +580,7 @@ CreateImageHeader(CvSize size, int depth, int channels)
 
 // create IplImage header and allocate underlying data
  IplImage *
-cvCreateImage(CvSize size, int depth, int channels)
+cvCreateImage(Size size, int depth, int channels)
 {
     IplImage *img = 0;
 
@@ -602,7 +602,7 @@ cvCreateImage(CvSize size, int depth, int channels)
 
 // initalize IplImage header, allocated by the user
  IplImage *
-InitImageHeader(IplImage *image, CvSize size, int depth,
+InitImageHeader(IplImage *image, Size size, int depth,
                   int channels, int origin, int align)
 {
     IplImage *result = 0;

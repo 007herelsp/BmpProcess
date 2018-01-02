@@ -119,9 +119,9 @@ VOS_INLINE int cvAlign( int size, int align )
     return (size + align - 1) & -align;
 }
 
-VOS_INLINE  CvSize  cvGetMatSize( const SysMat* mat )
+VOS_INLINE  Size  cvGetMatSize( const Mat* mat )
 {
-    CvSize size = { mat->width, mat->height };
+    Size size = { mat->width, mat->height };
     return size;
 }
 

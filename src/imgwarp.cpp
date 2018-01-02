@@ -8,9 +8,9 @@
 static int
 cvSolve( const CvArr* A, const CvArr* b, CvArr* x, int method )
 {
-    SysMat* u = 0;
-    SysMat* v = 0;
-    SysMat* w = 0;
+    Mat* u = 0;
+    Mat* v = 0;
+    Mat* w = 0;
 
     uchar* buffer = 0;
     int local_alloc = 0;
@@ -20,9 +20,9 @@ cvSolve( const CvArr* A, const CvArr* b, CvArr* x, int method )
 
     __BEGIN__;
 
-    SysMat sstub, *src = (SysMat*)A;
-    SysMat dstub, *dst = (SysMat*)x;
-    SysMat bstub, *src2 = (SysMat*)b;
+    Mat sstub, *src = (Mat*)A;
+    Mat dstub, *dst = (Mat*)x;
+    Mat bstub, *src2 = (Mat*)b;
 
     if( !VOS_IS_MAT( src ))
         VOS_CALL( src = GetMat( src, &sstub ));
@@ -73,7 +73,7 @@ cvSolve( const CvArr* A, const CvArr* b, CvArr* x, int method )
 #define IVOS_WARP_CLIP_Y(y) ((unsigned)(y) < (unsigned)ssize.height ? (y) : (y) < 0 ? 0 : ssize.height - 1)
 
 static CvStatus icvWarpPerspective_Bilinear_8u_CnR(const uchar *src, int step,
-                                                   CvSize ssize, uchar *dst, int dststep, CvSize dsize,
+                                                   Size ssize, uchar *dst, int dststep, Size dsize,
                                                    const double *matrix, int cn, const uchar *fillval)
 {
     int x, y, k;
@@ -135,21 +135,21 @@ static CvStatus icvWarpPerspective_Bilinear_8u_CnR(const uchar *src, int step,
 
  void
 cvWarpPerspective(const CvArr *srcarr, CvArr *dstarr,
-                  const SysMat *matrix, int flags, CvScalar fillval)
+                  const Mat *matrix, int flags, Scalar fillval)
 {
     VOS_FUNCNAME("cvWarpPerspective");
 
     __BEGIN__;
 
-    SysMat srcstub, *src = (SysMat *)srcarr;
-    SysMat dststub, *dst = (SysMat *)dstarr;
+    Mat srcstub, *src = (Mat *)srcarr;
+    Mat dststub, *dst = (Mat *)dstarr;
     int type, depth, cn;
     double src_matrix[9], dst_matrix[9];
     double fillbuf[4];
-    SysMat A = cvMat(3, 3, VOS_64F, src_matrix),
+    Mat A = cvMat(3, 3, VOS_64F, src_matrix),
           invA = cvMat(3, 3, VOS_64F, dst_matrix);
 
-    CvSize ssize, dsize;
+    Size ssize, dsize;
     VOS_CALL(src = GetMat(srcarr, &srcstub));
     VOS_CALL(dst = GetMat(dstarr, &dststub));
 
@@ -187,10 +187,10 @@ cvWarpPerspective(const CvArr *srcarr, CvArr *dstarr,
     __END__;
 }
 
- SysMat *
-cvGetPerspectiveTransform(const CvPoint2D32f *src,
-                          const CvPoint2D32f *dst,
-                          SysMat *matrix)
+ Mat *
+cvGetPerspectiveTransform(const Point2D32f *src,
+                          const Point2D32f *dst,
+                          Mat *matrix)
 {
     VOS_FUNCNAME("cvGetPerspectiveTransform");
 
@@ -199,9 +199,9 @@ cvGetPerspectiveTransform(const CvPoint2D32f *src,
     double a[8][8];
     double b[8], x[9];
 
-    SysMat A = cvMat(8, 8, VOS_64FC1, a);
-    SysMat B = cvMat(8, 1, VOS_64FC1, b);
-    SysMat X = cvMat(8, 1, VOS_64FC1, x);
+    Mat A = cvMat(8, 8, VOS_64FC1, a);
+    Mat B = cvMat(8, 1, VOS_64FC1, b);
+    Mat X = cvMat(8, 1, VOS_64FC1, x);
 
     int i;
 

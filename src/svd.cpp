@@ -609,11 +609,11 @@ cvSVD(CvArr *aarr, CvArr *warr, CvArr *uarr, CvArr *varr, int flags)
 
     __BEGIN__;
 
-    SysMat astub, *a = (SysMat *)aarr;
-    SysMat wstub, *w = (SysMat *)warr;
-    SysMat ustub, *u;
-    SysMat vstub, *v;
-    SysMat tmat;
+    Mat astub, *a = (Mat *)aarr;
+    Mat wstub, *w = (Mat *)warr;
+    Mat ustub, *u;
+    Mat vstub, *v;
+    Mat tmat;
     uchar *tw = 0;
     int type;
     int a_buf_offset = 0, u_buf_offset = 0, buf_size, pix_size;
@@ -656,8 +656,8 @@ cvSVD(CvArr *aarr, CvArr *warr, CvArr *uarr, CvArr *varr, int flags)
         t_svd = 1;
     }
 
-    u = (SysMat *)uarr;
-    v = (SysMat *)varr;
+    u = (Mat *)uarr;
+    v = (Mat *)varr;
 
     w_is_mat = w_cols > 1 && w_rows > 1;
 
@@ -810,11 +810,11 @@ cvSVBkSb(const CvArr *warr, const CvArr *uarr,
 
     __BEGIN__;
 
-    SysMat wstub, *w = (SysMat *)warr;
-    SysMat bstub, *b = (SysMat *)barr;
-    SysMat xstub, *x = (SysMat *)xarr;
-    SysMat ustub, *u = (SysMat *)uarr;
-    SysMat vstub, *v = (SysMat *)varr;
+    Mat wstub, *w = (Mat *)warr;
+    Mat bstub, *b = (Mat *)barr;
+    Mat xstub, *x = (Mat *)xarr;
+    Mat ustub, *u = (Mat *)uarr;
+    Mat vstub, *v = (Mat *)varr;
     uchar *tw = 0;
     int type;
     int w_buf_offset = 0, t_buf_offset = 0;

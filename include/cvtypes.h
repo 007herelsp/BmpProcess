@@ -14,9 +14,7 @@ typedef struct _CvContourScanner* CvContourScanner;
 #define VOS_CHAIN_CODE               0
 #define VOS_CHAIN_APPROX_NONE        1
 #define VOS_CHAIN_APPROX_SIMPLE      2
-#define VOS_CHAIN_APPROX_TC89_L1     3
-#define VOS_CHAIN_APPROX_TC89_KCOS   4
-#define VOS_LINK_RUNS                5
+#define VOS_LINK_RUNS                3
 
 
 

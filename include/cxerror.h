@@ -53,7 +53,7 @@ typedef int CVStatus;
 #define VOS_StsObjectNotFound         -204 /* request can't be completed */
 #define VOS_StsUnmatchedFormats       -205 /* formats of input/output arrays differ */
 #define VOS_StsBadFlag                -206 /* flag is wrong or not supported */  
-#define VOS_StsBadPoint               -207 /* bad CvPoint */ 
+#define VOS_StsBadPoint               -207 /* bad Point */ 
 #define VOS_StsBadMask                -208 /* bad format of mask (neither 8uC1 nor 8sC1)*/
 #define VOS_StsUnmatchedSizes         -209 /* sizes of input/output structures do not match */
 #define VOS_StsUnsupportedFormat      -210 /* the data format/type is not supported by the function*/

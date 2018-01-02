@@ -31,9 +31,9 @@ CvMorphology::CvMorphology()
 }
 
 CvMorphology::CvMorphology(int _operation, int _max_width, int _src_dst_type,
-                           int _element_shape, SysMat *_element,
-                           CvSize _ksize, CvPoint _anchor,
-                           int _border_mode, CvScalar _border_value)
+                           int _element_shape, Mat *_element,
+                           Size _ksize, Point _anchor,
+                           int _border_mode, Scalar _border_value)
 {
     element = 0;
     el_sparse = 0;
@@ -55,9 +55,9 @@ CvMorphology::~CvMorphology()
 }
 
 void CvMorphology::init(int _operation, int _max_width, int _src_dst_type,
-                        int _element_shape, SysMat *_element,
-                        CvSize _ksize, CvPoint _anchor,
-                        int _border_mode, CvScalar _border_value)
+                        int _element_shape, Mat *_element,
+                        Size _ksize, Point _anchor,
+                        int _border_mode, Scalar _border_value)
 {
     VOS_FUNCNAME("CvMorphology::init");
 
@@ -110,7 +110,7 @@ void CvMorphology::init(int _operation, int _max_width, int _src_dst_type,
     {
         int i, j, k = 0;
         int cn = VOS_MAT_CN(src_type);
-        CvPoint *nz_loc;
+        Point *nz_loc;
 
         if (!(element && el_sparse &&
               _ksize.width == element->cols && _ksize.height == element->rows))
@@ -153,7 +153,7 @@ void CvMorphology::init(int _operation, int _max_width, int _src_dst_type,
             }
         }
 
-        nz_loc = (CvPoint *)el_sparse;
+        nz_loc = (Point *)el_sparse;
 
         for (i = 0; i < ksize.height; i++)
             for (j = 0; j < ksize.width; j++)
@@ -169,15 +169,15 @@ void CvMorphology::init(int _operation, int _max_width, int _src_dst_type,
 }
 
 void CvMorphology::init(int _max_width, int _src_type, int _dst_type,
-                        bool _is_separable, CvSize _ksize,
-                        CvPoint _anchor, int _border_mode,
-                        CvScalar _border_value)
+                        bool _is_separable, Size _ksize,
+                        Point _anchor, int _border_mode,
+                        Scalar _border_value)
 {
     CvBaseImageFilter::init(_max_width, _src_type, _dst_type, _is_separable,
                             _ksize, _anchor, _border_mode, _border_value);
 }
 
-void CvMorphology::start_process(CvSlice x_range, int width)
+void CvMorphology::start_process(Slice x_range, int width)
 {
     CvBaseImageFilter::start_process(x_range, width);
     if (el_shape == RECT)
@@ -246,7 +246,7 @@ int CvMorphology::fill_cyclic_buffer(const uchar *src, int src_step,
     return y - y0;
 }
 
-void CvMorphology::init_binary_element(SysMat *element, int element_shape, CvPoint anchor)
+void CvMorphology::init_binary_element(Mat *element, int element_shape, Point anchor)
 {
     VOS_FUNCNAME("CvMorphology::init_binary_element");
 
@@ -542,7 +542,7 @@ icv##name##Any_##flavor(const arrtype **src, arrtype *dst,                 \
         int width = state->get_width();                                    \
         int cn = VOS_MAT_CN(state->get_src_type());                         \
         int i, k;                                                          \
-        CvPoint *el_sparse = (CvPoint *)state->get_element_sparse_buf();   \
+        Point *el_sparse = (Point *)state->get_element_sparse_buf();   \
         int el_count = state->get_element_sparse_count();                  \
         const arrtype **el_ptr = (const arrtype **)(el_sparse + el_count); \
         const arrtype **el_end = el_ptr + el_count;                        \
@@ -645,7 +645,7 @@ cvCreateStructuringElementEx(int cols, int rows,
     }
     else
     {
-        SysMat el_hdr = cvMat(rows, cols, VOS_32SC1, element->values);
+        Mat el_hdr = cvMat(rows, cols, VOS_32SC1, element->values);
         VOS_CALL(CvMorphology::init_binary_element(&el_hdr,
                                                   shape, cvPoint(anchorX, anchorY)));
     }
@@ -679,18 +679,18 @@ icvMorphOp(const void *srcarr, void *dstarr, IplConvKernel *element,
     CvMorphology morphology;
     void *buffer = 0;
     int local_alloc = 0;
-    SysMat *temp = 0;
+    Mat *temp = 0;
 
     VOS_FUNCNAME("icvMorphOp");
 
     __BEGIN__;
 
     int i, coi1 = 0, coi2 = 0;
-    SysMat srcstub, *src = (SysMat *)srcarr;
-    SysMat dststub, *dst = (SysMat *)dstarr;
-    SysMat el_hdr, *el = 0;
-    CvSize size, el_size;
-    CvPoint el_anchor;
+    Mat srcstub, *src = (Mat *)srcarr;
+    Mat dststub, *dst = (Mat *)dstarr;
+    Mat el_hdr, *el = 0;
+    Size size, el_size;
+    Point el_anchor;
     int el_shape;
 
     if (!VOS_IS_MAT(src))

@@ -6,42 +6,42 @@
 \****************************************************************************************/
 /* the version for integer point coordinates */
 static CvStatus
-icvApproxPolyDP_32s(CvSeq *src_contour, int header_size,
-                    CvMemStorage *storage,
-                    CvSeq **dst_contour, float eps)
+icvApproxPolyDP_32s(Seq_t *src_contour, int header_size,
+                    MemStorage *storage,
+                    Seq_t **dst_contour, float eps)
 {
     int init_iters = 3;
-    CvSlice slice = {0, 0}, right_slice = {0, 0};
+    Slice slice = {0, 0}, right_slice = {0, 0};
     CvSeqReader reader, reader2;
     CvSeqWriter writer;
-    CvPoint start_pt = {INT_MIN, INT_MIN}, end_pt = {0, 0}, pt = {0, 0};
+    Point start_pt = {INT_MIN, INT_MIN}, end_pt = {0, 0}, pt = {0, 0};
     int i = 0, j, count = src_contour->total, new_count;
     int is_closed = VOS_IS_SEQ_CLOSED(src_contour);
     int le_eps = 0;
-    CvMemStorage *temp_storage = 0;
-    CvSeq *stack = 0;
+    MemStorage *temp_storage = 0;
+    Seq_t *stack = 0;
 
     assert(VOS_SEQ_ELTYPE(src_contour) == VOS_32SC2);
-    cvStartWriteSeq(src_contour->flags, header_size, sizeof(pt), storage, &writer);
+    StartWriteSeq(src_contour->flags, header_size, sizeof(pt), storage, &writer);
 
     if (src_contour->total == 0)
     {
-        *dst_contour = cvEndWriteSeq(&writer);
+        *dst_contour = EndWriteSeq(&writer);
         return VOS_OK;
     }
 
-    temp_storage = cvCreateChildMemStorage(storage);
+    temp_storage = CreateChildMemStorage(storage);
 
     assert(src_contour->first != 0);
-    stack = cvCreateSeq(0, sizeof(CvSeq), sizeof(CvSlice), temp_storage);
+    stack = CreateSeq(0, sizeof(Seq_t), sizeof(Slice), temp_storage);
     eps *= eps;
-    cvStartReadSeq(src_contour, &reader, 0);
+    StartReadSeq(src_contour, &reader, 0);
 
     if (!is_closed)
     {
         right_slice.start_index = count;
-        end_pt = *(CvPoint *)(reader.ptr);
-        start_pt = *(CvPoint *)cvGetSeqElem(src_contour, -1);
+        end_pt = *(Point *)(reader.ptr);
+        start_pt = *(Point *)GetSeqElem(src_contour, -1);
 
         if (start_pt.x != end_pt.x || start_pt.y != end_pt.y)
         {
@@ -165,9 +165,9 @@ icvApproxPolyDP_32s(CvSeq *src_contour, int header_size,
     if (!is_closed)
         VOS_WRITE_SEQ_ELEM(end_pt, writer);
 
-    *dst_contour = cvEndWriteSeq(&writer);
+    *dst_contour = EndWriteSeq(&writer);
 
-    cvStartReadSeq(*dst_contour, &reader, is_closed);
+    StartReadSeq(*dst_contour, &reader, is_closed);
     VOS_READ_SEQ_ELEM(start_pt, reader);
 
     reader2 = reader;
@@ -185,36 +185,36 @@ icvApproxPolyDP_32s(CvSeq *src_contour, int header_size,
         if ((double)dist * dist <= 0.5 * eps * ((double)dx * dx + (double)dy * dy) && dx != 0 && dy != 0)
         {
             new_count--;
-            *((CvPoint *)reader2.ptr) = start_pt = end_pt;
+            *((Point *)reader2.ptr) = start_pt = end_pt;
             VOS_NEXT_SEQ_ELEM(sizeof(pt), reader2);
             VOS_READ_SEQ_ELEM(pt, reader);
             i++;
             continue;
         }
-        *((CvPoint *)reader2.ptr) = start_pt = pt;
+        *((Point *)reader2.ptr) = start_pt = pt;
         VOS_NEXT_SEQ_ELEM(sizeof(pt), reader2);
         pt = end_pt;
     }
 
     if (!is_closed)
-        *((CvPoint *)reader2.ptr) = pt;
+        *((Point *)reader2.ptr) = pt;
 
     if (new_count < count)
         cvSeqPopMulti(*dst_contour, 0, count - new_count);
 
-    cvReleaseMemStorage(&temp_storage);
+    ReleaseMemStorage(&temp_storage);
 
     return VOS_OK;
 }
 
-CvSeq *
+Seq_t *
 cvApproxPoly(const void *array, int header_size,
-             CvMemStorage *storage, int method,
+             MemStorage *storage, int method,
              double parameter, int parameter2)
 {
-    CvSeq *dst_seq = 0;
-    CvSeq *prev_contour = 0, *parent = 0;
-    CvSeq *src_seq = 0;
+    Seq_t *dst_seq = 0;
+    Seq_t *prev_contour = 0, *parent = 0;
+    Seq_t *src_seq = 0;
     int recursive = 0;
 
     VOS_FUNCNAME("cvApproxPoly");
@@ -223,7 +223,7 @@ cvApproxPoly(const void *array, int header_size,
 
     if (VOS_IS_SEQ(array))
     {
-        src_seq = (CvSeq *)array;
+        src_seq = (Seq_t *)array;
         if (!VOS_IS_SEQ_POLYLINE(src_seq))
             VOS_ERROR(VOS_StsBadArg, "Unsupported sequence type");
 
@@ -277,7 +277,7 @@ cvApproxPoly(const void *array, int header_size,
 
     while (src_seq != 0)
     {
-        CvSeq *contour = 0;
+        Seq_t *contour = 0;
 
         FUN_CALL(icvApproxPolyDP_32s(src_seq, header_size, storage,
                                       &contour, (float)parameter));

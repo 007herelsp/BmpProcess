@@ -127,7 +127,7 @@ cvStdErrReport(int code, const char *func_name, const char *err_msg,
     case VOS_StsBadFlag:
         return "Bad flag (parameter or structure field)";
     case VOS_StsBadPoint:
-        return "Bad parameter of type CvPoint";
+        return "Bad parameter of type Point";
     case VOS_StsBadMask:
         return "Bad type of mask argument";
     case VOS_StsParseError:

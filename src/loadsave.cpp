@@ -11,13 +11,13 @@ icvLoadImage(const char *filename, int flags)
 {
     GrFmtBmpReader *reader = 0;
     IplImage *image = 0;
-    SysMat hdr, *matrix = 0;
+    Mat hdr, *matrix = 0;
 
     VOS_FUNCNAME("cvLoadImage");
 
     __BEGIN__;
 
-    CvSize size;
+    Size size;
     int iscolor;
     int cn;
 
@@ -70,13 +70,13 @@ cvSaveImage(const char *filename, const CvArr *arr)
 {
     int origin = 0;
     GrFmtBmpWriter *writer = 0;
-    SysMat *temp = 0, *temp2 = 0;
+    Mat *temp = 0, *temp2 = 0;
 
     VOS_FUNCNAME("cvSaveImage");
 
     __BEGIN__;
 
-    SysMat stub, *image;
+    Mat stub, *image;
     int channels, ipl_depth;
 
     if (!filename || strlen(filename) == 0)

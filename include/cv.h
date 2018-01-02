@@ -42,14 +42,14 @@ void  CvtColor( const CvArr* src, CvArr* dst, int code );
 
 
 /* Warps image with perspective (projective) transform */
-void  cvWarpPerspective( const CvArr* src, CvArr* dst, const SysMat* map_matrix,
+void  cvWarpPerspective( const CvArr* src, CvArr* dst, const Mat* map_matrix,
                                 int flags VOS_DEFAULT(VOS_INTER_LINEAR+VOS_WARP_FILL_OUTLIERS),
-                                CvScalar fillval VOS_DEFAULT(cvScalarAll(0)) );
+                                Scalar fillval VOS_DEFAULT(cvScalarAll(0)) );
 
 /* Computes perspective transform matrix for mapping src[i] to dst[i] (i=0,1,2,3) */
-SysMat* cvGetPerspectiveTransform( const CvPoint2D32f* src,
-                                         const CvPoint2D32f* dst,
-                                         SysMat* map_matrix );
+Mat* cvGetPerspectiveTransform( const Point2D32f* src,
+                                         const Point2D32f* dst,
+                                         Mat* map_matrix );
 
 
 
@@ -84,25 +84,25 @@ void  cvDilate( const CvArr* src, CvArr* dst,
 *                              Contours retrieving                                       *
 \****************************************************************************************/
 
-int cvFindContours( CvArr* image, CvMemStorage* storage, CvSeq** first_contour,
+int cvFindContours( CvArr* image, MemStorage* storage, Seq_t** first_contour,
                             int header_size VOS_DEFAULT(sizeof(CvContour)),
                             int mode VOS_DEFAULT(VOS_RETR_LIST),
                             int method VOS_DEFAULT(VOS_CHAIN_APPROX_SIMPLE),
-                            CvPoint offset VOS_DEFAULT(cvPoint(0,0)));
+                            Point offset VOS_DEFAULT(cvPoint(0,0)));
 
 
-CvContourScanner  cvStartFindContours( CvArr* image, CvMemStorage* storage,
+CvContourScanner  cvStartFindContours( CvArr* image, MemStorage* storage,
                             int header_size VOS_DEFAULT(sizeof(CvContour)),
                             int mode VOS_DEFAULT(VOS_RETR_LIST),
                             int method VOS_DEFAULT(VOS_CHAIN_APPROX_SIMPLE),
-                            CvPoint offset VOS_DEFAULT(cvPoint(0,0)));
+                            Point offset VOS_DEFAULT(cvPoint(0,0)));
 
 /* Retrieves next contour */
-CvSeq*  cvFindNextContour( CvContourScanner scanner );
+Seq_t*  cvFindNextContour( CvContourScanner scanner );
 
 
 /* Releases contour scanner and returns pointer to the first outer contour */
-CvSeq*  cvEndFindContours( CvContourScanner* scanner );
+Seq_t*  cvEndFindContours( CvContourScanner* scanner );
 
 
 /****************************************************************************************\
@@ -113,29 +113,29 @@ CvSeq*  cvEndFindContours( CvContourScanner* scanner );
 
 /* Approximates a single polygonal curve (contour) or
    a tree of polygonal curves (contours) */
-CvSeq*  cvApproxPoly( const void* src_seq,
-                             int header_size, CvMemStorage* storage,
+Seq_t*  cvApproxPoly( const void* src_seq,
+                             int header_size, MemStorage* storage,
                              int method, double parameter,
                              int parameter2 VOS_DEFAULT(0));
 
 
 /* Calculates perimeter of a contour or length of a part of contour */
 double  cvArcLength( const void* curve,
-                            CvSlice slice VOS_DEFAULT(VOS_WHOLE_SEQ),
+                            Slice slice VOS_DEFAULT(VOS_WHOLE_SEQ),
                             int is_closed VOS_DEFAULT(-1));
 #define cvContourPerimeter( contour ) cvArcLength( contour, VOS_WHOLE_SEQ, 1 )
 
 /* Calculates contour boundning rectangle (update=1) or
    just retrieves pre-calculated rectangle (update=0) */
-CvRect  cvBoundingRect( CvArr* points, int update VOS_DEFAULT(0) );
+Rect  cvBoundingRect( CvArr* points, int update VOS_DEFAULT(0) );
 
 /* Calculates area of a contour or contour segment */
 double  cvContourArea( const CvArr* contour,
-                              CvSlice slice VOS_DEFAULT(VOS_WHOLE_SEQ));
+                              Slice slice VOS_DEFAULT(VOS_WHOLE_SEQ));
 
 /* Finds minimum area rotated rectangle bounding a set of points */
-CvBox2D  cvMinAreaRect2( const CvArr* points,
-                                CvMemStorage* storage VOS_DEFAULT(NULL));
+Box2D  cvMinAreaRect2( const CvArr* points,
+                                MemStorage* storage VOS_DEFAULT(NULL));
 
 
 
@@ -149,7 +149,7 @@ CvBox2D  cvMinAreaRect2( const CvArr* points,
 #define VOS_COUNTER_CLOCKWISE 2
 
 /* Calculates exact convex hull of 2d point set */
-CvSeq* cvConvexHull2( const CvArr* input,
+Seq_t* cvConvexHull2( const CvArr* input,
                              void* hull_storage VOS_DEFAULT(NULL),
                              int orientation VOS_DEFAULT(VOS_CLOCKWISE),
                              int return_points VOS_DEFAULT(0));

@@ -8,16 +8,16 @@ cvSmooth(const void *srcarr, void *dstarr, int smooth_type,
 {
     CvSepFilter gaussian_filter;
 
-    SysMat *temp = 0;
+    Mat *temp = 0;
 
     VOS_FUNCNAME("cvSmooth");
 
     __BEGIN__;
 
     int coi1 = 0, coi2 = 0;
-    SysMat srcstub, *src = (SysMat *)srcarr;
-    SysMat dststub, *dst = (SysMat *)dstarr;
-    CvSize size;
+    Mat srcstub, *src = (Mat *)srcarr;
+    Mat dststub, *dst = (Mat *)dstarr;
+    Size size;
     int src_type, dst_type, depth;
     double sigma1 = 0, sigma2 = 0;
     bool have_ipp = false;
@@ -66,11 +66,11 @@ cvSmooth(const void *srcarr, void *dstarr, int smooth_type,
 
     if (smooth_type == VOS_GAUSSIAN)
     {
-        CvSize ksize = {param1, param2};
+        Size ksize = {param1, param2};
         float *kx = (float *)cvStackAlloc(ksize.width * sizeof(kx[0]));
         float *ky = (float *)cvStackAlloc(ksize.height * sizeof(ky[0]));
-        SysMat KX = cvMat(1, ksize.width, VOS_32F, kx);
-        SysMat KY = cvMat(1, ksize.height, VOS_32F, ky);
+        Mat KX = cvMat(1, ksize.width, VOS_32F, kx);
+        Mat KY = cvMat(1, ksize.height, VOS_32F, ky);
 
         CvSepFilter::init_gaussian_kernel(&KX, sigma1);
         if (ksize.width != ksize.height || fabs(sigma1 - sigma2) > FLT_EPSILON)

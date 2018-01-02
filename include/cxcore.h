@@ -31,17 +31,17 @@ cvFree_(void *ptr);
 
 /* Allocates and initializes IplImage header */
 IplImage *
-CreateImageHeader(CvSize size, int depth, int channels);
+CreateImageHeader(Size size, int depth, int channels);
 
 /* Inializes IplImage header */
 IplImage *
-InitImageHeader(IplImage *image, CvSize size, int depth,
+InitImageHeader(IplImage *image, Size size, int depth,
                   int channels, int origin VOS_DEFAULT(0),
                   int align VOS_DEFAULT(4));
 
 /* Creates IPL image (header and data) */
 IplImage *
-cvCreateImage(CvSize size, int depth, int channels);
+cvCreateImage(Size size, int depth, int channels);
 
 void
 ReleaseImageHeader(IplImage **image);
@@ -54,34 +54,34 @@ ReleaseImage(IplImage **image);
 IplImage *
 CloneImage(const IplImage *image);
 
-/* Allocates and initalizes SysMat header */
-SysMat *
+/* Allocates and initalizes Mat header */
+Mat *
 CreateMatHeader(int rows, int cols, int type);
 
 #define VOS_AUTOSTEP 0x7fffffff
 
-/* Initializes SysMat header */
-SysMat *
-InitMatHeader(SysMat *mat, int rows, int cols,
+/* Initializes Mat header */
+Mat *
+InitMatHeader(Mat *mat, int rows, int cols,
                 int type, void *data VOS_DEFAULT(NULL),
                 int step VOS_DEFAULT(VOS_AUTOSTEP));
 
-/* Allocates and initializes SysMat header and allocates data */
-SysMat *
+/* Allocates and initializes Mat header and allocates data */
+Mat *
 CreateMat(int rows, int cols, int type);
 
-/* Releases SysMat header and deallocates matrix data
+/* Releases Mat header and deallocates matrix data
    (reference counting is used for data) */
 void
-ReleaseMat(SysMat **mat);
+ReleaseMat(Mat **mat);
 
-/* Decrements SysMat data reference counter and deallocates the data if
+/* Decrements Mat data reference counter and deallocates the data if
    it reaches 0 */
 VOS_INLINE void cvDecRefData(CvArr *arr)
 {
     if (VOS_IS_MAT(arr))
     {
-        SysMat *mat = (SysMat *)arr;
+        Mat *mat = (Mat *)arr;
         mat->data.ptr = NULL;
         if (mat->refcount != NULL && --*mat->refcount == 0)
             cvFree(&mat->refcount);
@@ -95,20 +95,20 @@ VOS_INLINE void cvDecRefData(CvArr *arr)
 
 /* low-level scalar <-> raw data conversion functions */
 void
-ScalarToRawData(const CvScalar *scalar, void *data, int type);
+ScalarToRawData(const Scalar *scalar, void *data, int type);
 
 /**************** matrix iterator: used for n-ary operations on dense arrays *********/
 
 int
 GetElemType(const CvArr *arr);
 
-SysMat *
-GetMat(const CvArr *arr, SysMat *header,
+Mat *
+GetMat(const CvArr *arr, Mat *header,
          int *coi VOS_DEFAULT(NULL),
          int allowND VOS_DEFAULT(0));
 
-SysMat *
-Reshape(const CvArr *arr, SysMat *header,
+Mat *
+Reshape(const CvArr *arr, Mat *header,
           int new_cn, int new_rows VOS_DEFAULT(0));
 
 /* Allocates array data */
@@ -126,7 +126,7 @@ void
 SetData(CvArr *arr, void *data, int step);
 
 /* Returns width and height of array in elements */
-CvSize
+Size
 GetSize(const CvArr *arr);
 
 /* Copies source array to destination array */
@@ -184,99 +184,99 @@ cvSVBkSb(const CvArr *W, const CvArr *U,
 
 /* Calculates length of sequence slice (with support of negative indices). */
 int
-cvSliceLength(CvSlice slice, const CvSeq *seq);
+SliceLength(Slice slice, const Seq_t *seq);
 
 /* Creates new memory storage.
    block_size == 0 means that default,
    somewhat optimal size, is used (currently, it is 64K) */
-CvMemStorage *
-cvCreateMemStorage(int block_size VOS_DEFAULT(0));
+MemStorage *
+CreateMemStorage(int block_size VOS_DEFAULT(0));
 
 /* Creates a memory storage that will borrow memory blocks from parent storage */
-CvMemStorage *
-cvCreateChildMemStorage(CvMemStorage *parent);
+MemStorage *
+CreateChildMemStorage(MemStorage *parent);
 
 /* Releases memory storage. All the children of a parent must be released before
    the parent. A child storage returns all the blocks to parent when it is released */
 void
-cvReleaseMemStorage(CvMemStorage **storage);
+ReleaseMemStorage(MemStorage **storage);
 
-/* Clears memory storage. This is the only way(!!!) (besides cvRestoreMemStoragePos)
+/* Clears memory storage. This is the only way(!!!) (besides RestoreMemStoragePos)
    to reuse memory allocated for the storage - cvClearSeq,cvClearSet ...
    do not free any memory.
    A child storage returns all the blocks to the parent when it is cleared */
 void
-cvClearMemStorage(CvMemStorage *storage);
+ClearMemStorage(MemStorage *storage);
 
 /* Remember a storage "free memory" position */
 void
-cvSaveMemStoragePos(const CvMemStorage *storage, CvMemStoragePos *pos);
+SaveMemStoragePos(const MemStorage *storage, MemStoragePos *pos);
 
 /* Restore a storage "free memory" position */
 void
-cvRestoreMemStoragePos(CvMemStorage *storage, CvMemStoragePos *pos);
+RestoreMemStoragePos(MemStorage *storage, MemStoragePos *pos);
 
 /* Allocates continuous buffer of the specified size in the storage */
 void *
-cvMemStorageAlloc(CvMemStorage *storage, size_t size);
+MemStorageAlloc(MemStorage *storage, size_t size);
 
 /* Creates new empty sequence that will reside in the specified storage */
-CvSeq *
-cvCreateSeq(int seq_flags, int header_size,
-            int elem_size, CvMemStorage *storage);
+Seq_t *
+CreateSeq(int seq_flags, int header_size,
+            int elem_size, MemStorage *storage);
 
 /* Changes default size (granularity) of sequence blocks.
    The default size is ~1Kbyte */
 void
-cvSetSeqBlockSize(CvSeq *seq, int delta_elems);
+SetSeqBlockSize(Seq_t *seq, int delta_elems);
 
 /* Adds new element to the end of sequence. Returns pointer to the element */
 char *
-cvSeqPush(CvSeq *seq, void *element VOS_DEFAULT(NULL));
+cvSeqPush(Seq_t *seq, void *element VOS_DEFAULT(NULL));
 
 /* Removes the last element from sequence and optionally saves it */
 void
-cvSeqPop(CvSeq *seq, void *element VOS_DEFAULT(NULL));
+cvSeqPop(Seq_t *seq, void *element VOS_DEFAULT(NULL));
 
 #define VOS_FRONT 1
 #define VOS_BACK 0
 
 /* Removes several elements from the end of sequence and optionally saves them */
 void
-cvSeqPopMulti(CvSeq *seq, void *elements,
+cvSeqPopMulti(Seq_t *seq, void *elements,
               int count, int in_front VOS_DEFAULT(0));
 
 
 void
-cvClearSeq(CvSeq *seq);
+cvClearSeq(Seq_t *seq);
 
 
 char *
-cvGetSeqElem(const CvSeq *seq, int index);
+GetSeqElem(const Seq_t *seq, int index);
 
 /* Initializes sequence writer. The new elements will be added to the end of sequence */
 void
-cvStartAppendToSeq(CvSeq *seq, CvSeqWriter *writer);
+StartAppendToSeq(Seq_t *seq, CvSeqWriter *writer);
 
-/* Combination of cvCreateSeq and cvStartAppendToSeq */
+/* Combination of CreateSeq and StartAppendToSeq */
 void
-cvStartWriteSeq(int seq_flags, int header_size,
-                int elem_size, CvMemStorage *storage,
+StartWriteSeq(int seq_flags, int header_size,
+                int elem_size, MemStorage *storage,
                 CvSeqWriter *writer);
 
 
-CvSeq *
-cvEndWriteSeq(CvSeqWriter *writer);
+Seq_t *
+EndWriteSeq(CvSeqWriter *writer);
 
 /* Updates sequence header. May be useful to get access to some of previously
-   written elements via cvGetSeqElem or sequence reader */
+   written elements via GetSeqElem or sequence reader */
 void
-cvFlushSeqWriter(CvSeqWriter *writer);
+FlushSeqWriter(CvSeqWriter *writer);
 
 /* Initializes sequence reader.
    The sequence can be read in forward or backward direction */
 void
-cvStartReadSeq(const CvSeq *seq, CvSeqReader *reader,
+StartReadSeq(const Seq_t *seq, CvSeqReader *reader,
                int reverse VOS_DEFAULT(0));
 
 /* Returns current sequence reader position (currently observed sequence element) */
@@ -293,17 +293,17 @@ SetSeqReaderPos(CvSeqReader *reader, int index,
 void
 cvChangeSeqBlock(void *reader, int direction);
 void
-cvCreateSeqBlock(CvSeqWriter *writer);
+CreateSeqBlock(CvSeqWriter *writer);
 
 /* Creates a new set */
-CvSet *
+Set *
 CreateSet(int set_flags, int header_size,
-            int elem_size, CvMemStorage *storage);
+            int elem_size, MemStorage *storage);
 
 /* Adds new element to the set and returns pointer to it */
 int
-cvSetAdd(CvSet *set_header, CvSetElem *elem VOS_DEFAULT(NULL),
-         CvSetElem **inserted_elem VOS_DEFAULT(NULL));
+cvSetAdd(Set *set_header, SetElem_t *elem VOS_DEFAULT(NULL),
+         SetElem_t **inserted_elem VOS_DEFAULT(NULL));
 
 int
 cvStdErrReport(int status, const char *func_name, const char *err_msg,

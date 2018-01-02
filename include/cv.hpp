@@ -37,21 +37,21 @@ public:
        before initialization clear() is called if necessary.
     */
     virtual void init( int _max_width, int _src_type, int _dst_type,
-                       bool _is_separable, CvSize _ksize,
-                       CvPoint _anchor=cvPoint(-1,-1),
+                       bool _is_separable, Size _ksize,
+                       Point _anchor=cvPoint(-1,-1),
                        int _border_mode=IPL_BORDER_REPLICATE,
-                       CvScalar _border_value=cvScalarAll(0) );
+                       Scalar _border_value=cvScalarAll(0) );
     /* releases all the internal buffers.
        for the further use of the object, init() needs to be called. */
     virtual void clear();
    
-    virtual int process( const SysMat* _src, SysMat* _dst,
-                         CvRect _src_roi=cvRect(0,0,-1,-1),
-                         CvPoint _dst_origin=cvPoint(0,0), int _flags=0 );
+    virtual int process( const Mat* _src, Mat* _dst,
+                         Rect _src_roi=cvRect(0,0,-1,-1),
+                         Point _dst_origin=cvPoint(0,0), int _flags=0 );
     /* retrieve various parameters of the filtering object */
     int get_src_type() const { return src_type; }
     int get_dst_type() const { return dst_type; }
-    CvSize get_kernel_size() const { return ksize; }
+    Size get_kernel_size() const { return ksize; }
     int get_width() const { return prev_x_range.end_index - prev_x_range.start_index; }
     CvRowFilterFunc get_x_filter_func() const { return x_func; }
     CvColumnFilterFunc get_y_filter_func() const { return y_func; }
@@ -62,7 +62,7 @@ protected:
     /* it is called (not always) from process when _phase=VOS_START or VOS_WHOLE.
        the method initializes ring buffer (buf_end, buf_head, buf_tail, buf_count, rows),
        prev_width, prev_x_range, const_row, border_tab, border_tab_sz* */
-    virtual void start_process( CvSlice x_range, int width );
+    virtual void start_process( Slice x_range, int width );
     /* forms pointers to "virtual rows" above or below the processed roi using the specified
        border mode */
     virtual void make_y_border( int row_count, int top_rows, int bottom_rows );
@@ -88,15 +88,15 @@ protected:
     int buf_size, buf_step, buf_count, buf_max_count;
 
     bool is_separable;
-    CvSize ksize;
-    CvPoint anchor;
+    Size ksize;
+    Point anchor;
     int max_ky, border_mode;
-    CvScalar border_value;
+    Scalar border_value;
     uchar* const_row;
     int* border_tab;
     int border_tab_sz1, border_tab_sz;
 
-    CvSlice prev_x_range;
+    Slice prev_x_range;
     int prev_width;
 };
 
@@ -110,10 +110,10 @@ public:
     virtual ~CvSepFilter();
 
     virtual void init( int _max_width, int _src_type, int _dst_type,
-                       const SysMat* _kx, const SysMat* _ky,
-                       CvPoint _anchor=cvPoint(-1,-1),
+                       const Mat* _kx, const Mat* _ky,
+                       Point _anchor=cvPoint(-1,-1),
                        int _border_mode=IPL_BORDER_REPLICATE,
-                       CvScalar _border_value=cvScalarAll(0) );
+                       Scalar _border_value=cvScalarAll(0) );
     virtual void init_deriv( int _max_width, int _src_type, int _dst_type,
                              int dx, int dy, int aperture_size, int flags=0 );
     virtual void init_gaussian( int _max_width, int _src_type, int _dst_type,
@@ -121,25 +121,25 @@ public:
 
     /* dummy method to avoid compiler warnings */
     virtual void init( int _max_width, int _src_type, int _dst_type,
-                       bool _is_separable, CvSize _ksize,
-                       CvPoint _anchor=cvPoint(-1,-1),
+                       bool _is_separable, Size _ksize,
+                       Point _anchor=cvPoint(-1,-1),
                        int _border_mode=IPL_BORDER_REPLICATE,
-                       CvScalar _border_value=cvScalarAll(0) );
+                       Scalar _border_value=cvScalarAll(0) );
 
     virtual void clear();
-    const SysMat* get_x_kernel() const { return kx; }
-    const SysMat* get_y_kernel() const { return ky; }
+    const Mat* get_x_kernel() const { return kx; }
+    const Mat* get_y_kernel() const { return ky; }
     int get_x_kernel_flags() const { return kx_flags; }
     int get_y_kernel_flags() const { return ky_flags; }
 
     enum { GENERIC=0, ASYMMETRICAL=1, SYMMETRICAL=2, POSITIVE=4, SUM_TO_1=8, INTEGER=16 };
     enum { NORMALIZE_KERNEL=1, FLIP_KERNEL=2 };
 
-    static void init_gaussian_kernel( SysMat* kernel, double sigma=-1 );
-    static void init_sobel_kernel( SysMat* _kx, SysMat* _ky, int dx, int dy, int flags=0 );
+    static void init_gaussian_kernel( Mat* kernel, double sigma=-1 );
+    static void init_sobel_kernel( Mat* _kx, Mat* _ky, int dx, int dy, int flags=0 );
 
 protected:
-    SysMat *kx, *ky;
+    Mat *kx, *ky;
     int kx_flags, ky_flags;
 };
 
@@ -152,26 +152,26 @@ class  CvMorphology : public CvBaseImageFilter
 public:
     CvMorphology();
     CvMorphology( int _operation, int _max_width, int _src_dst_type,
-                  int _element_shape, SysMat* _element,
-                  CvSize _ksize=cvSize(0,0), CvPoint _anchor=cvPoint(-1,-1),
+                  int _element_shape, Mat* _element,
+                  Size _ksize=cvSize(0,0), Point _anchor=cvPoint(-1,-1),
                   int _border_mode=IPL_BORDER_REPLICATE,
-                  CvScalar _border_value=cvScalarAll(0) );
+                  Scalar _border_value=cvScalarAll(0) );
     virtual ~CvMorphology();
     virtual void init( int _operation, int _max_width, int _src_dst_type,
-                       int _element_shape, SysMat* _element,
-                       CvSize _ksize=cvSize(0,0), CvPoint _anchor=cvPoint(-1,-1),
+                       int _element_shape, Mat* _element,
+                       Size _ksize=cvSize(0,0), Point _anchor=cvPoint(-1,-1),
                        int _border_mode=IPL_BORDER_REPLICATE,
-                       CvScalar _border_value=cvScalarAll(0) );
+                       Scalar _border_value=cvScalarAll(0) );
 
     /* dummy method to avoid compiler warnings */
     virtual void init( int _max_width, int _src_type, int _dst_type,
-                       bool _is_separable, CvSize _ksize,
-                       CvPoint _anchor=cvPoint(-1,-1),
+                       bool _is_separable, Size _ksize,
+                       Point _anchor=cvPoint(-1,-1),
                        int _border_mode=IPL_BORDER_REPLICATE,
-                       CvScalar _border_value=cvScalarAll(0) );
+                       Scalar _border_value=cvScalarAll(0) );
 
     virtual void clear();
-    const SysMat* get_element() const { return element; }
+    const Mat* get_element() const { return element; }
     int get_element_shape() const { return el_shape; }
     int get_operation() const { return operation; }
     uchar* get_element_sparse_buf() { return el_sparse; }
@@ -180,17 +180,17 @@ public:
     enum { RECT=0, CROSS=1, ELLIPSE=2, CUSTOM=100, BINARY = 0, GRAYSCALE=256 };
     enum { ERODE=0, DILATE=1 };
 
-    static void init_binary_element( SysMat* _element, int _element_shape,
-                                     CvPoint _anchor=cvPoint(-1,-1) );
+    static void init_binary_element( Mat* _element, int _element_shape,
+                                     Point _anchor=cvPoint(-1,-1) );
 protected:
 
-    void start_process( CvSlice x_range, int width );
+    void start_process( Slice x_range, int width );
     int fill_cyclic_buffer( const uchar* src, int src_step,
                             int y0, int y1, int y2 );
     uchar* el_sparse;
     int el_sparse_count;
 
-    SysMat *element;
+    Mat *element;
     int el_shape;
     int operation;
 };

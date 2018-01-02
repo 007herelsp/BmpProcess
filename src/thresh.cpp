@@ -2,7 +2,7 @@
 
 static CvStatus VOS_STDCALL
 icvThresh_8u_C1R(const uchar *src, int src_step, uchar *dst, int dst_step,
-                 CvSize roi, uchar thresh, uchar maxval, int type)
+                 Size roi, uchar thresh, uchar maxval, int type)
 {
     int i, j;
     uchar tab[256];
@@ -46,11 +46,11 @@ cvThreshold(const void *srcarr, void *dstarr, double thresh, double maxval, int 
 
     __BEGIN__;
 
-    CvSize roi;
+    Size roi;
     int src_step, dst_step;
-    SysMat src_stub, *src = (SysMat *)srcarr;
-    SysMat dst_stub, *dst = (SysMat *)dstarr;
-    SysMat src0, dst0;
+    Mat src_stub, *src = (Mat *)srcarr;
+    Mat dst_stub, *dst = (Mat *)dstarr;
+    Mat src0, dst0;
     int coi1 = 0, coi2 = 0;
     int ithresh, imaxval, cn;
     bool use_otsu;
