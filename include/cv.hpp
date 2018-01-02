@@ -18,7 +18,7 @@
 typedef void (*CvRowFilterFunc)( const uchar* src, uchar* dst, void* params );
 typedef void (*CvColumnFilterFunc)( uchar** src, uchar* dst, int dst_step, int count, void* params );
 
-class VOS_EXPORTS CvBaseImageFilter
+class  CvBaseImageFilter
 {
 public:
     CvBaseImageFilter();
@@ -45,7 +45,7 @@ public:
        for the further use of the object, init() needs to be called. */
     virtual void clear();
    
-    virtual int process( const CvMat* _src, CvMat* _dst,
+    virtual int process( const SysMat* _src, SysMat* _dst,
                          CvRect _src_roi=cvRect(0,0,-1,-1),
                          CvPoint _dst_origin=cvPoint(0,0), int _flags=0 );
     /* retrieve various parameters of the filtering object */
@@ -102,7 +102,7 @@ protected:
 
 
 /* Derived class, for linear separable filtering. */
-class VOS_EXPORTS CvSepFilter : public CvBaseImageFilter
+class  CvSepFilter : public CvBaseImageFilter
 {
 public:
     CvSepFilter();
@@ -110,7 +110,7 @@ public:
     virtual ~CvSepFilter();
 
     virtual void init( int _max_width, int _src_type, int _dst_type,
-                       const CvMat* _kx, const CvMat* _ky,
+                       const SysMat* _kx, const SysMat* _ky,
                        CvPoint _anchor=cvPoint(-1,-1),
                        int _border_mode=IPL_BORDER_REPLICATE,
                        CvScalar _border_value=cvScalarAll(0) );
@@ -127,19 +127,19 @@ public:
                        CvScalar _border_value=cvScalarAll(0) );
 
     virtual void clear();
-    const CvMat* get_x_kernel() const { return kx; }
-    const CvMat* get_y_kernel() const { return ky; }
+    const SysMat* get_x_kernel() const { return kx; }
+    const SysMat* get_y_kernel() const { return ky; }
     int get_x_kernel_flags() const { return kx_flags; }
     int get_y_kernel_flags() const { return ky_flags; }
 
     enum { GENERIC=0, ASYMMETRICAL=1, SYMMETRICAL=2, POSITIVE=4, SUM_TO_1=8, INTEGER=16 };
     enum { NORMALIZE_KERNEL=1, FLIP_KERNEL=2 };
 
-    static void init_gaussian_kernel( CvMat* kernel, double sigma=-1 );
-    static void init_sobel_kernel( CvMat* _kx, CvMat* _ky, int dx, int dy, int flags=0 );
+    static void init_gaussian_kernel( SysMat* kernel, double sigma=-1 );
+    static void init_sobel_kernel( SysMat* _kx, SysMat* _ky, int dx, int dy, int flags=0 );
 
 protected:
-    CvMat *kx, *ky;
+    SysMat *kx, *ky;
     int kx_flags, ky_flags;
 };
 
@@ -147,18 +147,18 @@ protected:
 
 
 /* basic morphological operations: erosion & dilation */
-class VOS_EXPORTS CvMorphology : public CvBaseImageFilter
+class  CvMorphology : public CvBaseImageFilter
 {
 public:
     CvMorphology();
     CvMorphology( int _operation, int _max_width, int _src_dst_type,
-                  int _element_shape, CvMat* _element,
+                  int _element_shape, SysMat* _element,
                   CvSize _ksize=cvSize(0,0), CvPoint _anchor=cvPoint(-1,-1),
                   int _border_mode=IPL_BORDER_REPLICATE,
                   CvScalar _border_value=cvScalarAll(0) );
     virtual ~CvMorphology();
     virtual void init( int _operation, int _max_width, int _src_dst_type,
-                       int _element_shape, CvMat* _element,
+                       int _element_shape, SysMat* _element,
                        CvSize _ksize=cvSize(0,0), CvPoint _anchor=cvPoint(-1,-1),
                        int _border_mode=IPL_BORDER_REPLICATE,
                        CvScalar _border_value=cvScalarAll(0) );
@@ -171,7 +171,7 @@ public:
                        CvScalar _border_value=cvScalarAll(0) );
 
     virtual void clear();
-    const CvMat* get_element() const { return element; }
+    const SysMat* get_element() const { return element; }
     int get_element_shape() const { return el_shape; }
     int get_operation() const { return operation; }
     uchar* get_element_sparse_buf() { return el_sparse; }
@@ -180,7 +180,7 @@ public:
     enum { RECT=0, CROSS=1, ELLIPSE=2, CUSTOM=100, BINARY = 0, GRAYSCALE=256 };
     enum { ERODE=0, DILATE=1 };
 
-    static void init_binary_element( CvMat* _element, int _element_shape,
+    static void init_binary_element( SysMat* _element, int _element_shape,
                                      CvPoint _anchor=cvPoint(-1,-1) );
 protected:
 
@@ -190,7 +190,7 @@ protected:
     uchar* el_sparse;
     int el_sparse_count;
 
-    CvMat *element;
+    SysMat *element;
     int el_shape;
     int operation;
 };

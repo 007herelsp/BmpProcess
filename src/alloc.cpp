@@ -31,7 +31,7 @@ icvDefaultFree( void* ptr)
 }
 
 
-VOS_IMPL  void*  cvAlloc( size_t size )
+ void*  cvAlloc( size_t size )
 {
     void* ptr = 0;
     
@@ -53,7 +53,7 @@ VOS_IMPL  void*  cvAlloc( size_t size )
 }
 
 
-VOS_IMPL  void  cvFree_( void* ptr )
+ void  cvFree_( void* ptr )
 {
     VOS_FUNCNAME( "cvFree_" );
 

@@ -31,7 +31,7 @@ CvMorphology::CvMorphology()
 }
 
 CvMorphology::CvMorphology(int _operation, int _max_width, int _src_dst_type,
-                           int _element_shape, CvMat *_element,
+                           int _element_shape, SysMat *_element,
                            CvSize _ksize, CvPoint _anchor,
                            int _border_mode, CvScalar _border_value)
 {
@@ -44,7 +44,7 @@ CvMorphology::CvMorphology(int _operation, int _max_width, int _src_dst_type,
 
 void CvMorphology::clear()
 {
-    cvReleaseMat(&element);
+    ReleaseMat(&element);
     cvFree(&el_sparse);
     CvBaseImageFilter::clear();
 }
@@ -55,7 +55,7 @@ CvMorphology::~CvMorphology()
 }
 
 void CvMorphology::init(int _operation, int _max_width, int _src_dst_type,
-                        int _element_shape, CvMat *_element,
+                        int _element_shape, SysMat *_element,
                         CvSize _ksize, CvPoint _anchor,
                         int _border_mode, CvScalar _border_value)
 {
@@ -115,9 +115,9 @@ void CvMorphology::init(int _operation, int _max_width, int _src_dst_type,
         if (!(element && el_sparse &&
               _ksize.width == element->cols && _ksize.height == element->rows))
         {
-            cvReleaseMat(&element);
+            ReleaseMat(&element);
             cvFree(&el_sparse);
-            VOS_CALL(element = cvCreateMat(_ksize.height, _ksize.width, VOS_8UC1));
+            VOS_CALL(element = CreateMat(_ksize.height, _ksize.width, VOS_8UC1));
             VOS_CALL(el_sparse = (uchar *)cvAlloc(
                         ksize.width * ksize.height * (2 * sizeof(int) + sizeof(uchar *))));
         }
@@ -246,7 +246,7 @@ int CvMorphology::fill_cyclic_buffer(const uchar *src, int src_step,
     return y - y0;
 }
 
-void CvMorphology::init_binary_element(CvMat *element, int element_shape, CvPoint anchor)
+void CvMorphology::init_binary_element(SysMat *element, int element_shape, CvPoint anchor)
 {
     VOS_FUNCNAME("CvMorphology::init_binary_element");
 
@@ -604,7 +604,7 @@ IVOS_MORPH_ANY(Dilate, 8u, uchar, int, VOS_CALC_MAX, VOS_NOP)
 
 /////////////////////////////////// External Interface /////////////////////////////////////
 
-VOS_IMPL IplConvKernel *
+ IplConvKernel *
 cvCreateStructuringElementEx(int cols, int rows,
                              int anchorX, int anchorY,
                              int shape, int *values)
@@ -645,7 +645,7 @@ cvCreateStructuringElementEx(int cols, int rows,
     }
     else
     {
-        CvMat el_hdr = cvMat(rows, cols, VOS_32SC1, element->values);
+        SysMat el_hdr = cvMat(rows, cols, VOS_32SC1, element->values);
         VOS_CALL(CvMorphology::init_binary_element(&el_hdr,
                                                   shape, cvPoint(anchorX, anchorY)));
     }
@@ -658,7 +658,7 @@ cvCreateStructuringElementEx(int cols, int rows,
     return element;
 }
 
-VOS_IMPL void
+ void
 cvReleaseStructuringElement(IplConvKernel **element)
 {
     VOS_FUNCNAME("cvReleaseStructuringElement");
@@ -679,22 +679,22 @@ icvMorphOp(const void *srcarr, void *dstarr, IplConvKernel *element,
     CvMorphology morphology;
     void *buffer = 0;
     int local_alloc = 0;
-    CvMat *temp = 0;
+    SysMat *temp = 0;
 
     VOS_FUNCNAME("icvMorphOp");
 
     __BEGIN__;
 
     int i, coi1 = 0, coi2 = 0;
-    CvMat srcstub, *src = (CvMat *)srcarr;
-    CvMat dststub, *dst = (CvMat *)dstarr;
-    CvMat el_hdr, *el = 0;
+    SysMat srcstub, *src = (SysMat *)srcarr;
+    SysMat dststub, *dst = (SysMat *)dstarr;
+    SysMat el_hdr, *el = 0;
     CvSize size, el_size;
     CvPoint el_anchor;
     int el_shape;
 
     if (!VOS_IS_MAT(src))
-        VOS_CALL(src = cvGetMat(src, &srcstub, &coi1));
+        VOS_CALL(src = GetMat(src, &srcstub, &coi1));
 
     if (src != &srcstub)
     {
@@ -706,7 +706,7 @@ icvMorphOp(const void *srcarr, void *dstarr, IplConvKernel *element,
         dst = src;
     else
     {
-        VOS_CALL(dst = cvGetMat(dst, &dststub, &coi2));
+        VOS_CALL(dst = GetMat(dst, &dststub, &coi2));
 
         if (!VOS_ARE_TYPES_EQ(src, dst))
             VOS_ERROR(VOS_StsUnmatchedFormats, "");
@@ -777,16 +777,16 @@ icvMorphOp(const void *srcarr, void *dstarr, IplConvKernel *element,
     if (!local_alloc)
         cvFree(&buffer);
 
-    cvReleaseMat(&temp);
+    ReleaseMat(&temp);
 }
 
-VOS_IMPL void
+ void
 cvErode(const void *src, void *dst, IplConvKernel *element, int iterations)
 {
     icvMorphOp(src, dst, element, iterations, 0);
 }
 
-VOS_IMPL void
+ void
 cvDilate(const void *src, void *dst, IplConvKernel *element, int iterations)
 {
     icvMorphOp(src, dst, element, iterations, 1);

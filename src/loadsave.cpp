@@ -11,7 +11,7 @@ icvLoadImage(const char *filename, int flags)
 {
     GrFmtBmpReader *reader = 0;
     IplImage *image = 0;
-    CvMat hdr, *matrix = 0;
+    SysMat hdr, *matrix = 0;
 
     VOS_FUNCNAME("cvLoadImage");
 
@@ -39,11 +39,11 @@ icvLoadImage(const char *filename, int flags)
     int type;
     type = IPL_DEPTH_8U;
     VOS_CALL(image = cvCreateImage(size, type, cn));
-    matrix = cvGetMat(image, &hdr);
+    matrix = GetMat(image, &hdr);
 
     if (!reader->ReadData(matrix->data.ptr, matrix->step, iscolor))
     {
-        cvReleaseImage(&image);
+        ReleaseImage(&image);
         EXIT;
     }
 
@@ -53,36 +53,36 @@ icvLoadImage(const char *filename, int flags)
 
     if (cvGetErrStatus() < 0)
     {
-        cvReleaseImage(&image);
+        ReleaseImage(&image);
     }
 
     return (void *)image;
 }
 
-VOS_IMPL IplImage *
+ IplImage *
 cvLoadImage(const char *filename, int iscolor)
 {
     return (IplImage *)icvLoadImage(filename, iscolor);
 }
 
-VOS_IMPL int
+ int
 cvSaveImage(const char *filename, const CvArr *arr)
 {
     int origin = 0;
     GrFmtBmpWriter *writer = 0;
-    CvMat *temp = 0, *temp2 = 0;
+    SysMat *temp = 0, *temp2 = 0;
 
     VOS_FUNCNAME("cvSaveImage");
 
     __BEGIN__;
 
-    CvMat stub, *image;
+    SysMat stub, *image;
     int channels, ipl_depth;
 
     if (!filename || strlen(filename) == 0)
         VOS_ERROR(VOS_StsNullPtr, "null filename");
 
-    VOS_CALL(image = cvGetMat(arr, &stub));
+    VOS_CALL(image = GetMat(arr, &stub));
 
     if (VOS_IS_IMAGE(arr))
         origin = ((IplImage *)arr)->origin;
@@ -109,8 +109,8 @@ cvSaveImage(const char *filename, const CvArr *arr)
     __END__;
 
     delete writer;
-    cvReleaseMat(&temp);
-    cvReleaseMat(&temp2);
+    ReleaseMat(&temp);
+    ReleaseMat(&temp2);
 
     return cvGetErrStatus() >= 0;
 }

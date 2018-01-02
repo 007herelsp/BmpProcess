@@ -1,14 +1,14 @@
 #include "_cxcore.h"
 
-VOS_IMPL void
+ void
 cvConvertScale( const void* srcarr, void* dstarr,
                 double scale, double shift )
 {
     VOS_FUNCNAME( "cvConvertScale" );
 
     __BEGIN__;
-    CvMat  *src = (CvMat*)srcarr;
-    CvMat  *dst = (CvMat*)dstarr;
+    SysMat  *src = (SysMat*)srcarr;
+    SysMat  *dst = (SysMat*)dstarr;
 
     int no_scale = scale == 1 && shift == 0;
 

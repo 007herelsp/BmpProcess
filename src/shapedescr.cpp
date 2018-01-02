@@ -1,7 +1,7 @@
 
 #include "_cv.h"
 
-VOS_IMPL double
+ double
 cvArcLength(const void *array, CvSlice slice, int is_closed)
 {
     double perimeter = 0;
@@ -13,7 +13,7 @@ cvArcLength(const void *array, CvSlice slice, int is_closed)
     int i, j = 0, count;
     const int N = 16;
     float buf[N];
-    CvMat buffer = cvMat(1, N, VOS_32F, buf);
+    SysMat buffer = cvMat(1, N, VOS_32F, buf);
     CvSeqReader reader;
     CvSeq *contour = 0;
 
@@ -353,7 +353,7 @@ static CvStatus icvContourSecArea(CvSeq *contour, CvSlice slice, double *area)
 }
 
 /* external contour area function */
-VOS_IMPL double
+ double
 cvContourArea(const void *array, CvSlice slice)
 {
     double area = 0;
@@ -392,7 +392,7 @@ cvContourArea(const void *array, CvSlice slice)
 }
 
 /* Calculates bounding rectagnle of a point set or retrieves already calculated */
-VOS_IMPL CvRect
+ CvRect
 cvBoundingRect(CvArr *array, int update)
 {
     CvSeqReader reader;

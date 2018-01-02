@@ -9,43 +9,43 @@ static const signed char icvDepthToType[] =
     icvDepthToType[(((depth)&255) >> 2) + ((depth) < 0)]
 
 /****************************************************************************************\
-*                               CvMat creation and basic operations                      *
+*                               SysMat creation and basic operations                      *
 \****************************************************************************************/
 
-// Creates CvMat and underlying data
-VOS_IMPL CvMat *
-cvCreateMat(int height, int width, int type)
+// Creates SysMat and underlying data
+ SysMat *
+CreateMat(int height, int width, int type)
 {
-    CvMat *arr = 0;
+    SysMat *arr = 0;
 
-    VOS_FUNCNAME("cvCreateMat");
+    VOS_FUNCNAME("CreateMat");
 
     __BEGIN__;
 
-    VOS_CALL(arr = cvCreateMatHeader(height, width, type));
-    VOS_CALL(cvCreateData(arr));
+    VOS_CALL(arr = CreateMatHeader(height, width, type));
+    VOS_CALL(CreateData(arr));
 
     __END__;
 
     if (cvGetErrStatus() < 0)
-        cvReleaseMat(&arr);
+        ReleaseMat(&arr);
 
     return arr;
 }
 
-static void icvCheckHuge(CvMat *arr)
+static void icvCheckHuge(SysMat *arr)
 {
     if ((int64)arr->step * arr->rows > INT_MAX)
         arr->type &= ~VOS_MAT_CONT_FLAG;
 }
 
-// Creates CvMat header only
-VOS_IMPL CvMat *
-cvCreateMatHeader(int rows, int cols, int type)
+// Creates SysMat header only
+ SysMat *
+CreateMatHeader(int rows, int cols, int type)
 {
-    CvMat *arr = 0;
+    SysMat *arr = 0;
 
-    VOS_FUNCNAME("cvCreateMatHeader");
+    VOS_FUNCNAME("CreateMatHeader");
 
     __BEGIN__;
 
@@ -59,7 +59,7 @@ cvCreateMatHeader(int rows, int cols, int type)
     if (min_step <= 0)
         VOS_ERROR(VOS_StsUnsupportedFormat, "Invalid matrix type");
 
-    VOS_CALL(arr = (CvMat *)cvAlloc(sizeof(*arr)));
+    VOS_CALL(arr = (SysMat *)cvAlloc(sizeof(*arr)));
 
     arr->step = rows == 1 ? 0 : cvAlign(min_step, VOS_DEFAULT_MAT_ROW_ALIGN);
     arr->type = VOS_MAT_MAGIC_VAL | type |
@@ -75,17 +75,17 @@ cvCreateMatHeader(int rows, int cols, int type)
     __END__;
 
     if (cvGetErrStatus() < 0)
-        cvReleaseMat(&arr);
+        ReleaseMat(&arr);
 
     return arr;
 }
 
-// Initializes CvMat header, allocated by the user
-VOS_IMPL CvMat *
-cvInitMatHeader(CvMat *arr, int rows, int cols,
+// Initializes SysMat header, allocated by the user
+ SysMat *
+InitMatHeader(SysMat *arr, int rows, int cols,
                 int type, void *data, int step)
 {
-    VOS_FUNCNAME("cvInitMatHeader");
+    VOS_FUNCNAME("InitMatHeader");
 
     __BEGIN__;
 
@@ -133,11 +133,11 @@ cvInitMatHeader(CvMat *arr, int rows, int cols,
     return arr;
 }
 
-// Deallocates the CvMat structure and underlying data
-VOS_IMPL void
-cvReleaseMat(CvMat **array)
+// Deallocates the SysMat structure and underlying data
+ void
+ReleaseMat(SysMat **array)
 {
-    VOS_FUNCNAME("cvReleaseMat");
+    VOS_FUNCNAME("ReleaseMat");
 
     __BEGIN__;
 
@@ -146,7 +146,7 @@ cvReleaseMat(CvMat **array)
 
     if (*array)
     {
-        CvMat *arr = *array;
+        SysMat *arr = *array;
 
         if (!VOS_IS_MAT_HDR(arr))
             VOS_ERROR_FROM_CODE(VOS_StsBadFlag);
@@ -165,17 +165,17 @@ cvReleaseMat(CvMat **array)
 \****************************************************************************************/
 
 // Allocates underlying array data
-VOS_IMPL void
-cvCreateData(CvArr *arr)
+ void
+CreateData(CvArr *arr)
 {
-    VOS_FUNCNAME("cvCreateData");
+    VOS_FUNCNAME("CreateData");
 
     __BEGIN__;
 
     if (VOS_IS_MAT_HDR(arr))
     {
         size_t step, total_size;
-        CvMat *mat = (CvMat *)arr;
+        SysMat *mat = (SysMat *)arr;
         step = mat->step;
 
         if (mat->data.ptr != 0)
@@ -208,21 +208,21 @@ cvCreateData(CvArr *arr)
 }
 
 // Assigns external data to array
-VOS_IMPL void
-cvSetData(CvArr *arr, void *data, int step)
+ void
+SetData(CvArr *arr, void *data, int step)
 {
-    VOS_FUNCNAME("cvSetData");
+    VOS_FUNCNAME("SetData");
 
     __BEGIN__;
 
     int pix_size, min_step;
 
     if (VOS_IS_MAT_HDR(arr))
-        cvReleaseData(arr);
+        ReleaseData(arr);
 
     if (VOS_IS_MAT_HDR(arr))
     {
-        CvMat *mat = (CvMat *)arr;
+        SysMat *mat = (SysMat *)arr;
 
         int type = VOS_MAT_TYPE(mat->type);
         pix_size = VOS_ELEM_SIZE(type);
@@ -284,16 +284,16 @@ cvSetData(CvArr *arr, void *data, int step)
 }
 
 // Deallocates array's data
-VOS_IMPL void
-cvReleaseData(CvArr *arr)
+ void
+ReleaseData(CvArr *arr)
 {
-    VOS_FUNCNAME("cvReleaseData");
+    VOS_FUNCNAME("ReleaseData");
 
     __BEGIN__;
 
     if (VOS_IS_MAT_HDR(arr))
     {
-        CvMat *mat = (CvMat *)arr;
+        SysMat *mat = (SysMat *)arr;
         cvDecRefData(mat);
     }
     else if (VOS_IS_IMAGE_HDR(arr))
@@ -312,18 +312,18 @@ cvReleaseData(CvArr *arr)
     __END__;
 }
 
-VOS_IMPL int
-cvGetElemType(const CvArr *arr)
+ int
+GetElemType(const CvArr *arr)
 {
     int type = -1;
 
-    VOS_FUNCNAME("cvGetElemType");
+    VOS_FUNCNAME("GetElemType");
 
     __BEGIN__;
 
     if (VOS_IS_MAT_HDR(arr))
     {
-        type = VOS_MAT_TYPE(((CvMat *)arr)->type);
+        type = VOS_MAT_TYPE(((SysMat *)arr)->type);
     }
     else if (VOS_IS_IMAGE(arr))
     {
@@ -338,19 +338,19 @@ cvGetElemType(const CvArr *arr)
     return type;
 }
 
-// Returns the size of CvMat or IplImage
-VOS_IMPL CvSize
-cvGetSize(const CvArr *arr)
+// Returns the size of SysMat or IplImage
+ CvSize
+GetSize(const CvArr *arr)
 {
     CvSize size = {0, 0};
 
-    VOS_FUNCNAME("cvGetSize");
+    VOS_FUNCNAME("GetSize");
 
     __BEGIN__;
 
     if (VOS_IS_MAT_HDR(arr))
     {
-        CvMat *mat = (CvMat *)arr;
+        SysMat *mat = (SysMat *)arr;
 
         size.width = mat->cols;
         size.height = mat->rows;
@@ -364,7 +364,7 @@ cvGetSize(const CvArr *arr)
     }
     else
     {
-        VOS_ERROR(VOS_StsBadArg, "Array should be CvMat or IplImage");
+        VOS_ERROR(VOS_StsBadArg, "Array should be SysMat or IplImage");
     }
 
     __END__;
@@ -377,10 +377,10 @@ cvGetSize(const CvArr *arr)
 \****************************************************************************************/
 
 // Converts CvScalar to specified type
-VOS_IMPL void
-cvScalarToRawData(const CvScalar *scalar, void *data, int type)
+ void
+ScalarToRawData(const CvScalar *scalar, void *data, int type)
 {
-    VOS_FUNCNAME("cvScalarToRawData");
+    VOS_FUNCNAME("ScalarToRawData");
 
     type = VOS_MAT_TYPE(type);
 
@@ -407,19 +407,19 @@ cvScalarToRawData(const CvScalar *scalar, void *data, int type)
 }
 
 /****************************************************************************************\
-*                             Conversion to CvMat or IplImage                            *
+*                             Conversion to SysMat or IplImage                            *
 \****************************************************************************************/
 
-// convert array (CvMat or IplImage) to CvMat
-VOS_IMPL CvMat *
-cvGetMat(const CvArr *array, CvMat *mat,
+// convert array (SysMat or IplImage) to SysMat
+ SysMat *
+GetMat(const CvArr *array, SysMat *mat,
          int *pCOI, int allowND)
 {
-    CvMat *result = 0;
-    CvMat *src = (CvMat *)array;
+    SysMat *result = 0;
+    SysMat *src = (SysMat *)array;
     int coi = 0;
 
-    VOS_FUNCNAME("cvGetMat");
+    VOS_FUNCNAME("GetMat");
 
     __BEGIN__;
 
@@ -431,7 +431,7 @@ cvGetMat(const CvArr *array, CvMat *mat,
         if (!src->data.ptr)
             VOS_ERROR(VOS_StsNullPtr, "The matrix has NULL data pointer");
 
-        result = (CvMat *)src;
+        result = (SysMat *)src;
     }
     else if (VOS_IS_IMAGE_HDR(src))
     {
@@ -452,7 +452,7 @@ cvGetMat(const CvArr *array, CvMat *mat,
             if (order != IPL_DATA_ORDER_PIXEL)
                 VOS_ERROR(VOS_StsBadFlag, "Pixel order should be used with coi == 0");
 
-            VOS_CALL(cvInitMatHeader(mat, img->height, img->width, type,
+            VOS_CALL(InitMatHeader(mat, img->height, img->width, type,
                                      img->imageData, img->widthStep));
         }
 
@@ -471,16 +471,16 @@ cvGetMat(const CvArr *array, CvMat *mat,
     return result;
 }
 
-VOS_IMPL CvMat *
-cvReshape(const CvArr *array, CvMat *header,
+ SysMat *
+Reshape(const CvArr *array, SysMat *header,
           int new_cn, int new_rows)
 {
-    CvMat *result = 0;
-    VOS_FUNCNAME("cvReshape");
+    SysMat *result = 0;
+    VOS_FUNCNAME("Reshape");
 
     __BEGIN__;
 
-    CvMat *mat = (CvMat *)array;
+    SysMat *mat = (SysMat *)array;
     int total_width, new_width;
 
     if (!header)
@@ -489,7 +489,7 @@ cvReshape(const CvArr *array, CvMat *header,
     if (!VOS_IS_MAT(mat))
     {
         int coi = 0;
-        VOS_CALL(mat = cvGetMat(mat, header, &coi, 1));
+        VOS_CALL(mat = GetMat(mat, header, &coi, 1));
         if (coi)
             VOS_ERROR(VOS_BadCOI, "COI is not supported");
     }
@@ -557,29 +557,29 @@ cvReshape(const CvArr *array, CvMat *header,
 \****************************************************************************************/
 
 // create IplImage header
-VOS_IMPL IplImage *
-cvCreateImageHeader(CvSize size, int depth, int channels)
+ IplImage *
+CreateImageHeader(CvSize size, int depth, int channels)
 {
     IplImage *img = 0;
 
-    VOS_FUNCNAME("cvCreateImageHeader");
+    VOS_FUNCNAME("CreateImageHeader");
 
     __BEGIN__;
 
     VOS_CALL(img = (IplImage *)cvAlloc(sizeof(*img)));
-    VOS_CALL(cvInitImageHeader(img, size, depth, channels, IPL_ORIGIN_TL,
+    VOS_CALL(InitImageHeader(img, size, depth, channels, IPL_ORIGIN_TL,
                                VOS_DEFAULT_IMAGE_ROW_ALIGN));
 
     __END__;
 
     if (cvGetErrStatus() < 0 && img)
-        cvReleaseImageHeader(&img);
+        ReleaseImageHeader(&img);
 
     return img;
 }
 
 // create IplImage header and allocate underlying data
-VOS_IMPL IplImage *
+ IplImage *
 cvCreateImage(CvSize size, int depth, int channels)
 {
     IplImage *img = 0;
@@ -588,26 +588,26 @@ cvCreateImage(CvSize size, int depth, int channels)
 
     __BEGIN__;
 
-    VOS_CALL(img = cvCreateImageHeader(size, depth, channels));
+    VOS_CALL(img = CreateImageHeader(size, depth, channels));
     assert(img);
-    VOS_CALL(cvCreateData(img));
+    VOS_CALL(CreateData(img));
 
     __END__;
 
     if (cvGetErrStatus() < 0)
-        cvReleaseImage(&img);
+        ReleaseImage(&img);
 
     return img;
 }
 
 // initalize IplImage header, allocated by the user
-VOS_IMPL IplImage *
-cvInitImageHeader(IplImage *image, CvSize size, int depth,
+ IplImage *
+InitImageHeader(IplImage *image, CvSize size, int depth,
                   int channels, int origin, int align)
 {
     IplImage *result = 0;
 
-    VOS_FUNCNAME("cvInitImageHeader");
+    VOS_FUNCNAME("InitImageHeader");
 
     __BEGIN__;
 
@@ -651,10 +651,10 @@ cvInitImageHeader(IplImage *image, CvSize size, int depth,
     return result;
 }
 
-VOS_IMPL void
-cvReleaseImageHeader(IplImage **image)
+ void
+ReleaseImageHeader(IplImage **image)
 {
-    VOS_FUNCNAME("cvReleaseImageHeader");
+    VOS_FUNCNAME("ReleaseImageHeader");
 
     __BEGIN__;
 
@@ -671,10 +671,10 @@ cvReleaseImageHeader(IplImage **image)
     __END__;
 }
 
-VOS_IMPL void
-cvReleaseImage(IplImage **image)
+ void
+ReleaseImage(IplImage **image)
 {
-    VOS_FUNCNAME("cvReleaseImage");
+    VOS_FUNCNAME("ReleaseImage");
 
     __BEGIN__
 
@@ -686,18 +686,18 @@ cvReleaseImage(IplImage **image)
         IplImage *img = *image;
         *image = 0;
 
-        cvReleaseData(img);
-        cvReleaseImageHeader(&img);
+        ReleaseData(img);
+        ReleaseImageHeader(&img);
     }
 
     __END__;
 }
 
-VOS_IMPL IplImage *
-cvCloneImage(const IplImage *src)
+ IplImage *
+CloneImage(const IplImage *src)
 {
     IplImage *dst = 0;
-    VOS_FUNCNAME("cvCloneImage");
+    VOS_FUNCNAME("CloneImage");
 
     __BEGIN__;
 
@@ -712,7 +712,7 @@ cvCloneImage(const IplImage *src)
     if (src->imageData)
     {
         int size = src->imageSize;
-        cvCreateData(dst);
+        CreateData(dst);
         memcpy(dst->imageData, src->imageData, size);
     }
 

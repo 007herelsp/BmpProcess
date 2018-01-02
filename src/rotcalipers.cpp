@@ -261,7 +261,7 @@ icvRotatingCalipers( CvPoint2D32f* points, int n, int mode, float* out )
 }
 
 
-VOS_IMPL  CvBox2D
+  CvBox2D
 cvMinAreaRect2( const CvArr* array, CvMemStorage* storage )
 {
     CvMemStorage* temp_storage = 0;

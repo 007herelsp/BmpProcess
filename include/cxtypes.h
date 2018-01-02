@@ -20,13 +20,6 @@
     #endif
 #endif
 
-#ifndef VOS_EXTERN_C_FUNCPTR
-    #ifdef __cplusplus
-        #define VOS_EXTERN_C_FUNCPTR(x) extern "C" { typedef x; }
-    #else
-        #define VOS_EXTERN_C_FUNCPTR(x) typedef x
-    #endif
-#endif
 
 #ifndef VOS_INLINE
 #if defined __cplusplus
@@ -39,12 +32,6 @@
 #endif /* VOS_INLINE */
 
 
-#define VOS_EXPORTS
-
-
-#ifndef CVAPI
-    #define CVAPI(rettype) VOS_EXTERN_C VOS_EXPORTS rettype VOS_CDECL
-#endif
 
 #if defined _MSC_VER
 typedef __int64 int64;
@@ -232,7 +219,7 @@ IplConvKernel;
     (((elemtype*)((image)->imageData + (image)->widthStep*(row)))[(col)])
 
 /****************************************************************************************\
-*                                  Matrix type (CvMat)                                   *
+*                                  Matrix type (SysMat)                                   *
 \****************************************************************************************/
 
 #define VOS_CN_MAX     64
@@ -314,7 +301,7 @@ IplConvKernel;
 #define VOS_MAT_MAGIC_VAL    0x42420000
 #define VOS_TYPE_NAME_MAT    " -matrix"
 
-typedef struct CvMat
+typedef struct SysMat
 {
     int type;
     int step;
@@ -350,16 +337,16 @@ typedef struct CvMat
 #endif
 
 }
-CvMat;
+SysMat;
 
 
 #define VOS_IS_MAT_HDR(mat) \
     ((mat) != NULL && \
-    (((const CvMat*)(mat))->type & VOS_MAGIC_MASK) == VOS_MAT_MAGIC_VAL && \
-    ((const CvMat*)(mat))->cols > 0 && ((const CvMat*)(mat))->rows > 0)
+    (((const SysMat*)(mat))->type & VOS_MAGIC_MASK) == VOS_MAT_MAGIC_VAL && \
+    ((const SysMat*)(mat))->cols > 0 && ((const SysMat*)(mat))->rows > 0)
 
 #define VOS_IS_MAT(mat) \
-    (VOS_IS_MAT_HDR(mat) && ((const CvMat*)(mat))->data.ptr != NULL)
+    (VOS_IS_MAT_HDR(mat) && ((const SysMat*)(mat))->data.ptr != NULL)
 
 #define VOS_IS_MASK_ARR(mat) \
     (((mat)->type & (VOS_MAT_TYPE_MASK & ~VOS_8SC1)) == 0)
@@ -389,11 +376,11 @@ CvMat;
     (VOS_MAT_CN(type) << ((((sizeof(size_t)/4+1)*16384|0x3a50) >> VOS_MAT_DEPTH(type)*2) & 3))
 
 /* inline constructor. No data is allocated internally!!!
-   (use together with cvCreateData, or use cvCreateMat instead to
+   (use together with CreateData, or use CreateMat instead to
    get a matrix with allocated data) */
-VOS_INLINE CvMat cvMat( int rows, int cols, int type, void* data VOS_DEFAULT(NULL))
+VOS_INLINE SysMat cvMat( int rows, int cols, int type, void* data VOS_DEFAULT(NULL))
 {
-    CvMat m;
+    SysMat m;
 
     assert( (unsigned)VOS_MAT_DEPTH(type) <= VOS_64F );
     type = VOS_MAT_TYPE(type);

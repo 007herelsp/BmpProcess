@@ -79,7 +79,7 @@ _CvContourScanner;
    Initializes scanner structure.
    Prepare image for scanning ( clear borders and convert all pixels to 0-1.
 */
-VOS_IMPL CvContourScanner
+ CvContourScanner
 cvStartFindContours( void* _img, CvMemStorage* storage,
                      int  header_size, int mode, 
                      int  method, CvPoint offset )
@@ -89,7 +89,7 @@ cvStartFindContours( void* _img, CvMemStorage* storage,
     CvSize size;
     uchar *img = 0;
     CvContourScanner scanner = 0;
-    CvMat stub, *mat = (CvMat*)_img;
+    SysMat stub, *mat = (SysMat*)_img;
 
     VOS_FUNCNAME( "cvStartFindContours" );
 
@@ -98,7 +98,7 @@ cvStartFindContours( void* _img, CvMemStorage* storage,
     if( !storage )
         VOS_ERROR( VOS_StsNullPtr, "" );
 
-    VOS_CALL( mat = cvGetMat( mat, &stub ));
+    VOS_CALL( mat = GetMat( mat, &stub ));
 
     if( !VOS_IS_MASK_ARR( mat ))
         VOS_ERROR( VOS_StsUnsupportedFormat, "[Start]FindContours support only 8uC1 images" );
@@ -191,7 +191,7 @@ cvStartFindContours( void* _img, CvMemStorage* storage,
     if( mode > VOS_RETR_LIST )
     {
         scanner->cinfo_storage = cvCreateChildMemStorage( scanner->storage2 );
-        scanner->cinfo_set = cvCreateSet( 0, sizeof( CvSet ), sizeof( _CvContourInfo ),
+        scanner->cinfo_set = CreateSet( 0, sizeof( CvSet ), sizeof( _CvContourInfo ),
                                           scanner->cinfo_storage );
         if( scanner->cinfo_storage == 0 || scanner->cinfo_set == 0 )
             VOS_ERROR_FROM_STATUS( VOS_OUTOFMEM_ERR );
@@ -806,7 +806,7 @@ cvFindNextContour( CvContourScanner scanner )
    The function add to tree the last retrieved/substituted contour, 
    releases temp_storage, restores state of dst_storage (if needed), and
    returns pointer to root of the contour tree */
-VOS_IMPL CvSeq *
+ CvSeq *
 cvEndFindContours( CvContourScanner * _scanner )
 {
     CvContourScanner scanner;
@@ -840,7 +840,7 @@ cvEndFindContours( CvContourScanner * _scanner )
 }
 
 
-VOS_IMPL int
+ int
 cvFindContours( void*  img,  CvMemStorage*  storage,                
                 CvSeq**  firstContour, int  cntHeaderSize,                 
                 int  mode, 

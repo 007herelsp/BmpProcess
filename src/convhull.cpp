@@ -231,7 +231,7 @@ static void icvSortPointsByPointers_32s(CvPoint **array, size_t total, int aux)
     }
 }
 
-VOS_IMPL CvSeq *
+ CvSeq *
 cvConvexHull2(const CvArr *array, void *hull_storage,
               int orientation, int return_points)
 {
@@ -248,7 +248,7 @@ cvConvexHull2(const CvArr *array, void *hull_storage,
 
     __BEGIN__;
 
-    CvMat *mat = 0;
+    SysMat *mat = 0;
     CvSeqReader reader;
     CvSeqWriter writer;
     CvContour contour_header;
@@ -424,7 +424,7 @@ finish_hull:
     return hull.s;
 }
 
-VOS_IMPL int
+ int
 cvCheckContourConvexity(const CvArr *array)
 {
     int flag = -1;

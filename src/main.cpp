@@ -197,7 +197,7 @@ int process_v2(IplImage *lpImg, IplImage *lpTargetImg, int argc, char *argv[])
 	CvPoint2D32f srcTri[4], dstTri[4];
 	IplImage *temp;
 	CvPoint p[4];
-	CvMat *warp_mat;
+	SysMat *warp_mat;
 	int iCount = 0;
 
 	for (itu = setURes.begin(); itu != setURes.end(); itu++)
@@ -223,7 +223,7 @@ int process_v2(IplImage *lpImg, IplImage *lpTargetImg, int argc, char *argv[])
 
 			temp = lpSrcImg;
 
-			warp_mat = cvCreateMat(3, 3, VOS_64FC1);
+			warp_mat = CreateMat(3, 3, VOS_64FC1);
 
 			//����
 			CvPoint pt;
@@ -335,38 +335,38 @@ int main(int argc, char **args)
 		return ERR_1;
 	}
 
-	IplImage *gray = cvCreateImage(cvGetSize(lpTargetImg), 8, 1);
-	cvCvtColor(lpTargetImg, gray, VOS_RGB2GRAY);
-	IplImage *lpCannyImg = cvCreateImage(cvGetSize(lpTargetImg), 8, 1);
-	IplImage *tmp = cvCreateImage(cvGetSize(lpTargetImg), 8, 1);
-	IplImage *lpDilateImg = cvCreateImage(cvGetSize(lpTargetImg), 8, 1);
+	IplImage *gray = cvCreateImage(GetSize(lpTargetImg), 8, 1);
+	CvtColor(lpTargetImg, gray, VOS_RGB2GRAY);
+	IplImage *lpCannyImg = cvCreateImage(GetSize(lpTargetImg), 8, 1);
+	IplImage *tmp = cvCreateImage(GetSize(lpTargetImg), 8, 1);
+	IplImage *lpDilateImg = cvCreateImage(GetSize(lpTargetImg), 8, 1);
 	cvSmooth(gray, tmp, VOS_GAUSSIAN, 3, 3, 0, 0); //��˹�˲�
 	cvSaveImage("tmp.bmp", tmp);
 	printf("save\n");
 	if (NULL != lpCannyImg && NULL != lpDilateImg)
 	{
 		//cvSmooth(gray, gray, VOS_GAUSSIAN, 3, 3, 0, 0);
-		cvCanny(gray, lpCannyImg, 0.5, 20, 3);
+		Canny(gray, lpCannyImg, 0.5, 20, 3);
 		cvSaveImage("canny1.bmp", lpCannyImg);
 		cvDilate(lpCannyImg, lpDilateImg, 0, 1);
 		cvSaveImage("lpDilate.bmp", lpDilateImg);
 		cvErode(lpDilateImg, lpDilateImg, 0, 1);
 		cvSaveImage("lpErode.bmp", lpDilateImg);
 
-		IplImage *pGrayImage = cvCreateImage(cvGetSize(lpTargetImg), IPL_DEPTH_8U, 1);
-		IplImage *pGrayEqualizeImage = cvCreateImage(cvGetSize(lpTargetImg), IPL_DEPTH_8U, 1);
+		IplImage *pGrayImage = cvCreateImage(GetSize(lpTargetImg), IPL_DEPTH_8U, 1);
+		IplImage *pGrayEqualizeImage = cvCreateImage(GetSize(lpTargetImg), IPL_DEPTH_8U, 1);
 		cvSmooth(lpTargetImg, lpTargetImg, VOS_GAUSSIAN, 5, 5, 0, 0); //��˹�˲�
 		cvSaveImage("pTargetImg.bmp", lpTargetImg);
-		cvCvtColor(lpTargetImg, pGrayImage, VOS_BGR2GRAY);
+		CvtColor(lpTargetImg, pGrayImage, VOS_BGR2GRAY);
 		cvSaveImage("pGrayImage.bmp", pGrayImage);
 		//cvEqualizeHist(pGrayImage, pGrayEqualizeImage);
 		cvSaveImage("pGrayEqualizeImage.bmp", pGrayEqualizeImage);
 
-		//cvCanny(pGrayEqualizeImage, lpCannyImg, 0.5, 20, 3);
+		//Canny(pGrayEqualizeImage, lpCannyImg, 0.5, 20, 3);
 		//cvSaveImage("canny2.bmp", lpCannyImg);
 	}
 	//����Ŀ������
-	IplImage *lpOutImg = cvCloneImage(lpTargetImg);
+	IplImage *lpOutImg = CloneImage(lpTargetImg);
 	int iCunt = 0;
 	if (NULL != lpOutImg)
 	{
@@ -378,10 +378,10 @@ int main(int argc, char **args)
 	//�������
 	printf("%d\n", iCunt);
 	//�ͷ���Դ
-	cvReleaseImage(&lpOutImg);
-	cvReleaseImage(&lpTargetImg);
-	cvReleaseImage(&lpDilateImg);
-	cvReleaseImage(&lpCannyImg);
+	ReleaseImage(&lpOutImg);
+	ReleaseImage(&lpTargetImg);
+	ReleaseImage(&lpDilateImg);
+	ReleaseImage(&lpCannyImg);
 
 	return 0;
 }

@@ -65,7 +65,6 @@
     #error
 #endif
 
-#define VOS_IMPL VOS_EXTERN_C
 
 #define cvStackAlloc(size) cvAlignPtr( alloca((size) + VOS_MALLOC_ALIGN), VOS_MALLOC_ALIGN )
 
@@ -120,7 +119,7 @@ VOS_INLINE int cvAlign( int size, int align )
     return (size + align - 1) & -align;
 }
 
-VOS_INLINE  CvSize  cvGetMatSize( const CvMat* mat )
+VOS_INLINE  CvSize  cvGetMatSize( const SysMat* mat )
 {
     CvSize size = { mat->width, mat->height };
     return size;

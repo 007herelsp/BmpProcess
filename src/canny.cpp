@@ -15,13 +15,13 @@ cvSobel( const void* srcarr, void* dstarr, int dx, int dy, int aperture_size )
 
     int origin = 0;
     int src_type, dst_type;
-    CvMat srcstub, *src = (CvMat*)srcarr;
-    CvMat dststub, *dst = (CvMat*)dstarr;
+    SysMat srcstub, *src = (SysMat*)srcarr;
+    SysMat dststub, *dst = (SysMat*)dstarr;
 
     if( !VOS_IS_MAT(src) )
-        VOS_CALL( src = cvGetMat( src, &srcstub ));
+        VOS_CALL( src = GetMat( src, &srcstub ));
     if( !VOS_IS_MAT(dst) )
-        VOS_CALL( dst = cvGetMat( dst, &dststub ));
+        VOS_CALL( dst = GetMat( dst, &dststub ));
 
     if( VOS_IS_IMAGE_HDR( srcarr ))
         origin = ((IplImage*)srcarr)->origin;
@@ -44,20 +44,20 @@ cvSobel( const void* srcarr, void* dstarr, int dx, int dy, int aperture_size )
 
 
 
-VOS_IMPL void
-cvCanny( const void* srcarr, void* dstarr,
+ void
+Canny( const void* srcarr, void* dstarr,
          double low_thresh, double high_thresh, int aperture_size )
 {
-    CvMat *dx = 0, *dy = 0;
+    SysMat *dx = 0, *dy = 0;
     void *buffer = 0;
     uchar **stack_top, **stack_bottom = 0;
 
-    VOS_FUNCNAME( "cvCanny" );
+    VOS_FUNCNAME( "Canny" );
 
     __BEGIN__;
 
-    CvMat srcstub, *src = (CvMat*)srcarr;
-    CvMat dststub, *dst = (CvMat*)dstarr;
+    SysMat srcstub, *src = (SysMat*)srcarr;
+    SysMat dststub, *dst = (SysMat*)dstarr;
     CvSize size;
     int flags = aperture_size;
     int low, high;
@@ -65,10 +65,10 @@ cvCanny( const void* srcarr, void* dstarr,
     uchar* map;
     int mapstep, maxsize;
     int i, j;
-    CvMat mag_row;
+    SysMat mag_row;
 
-    VOS_CALL( src = cvGetMat( src, &srcstub ));
-    VOS_CALL( dst = cvGetMat( dst, &dststub ));
+    VOS_CALL( src = GetMat( src, &srcstub ));
+    VOS_CALL( dst = GetMat( dst, &dststub ));
 
     if( VOS_MAT_TYPE( src->type ) != VOS_8UC1 ||
         VOS_MAT_TYPE( dst->type ) != VOS_8UC1 )
@@ -89,8 +89,8 @@ cvCanny( const void* srcarr, void* dstarr,
 
     size = cvGetMatSize( src );
 
-    dx = cvCreateMat( size.height, size.width, VOS_16SC1 );
-    dy = cvCreateMat( size.height, size.width, VOS_16SC1 );
+    dx = CreateMat( size.height, size.width, VOS_16SC1 );
+    dy = CreateMat( size.height, size.width, VOS_16SC1 );
     cvSobel( src, dx, 1, 0, aperture_size );
     cvSobel( src, dy, 0, 1, aperture_size );
 
@@ -336,8 +336,8 @@ cvCanny( const void* srcarr, void* dstarr,
 
     __END__;
 
-    cvReleaseMat( &dx );
-    cvReleaseMat( &dy );
+    ReleaseMat( &dx );
+    ReleaseMat( &dy );
     cvFree( &buffer );
     cvFree( &stack_bottom );
 }

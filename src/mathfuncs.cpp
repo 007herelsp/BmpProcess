@@ -30,25 +30,25 @@ static CvStatus icvSqrt_32f(const float *src, float *dst, int len)
 
 typedef CvStatus(*CvSqrtFunc)(const void *src, void *dst, int len);
 
-VOS_IMPL void cvPow(const CvArr *srcarr, CvArr *dstarr, double power)
+ void cvPow(const CvArr *srcarr, CvArr *dstarr, double power)
 {
     VOS_FUNCNAME("cvPow");
 
     __BEGIN__;
 
 
-    CvMat srcstub, *src = (CvMat *)srcarr;
-    CvMat dststub, *dst = (CvMat *)dstarr;
+    SysMat srcstub, *src = (SysMat *)srcarr;
+    SysMat dststub, *dst = (SysMat *)dstarr;
     int coi1 = 0, coi2 = 0;
     int depth;
     CvSize size;
     int y;
 
     if (!VOS_IS_MAT(src))
-        VOS_CALL(src = cvGetMat(src, &srcstub, &coi1));
+        VOS_CALL(src = GetMat(src, &srcstub, &coi1));
 
     if (!VOS_IS_MAT(dst))
-        VOS_CALL(dst = cvGetMat(dst, &dststub, &coi2));
+        VOS_CALL(dst = GetMat(dst, &dststub, &coi2));
 
     if (coi1 != 0 || coi2 != 0)
         VOS_ERROR(VOS_BadCOI, "");

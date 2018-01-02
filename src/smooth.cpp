@@ -2,28 +2,28 @@
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
-VOS_IMPL void
+ void
 cvSmooth(const void *srcarr, void *dstarr, int smooth_type,
          int param1, int param2, double param3, double param4)
 {
     CvSepFilter gaussian_filter;
 
-    CvMat *temp = 0;
+    SysMat *temp = 0;
 
     VOS_FUNCNAME("cvSmooth");
 
     __BEGIN__;
 
     int coi1 = 0, coi2 = 0;
-    CvMat srcstub, *src = (CvMat *)srcarr;
-    CvMat dststub, *dst = (CvMat *)dstarr;
+    SysMat srcstub, *src = (SysMat *)srcarr;
+    SysMat dststub, *dst = (SysMat *)dstarr;
     CvSize size;
     int src_type, dst_type, depth;
     double sigma1 = 0, sigma2 = 0;
     bool have_ipp = false;
 
-    VOS_CALL(src = cvGetMat(src, &srcstub, &coi1));
-    VOS_CALL(dst = cvGetMat(dst, &dststub, &coi2));
+    VOS_CALL(src = GetMat(src, &srcstub, &coi1));
+    VOS_CALL(dst = GetMat(dst, &dststub, &coi2));
 
     if (coi1 != 0 || coi2 != 0)
         VOS_ERROR(VOS_BadCOI, "");
@@ -69,8 +69,8 @@ cvSmooth(const void *srcarr, void *dstarr, int smooth_type,
         CvSize ksize = {param1, param2};
         float *kx = (float *)cvStackAlloc(ksize.width * sizeof(kx[0]));
         float *ky = (float *)cvStackAlloc(ksize.height * sizeof(ky[0]));
-        CvMat KX = cvMat(1, ksize.width, VOS_32F, kx);
-        CvMat KY = cvMat(1, ksize.height, VOS_32F, ky);
+        SysMat KX = cvMat(1, ksize.width, VOS_32F, kx);
+        SysMat KY = cvMat(1, ksize.height, VOS_32F, ky);
 
         CvSepFilter::init_gaussian_kernel(&KX, sigma1);
         if (ksize.width != ksize.height || fabs(sigma1 - sigma2) > FLT_EPSILON)
@@ -94,7 +94,7 @@ cvSmooth(const void *srcarr, void *dstarr, int smooth_type,
 
     __END__;
 
-    cvReleaseMat(&temp);
+    ReleaseMat(&temp);
 }
 
 /* End of file. */

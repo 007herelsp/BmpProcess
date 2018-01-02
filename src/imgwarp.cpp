@@ -8,9 +8,9 @@
 static int
 cvSolve( const CvArr* A, const CvArr* b, CvArr* x, int method )
 {
-    CvMat* u = 0;
-    CvMat* v = 0;
-    CvMat* w = 0;
+    SysMat* u = 0;
+    SysMat* v = 0;
+    SysMat* w = 0;
 
     uchar* buffer = 0;
     int local_alloc = 0;
@@ -20,18 +20,18 @@ cvSolve( const CvArr* A, const CvArr* b, CvArr* x, int method )
 
     __BEGIN__;
 
-    CvMat sstub, *src = (CvMat*)A;
-    CvMat dstub, *dst = (CvMat*)x;
-    CvMat bstub, *src2 = (CvMat*)b;
+    SysMat sstub, *src = (SysMat*)A;
+    SysMat dstub, *dst = (SysMat*)x;
+    SysMat bstub, *src2 = (SysMat*)b;
 
     if( !VOS_IS_MAT( src ))
-        VOS_CALL( src = cvGetMat( src, &sstub ));
+        VOS_CALL( src = GetMat( src, &sstub ));
 
     if( !VOS_IS_MAT( src2 ))
-        VOS_CALL( src2 = cvGetMat( src2, &bstub ));
+        VOS_CALL( src2 = GetMat( src2, &bstub ));
 
     if( !VOS_IS_MAT( dst ))
-        VOS_CALL( dst = cvGetMat( dst, &dstub ));
+        VOS_CALL( dst = GetMat( dst, &dstub ));
 
     if( method == VOS_SVD || method == VOS_SVD_SYM )
     {
@@ -40,10 +40,10 @@ cvSolve( const CvArr* A, const CvArr* b, CvArr* x, int method )
         if( method == VOS_SVD_SYM && src->rows != src->cols )
             VOS_ERROR( VOS_StsBadSize, "VOS_SVD_SYM method is used for non-square matrix" );
 
-        VOS_CALL( u = cvCreateMat( n, src->rows, src->type ));
+        VOS_CALL( u = CreateMat( n, src->rows, src->type ));
         if( method != VOS_SVD_SYM )
-            VOS_CALL( v = cvCreateMat( n, src->cols, src->type ));
-        VOS_CALL( w = cvCreateMat( n, 1, src->type ));
+            VOS_CALL( v = CreateMat( n, src->cols, src->type ));
+        VOS_CALL( w = CreateMat( n, 1, src->type ));
         VOS_CALL( cvSVD( src, w, u, v, VOS_SVD_U_T + VOS_SVD_V_T ));
         VOS_CALL( cvSVBkSb( w, u, v ? v : u, src2, dst, VOS_SVD_U_T + VOS_SVD_V_T ));
     }
@@ -58,9 +58,9 @@ cvSolve( const CvArr* A, const CvArr* b, CvArr* x, int method )
 
     if( u || v || w )
     {
-        cvReleaseMat( &u );
-        cvReleaseMat( &v );
-        cvReleaseMat( &w );
+        ReleaseMat( &u );
+        ReleaseMat( &v );
+        ReleaseMat( &w );
     }
 
     return result;
@@ -133,25 +133,25 @@ static CvStatus icvWarpPerspective_Bilinear_8u_CnR(const uchar *src, int step,
     return VOS_OK;
 }
 
-VOS_IMPL void
+ void
 cvWarpPerspective(const CvArr *srcarr, CvArr *dstarr,
-                  const CvMat *matrix, int flags, CvScalar fillval)
+                  const SysMat *matrix, int flags, CvScalar fillval)
 {
     VOS_FUNCNAME("cvWarpPerspective");
 
     __BEGIN__;
 
-    CvMat srcstub, *src = (CvMat *)srcarr;
-    CvMat dststub, *dst = (CvMat *)dstarr;
+    SysMat srcstub, *src = (SysMat *)srcarr;
+    SysMat dststub, *dst = (SysMat *)dstarr;
     int type, depth, cn;
     double src_matrix[9], dst_matrix[9];
     double fillbuf[4];
-    CvMat A = cvMat(3, 3, VOS_64F, src_matrix),
+    SysMat A = cvMat(3, 3, VOS_64F, src_matrix),
           invA = cvMat(3, 3, VOS_64F, dst_matrix);
 
     CvSize ssize, dsize;
-    VOS_CALL(src = cvGetMat(srcarr, &srcstub));
-    VOS_CALL(dst = cvGetMat(dstarr, &dststub));
+    VOS_CALL(src = GetMat(srcarr, &srcstub));
+    VOS_CALL(dst = GetMat(dstarr, &dststub));
 
     if (!VOS_ARE_TYPES_EQ(src, dst))
         VOS_ERROR(VOS_StsUnmatchedFormats, "");
@@ -178,7 +178,7 @@ cvWarpPerspective(const CvArr *srcarr, CvArr *dstarr,
     ssize = cvGetMatSize(src);
     dsize = cvGetMatSize(dst);
 
-    cvScalarToRawData(&fillval, fillbuf, VOS_MAT_TYPE(src->type));
+    ScalarToRawData(&fillval, fillbuf, VOS_MAT_TYPE(src->type));
 
     FUN_CALL(icvWarpPerspective_Bilinear_8u_CnR(src->data.ptr, src->step, ssize, dst->data.ptr,
                                                  dst->step, dsize, dst_matrix, cn,
@@ -187,10 +187,10 @@ cvWarpPerspective(const CvArr *srcarr, CvArr *dstarr,
     __END__;
 }
 
-VOS_IMPL CvMat *
+ SysMat *
 cvGetPerspectiveTransform(const CvPoint2D32f *src,
                           const CvPoint2D32f *dst,
-                          CvMat *matrix)
+                          SysMat *matrix)
 {
     VOS_FUNCNAME("cvGetPerspectiveTransform");
 
@@ -199,9 +199,9 @@ cvGetPerspectiveTransform(const CvPoint2D32f *src,
     double a[8][8];
     double b[8], x[9];
 
-    CvMat A = cvMat(8, 8, VOS_64FC1, a);
-    CvMat B = cvMat(8, 1, VOS_64FC1, b);
-    CvMat X = cvMat(8, 1, VOS_64FC1, x);
+    SysMat A = cvMat(8, 8, VOS_64FC1, a);
+    SysMat B = cvMat(8, 1, VOS_64FC1, b);
+    SysMat X = cvMat(8, 1, VOS_64FC1, x);
 
     int i;
 

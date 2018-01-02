@@ -65,7 +65,7 @@ icvInitMemStorage( CvMemStorage* storage, int block_size )
 
 
 /* creates root memory storage */
-VOS_IMPL CvMemStorage*
+ CvMemStorage*
 cvCreateMemStorage( int block_size )
 {
     CvMemStorage *storage = 0;
@@ -87,7 +87,7 @@ cvCreateMemStorage( int block_size )
 
 
 /* creates child memory storage */
-VOS_IMPL CvMemStorage *
+ CvMemStorage *
 cvCreateChildMemStorage( CvMemStorage * parent )
 {
     CvMemStorage *storage = 0;
@@ -165,7 +165,7 @@ icvDestroyMemStorage( CvMemStorage* storage )
 
 
 /* releases memory storage */
-VOS_IMPL void
+ void
 cvReleaseMemStorage( CvMemStorage** storage )
 {
     CvMemStorage *st;
@@ -190,7 +190,7 @@ cvReleaseMemStorage( CvMemStorage** storage )
 
 
 /* clears memory storage (returns blocks to the parent if any) */
-VOS_IMPL void
+ void
 cvClearMemStorage( CvMemStorage * storage )
 {
     VOS_FUNCNAME( "cvClearMemStorage" );
@@ -280,7 +280,7 @@ icvGoNextMemBlock( CvMemStorage * storage )
 
 
 /* remembers memory storage position */
-VOS_IMPL void
+ void
 cvSaveMemStoragePos( const CvMemStorage * storage, CvMemStoragePos * pos )
 {
     VOS_FUNCNAME( "cvSaveMemStoragePos" );
@@ -298,7 +298,7 @@ cvSaveMemStoragePos( const CvMemStorage * storage, CvMemStoragePos * pos )
 
 
 /* restores memory storage position */
-VOS_IMPL void
+ void
 cvRestoreMemStoragePos( CvMemStorage * storage, CvMemStoragePos * pos )
 {
     VOS_FUNCNAME( "cvRestoreMemStoragePos" );
@@ -342,7 +342,7 @@ cvRestoreMemStoragePos( CvMemStorage * storage, CvMemStoragePos * pos )
 
 
 /* Allocates continuous buffer of the specified size in the storage */
-VOS_IMPL void*
+ void*
 cvMemStorageAlloc( CvMemStorage* storage, size_t size )
 {
     char *ptr = 0;
@@ -383,7 +383,7 @@ cvMemStorageAlloc( CvMemStorage* storage, size_t size )
 \****************************************************************************************/
 
 /* creates empty sequence */
-VOS_IMPL CvSeq *
+ CvSeq *
 cvCreateSeq( int seq_flags, int header_size, int elem_size, CvMemStorage * storage )
 {
     CvSeq *seq = 0;
@@ -426,7 +426,7 @@ cvCreateSeq( int seq_flags, int header_size, int elem_size, CvMemStorage * stora
 
 /* adjusts <delta_elems> field of sequence. It determines how much the sequence
    grows if there are no free space inside the sequence buffers */
-VOS_IMPL void
+ void
 cvSetSeqBlockSize( CvSeq *seq, int delta_elements )
 {
     int elem_size;
@@ -465,7 +465,7 @@ cvSetSeqBlockSize( CvSeq *seq, int delta_elements )
 
 
 /* finds sequence element by its index */
-VOS_IMPL char*
+ char*
 cvGetSeqElem( const CvSeq *seq, int index )
 {
     CvSeqBlock *block;
@@ -503,7 +503,7 @@ cvGetSeqElem( const CvSeq *seq, int index )
 }
 
 
-VOS_IMPL int
+ int
 cvSliceLength( CvSlice slice, const CvSeq* seq )
 {
     int total = seq->total;
@@ -728,7 +728,7 @@ icvFreeSeqBlock( CvSeq *seq, int in_front_of )
 \****************************************************************************************/
 
 /* initializes sequence writer */
-VOS_IMPL void
+ void
 cvStartAppendToSeq( CvSeq *seq, CvSeqWriter * writer )
 {
     VOS_FUNCNAME( "cvStartAppendToSeq" );
@@ -751,7 +751,7 @@ cvStartAppendToSeq( CvSeq *seq, CvSeqWriter * writer )
 
 
 /* initializes sequence writer */
-VOS_IMPL void
+ void
 cvStartWriteSeq( int seq_flags, int header_size,
                  int elem_size, CvMemStorage * storage, CvSeqWriter * writer )
 {
@@ -772,7 +772,7 @@ cvStartWriteSeq( int seq_flags, int header_size,
 
 
 /* updates sequence header */
-VOS_IMPL void
+ void
 cvFlushSeqWriter( CvSeqWriter * writer )
 {
     CvSeq *seq = 0;
@@ -811,7 +811,7 @@ cvFlushSeqWriter( CvSeqWriter * writer )
 
 
 /* calls icvFlushSeqWriter and finishes writing process */
-VOS_IMPL CvSeq *
+ CvSeq *
 cvEndWriteSeq( CvSeqWriter * writer )
 {
     CvSeq *seq = 0;
@@ -851,7 +851,7 @@ cvEndWriteSeq( CvSeqWriter * writer )
 
 
 /* creates new sequence block */
-VOS_IMPL void
+ void
 cvCreateSeqBlock( CvSeqWriter * writer )
 {
     VOS_FUNCNAME( "cvCreateSeqBlock" );
@@ -882,7 +882,7 @@ cvCreateSeqBlock( CvSeqWriter * writer )
 \****************************************************************************************/
 
 /* initializes sequence reader */
-VOS_IMPL void
+ void
 cvStartReadSeq( const CvSeq *seq, CvSeqReader * reader, int reverse )
 {
     CvSeqBlock *first_block;
@@ -944,7 +944,7 @@ cvStartReadSeq( const CvSeq *seq, CvSeqReader * reader, int reverse )
 
 
 /* changes the current reading block to the previous or to the next */
-VOS_IMPL void
+ void
 cvChangeSeqBlock( void* _reader, int direction )
 {
     VOS_FUNCNAME( "cvChangeSeqBlock" );
@@ -974,7 +974,7 @@ cvChangeSeqBlock( void* _reader, int direction )
 
 
 /* returns the current reader position */
-VOS_IMPL int
+ int
 cvGetSeqReaderPos( CvSeqReader* reader )
 {
     int elem_size;
@@ -1003,7 +1003,7 @@ cvGetSeqReaderPos( CvSeqReader* reader )
 
 /* sets reader position to given absolute or relative
    (relatively to the current one) position */
-VOS_IMPL void
+ void
 SetSeqReaderPos( CvSeqReader* reader, int index, int is_relative )
 {
     VOS_FUNCNAME( "cvSetSeqReaderPos" );
@@ -1102,7 +1102,7 @@ SetSeqReaderPos( CvSeqReader* reader, int index, int is_relative )
 
 
 /* pushes element to the sequence */
-VOS_IMPL char*
+ char*
 cvSeqPush( CvSeq *seq, void *element )
 {
     char *ptr = 0;
@@ -1139,7 +1139,7 @@ cvSeqPush( CvSeq *seq, void *element )
 
 
 /* pops the last element out of the sequence */
-VOS_IMPL void
+ void
 cvSeqPop( CvSeq *seq, void *element )
 {
     char *ptr;
@@ -1174,7 +1174,7 @@ cvSeqPop( CvSeq *seq, void *element )
 
 
 /* removes several elements from the end of sequence */
-VOS_IMPL void
+ void
 cvSeqPopMulti( CvSeq *seq, void *_elements, int count, int front )
 {
     char *elements = (char *) _elements;
@@ -1250,7 +1250,7 @@ cvSeqPopMulti( CvSeq *seq, void *_elements, int count, int front )
 
 
 /* removes all elements from the sequence */
-VOS_IMPL void
+ void
 cvClearSeq( CvSeq *seq )
 {
     VOS_FUNCNAME( "cvClearSeq" );
@@ -1279,12 +1279,12 @@ CvSeqReaderPos;
 \****************************************************************************************/
 
 /* creates empty set */
-VOS_IMPL CvSet*
-cvCreateSet( int set_flags, int header_size, int elem_size, CvMemStorage * storage )
+ CvSet*
+CreateSet( int set_flags, int header_size, int elem_size, CvMemStorage * storage )
 {
     CvSet *set = 0;
 
-    VOS_FUNCNAME( "cvCreateSet" );
+    VOS_FUNCNAME( "CreateSet" );
 
     __BEGIN__;
 
@@ -1305,7 +1305,7 @@ cvCreateSet( int set_flags, int header_size, int elem_size, CvMemStorage * stora
 
 
 /* adds new element to the set */
-VOS_IMPL int
+ int
 cvSetAdd( CvSet* set, CvSetElem* element, CvSetElem** inserted_element )
 {
     int id = -1;
@@ -1377,7 +1377,7 @@ CvTreeNode;
 // Insert contour into tree given certain parent sequence.
 // If parent is equal to frame (the most external contour),
 // then added contour will have null pointer to parent.
-VOS_IMPL void
+ void
 cvInsertNodeIntoTree( void* _node, void* _parent, void* _frame )
 {
     VOS_FUNCNAME( "cvInsertNodeIntoTree" );

@@ -9,7 +9,7 @@ static CvStatus icvCopy_8u_C1R(const uchar *src, int srcstep,
 }
 
 /* dst = src */
-VOS_IMPL void
+ void
 cvCopy(const void *srcarr, void *dstarr, const void *maskarr)
 {
     VOS_FUNCNAME("cvCopy");
@@ -17,8 +17,8 @@ cvCopy(const void *srcarr, void *dstarr, const void *maskarr)
     __BEGIN__;
 
     int pix_size;
-    CvMat *src = (CvMat *)srcarr;
-    CvMat *dst = (CvMat *)dstarr;
+    SysMat *src = (SysMat *)srcarr;
+    SysMat *dst = (SysMat *)dstarr;
     CvSize size;
     assert("herelsp remove" && (VOS_IS_MAT(src) && VOS_IS_MAT(dst)));
 

@@ -599,7 +599,7 @@ icvSVBkSb_64f(int m, int n, const double *w,
     }
 }
 
-VOS_IMPL void
+ void
 cvSVD(CvArr *aarr, CvArr *warr, CvArr *uarr, CvArr *varr, int flags)
 {
     uchar *buffer = 0;
@@ -609,11 +609,11 @@ cvSVD(CvArr *aarr, CvArr *warr, CvArr *uarr, CvArr *varr, int flags)
 
     __BEGIN__;
 
-    CvMat astub, *a = (CvMat *)aarr;
-    CvMat wstub, *w = (CvMat *)warr;
-    CvMat ustub, *u;
-    CvMat vstub, *v;
-    CvMat tmat;
+    SysMat astub, *a = (SysMat *)aarr;
+    SysMat wstub, *w = (SysMat *)warr;
+    SysMat ustub, *u;
+    SysMat vstub, *v;
+    SysMat tmat;
     uchar *tw = 0;
     int type;
     int a_buf_offset = 0, u_buf_offset = 0, buf_size, pix_size;
@@ -625,10 +625,10 @@ cvSVD(CvArr *aarr, CvArr *warr, CvArr *uarr, CvArr *varr, int flags)
     int w_is_mat = 0;
 
     if (!VOS_IS_MAT(a))
-        VOS_CALL(a = cvGetMat(a, &astub));
+        VOS_CALL(a = GetMat(a, &astub));
 
     if (!VOS_IS_MAT(w))
-        VOS_CALL(w = cvGetMat(w, &wstub));
+        VOS_CALL(w = GetMat(w, &wstub));
 
     if (!VOS_ARE_TYPES_EQ(a, w))
         VOS_ERROR(VOS_StsUnmatchedFormats, "");
@@ -656,8 +656,8 @@ cvSVD(CvArr *aarr, CvArr *warr, CvArr *uarr, CvArr *varr, int flags)
         t_svd = 1;
     }
 
-    u = (CvMat *)uarr;
-    v = (CvMat *)varr;
+    u = (SysMat *)uarr;
+    v = (SysMat *)varr;
 
     w_is_mat = w_cols > 1 && w_rows > 1;
 
@@ -674,7 +674,7 @@ cvSVD(CvArr *aarr, CvArr *warr, CvArr *uarr, CvArr *varr, int flags)
     {
         if (!VOS_IS_MAT(u))
         {
-            VOS_CALL(u = cvGetMat(u, &ustub));
+            VOS_CALL(u = GetMat(u, &ustub));
         }
 
         u_rows = u->cols;
@@ -703,7 +703,7 @@ cvSVD(CvArr *aarr, CvArr *warr, CvArr *uarr, CvArr *varr, int flags)
         int v_rows, v_cols;
 
         if (!VOS_IS_MAT(v))
-            VOS_CALL(v = cvGetMat(v, &vstub));
+            VOS_CALL(v = GetMat(v, &vstub));
 
         v_rows = v->cols;
         v_cols = v->rows;
@@ -749,7 +749,7 @@ cvSVD(CvArr *aarr, CvArr *warr, CvArr *uarr, CvArr *varr, int flags)
         VOS_CALL(buffer = (uchar *)cvAlloc(buf_size));
     }
 
-    cvInitMatHeader(&tmat, m, n, type,
+    InitMatHeader(&tmat, m, n, type,
                     buffer + a_buf_offset * pix_size);
     if (!t_svd)
         cvCopy(a, &tmat);
@@ -762,7 +762,7 @@ cvSVD(CvArr *aarr, CvArr *warr, CvArr *uarr, CvArr *varr, int flags)
 
     if (temp_u)
     {
-        cvInitMatHeader(&ustub, u_cols, u_rows, type, buffer + u_buf_offset * pix_size);
+        InitMatHeader(&ustub, u_cols, u_rows, type, buffer + u_buf_offset * pix_size);
         u = &ustub;
     }
 
@@ -798,7 +798,7 @@ cvSVD(CvArr *aarr, CvArr *warr, CvArr *uarr, CvArr *varr, int flags)
         cvFree(&buffer);
 }
 
-VOS_IMPL void
+ void
 cvSVBkSb(const CvArr *warr, const CvArr *uarr,
          const CvArr *varr, const CvArr *barr,
          CvArr *xarr, int flags)
@@ -810,11 +810,11 @@ cvSVBkSb(const CvArr *warr, const CvArr *uarr,
 
     __BEGIN__;
 
-    CvMat wstub, *w = (CvMat *)warr;
-    CvMat bstub, *b = (CvMat *)barr;
-    CvMat xstub, *x = (CvMat *)xarr;
-    CvMat ustub, *u = (CvMat *)uarr;
-    CvMat vstub, *v = (CvMat *)varr;
+    SysMat wstub, *w = (SysMat *)warr;
+    SysMat bstub, *b = (SysMat *)barr;
+    SysMat xstub, *x = (SysMat *)xarr;
+    SysMat ustub, *u = (SysMat *)uarr;
+    SysMat vstub, *v = (SysMat *)varr;
     uchar *tw = 0;
     int type;
     int w_buf_offset = 0, t_buf_offset = 0;
@@ -824,16 +824,16 @@ cvSVBkSb(const CvArr *warr, const CvArr *uarr,
     int v_rows, v_cols;
 
     if (!VOS_IS_MAT(w))
-        VOS_CALL(w = cvGetMat(w, &wstub));
+        VOS_CALL(w = GetMat(w, &wstub));
 
     if (!VOS_IS_MAT(u))
-        VOS_CALL(u = cvGetMat(u, &ustub));
+        VOS_CALL(u = GetMat(u, &ustub));
 
     if (!VOS_IS_MAT(v))
-        VOS_CALL(v = cvGetMat(v, &vstub));
+        VOS_CALL(v = GetMat(v, &vstub));
 
     if (!VOS_IS_MAT(x))
-        VOS_CALL(x = cvGetMat(x, &xstub));
+        VOS_CALL(x = GetMat(x, &xstub));
 
     if (!VOS_ARE_TYPES_EQ(w, u) || !VOS_ARE_TYPES_EQ(w, v) || !VOS_ARE_TYPES_EQ(w, x))
         VOS_ERROR(VOS_StsUnmatchedFormats, "All matrices must have the same type");
@@ -881,7 +881,7 @@ cvSVBkSb(const CvArr *warr, const CvArr *uarr,
     if (b)
     {
         if (!VOS_IS_MAT(b))
-            VOS_CALL(b = cvGetMat(b, &bstub));
+            VOS_CALL(b = GetMat(b, &bstub));
         if (!VOS_ARE_TYPES_EQ(w, b))
             VOS_ERROR(VOS_StsUnmatchedFormats, "All matrices must have the same type");
         if (b->cols != x->cols || b->rows != m)

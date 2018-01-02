@@ -207,7 +207,7 @@ icvApproxPolyDP_32s(CvSeq *src_contour, int header_size,
     return VOS_OK;
 }
 
-VOS_IMPL CvSeq *
+CvSeq *
 cvApproxPoly(const void *array, int header_size,
              CvMemStorage *storage, int method,
              double parameter, int parameter2)

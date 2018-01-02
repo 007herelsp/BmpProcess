@@ -54,7 +54,7 @@ icvGetContext(void)
     return context;
 }
 
-VOS_IMPL int
+ int
 cvStdErrReport(int code, const char *func_name, const char *err_msg,
                const char *file, int line, void *)
 {
@@ -76,7 +76,7 @@ cvStdErrReport(int code, const char *func_name, const char *err_msg,
         return 0;
 }
 
-VOS_IMPL const char *cvErrorStr(int status)
+ const char *cvErrorStr(int status)
 {
     static char buf[256];
 
@@ -142,12 +142,12 @@ VOS_IMPL const char *cvErrorStr(int status)
     return buf;
 }
 
-VOS_IMPL int cvGetErrMode(void)
+ int cvGetErrMode(void)
 {
     return icvGetContext()->err_mode;
 }
 
-VOS_IMPL int cvSetErrMode(int mode)
+ int cvSetErrMode(int mode)
 {
     CvContext *context = icvGetContext();
     int prev_mode = context->err_mode;
@@ -155,17 +155,17 @@ VOS_IMPL int cvSetErrMode(int mode)
     return prev_mode;
 }
 
-VOS_IMPL int cvGetErrStatus()
+ int cvGetErrStatus()
 {
     return icvGetContext()->err_code;
 }
 
-VOS_IMPL void cvSetErrStatus(int code)
+ void cvSetErrStatus(int code)
 {
     icvGetContext()->err_code = code;
 }
 
-VOS_IMPL void cvError(int code, const char *func_name,
+ void cvError(int code, const char *func_name,
                       const char *err_msg,
                       const char *file_name, int line)
 {
@@ -203,7 +203,7 @@ VOS_IMPL void cvError(int code, const char *func_name,
 /******************** End of implementation of profiling stuff *********************/
 
 /* function, which converts int to int */
-VOS_IMPL int
+ int
 cvErrorFromStatus(int status)
 {
     switch (status)

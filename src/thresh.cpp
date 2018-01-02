@@ -39,7 +39,7 @@ icvThresh_8u_C1R(const uchar *src, int src_step, uchar *dst, int dst_step,
     return VOS_NO_ERR;
 }
 
-VOS_IMPL void
+ void
 cvThreshold(const void *srcarr, void *dstarr, double thresh, double maxval, int type)
 {
     VOS_FUNCNAME("cvThreshold");
@@ -48,15 +48,15 @@ cvThreshold(const void *srcarr, void *dstarr, double thresh, double maxval, int 
 
     CvSize roi;
     int src_step, dst_step;
-    CvMat src_stub, *src = (CvMat *)srcarr;
-    CvMat dst_stub, *dst = (CvMat *)dstarr;
-    CvMat src0, dst0;
+    SysMat src_stub, *src = (SysMat *)srcarr;
+    SysMat dst_stub, *dst = (SysMat *)dstarr;
+    SysMat src0, dst0;
     int coi1 = 0, coi2 = 0;
     int ithresh, imaxval, cn;
     bool use_otsu;
 
-    VOS_CALL(src = cvGetMat(src, &src_stub, &coi1));
-    VOS_CALL(dst = cvGetMat(dst, &dst_stub, &coi2));
+    VOS_CALL(src = GetMat(src, &src_stub, &coi1));
+    VOS_CALL(dst = GetMat(dst, &dst_stub, &coi2));
 
     if (coi1 + coi2)
         VOS_ERROR(VOS_BadCOI, "COI is not supported by the function");
@@ -67,8 +67,8 @@ cvThreshold(const void *srcarr, void *dstarr, double thresh, double maxval, int 
     cn = VOS_MAT_CN(src->type);
     if (cn > 1)
     {
-        src = cvReshape(src, &src0, 1);
-        dst = cvReshape(dst, &dst0, 1);
+        src = Reshape(src, &src0, 1);
+        dst = Reshape(dst, &dst0, 1);
     }
 
     use_otsu = (type & ~VOS_THRESH_MASK) == VOS_THRESH_OTSU;

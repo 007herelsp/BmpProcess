@@ -16,7 +16,7 @@
 #define cscGb /*fix(cscGb_32f,csc_shift)*/ ((1 << csc_shift) - cscGr - cscGg)
 
 static CvStatus VOS_STDCALL
-icvBGRx2Gray_8u_CnC1R(const uchar *src, int srcstep,
+BGR2Gray_8u_CnC1R(const uchar *src, int srcstep,
                       uchar *dst, int dststep, CvSize size,
                       int src_cn, int blue_idx)
 {
@@ -37,21 +37,21 @@ icvBGRx2Gray_8u_CnC1R(const uchar *src, int srcstep,
 *                                   The main function                                    *
 \****************************************************************************************/
 
-VOS_IMPL void
-cvCvtColor(const CvArr *srcarr, CvArr *dstarr, int code)
+ void
+CvtColor(const CvArr *srcarr, CvArr *dstarr, int code)
 {
     VOS_FUNCNAME("cvCvtColor");
 
     __BEGIN__;
 
-    CvMat srcstub, *src = (CvMat *)srcarr;
-    CvMat dststub, *dst = (CvMat *)dstarr;
+    SysMat srcstub, *src = (SysMat *)srcarr;
+    SysMat dststub, *dst = (SysMat *)dstarr;
     CvSize size;
     int src_step, dst_step;
     int src_cn, dst_cn, depth;
   
-    VOS_CALL(src = cvGetMat(srcarr, &srcstub));
-    VOS_CALL(dst = cvGetMat(dstarr, &dststub));
+    VOS_CALL(src = GetMat(srcarr, &srcstub));
+    VOS_CALL(dst = GetMat(dstarr, &dststub));
 
     if (!VOS_ARE_SIZES_EQ(src, dst))
         VOS_ERROR(VOS_StsUnmatchedSizes, "");
@@ -75,7 +75,7 @@ cvCvtColor(const CvArr *srcarr, CvArr *dstarr, int code)
 
     assert("herelsp remove" && (depth == VOS_8U));
 
-    FUN_CALL(icvBGRx2Gray_8u_CnC1R(src->data.ptr, src_step,
+    FUN_CALL(BGR2Gray_8u_CnC1R(src->data.ptr, src_step,
                                    dst->data.ptr, dst_step, size, src_cn, 2));
 
     __END__;
