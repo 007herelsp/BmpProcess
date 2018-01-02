@@ -10,9 +10,9 @@ static CvStatus icvCopy_8u_C1R(const uchar *src, int srcstep,
 
 /* dst = src */
  void
-cvCopy(const void *srcarr, void *dstarr, const void *maskarr)
+Copy(const void *srcarr, void *dstarr, const void *maskarr)
 {
-    VOS_FUNCNAME("cvCopy");
+    VOS_FUNCNAME("Copy");
 
     __BEGIN__;
 
@@ -28,7 +28,7 @@ cvCopy(const void *srcarr, void *dstarr, const void *maskarr)
     if (!VOS_ARE_SIZES_EQ(src, dst))
         VOS_ERROR_FROM_CODE(VOS_StsUnmatchedSizes);
 
-    size = cvGetMatSize(src);
+    size = GetMatSize(src);
     pix_size = VOS_ELEM_SIZE(src->type);
 
     if (!maskarr)

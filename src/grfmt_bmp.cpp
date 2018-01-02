@@ -1,7 +1,23 @@
-#include "_highgui.h"
+#include "highgui.h"
 #include "grfmt_bmp.h"
 
 static const char *fmtSignBmp = "BM";
+
+
+
+static void  FillGrayPalette( PaletteEntry* palette, int bpp, bool negative=false)
+{
+    int i, length = 1 << bpp;
+    int xor_mask = negative ? 255 : 0;
+
+    for( i = 0; i < length; i++ )
+    {
+        int val = (i * 255/(length - 1)) ^ xor_mask;
+        palette[i].b = palette[i].g = palette[i].r = (uchar)val;
+        palette[i].a = 0;
+    }
+}
+
 
 
 /************************ BMP reader *****************************/

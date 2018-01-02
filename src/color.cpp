@@ -15,7 +15,7 @@
 #define cscGg fix(cscGg_32f, csc_shift)
 #define cscGb /*fix(cscGb_32f,csc_shift)*/ ((1 << csc_shift) - cscGr - cscGg)
 
-static CvStatus VOS_STDCALL
+static CvStatus 
 BGR2Gray_8u_CnC1R(const uchar *src, int srcstep,
                       uchar *dst, int dststep, Size size,
                       int src_cn, int blue_idx)
@@ -65,7 +65,7 @@ CvtColor(const CvArr *srcarr, CvArr *dstarr, int code)
 
     src_cn = VOS_MAT_CN(src->type);
     dst_cn = VOS_MAT_CN(dst->type);
-    size = cvGetMatSize(src);
+    size = GetMatSize(src);
     src_step = src->step;
     dst_step = dst->step;
 

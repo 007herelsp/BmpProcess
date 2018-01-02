@@ -5,7 +5,7 @@
 #ifdef __cplusplus
 
 /****************************************************************************************\
-*                    CvBaseImageFilter: Base class for filtering operations              *
+*                    BaseImageFilter: Base class for filtering operations              *
 \****************************************************************************************/
 
 #define VOS_WHOLE   0
@@ -15,16 +15,16 @@
 
 #define VOS_ISOLATED_ROI 8
 
-typedef void (*CvRowFilterFunc)( const uchar* src, uchar* dst, void* params );
-typedef void (*CvColumnFilterFunc)( uchar** src, uchar* dst, int dst_step, int count, void* params );
+typedef void (*RowFilterFunc)( const uchar* src, uchar* dst, void* params );
+typedef void (*ColumnFilterFunc)( uchar** src, uchar* dst, int dst_step, int count, void* params );
 
-class  CvBaseImageFilter
+class  BaseImageFilter
 {
 public:
-    CvBaseImageFilter();
+    BaseImageFilter();
     /* calls init() */
     
-    virtual ~CvBaseImageFilter();
+    virtual ~BaseImageFilter();
 
     /* initializes the class for processing an image of maximal width _max_width,
        input image has data type _src_type, the output will have _dst_type.
@@ -44,7 +44,7 @@ public:
     /* releases all the internal buffers.
        for the further use of the object, init() needs to be called. */
     virtual void clear();
-   
+
     virtual int process( const Mat* _src, Mat* _dst,
                          Rect _src_roi=cvRect(0,0,-1,-1),
                          Point _dst_origin=cvPoint(0,0), int _flags=0 );
@@ -53,11 +53,11 @@ public:
     int get_dst_type() const { return dst_type; }
     Size get_kernel_size() const { return ksize; }
     int get_width() const { return prev_x_range.end_index - prev_x_range.start_index; }
-    CvRowFilterFunc get_x_filter_func() const { return x_func; }
-    CvColumnFilterFunc get_y_filter_func() const { return y_func; }
+    RowFilterFunc get_x_filter_func() const { return x_func; }
+    ColumnFilterFunc get_y_filter_func() const { return y_func; }
 
 protected:
-    /* initializes work_type, buf_size and max_rows */ 
+    /* initializes work_type, buf_size and max_rows */
     virtual void get_work_params();
     /* it is called (not always) from process when _phase=VOS_START or VOS_WHOLE.
        the method initializes ring buffer (buf_end, buf_head, buf_tail, buf_count, rows),
@@ -78,8 +78,8 @@ protected:
 
     /* pointers to convolution functions, initialized by init method.
        for non-separable filters only y_conv should be set */
-    CvRowFilterFunc x_func;
-    CvColumnFilterFunc y_func;
+    RowFilterFunc x_func;
+    ColumnFilterFunc y_func;
 
     uchar* buffer;
     uchar** rows;
@@ -102,12 +102,12 @@ protected:
 
 
 /* Derived class, for linear separable filtering. */
-class  CvSepFilter : public CvBaseImageFilter
+class  SepFilter : public BaseImageFilter
 {
 public:
-    CvSepFilter();
-   
-    virtual ~CvSepFilter();
+    SepFilter();
+
+    virtual ~SepFilter();
 
     virtual void init( int _max_width, int _src_type, int _dst_type,
                        const Mat* _kx, const Mat* _ky,
@@ -147,16 +147,16 @@ protected:
 
 
 /* basic morphological operations: erosion & dilation */
-class  CvMorphology : public CvBaseImageFilter
+class  Morphology : public BaseImageFilter
 {
 public:
-    CvMorphology();
-    CvMorphology( int _operation, int _max_width, int _src_dst_type,
+    Morphology();
+    Morphology( int _operation, int _max_width, int _src_dst_type,
                   int _element_shape, Mat* _element,
                   Size _ksize=cvSize(0,0), Point _anchor=cvPoint(-1,-1),
                   int _border_mode=IPL_BORDER_REPLICATE,
                   Scalar _border_value=cvScalarAll(0) );
-    virtual ~CvMorphology();
+    virtual ~Morphology();
     virtual void init( int _operation, int _max_width, int _src_dst_type,
                        int _element_shape, Mat* _element,
                        Size _ksize=cvSize(0,0), Point _anchor=cvPoint(-1,-1),

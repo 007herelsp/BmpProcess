@@ -1,4 +1,4 @@
-#include "_highgui.h"
+#include "highgui.h"
 
 #include "grfmt_base.h"
 #include "bitstrm.h"
@@ -11,8 +11,6 @@ GrFmtReader::GrFmtReader( const char* filename )
     m_width = m_height = 0;
     m_iscolor = false;
     m_bit_depth = 8;
-    m_native_depth = false;
-    m_isfloat = false;
 }
 
 

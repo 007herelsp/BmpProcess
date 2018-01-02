@@ -5,7 +5,7 @@
 static void
 cvSobel( const void* srcarr, void* dstarr, int dx, int dy, int aperture_size )
 {
-    CvSepFilter filter;
+    SepFilter filter;
     void* buffer = 0;
     int local_alloc = 0;
 
@@ -33,13 +33,13 @@ cvSobel( const void* srcarr, void* dstarr, int dx, int dy, int aperture_size )
         VOS_ERROR( VOS_StsBadArg, "src and dst have different sizes" );
 
     VOS_CALL( filter.init_deriv( src->cols, src_type, dst_type, dx, dy,
-                aperture_size, origin ? CvSepFilter::FLIP_KERNEL : 0));
+                aperture_size, origin ? SepFilter::FLIP_KERNEL : 0));
     VOS_CALL( filter.process( src, dst ));
 
     __END__;
 
     if( buffer && !local_alloc )
-        cvFree( &buffer );
+        SYS_FREE( &buffer );
 }
 
 
@@ -87,7 +87,7 @@ Canny( const void* srcarr, void* dstarr,
     if( (aperture_size & 1) == 0 || aperture_size < 3 || aperture_size > 7 )
         VOS_ERROR( VOS_StsBadFlag, "" );
 
-    size = cvGetMatSize( src );
+    size = GetMatSize( src );
 
     dx = CreateMat( size.height, size.width, VOS_16SC1 );
     dy = CreateMat( size.height, size.width, VOS_16SC1 );
@@ -106,11 +106,11 @@ Canny( const void* srcarr, void* dstarr,
     }
     else
     {
-        low = cvFloor( low_thresh );
-        high = cvFloor( high_thresh );
+        low = SysFloor( low_thresh );
+        high = SysFloor( high_thresh );
     }
 
-    VOS_CALL( buffer = cvAlloc( (size.width+2)*(size.height+2) +
+    VOS_CALL( buffer = SysAlloc( (size.width+2)*(size.height+2) +
                                 (size.width+2)*3*sizeof(int)) );
 
     mag_buf[0] = (int*)buffer;
@@ -120,7 +120,7 @@ Canny( const void* srcarr, void* dstarr,
     mapstep = size.width + 2;
 
     maxsize = MAX( 1 << 10, size.width*size.height/10 );
-    VOS_CALL( stack_top = stack_bottom = (uchar**)cvAlloc( maxsize*sizeof(stack_top[0]) ));
+    VOS_CALL( stack_top = stack_bottom = (uchar**)SysAlloc( maxsize*sizeof(stack_top[0]) ));
 
     memset( mag_buf[0], 0, (size.width+2)*sizeof(int) );
     memset( map, 1, mapstep );
@@ -141,7 +141,7 @@ Canny( const void* srcarr, void* dstarr,
     #define CANNY_PUSH(d)    *(d) = (uchar)2, *stack_top++ = (d)
     #define CANNY_POP(d)     (d) = *--stack_top
 
-    mag_row = cvMat( 1, size.width, VOS_32F );
+    mag_row = InitMat( 1, size.width, VOS_32F );
 
     // calculate magnitude and angle of gradient, perform non-maxima supression.
     // fill the map with one of the following values:
@@ -175,7 +175,7 @@ Canny( const void* srcarr, void* dstarr,
                     x = _dx[j]; y = _dy[j];
                     _magf[j] = (float)((double)x*x + (double)y*y);
                 }
-                cvPow( &mag_row, &mag_row, 0.5 );
+                SysPow( &mag_row, &mag_row, 0.5 );
             }
             else
             {
@@ -208,10 +208,10 @@ Canny( const void* srcarr, void* dstarr,
         {
             uchar** new_stack_bottom;
             maxsize = MAX( maxsize * 3/2, maxsize + size.width );
-            VOS_CALL( new_stack_bottom = (uchar**)cvAlloc( maxsize * sizeof(stack_top[0])) );
+            VOS_CALL( new_stack_bottom = (uchar**)SysAlloc( maxsize * sizeof(stack_top[0])) );
             memcpy( new_stack_bottom, stack_bottom, (stack_top - stack_bottom)*sizeof(stack_top[0]) );
             stack_top = new_stack_bottom + (stack_top - stack_bottom);
-            cvFree( &stack_bottom );
+            SYS_FREE( &stack_bottom );
             stack_bottom = new_stack_bottom;
         }
 
@@ -297,10 +297,10 @@ Canny( const void* srcarr, void* dstarr,
         {
             uchar** new_stack_bottom;
             maxsize = MAX( maxsize * 3/2, maxsize + 8 );
-            VOS_CALL( new_stack_bottom = (uchar**)cvAlloc( maxsize * sizeof(stack_top[0])) );
+            VOS_CALL( new_stack_bottom = (uchar**)SysAlloc( maxsize * sizeof(stack_top[0])) );
             memcpy( new_stack_bottom, stack_bottom, (stack_top - stack_bottom)*sizeof(stack_top[0]) );
             stack_top = new_stack_bottom + (stack_top - stack_bottom);
-            cvFree( &stack_bottom );
+            SYS_FREE( &stack_bottom );
             stack_bottom = new_stack_bottom;
         }
 
@@ -338,8 +338,8 @@ Canny( const void* srcarr, void* dstarr,
 
     ReleaseMat( &dx );
     ReleaseMat( &dy );
-    cvFree( &buffer );
-    cvFree( &stack_bottom );
+    SYS_FREE( &buffer );
+    SYS_FREE( &stack_bottom );
 }
 
 /* End of file. */

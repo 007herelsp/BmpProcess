@@ -1,10 +1,10 @@
 #include "_cxcore.h"
 
  void
-cvConvertScale( const void* srcarr, void* dstarr,
+ConvertScale( const void* srcarr, void* dstarr,
                 double scale, double shift )
 {
-    VOS_FUNCNAME( "cvConvertScale" );
+    VOS_FUNCNAME( "ConvertScale" );
 
     __BEGIN__;
     Mat  *src = (Mat*)srcarr;
@@ -20,7 +20,7 @@ cvConvertScale( const void* srcarr, void* dstarr,
     if( no_scale && VOS_ARE_TYPES_EQ( src, dst ) )
     {
         if( src != dst )
-          cvCopy( src, dst );
+          Copy( src, dst );
         EXIT;
     }
     else

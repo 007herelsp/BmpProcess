@@ -98,6 +98,17 @@ struct SymUBoxCmp
 				return false;
 			}
 		}
+
+		// bool ret = false;
+		// if (x.box.center.x == y.box.center.x)
+		// {
+		// 	ret = x.box.center.y < y.box.center.y;
+		// }
+		// else
+		// {
+		// 	ret = x.box.center.x < y.box.center.x;
+		// }
+		// return ret;
 		return true;
 	}
 };
@@ -105,32 +116,32 @@ struct SymUBoxCmp
 set<Box, SymUBoxCmp> SearchProcess_v2(IplImage *lpSrcImg)
 {
 	MemStorage *storage = CreateMemStorage();
-	Seq_t *contours = NULL;
-	Seq_t *result = NULL;
+	Seq *contours = NULL;
+	Seq *result = NULL;
 	double s, t;
 	double dContourArea;
 	Box2D End_Rage2D;
 	int index = 0;
 	set<Box, SymUBoxCmp> lstRes;
 	// ����һ�����������ڴ洢�����ǵ�
-	cvFindContours(lpSrcImg, storage, &contours, sizeof(CvContour),
-				   VOS_RETR_LIST, VOS_CHAIN_APPROX_SIMPLE, cvPoint(0, 0));
+	FindContours(lpSrcImg, storage, &contours, sizeof(CvContour),
+				 VOS_RETR_LIST, VOS_CHAIN_APPROX_SIMPLE, cvPoint(0, 0));
 	int iCount = 0;
-	cvSaveImage("c.bmp", lpSrcImg);
+	SaveImage("c.bmp", lpSrcImg);
 	// �����ҵ���ÿ������contours
 	while (contours)
 	{
 		//��ָ�����ȱƽ����������
-		result = cvApproxPoly(contours, sizeof(CvContour), storage,
-							  VOS_POLY_APPROX_DP, cvContourPerimeter(contours) * 0.01, 0);
+		result = ApproxPoly(contours, sizeof(CvContour), storage,
+							VOS_POLY_APPROX_DP, cvContourPerimeter(contours) * 0.01, 0);
 		if (NULL != result)
 		{
 			if (result->total == 4)
 			{
-				dContourArea = fabs(cvContourArea(result, VOS_WHOLE_SEQ));
-				if (dContourArea >= 500 && dContourArea <= 1000000 && cvCheckContourConvexity(result))
+				dContourArea = fabs(ContourArea(result, VOS_WHOLE_SEQ));
+				if (dContourArea >= 500 && dContourArea <= 1000000 && CheckContourConvexity(result))
 				{
-					End_Rage2D = cvMinAreaRect2(contours);
+					End_Rage2D = MinAreaRect2(contours);
 					s = 0;
 					Box box = {0};
 					box.box = End_Rage2D;
@@ -155,7 +166,7 @@ set<Box, SymUBoxCmp> SearchProcess_v2(IplImage *lpSrcImg)
 						tp = (Point *)GetSeqElem(result, i);
 						box.pt[i].x = tp->x;
 						box.pt[i].y = tp->y;
-						//  cvSeqPush(squares, (Point *)GetSeqElem(result, i));
+						//  SeqPush(squares, (Point *)GetSeqElem(result, i));
 					}
 					if (s < 0.1)
 					{
@@ -199,13 +210,20 @@ int process_v2(IplImage *lpImg, IplImage *lpTargetImg, int argc, char *argv[])
 	Point p[4];
 	Mat *warp_mat;
 	int iCount = 0;
-
+	Box tbox;
 	for (itu = setURes.begin(); itu != setURes.end(); itu++)
 	{
 		if ((*itu).isRect)
 		{
 			iCount++;
 		}
+		tbox = *itu;
+		printf("%f,%f", tbox.box.center.x, tbox.box.center.y);
+		for (int i = 0; i < 4; i++)
+		{
+			printf("%f,%f",  tbox.pt[i].x, tbox.pt[i].y);
+		}
+		printf("\n");
 		lstRes.insert(*itu);
 	}
 	set<Box, SymBoxCmp>::iterator it;
@@ -215,7 +233,7 @@ int process_v2(IplImage *lpImg, IplImage *lpTargetImg, int argc, char *argv[])
 	for (int i = 0; i < argc && it != lstRes.end(); i++)
 	{
 		printf("%s\n", argv[i]);
-		IplImage *lpSrcImg = cvLoadImage(argv[i], 1);
+		IplImage *lpSrcImg = LoadImage(argv[i], 1);
 		if (lpSrcImg != NULL)
 		{
 			box = *it;
@@ -313,8 +331,8 @@ int process_v2(IplImage *lpImg, IplImage *lpTargetImg, int argc, char *argv[])
 				// srcTri[1].y = temp->height - 1;
 			}
 
-			cvGetPerspectiveTransform(dstTri, srcTri, warp_mat);									   //�����Ե�������任
-			cvWarpPerspective(temp, lpTargetImg, warp_mat, VOS_INTER_LINEAR | (VOS_WARP_INVERSE_MAP)); //��ͼ��������任
+			GetPerspectiveTransform(dstTri, srcTri, warp_mat);										 //�����Ե�������任
+			WarpPerspective(temp, lpTargetImg, warp_mat, VOS_INTER_LINEAR | (VOS_WARP_INVERSE_MAP)); //��ͼ��������任
 		}
 	}
 	return iCount;
@@ -329,41 +347,41 @@ int main(int argc, char **args)
 	const char *OutputPath = (const char *)args[1];
 	const char *TargetPicPath = (const char *)args[2];
 
-	IplImage *lpTargetImg = cvLoadImage(TargetPicPath, 1);
+	IplImage *lpTargetImg = LoadImage(TargetPicPath, 1);
 	if (NULL == lpTargetImg)
 	{
 		return ERR_1;
 	}
 
-	IplImage *gray = cvCreateImage(GetSize(lpTargetImg), 8, 1);
+	IplImage *gray = CreateImage(GetSize(lpTargetImg), 8, 1);
 	CvtColor(lpTargetImg, gray, VOS_RGB2GRAY);
-	IplImage *lpCannyImg = cvCreateImage(GetSize(lpTargetImg), 8, 1);
-	IplImage *tmp = cvCreateImage(GetSize(lpTargetImg), 8, 1);
-	IplImage *lpDilateImg = cvCreateImage(GetSize(lpTargetImg), 8, 1);
-	cvSmooth(gray, tmp, VOS_GAUSSIAN, 3, 3, 0, 0); //��˹�˲�
-	cvSaveImage("tmp.bmp", tmp);
+	IplImage *lpCannyImg = CreateImage(GetSize(lpTargetImg), 8, 1);
+	IplImage *tmp = CreateImage(GetSize(lpTargetImg), 8, 1);
+	IplImage *lpDilateImg = CreateImage(GetSize(lpTargetImg), 8, 1);
+	Smooth(gray, tmp, VOS_GAUSSIAN, 3, 3, 0, 0); //��˹�˲�
+	SaveImage("tmp.bmp", tmp);
 	printf("save\n");
 	if (NULL != lpCannyImg && NULL != lpDilateImg)
 	{
-		//cvSmooth(gray, gray, VOS_GAUSSIAN, 3, 3, 0, 0);
+		//Smooth(gray, gray, VOS_GAUSSIAN, 3, 3, 0, 0);
 		Canny(gray, lpCannyImg, 0.5, 20, 3);
-		cvSaveImage("canny1.bmp", lpCannyImg);
-		cvDilate(lpCannyImg, lpDilateImg, 0, 1);
-		cvSaveImage("lpDilate.bmp", lpDilateImg);
-		cvErode(lpDilateImg, lpDilateImg, 0, 1);
-		cvSaveImage("lpErode.bmp", lpDilateImg);
+		SaveImage("canny1.bmp", lpCannyImg);
+		Dilate(lpCannyImg, lpDilateImg, 0, 1);
+		SaveImage("lpDilate.bmp", lpDilateImg);
+		Erode(lpDilateImg, lpDilateImg, 0, 1);
+		SaveImage("lpErode.bmp", lpDilateImg);
 
-		IplImage *pGrayImage = cvCreateImage(GetSize(lpTargetImg), IPL_DEPTH_8U, 1);
-		IplImage *pGrayEqualizeImage = cvCreateImage(GetSize(lpTargetImg), IPL_DEPTH_8U, 1);
-		cvSmooth(lpTargetImg, lpTargetImg, VOS_GAUSSIAN, 5, 5, 0, 0); //��˹�˲�
-		cvSaveImage("pTargetImg.bmp", lpTargetImg);
+		IplImage *pGrayImage = CreateImage(GetSize(lpTargetImg), IPL_DEPTH_8U, 1);
+		IplImage *pGrayEqualizeImage = CreateImage(GetSize(lpTargetImg), IPL_DEPTH_8U, 1);
+		Smooth(lpTargetImg, lpTargetImg, VOS_GAUSSIAN, 5, 5, 0, 0); //��˹�˲�
+		SaveImage("pTargetImg.bmp", lpTargetImg);
 		CvtColor(lpTargetImg, pGrayImage, VOS_BGR2GRAY);
-		cvSaveImage("pGrayImage.bmp", pGrayImage);
+		SaveImage("pGrayImage.bmp", pGrayImage);
 		//cvEqualizeHist(pGrayImage, pGrayEqualizeImage);
-		cvSaveImage("pGrayEqualizeImage.bmp", pGrayEqualizeImage);
+		SaveImage("pGrayEqualizeImage.bmp", pGrayEqualizeImage);
 
 		//Canny(pGrayEqualizeImage, lpCannyImg, 0.5, 20, 3);
-		//cvSaveImage("canny2.bmp", lpCannyImg);
+		//SaveImage("canny2.bmp", lpCannyImg);
 	}
 	//����Ŀ������
 	IplImage *lpOutImg = CloneImage(lpTargetImg);
@@ -372,7 +390,7 @@ int main(int argc, char **args)
 	{
 		iCunt = process_v2(lpDilateImg, lpOutImg, argc - 3, &args[3]);
 
-		cvSaveImage(OutputPath, lpOutImg);
+		SaveImage(OutputPath, lpOutImg);
 	}
 
 	//�������

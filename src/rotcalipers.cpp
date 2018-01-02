@@ -13,8 +13,8 @@ icvRotatingCalipers( Point2D32f* points, int n, int mode, float* out )
     float max_dist = 0;
     char buffer[32];
     int i, k;
-    Point2D32f* vect = (Point2D32f*)cvAlloc( n * sizeof(vect[0]) );
-    float* inv_vect_length = (float*)cvAlloc( n * sizeof(inv_vect_length[0]) );
+    Point2D32f* vect = (Point2D32f*)SysAlloc( n * sizeof(vect[0]) );
+    float* inv_vect_length = (float*)SysAlloc( n * sizeof(inv_vect_length[0]) );
     int left = 0, bottom = 0, right = 0, top = 0;
     int seq[4] = { -1, -1, -1, -1 };
 
@@ -256,27 +256,27 @@ icvRotatingCalipers( Point2D32f* points, int n, int mode, float* out )
         break;
     }
 
-    cvFree( &vect );
-    cvFree( &inv_vect_length );
+    SYS_FREE( &vect );
+    SYS_FREE( &inv_vect_length );
 }
 
 
   Box2D
-cvMinAreaRect2( const CvArr* array, MemStorage* storage )
+MinAreaRect2( const CvArr* array, MemStorage* storage )
 {
     MemStorage* temp_storage = 0;
     Box2D box;
     Point2D32f* points = 0;
 
-    VOS_FUNCNAME( "cvMinAreaRect2" );
+    VOS_FUNCNAME( "MinAreaRect2" );
 
     memset(&box, 0, sizeof(box));
 
     __BEGIN__;
 
     int i, n;
-    CvSeqReader reader;
-    Seq_t* ptseq = (Seq_t*)array;
+    SeqReader reader;
+    Seq* ptseq = (Seq*)array;
     Point2D32f out[3];
 
     if( VOS_IS_SEQ(ptseq) )
@@ -306,11 +306,11 @@ cvMinAreaRect2( const CvArr* array, MemStorage* storage )
 
     if( !VOS_IS_SEQ_CONVEX( ptseq ))
     {
-        VOS_CALL( ptseq = cvConvexHull2( ptseq, temp_storage, VOS_CLOCKWISE, 1 ));
+        VOS_CALL( ptseq = ConvexHull2( ptseq, temp_storage, VOS_CLOCKWISE, 1 ));
     }
     else if( !VOS_IS_SEQ_POINT_SET( ptseq ))
     {
-        CvSeqWriter writer;
+        SeqWriter writer;
 
         if( !VOS_IS_SEQ(ptseq->v_prev) || !VOS_IS_SEQ_POINT_SET(ptseq->v_prev))
             VOS_ERROR( VOS_StsBadArg,
@@ -331,7 +331,7 @@ cvMinAreaRect2( const CvArr* array, MemStorage* storage )
 
     n = ptseq->total;
 
-    VOS_CALL( points = (Point2D32f*)cvAlloc( n*sizeof(points[0]) ));
+    VOS_CALL( points = (Point2D32f*)SysAlloc( n*sizeof(points[0]) ));
     StartReadSeq( ptseq, &reader );
 
     if( VOS_SEQ_ELTYPE( ptseq ) == VOS_32SC2 )
@@ -382,7 +382,7 @@ cvMinAreaRect2( const CvArr* array, MemStorage* storage )
     __END__;
 
     ReleaseMemStorage( &temp_storage );
-    cvFree( &points );
+    SYS_FREE( &points );
 
     return box;
 }

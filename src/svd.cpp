@@ -96,12 +96,12 @@ pythag(double a, double b)
     if (a > b)
     {
         b /= a;
-        a *= cvSqrt(1. + b * b);
+        a *= SysSqrt(1. + b * b);
     }
     else if (b != 0)
     {
         a /= b;
-        a = b * cvSqrt(1. + a * a);
+        a = b * SysSqrt(1. + a * a);
     }
 
     return a;
@@ -600,12 +600,12 @@ icvSVBkSb_64f(int m, int n, const double *w,
 }
 
  void
-cvSVD(CvArr *aarr, CvArr *warr, CvArr *uarr, CvArr *varr, int flags)
+SVD(CvArr *aarr, CvArr *warr, CvArr *uarr, CvArr *varr, int flags)
 {
     uchar *buffer = 0;
     int local_alloc = 0;
 
-    VOS_FUNCNAME("cvSVD");
+    VOS_FUNCNAME("SVD");
 
     __BEGIN__;
 
@@ -746,13 +746,13 @@ cvSVD(CvArr *aarr, CvArr *warr, CvArr *uarr, CvArr *varr, int flags)
     }
     else
     {
-        VOS_CALL(buffer = (uchar *)cvAlloc(buf_size));
+        VOS_CALL(buffer = (uchar *)SysAlloc(buf_size));
     }
 
     InitMatHeader(&tmat, m, n, type,
                     buffer + a_buf_offset * pix_size);
     if (!t_svd)
-        cvCopy(a, &tmat);
+        Copy(a, &tmat);
     else
     {
         VOS_ERROR(VOS_StsUnmatchedFormats, "");
@@ -783,7 +783,7 @@ cvSVD(CvArr *aarr, CvArr *warr, CvArr *uarr, CvArr *varr, int flags)
     if (uarr)
     {
         if (temp_u)
-            cvCopy(u, uarr);
+            Copy(u, uarr);
         /*VOS_CHECK_NANS( uarr );*/
     }
 
@@ -795,18 +795,18 @@ cvSVD(CvArr *aarr, CvArr *warr, CvArr *uarr, CvArr *varr, int flags)
     __END__;
 
     if (buffer && !local_alloc)
-        cvFree(&buffer);
+        SYS_FREE(&buffer);
 }
 
  void
-cvSVBkSb(const CvArr *warr, const CvArr *uarr,
+SVBkSb(const CvArr *warr, const CvArr *uarr,
          const CvArr *varr, const CvArr *barr,
          CvArr *xarr, int flags)
 {
     uchar *buffer = 0;
     int local_alloc = 0;
 
-    VOS_FUNCNAME("cvSVBkSb");
+    VOS_FUNCNAME("SVBkSb");
 
     __BEGIN__;
 
@@ -902,7 +902,7 @@ cvSVBkSb(const CvArr *warr, const CvArr *uarr,
         local_alloc = 1;
     }
     else
-        VOS_CALL(buffer = (uchar *)cvAlloc(buf_size));
+        VOS_CALL(buffer = (uchar *)SysAlloc(buf_size));
 
     if (!tw)
     {
@@ -928,7 +928,7 @@ cvSVBkSb(const CvArr *warr, const CvArr *uarr,
     __END__;
 
     if (buffer && !local_alloc)
-        cvFree(&buffer);
+        SYS_FREE(&buffer);
 }
 
 /* End of file. */

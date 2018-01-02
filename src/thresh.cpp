@@ -1,6 +1,6 @@
 #include "_cv.h"
 
-static CvStatus VOS_STDCALL
+static CvStatus 
 icvThresh_8u_C1R(const uchar *src, int src_step, uchar *dst, int dst_step,
                  Size roi, uchar thresh, uchar maxval, int type)
 {
@@ -40,9 +40,9 @@ icvThresh_8u_C1R(const uchar *src, int src_step, uchar *dst, int dst_step,
 }
 
  void
-cvThreshold(const void *srcarr, void *dstarr, double thresh, double maxval, int type)
+Threshold(const void *srcarr, void *dstarr, double thresh, double maxval, int type)
 {
-    VOS_FUNCNAME("cvThreshold");
+    VOS_FUNCNAME("Threshold");
 
     __BEGIN__;
 
@@ -87,7 +87,7 @@ cvThreshold(const void *srcarr, void *dstarr, double thresh, double maxval, int 
     if (!VOS_ARE_SIZES_EQ(src, dst))
         VOS_ERROR(VOS_StsUnmatchedSizes, "");
 
-    roi = cvGetMatSize(src);
+    roi = GetMatSize(src);
     if (VOS_IS_MAT_CONT(src->type & dst->type))
     {
         roi.width *= roi.height;
@@ -104,8 +104,8 @@ cvThreshold(const void *srcarr, void *dstarr, double thresh, double maxval, int 
         VOS_ERROR(VOS_BadDepth, "herelsp remove");
     }
 
-    ithresh = cvFloor(thresh);
-    imaxval = cvRound(maxval);
+    ithresh = SysFloor(thresh);
+    imaxval = SysRound(maxval);
     if (type == VOS_THRESH_TRUNC)
         imaxval = ithresh;
     imaxval = VOS_CAST_8U(imaxval);

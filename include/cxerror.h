@@ -5,9 +5,9 @@
 
 /************Below is declaration of error handling stuff in PLSuite manner**/
 
-typedef int CVStatus;
+typedef int OPTStatus;
 
-/* this part of CVStatus is compatible with IPLStatus 
+/* this part of OPTStatus is compatible with IPLStatus
   Some of below symbols are not [yet] used in  
 */
 #define VOS_StsOk                    0  /* everithing is ok                */
@@ -77,7 +77,7 @@ typedef int CVStatus;
 
 #define VOS_ERROR( Code, Msg )                                       \
 {                                                                   \
-     cvError( (Code), cvFuncName, Msg, __FILE__, __LINE__ );        \
+     SysError( (Code), cvFuncName, Msg, __FILE__, __LINE__ );        \
      EXIT;                                                          \
 }
 
@@ -92,7 +92,7 @@ typedef int CVStatus;
 */
 #define VOS_CHECK()                                                  \
 {                                                                   \
-    if( cvGetErrStatus() < 0 )                                      \
+    if( GetErrStatus() < 0 )                                      \
         VOS_ERROR( VOS_StsBackTrace, "Inner function failed." );      \
 }
 

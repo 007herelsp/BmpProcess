@@ -27,7 +27,7 @@ CreateMat(int height, int width, int type)
 
     __END__;
 
-    if (cvGetErrStatus() < 0)
+    if (GetErrStatus() < 0)
         ReleaseMat(&arr);
 
     return arr;
@@ -59,9 +59,9 @@ CreateMatHeader(int rows, int cols, int type)
     if (min_step <= 0)
         VOS_ERROR(VOS_StsUnsupportedFormat, "Invalid matrix type");
 
-    VOS_CALL(arr = (Mat *)cvAlloc(sizeof(*arr)));
+    VOS_CALL(arr = (Mat *)SysAlloc(sizeof(*arr)));
 
-    arr->step = rows == 1 ? 0 : cvAlign(min_step, VOS_DEFAULT_MAT_ROW_ALIGN);
+    arr->step = rows == 1 ? 0 : Align(min_step, VOS_DEFAULT_MAT_ROW_ALIGN);
     arr->type = VOS_MAT_MAGIC_VAL | type |
                 (arr->step == 0 || arr->step == min_step ? VOS_MAT_CONT_FLAG : 0);
     arr->rows = rows;
@@ -74,7 +74,7 @@ CreateMatHeader(int rows, int cols, int type)
 
     __END__;
 
-    if (cvGetErrStatus() < 0)
+    if (GetErrStatus() < 0)
         ReleaseMat(&arr);
 
     return arr;
@@ -153,8 +153,8 @@ ReleaseMat(Mat **array)
 
         *array = 0;
 
-        cvDecRefData(arr);
-        cvFree(&arr);
+        DecRefData(arr);
+        SYS_FREE(&arr);
     }
 
     __END__;
@@ -185,8 +185,8 @@ CreateData(CvArr *arr)
             step = VOS_ELEM_SIZE(mat->type) * mat->cols;
 
         total_size = step * mat->rows + sizeof(int) + VOS_MALLOC_ALIGN;
-        VOS_CALL(mat->refcount = (int *)cvAlloc((size_t)total_size));
-        mat->data.ptr = (uchar *)cvAlignPtr(mat->refcount + 1, VOS_MALLOC_ALIGN);
+        VOS_CALL(mat->refcount = (int *)SysAlloc((size_t)total_size));
+        mat->data.ptr = (uchar *)AlignPtr(mat->refcount + 1, VOS_MALLOC_ALIGN);
         *mat->refcount = 1;
     }
     else if (VOS_IS_IMAGE_HDR(arr))
@@ -197,7 +197,7 @@ CreateData(CvArr *arr)
             VOS_ERROR(VOS_StsError, "Data is already allocated");
 
         VOS_CALL(img->imageData = img->imageDataOrigin =
-                     (char *)cvAlloc((size_t)img->imageSize));
+                     (char *)SysAlloc((size_t)img->imageSize));
     }
     else
     {
@@ -266,7 +266,7 @@ SetData(CvArr *arr, void *data, int step)
         img->imageData = img->imageDataOrigin = (char *)data;
 
         if ((((int)(size_t)data | step) & 7) == 0 &&
-            cvAlign(img->width * pix_size, 8) == step)
+            Align(img->width * pix_size, 8) == step)
         {
             img->align = 8;
         }
@@ -294,7 +294,7 @@ ReleaseData(CvArr *arr)
     if (VOS_IS_MAT_HDR(arr))
     {
         Mat *mat = (Mat *)arr;
-        cvDecRefData(mat);
+        DecRefData(mat);
     }
     else if (VOS_IS_IMAGE_HDR(arr))
     {
@@ -302,7 +302,7 @@ ReleaseData(CvArr *arr)
 
         char *ptr = img->imageDataOrigin;
         img->imageData = img->imageDataOrigin = 0;
-        cvFree(&ptr);
+        SYS_FREE(&ptr);
     }
     else
     {
@@ -400,7 +400,7 @@ ScalarToRawData(const Scalar *scalar, void *data, int type)
 
     while (cn--)
     {
-        int t = cvRound(scalar->val[cn]);
+        int t = SysRound(scalar->val[cn]);
         ((uchar *)data)[cn] = VOS_CAST_8U(t);
     }
     __END__;
@@ -566,13 +566,13 @@ CreateImageHeader(Size size, int depth, int channels)
 
     __BEGIN__;
 
-    VOS_CALL(img = (IplImage *)cvAlloc(sizeof(*img)));
+    VOS_CALL(img = (IplImage *)SysAlloc(sizeof(*img)));
     VOS_CALL(InitImageHeader(img, size, depth, channels, IPL_ORIGIN_TL,
                                VOS_DEFAULT_IMAGE_ROW_ALIGN));
 
     __END__;
 
-    if (cvGetErrStatus() < 0 && img)
+    if (GetErrStatus() < 0 && img)
         ReleaseImageHeader(&img);
 
     return img;
@@ -580,11 +580,11 @@ CreateImageHeader(Size size, int depth, int channels)
 
 // create IplImage header and allocate underlying data
  IplImage *
-cvCreateImage(Size size, int depth, int channels)
+CreateImage(Size size, int depth, int channels)
 {
     IplImage *img = 0;
 
-    VOS_FUNCNAME("cvCreateImage");
+    VOS_FUNCNAME("CreateImage");
 
     __BEGIN__;
 
@@ -594,7 +594,7 @@ cvCreateImage(Size size, int depth, int channels)
 
     __END__;
 
-    if (cvGetErrStatus() < 0)
+    if (GetErrStatus() < 0)
         ReleaseImage(&img);
 
     return img;
@@ -666,7 +666,7 @@ ReleaseImageHeader(IplImage **image)
         IplImage *img = *image;
         *image = 0;
 
-        cvFree(&img);
+        SYS_FREE(&img);
     }
     __END__;
 }
@@ -704,7 +704,7 @@ CloneImage(const IplImage *src)
     if (!VOS_IS_IMAGE_HDR(src))
         VOS_ERROR(VOS_StsBadArg, "Bad image header");
 
-    VOS_CALL(dst = (IplImage *)cvAlloc(sizeof(*dst)));
+    VOS_CALL(dst = (IplImage *)SysAlloc(sizeof(*dst)));
 
     memcpy(dst, src, sizeof(*src));
     dst->imageData = dst->imageDataOrigin = 0;

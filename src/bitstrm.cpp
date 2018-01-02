@@ -1,4 +1,4 @@
-#include "_highgui.h"
+#include "highgui.h"
 #include "bitstrm.h"
 
 #define  BS_DEF_BLOCK_SIZE   (1<<15)

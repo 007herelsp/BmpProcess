@@ -231,29 +231,29 @@ static void icvSortPointsByPointers_32s(Point **array, size_t total, int aux)
     }
 }
 
- Seq_t *
-cvConvexHull2(const CvArr *array, void *hull_storage,
+ Seq *
+ConvexHull2(const CvArr *array, void *hull_storage,
               int orientation, int return_points)
 {
     union {
         CvContour *c;
-        Seq_t *s;
+        Seq *s;
     } hull;
     Point **pointer = 0;
     int *stack = 0;
 
-    VOS_FUNCNAME("cvConvexHull2");
+    VOS_FUNCNAME("ConvexHull2");
 
     hull.s = 0;
 
     __BEGIN__;
 
     Mat *mat = 0;
-    CvSeqReader reader;
-    CvSeqWriter writer;
+    SeqReader reader;
+    SeqWriter writer;
     CvContour contour_header;
-    Seq_t *ptseq = 0;
-    Seq_t *hullseq = 0;
+    Seq *ptseq = 0;
+    Seq *hullseq = 0;
     int *t_stack;
     int t_count;
     int i, miny_ind = 0, maxy_ind = 0, total;
@@ -262,7 +262,7 @@ cvConvexHull2(const CvArr *array, void *hull_storage,
 
     if (VOS_IS_SEQ(array))
     {
-        ptseq = (Seq_t *)array;
+        ptseq = (Seq *)array;
         if (!VOS_IS_SEQ_POINT_SET(ptseq))
             VOS_ERROR(VOS_StsBadArg, "Unsupported sequence type");
         if (hull_storage == 0)
@@ -309,8 +309,8 @@ cvConvexHull2(const CvArr *array, void *hull_storage,
     }
     sklansky = (sklansky_func)icvSklansky_32s;
 
-    VOS_CALL(pointer = (Point **)cvAlloc(ptseq->total * sizeof(pointer[0])));
-    VOS_CALL(stack = (int *)cvAlloc((ptseq->total + 2) * sizeof(stack[0])));
+    VOS_CALL(pointer = (Point **)SysAlloc(ptseq->total * sizeof(pointer[0])));
+    VOS_CALL(stack = (int *)SysAlloc((ptseq->total + 2) * sizeof(stack[0])));
 
     StartReadSeq(ptseq, &reader);
 
@@ -411,33 +411,33 @@ finish_hull:
     else
     {
         hull.s = hullseq;
-        hull.c->rect = cvBoundingRect(ptseq,
+        hull.c->rect = BoundingRect(ptseq,
                                       ptseq->header_size < (int)sizeof(CvContour) ||
                                           &ptseq->flags == &contour_header.flags);
     }
 
     __END__;
 
-    cvFree(&pointer);
-    cvFree(&stack);
+    SYS_FREE(&pointer);
+    SYS_FREE(&stack);
 
     return hull.s;
 }
 
  int
-cvCheckContourConvexity(const CvArr *array)
+CheckContourConvexity(const CvArr *array)
 {
     int flag = -1;
 
-    VOS_FUNCNAME("cvCheckContourConvexity");
+    VOS_FUNCNAME("CheckContourConvexity");
 
     __BEGIN__;
 
     int i;
     int orientation = 0;
-    CvSeqReader reader;
+    SeqReader reader;
 
-    Seq_t *contour = (Seq_t *)array;
+    Seq *contour = (Seq *)array;
 
     if (VOS_IS_SEQ(contour))
     {

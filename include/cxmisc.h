@@ -1,6 +1,7 @@
 
 #ifndef _CXCORE_MISC_H_
 #define _CXCORE_MISC_H_
+#include "cxtypes.h"
 #include <limits.h>
 
 /****************************************************************************************\
@@ -24,7 +25,7 @@
 #define  VOS_DEFAULT_MAT_ROW_ALIGN  1
 
 /* maximum size of dynamic memory buffer.
-   cvAlloc reports an error if a larger block is requested. */
+   SysAlloc reports an error if a larger block is requested. */
 #define  VOS_MAX_ALLOC_SIZE    (((size_t)1 << (sizeof(size_t)*8-2)))
 
 /* the alignment of all the allocated buffers */
@@ -66,7 +67,7 @@
 #endif
 
 
-#define cvStackAlloc(size) cvAlignPtr( alloca((size) + VOS_MALLOC_ALIGN), VOS_MALLOC_ALIGN )
+#define cvStackAlloc(size) AlignPtr( alloca((size) + VOS_MALLOC_ALIGN), VOS_MALLOC_ALIGN )
 
 /* default step, set in case of continuous data
    to work around checks for valid step in some ipp functions */
@@ -107,19 +108,19 @@
 
 #define  cvUnsupportedFormat "Unsupported format"
 
-VOS_INLINE void* cvAlignPtr( const void* ptr, int align=32 )
+VOS_INLINE void* AlignPtr( const void* ptr, int align=32 )
 {
     assert( (align & (align-1)) == 0 );
     return (void*)( ((size_t)ptr + align - 1) & ~(size_t)(align-1) );
 }
 
-VOS_INLINE int cvAlign( int size, int align )
+VOS_INLINE int Align( int size, int align )
 {
     assert( (align & (align-1)) == 0 && size < INT_MAX );
     return (size + align - 1) & -align;
 }
 
-VOS_INLINE  Size  cvGetMatSize( const Mat* mat )
+VOS_INLINE  Size  GetMatSize( const Mat* mat )
 {
     Size size = { mat->width, mat->height };
     return size;
@@ -210,7 +211,7 @@ typedef enum CvStatus
 CvStatus;
 
 #define VOS_ERROR_FROM_STATUS( result )                \
-    VOS_ERROR( cvErrorFromStatus( result ), "function failed" )
+    VOS_ERROR( SysErrorFromStatus( result ), "function failed" )
 
 #define FUN_CALL( Func )                                              \
 {                                                                      \

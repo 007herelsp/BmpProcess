@@ -30,9 +30,9 @@ static CvStatus icvSqrt_32f(const float *src, float *dst, int len)
 
 typedef CvStatus(*CvSqrtFunc)(const void *src, void *dst, int len);
 
- void cvPow(const CvArr *srcarr, CvArr *dstarr, double power)
+ void SysPow(const CvArr *srcarr, CvArr *dstarr, double power)
 {
-    VOS_FUNCNAME("cvPow");
+    VOS_FUNCNAME("SysPow");
 
     __BEGIN__;
 
@@ -68,7 +68,7 @@ typedef CvStatus(*CvSqrtFunc)(const void *src, void *dst, int len);
                  "with floating-point types only");
     }
 
-    size = cvGetMatSize(src);
+    size = GetMatSize(src);
     size.width *= VOS_MAT_CN(src->type);
 
     if (VOS_IS_MAT_CONT(src->type & dst->type))

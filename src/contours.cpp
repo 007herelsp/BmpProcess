@@ -20,7 +20,7 @@ typedef struct _CvContourInfo
     int flags;
     struct _CvContourInfo *next;   /* next contour with the same mark value */
     struct _CvContourInfo *parent; /* information about parent contour */
-    Seq_t *contour;                /* corresponding contour (may be 0, if rejected) */
+    Seq *contour;                /* corresponding contour (may be 0, if rejected) */
     Rect rect;                   /* bounding rectangle */
     Point origin;                /* origin point (where the contour was traced from) */
     int is_hole;                   /* hole flag */
@@ -51,7 +51,7 @@ typedef struct _CvContourScanner
     _CvContourInfo *l_cinfo;     /* information about latest approx. contour */
     _CvContourInfo cinfo_temp;   /* temporary var which is used in simple modes */
     _CvContourInfo frame_info;   /* information about frame */
-    Seq_t frame;                 /* frame itself */
+    Seq frame;                 /* frame itself */
     int approx_method1;          /* approx method when tracing */
     int approx_method2;          /* final approx method */
     int mode;                    /* contour scanning mode:
@@ -76,8 +76,8 @@ typedef struct _CvContourScanner
    Initializes scanner structure.
    Prepare image for scanning ( clear borders and convert all pixels to 0-1.
 */
-CvContourScanner
-cvStartFindContours(void *_img, MemStorage *storage,
+ContourScanner
+StartFindContours(void *_img, MemStorage *storage,
                     int header_size, int mode,
                     int method, Point offset)
 {
@@ -85,10 +85,10 @@ cvStartFindContours(void *_img, MemStorage *storage,
     int step;
     Size size;
     uchar *img = 0;
-    CvContourScanner scanner = 0;
+    ContourScanner scanner = 0;
     Mat stub, *mat = (Mat *)_img;
 
-    VOS_FUNCNAME("cvStartFindContours");
+    VOS_FUNCNAME("StartFindContours");
 
     __BEGIN__;
 
@@ -110,7 +110,7 @@ cvStartFindContours(void *_img, MemStorage *storage,
     if (header_size < (int)(sizeof(CvContour)))
         VOS_ERROR_FROM_STATUS(VOS_BADSIZE_ERR);
 
-    scanner = (CvContourScanner)cvAlloc(sizeof(*scanner));
+    scanner = (ContourScanner)SysAlloc(sizeof(*scanner));
     if (!scanner)
         VOS_ERROR_FROM_STATUS(VOS_OUTOFMEM_ERR);
 
@@ -168,19 +168,19 @@ cvStartFindContours(void *_img, MemStorage *storage,
     }
 
     /* converts all pixels to 0 or 1 */
-    cvThreshold(mat, mat, 0, 1, VOS_THRESH_BINARY);
+    Threshold(mat, mat, 0, 1, VOS_THRESH_BINARY);
     VOS_CHECK();
 
     __END__;
 
-    if (cvGetErrStatus() < 0)
-        cvFree(&scanner);
+    if (GetErrStatus() < 0)
+        SYS_FREE(&scanner);
 
     return scanner;
 }
 
 static void
-icvEndProcessContour(CvContourScanner scanner)
+icvEndProcessContour(ContourScanner scanner)
 {
     _CvContourInfo *l_cinfo = scanner->l_cinfo;
 
@@ -202,7 +202,7 @@ icvEndProcessContour(CvContourScanner scanner)
 
         if (l_cinfo->contour)
         {
-            cvInsertNodeIntoTree(l_cinfo->contour, l_cinfo->parent->contour,
+            InsertNodeIntoTree(l_cinfo->contour, l_cinfo->parent->contour,
                                  &(scanner->frame));
         }
         scanner->l_cinfo = 0;
@@ -210,7 +210,7 @@ icvEndProcessContour(CvContourScanner scanner)
 }
 
 /* 
-    marks domain border with +/-<constant> and stores the contour into Seq_t.
+    marks domain border with +/-<constant> and stores the contour into Seq.
         method:
             <0  - chain
             ==0 - direct
@@ -220,12 +220,12 @@ static CvStatus
 icvFetchContour(char *ptr,
                 int step,
                 Point pt,
-                Seq_t *contour,
+                Seq *contour,
                 int _method)
 {
     const char nbd = 2;
     int deltas[16];
-    CvSeqWriter writer;
+    SeqWriter writer;
     char *i0 = ptr, *i1, *i3, *i4 = 0;
     int prev_s = -1, s, s_end;
     int method = _method - 1;
@@ -314,7 +314,7 @@ icvFetchContour(char *ptr,
     EndWriteSeq(&writer);
 
     if (_method != VOS_CHAIN_CODE)
-        cvBoundingRect(contour, 1);
+        BoundingRect(contour, 1);
 
     assert(writer.seq->total == 0 && writer.seq->first == 0 ||
            writer.seq->total > writer.seq->first->count ||
@@ -324,8 +324,8 @@ icvFetchContour(char *ptr,
     return VOS_OK;
 }
 
-Seq_t *
-cvFindNextContour(CvContourScanner scanner)
+Seq *
+cvFindNextContour(ContourScanner scanner)
 {
     char *img0;
     char *img;
@@ -334,7 +334,7 @@ cvFindNextContour(CvContourScanner scanner)
     int x, y;
     int prev;
     Point lnbd;
-    Seq_t *contour = 0;
+    Seq *contour = 0;
     int nbd;
     int mode;
     CvStatus result = (CvStatus)1;
@@ -371,7 +371,7 @@ cvFindNextContour(CvContourScanner scanner)
             {
                 _CvContourInfo *par_info = 0;
                 _CvContourInfo *l_cinfo = 0;
-                Seq_t *seq = 0;
+                Seq *seq = 0;
                 int is_hole = 0;
                 Point origin;
 
@@ -504,11 +504,11 @@ exit_func:
    The function add to tree the last retrieved/substituted contour, 
    releases temp_storage, restores state of dst_storage (if needed), and
    returns pointer to root of the contour tree */
-Seq_t *
-cvEndFindContours(CvContourScanner *_scanner)
+Seq *
+EndFindContours(ContourScanner *_scanner)
 {
-    CvContourScanner scanner;
-    Seq_t *first = 0;
+    ContourScanner scanner;
+    Seq *first = 0;
 
     VOS_FUNCNAME("cvFindNextContour");
 
@@ -529,7 +529,7 @@ cvEndFindContours(CvContourScanner *_scanner)
             ReleaseMemStorage(&(scanner->cinfo_storage));
 
         first = scanner->frame.v_next;
-        cvFree(_scanner);
+        SYS_FREE(_scanner);
     }
 
     __END__;
@@ -537,23 +537,23 @@ cvEndFindContours(CvContourScanner *_scanner)
     return first;
 }
 
-int cvFindContours(void *img, MemStorage *storage,
-                   Seq_t **firstContour, int cntHeaderSize,
+int FindContours(void *img, MemStorage *storage,
+                   Seq **firstContour, int cntHeaderSize,
                    int mode,
                    int method, Point offset)
 {
-    CvContourScanner scanner = 0;
-    Seq_t *contour = 0;
+    ContourScanner scanner = 0;
+    Seq *contour = 0;
     int count = -1;
 
-    VOS_FUNCNAME("cvFindContours");
+    VOS_FUNCNAME("FindContours");
 
     __BEGIN__;
 
     if (!firstContour)
-        VOS_ERROR(VOS_StsNullPtr, "NULL double Seq_t pointer");
+        VOS_ERROR(VOS_StsNullPtr, "NULL double Seq pointer");
 
-    VOS_CALL(scanner = cvStartFindContours(img, storage,
+    VOS_CALL(scanner = StartFindContours(img, storage,
                                            cntHeaderSize, mode, method, offset));
     assert(scanner);
 
@@ -563,7 +563,7 @@ int cvFindContours(void *img, MemStorage *storage,
         contour = cvFindNextContour(scanner);
     } while (contour != 0);
 
-    *firstContour = cvEndFindContours(&scanner);
+    *firstContour = EndFindContours(&scanner);
 
     __END__;
 

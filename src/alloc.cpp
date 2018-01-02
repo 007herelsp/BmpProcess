@@ -11,7 +11,7 @@ icvDefaultAlloc( size_t size)
         return 0;
 
     // align the pointer
-    ptr = (char*)cvAlignPtr(ptr0 + sizeof(char*) + 1, VOS_MALLOC_ALIGN);
+    ptr = (char*)AlignPtr(ptr0 + sizeof(char*) + 1, VOS_MALLOC_ALIGN);
     *(char**)(ptr - sizeof(char*)) = ptr0;
 
     return ptr;
@@ -31,17 +31,17 @@ icvDefaultFree( void* ptr)
 }
 
 
- void*  cvAlloc( size_t size )
+ void*  SysAlloc( size_t size )
 {
     void* ptr = 0;
     
-    VOS_FUNCNAME( "cvAlloc" );
+    VOS_FUNCNAME( "SysAlloc" );
 
     __BEGIN__;
 
     if( (size_t)size > VOS_MAX_ALLOC_SIZE )
         VOS_ERROR( VOS_StsOutOfRange,
-                  "Negative or too large argument of cvAlloc function" );
+                  "Negative or too large argument of SysAlloc function" );
 
     ptr = icvDefaultAlloc( size );
     if( !ptr )
@@ -53,15 +53,15 @@ icvDefaultFree( void* ptr)
 }
 
 
- void  cvFree_( void* ptr )
+ void  SysFree_( void* ptr )
 {
-    VOS_FUNCNAME( "cvFree_" );
+    VOS_FUNCNAME( "SysFree_" );
 
     __BEGIN__;
 
     if( ptr )
     {
-        CVStatus status = icvDefaultFree( ptr );
+        OPTStatus status = icvDefaultFree( ptr );
         if( status < 0 )
             VOS_ERROR( status, "Deallocation error" );
     }

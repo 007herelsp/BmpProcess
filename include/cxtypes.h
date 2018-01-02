@@ -1,33 +1,30 @@
 #ifndef _CXCORE_TYPES_H_
 #define _CXCORE_TYPES_H_
 
-  #include <assert.h>
-  #include <stdlib.h>
-  #include <string.h>
-  #include <float.h>
-    #include <math.h>
-    #define VOS_CDECL
-    #define VOS_STDCALL
+#include <assert.h>
+#include <stdlib.h>
+#include <string.h>
+#include <float.h>
+#include <math.h>
 
 
 #ifndef VOS_EXTERN_C
-    #ifdef __cplusplus
-        #define VOS_EXTERN_C extern "C"
-        #define VOS_DEFAULT(val) = val
-    #else
-        #define VOS_EXTERN_C
-        #define VOS_DEFAULT(val)
-    #endif
+#ifdef __cplusplus
+#define VOS_EXTERN_C extern "C"
+#define VOS_DEFAULT(val) = val
+#else
+#define VOS_EXTERN_C
+#define VOS_DEFAULT(val)
 #endif
-
+#endif
 
 #ifndef VOS_INLINE
 #if defined __cplusplus
-    #define VOS_INLINE inline
+#define VOS_INLINE inline
 #elif (defined WIN32 || defined WIN64) && !defined __GNUC__
-    #define VOS_INLINE __inline
+#define VOS_INLINE __inline
 #else
-    #define VOS_INLINE static
+#define VOS_INLINE static
 #endif
 #endif /* VOS_INLINE */
 
@@ -91,25 +88,25 @@ Cv32suf;
 #define  VOS_CMP(a,b)    (((a) > (b)) - ((a) < (b)))
 #define  VOS_SIGN(a)     VOS_CMP((a),0)
 
-VOS_INLINE  int  cvRound( double value )
+VOS_INLINE  int  SysRound( double value )
 {
-return (int)round(value);
+    return (int)round(value);
 }
 
 
-VOS_INLINE  int  cvFloor( double value )
+VOS_INLINE  int  SysFloor( double value )
 {
-return (int)floor(value);
+    return (int)floor(value);
 }
 
 
-VOS_INLINE  int  cvCeil( double value )
+VOS_INLINE  int  SysCeil( double value )
 {
-return ceil(value);
+    return ceil(value);
 }
 
-#define cvInvSqrt(value) ((float)(1./sqrt(value)))
-#define cvSqrt(value)  ((float)sqrt(value))
+#define SysInvSqrt(value) ((float)(1./sqrt(value)))
+#define SysSqrt(value)  ((float)sqrt(value))
 
 
 
@@ -158,7 +155,7 @@ typedef struct _IplImage
     int  depth;         /* pixel depth in bits: IPL_DEPTH_8U, IPL_DEPTH_8S, IPL_DEPTH_16S,
                            IPL_DEPTH_32S, IPL_DEPTH_32F and IPL_DEPTH_64F are supported */
     int  dataOrder;     /* 0 - interleaved color channels, 1 - separate color channels.
-                           cvCreateImage can only create interleaved images */
+                           CreateImage can only create interleaved images */
     int  origin;        /* 0 - top-left origin,
                            1 - bottom-left origin (Windows bitmaps style) */
     int  align;         /* Alignment of image rows (4 or 8).
@@ -378,7 +375,7 @@ Mat;
 /* inline constructor. No data is allocated internally!!!
    (use together with CreateData, or use CreateMat instead to
    get a matrix with allocated data) */
-VOS_INLINE Mat cvMat( int rows, int cols, int type, void* data VOS_DEFAULT(NULL))
+VOS_INLINE Mat InitMat( int rows, int cols, int type, void* data VOS_DEFAULT(NULL))
 {
     Mat m;
 
@@ -400,7 +397,7 @@ VOS_INLINE int cvCvToIplDepth( int type )
 {
     int depth = VOS_MAT_DEPTH(type);
     return VOS_ELEM_SIZE1(depth)*8 | (depth == VOS_8S || depth == VOS_16S ||
-           depth == VOS_32S ? IPL_DEPTH_SIGN : 0);
+                                      depth == VOS_32S ? IPL_DEPTH_SIGN : 0);
 }
 
 
@@ -486,8 +483,8 @@ VOS_INLINE  Point2D32f  cvPointTo32f( Point point )
 VOS_INLINE  Point  cvPointFrom32f( Point2D32f point )
 {
     Point ipt;
-    ipt.x = cvRound(point.x);
-    ipt.y = cvRound(point.y);
+    ipt.x = SysRound(point.x);
+    ipt.y = SysRound(point.y);
 
     return ipt;
 }
@@ -592,7 +589,7 @@ typedef struct Scalar
 Scalar;
 
 VOS_INLINE  Scalar  cvScalar( double val0, double val1 VOS_DEFAULT(0),
-                               double val2 VOS_DEFAULT(0), double val3 VOS_DEFAULT(0))
+                              double val2 VOS_DEFAULT(0), double val3 VOS_DEFAULT(0))
 {
     Scalar scalar;
     scalar.val[0] = val0; scalar.val[1] = val1;
@@ -685,7 +682,7 @@ SeqBlock;
    Elements can be dynamically inserted to or deleted from the sequence.
 */
 #define VOS_SEQUENCE_FIELDS()                                            \
-    VOS_TREE_NODE_FIELDS(Seq_t);                                         \
+    VOS_TREE_NODE_FIELDS(Seq);                                         \
     int       total;          /* total number of elements */            \
     int       elem_size;      /* size of sequence element in bytes */   \
     char*     block_max;      /* maximal bound of the last block */     \
@@ -695,11 +692,11 @@ SeqBlock;
     SeqBlock* free_blocks;  /* free blocks list */                    \
     SeqBlock* first; /* pointer to the first sequence block */
 
-typedef struct Seq_t
+typedef struct Seq
 {
     VOS_SEQUENCE_FIELDS()
 }
-Seq_t;
+Seq;
 
 #define VOS_TYPE_NAME_SEQ             " -sequence"
 #define VOS_TYPE_NAME_SEQ_TREE        " -sequence-tree"
@@ -715,15 +712,15 @@ Seq_t;
     int  flags;                         \
     struct elem_type* next_free;
 
-typedef struct SetElem_t
+typedef struct SetElem
 {
-    VOS_SET_ELEM_FIELDS(SetElem_t)
+    VOS_SET_ELEM_FIELDS(SetElem)
 }
-SetElem_t;
+SetElem;
 
 #define VOS_SET_FIELDS()      \
     VOS_SEQUENCE_FIELDS()     \
-    SetElem_t* free_elems;   \
+    SetElem* free_elems;   \
     int active_count;
 
 typedef struct Set
@@ -737,7 +734,7 @@ Set;
 #define VOS_SET_ELEM_FREE_FLAG  (1 << (sizeof(int)*8-1))
 
 /* Checks whether the element pointed by ptr belongs to a set or not */
-#define VOS_IS_SET_ELEM( ptr )  (((SetElem_t*)(ptr))->flags >= 0)
+#define VOS_IS_SET_ELEM( ptr )  (((SetElem*)(ptr))->flags >= 0)
 
 /*********************************** Chain/Countour *************************************/
 
@@ -760,11 +757,11 @@ CvContour;
 #define VOS_SEQ_MAGIC_VAL             0x42990000
 
 #define VOS_IS_SEQ(seq) \
-    ((seq) != NULL && (((Seq_t*)(seq))->flags & VOS_MAGIC_MASK) == VOS_SEQ_MAGIC_VAL)
+    ((seq) != NULL && (((Seq*)(seq))->flags & VOS_MAGIC_MASK) == VOS_SEQ_MAGIC_VAL)
 
 #define VOS_SET_MAGIC_VAL             0x42980000
 #define VOS_IS_SET(set) \
-    ((set) != NULL && (((Seq_t*)(set))->flags & VOS_MAGIC_MASK) == VOS_SET_MAGIC_VAL)
+    ((set) != NULL && (((Seq*)(set))->flags & VOS_MAGIC_MASK) == VOS_SET_MAGIC_VAL)
 
 #define VOS_SEQ_ELTYPE_BITS           9
 #define VOS_SEQ_ELTYPE_MASK           ((1 << VOS_SEQ_ELTYPE_BITS) - 1)
@@ -827,7 +824,7 @@ CvContour;
 
 /* flag checking */
 #define VOS_IS_SEQ_INDEX( seq )      ((VOS_SEQ_ELTYPE(seq) == VOS_SEQ_ELTYPE_INDEX) && \
-                                     (VOS_SEQ_KIND(seq) == VOS_SEQ_KIND_GENERIC))
+    (VOS_SEQ_KIND(seq) == VOS_SEQ_KIND_GENERIC))
 
 #define VOS_IS_SEQ_CURVE( seq )      (VOS_SEQ_KIND(seq) == VOS_SEQ_KIND_CURVE)
 #define VOS_IS_SEQ_CLOSED( seq )     (((seq)->flags & VOS_SEQ_FLAG_CLOSED) != 0)
@@ -856,22 +853,22 @@ CvContour;
 
 #define VOS_SEQ_WRITER_FIELDS()                                     \
     int          header_size;                                      \
-    Seq_t*       seq;        /* the sequence written */            \
+    Seq*       seq;        /* the sequence written */            \
     SeqBlock*  block;      /* current block */                   \
     char*        ptr;        /* pointer to free space */           \
     char*        block_min;  /* pointer to the beginning of block*/\
     char*        block_max;  /* pointer to the end of block */
 
-typedef struct CvSeqWriter
+typedef struct SeqWriter
 {
     VOS_SEQ_WRITER_FIELDS()
 }
-CvSeqWriter;
+SeqWriter;
 
 
 #define VOS_SEQ_READER_FIELDS()                                      \
     int          header_size;                                       \
-    Seq_t*       seq;        /* sequence, beign read */             \
+    Seq*       seq;        /* sequence, beign read */             \
     SeqBlock*  block;      /* current block */                    \
     char*        ptr;        /* pointer to element be read next */  \
     char*        block_min;  /* pointer to the beginning of block */\
@@ -880,11 +877,11 @@ CvSeqWriter;
     char*        prev_elem;  /* pointer to previous element */
 
 
-typedef struct CvSeqReader
+typedef struct SeqReader
 {
     VOS_SEQ_READER_FIELDS()
 }
-CvSeqReader;
+SeqReader;
 
 /****************************************************************************************/
 /*                                Operations on sequences                               */
@@ -895,23 +892,23 @@ CvSeqReader;
 {                                                     \
     assert( (writer).seq->elem_size == sizeof(elem)); \
     if( (writer).ptr >= (writer).block_max )          \
-    {                                                 \
-        CreateSeqBlock( &writer);                   \
+{                                                 \
+    CreateSeqBlock( &writer);                   \
     }                                                 \
     assert( (writer).ptr <= (writer).block_max - sizeof(elem));\
     memcpy((writer).ptr, &(elem), sizeof(elem));      \
     (writer).ptr += sizeof(elem);                     \
-}
+    }
 
 
 /* move reader position forward */
 #define VOS_NEXT_SEQ_ELEM( elem_size, reader )                 \
 {                                                             \
     if( ((reader).ptr += (elem_size)) >= (reader).block_max ) \
-    {                                                         \
-        cvChangeSeqBlock( &(reader), 1 );                     \
+{                                                         \
+    cvChangeSeqBlock( &(reader), 1 );                     \
     }                                                         \
-}
+    }
 
 
 /* read element and move read position forward */
@@ -920,7 +917,7 @@ CvSeqReader;
     assert( (reader).seq->elem_size == sizeof(elem));          \
     memcpy( &(elem), (reader).ptr, sizeof((elem)));            \
     VOS_NEXT_SEQ_ELEM( sizeof(elem), reader )                   \
-}
+    }
 
 
 #endif /*_CXCORE_TYPES_H_*/

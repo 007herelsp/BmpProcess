@@ -2,8 +2,6 @@
 #ifndef _GRFMT_BASE_H_
 #define _GRFMT_BASE_H_
 
-
-#include "utils.h"
 #include "bitstrm.h"
 
 #ifndef _MAX_PATH
@@ -21,11 +19,6 @@ public:
 
     int   GetWidth()  { return m_width; };
     int   GetHeight() { return m_height; };
-    bool  IsColor()   { return m_iscolor; };
-    int   GetDepth()  { return m_bit_depth; };
-    void  UseNativeDepth( bool yes ) { m_native_depth = yes; };
-    bool  IsFloat()   { return m_isfloat; };
-
     virtual bool  ReadHeader() = 0;
     virtual bool  ReadData( uchar* data, int step, int color ) = 0;
     virtual void  Close();
@@ -38,7 +31,6 @@ protected:
     int     m_bit_depth;// bit depth per channel (normally 8)
     char    m_filename[_MAX_PATH]; // filename
     bool    m_native_depth;// use the native bit depth of the image
-    bool    m_isfloat;  // is image saved as float or double?
 };
 
 

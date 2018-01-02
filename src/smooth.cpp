@@ -3,14 +3,14 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 
  void
-cvSmooth(const void *srcarr, void *dstarr, int smooth_type,
+Smooth(const void *srcarr, void *dstarr, int smooth_type,
          int param1, int param2, double param3, double param4)
 {
-    CvSepFilter gaussian_filter;
+    SepFilter gaussian_filter;
 
     Mat *temp = 0;
 
-    VOS_FUNCNAME("cvSmooth");
+    VOS_FUNCNAME("Smooth");
 
     __BEGIN__;
 
@@ -31,7 +31,7 @@ cvSmooth(const void *srcarr, void *dstarr, int smooth_type,
     src_type = VOS_MAT_TYPE(src->type);
     dst_type = VOS_MAT_TYPE(dst->type);
     depth = VOS_MAT_DEPTH(src_type);
-    size = cvGetMatSize(src);
+    size = GetMatSize(src);
 
     if (!VOS_ARE_SIZES_EQ(src, dst))
         VOS_ERROR(VOS_StsUnmatchedSizes, "");
@@ -47,9 +47,9 @@ cvSmooth(const void *srcarr, void *dstarr, int smooth_type,
         sigma2 = param4 ? param4 : param3;
 
         if (param1 == 0 && sigma1 > 0)
-            param1 = cvRound(sigma1 * (depth == VOS_8U ? 3 : 4) * 2 + 1) | 1;
+            param1 = SysRound(sigma1 * (depth == VOS_8U ? 3 : 4) * 2 + 1) | 1;
         if (param2 == 0 && sigma2 > 0)
-            param2 = cvRound(sigma2 * (depth == VOS_8U ? 3 : 4) * 2 + 1) | 1;
+            param2 = SysRound(sigma2 * (depth == VOS_8U ? 3 : 4) * 2 + 1) | 1;
     }
 
     if (param2 == 0)
@@ -60,7 +60,7 @@ cvSmooth(const void *srcarr, void *dstarr, int smooth_type,
 
     if (param1 == 1 && param2 == 1)
     {
-        cvConvert(src, dst);
+        Convert(src, dst);
         EXIT;
     }
 
@@ -69,12 +69,12 @@ cvSmooth(const void *srcarr, void *dstarr, int smooth_type,
         Size ksize = {param1, param2};
         float *kx = (float *)cvStackAlloc(ksize.width * sizeof(kx[0]));
         float *ky = (float *)cvStackAlloc(ksize.height * sizeof(ky[0]));
-        Mat KX = cvMat(1, ksize.width, VOS_32F, kx);
-        Mat KY = cvMat(1, ksize.height, VOS_32F, ky);
+        Mat KX = InitMat(1, ksize.width, VOS_32F, kx);
+        Mat KY = InitMat(1, ksize.height, VOS_32F, ky);
 
-        CvSepFilter::init_gaussian_kernel(&KX, sigma1);
+        SepFilter::init_gaussian_kernel(&KX, sigma1);
         if (ksize.width != ksize.height || fabs(sigma1 - sigma2) > FLT_EPSILON)
-            CvSepFilter::init_gaussian_kernel(&KY, sigma2);
+            SepFilter::init_gaussian_kernel(&KY, sigma2);
         else
             KY.data.fl = kx;
 

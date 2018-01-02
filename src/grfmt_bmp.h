@@ -14,6 +14,11 @@ enum BmpCompression
 };
 
 
+struct PaletteEntry
+{
+    unsigned char b, g, r, a;
+};
+
 // Windows Bitmap reader
 class GrFmtBmpReader : public GrFmtReader
 {

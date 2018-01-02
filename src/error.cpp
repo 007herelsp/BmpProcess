@@ -16,13 +16,13 @@ typedef struct CvContext
 {
     int err_code;
     int err_mode;
-    CvErrorCallback error_callback;
+    SysErrorCallback error_callback;
     void *userdata;
     char err_msg[4096];
     CvStackRecord err_ctx;
 } CvContext;
 
-#define VOS_DEFAULT_ERROR_CALLBACK cvStdErrReport
+#define VOS_DEFAULT_ERROR_CALLBACK StdErrReport
 
 static CvContext *
 icvCreateContext(void)
@@ -55,19 +55,19 @@ icvGetContext(void)
 }
 
  int
-cvStdErrReport(int code, const char *func_name, const char *err_msg,
+StdErrReport(int code, const char *func_name, const char *err_msg,
                const char *file, int line, void *)
 {
     if (code == VOS_StsBackTrace || code == VOS_StsAutoTrace)
         fprintf(stderr, "\tcalled from ");
     else
         fprintf(stderr, "ERROR: %s (%s)\n\tin function ",
-                cvErrorStr(code), err_msg ? err_msg : "no description");
+                SysErrorStr(code), err_msg ? err_msg : "no description");
 
     fprintf(stderr, "%s, %s(%d)\n", func_name ? func_name : "<unknown>",
             file != NULL ? file : "", line);
 
-    if (cvGetErrMode() == VOS_ErrModeLeaf)
+    if (GetErrMode() == VOS_ErrModeLeaf)
     {
         fprintf(stderr, "Terminating the application...\n");
         return 1;
@@ -76,7 +76,7 @@ cvStdErrReport(int code, const char *func_name, const char *err_msg,
         return 0;
 }
 
- const char *cvErrorStr(int status)
+ const char *SysErrorStr(int status)
 {
     static char buf[256];
 
@@ -142,12 +142,12 @@ cvStdErrReport(int code, const char *func_name, const char *err_msg,
     return buf;
 }
 
- int cvGetErrMode(void)
+ int GetErrMode(void)
 {
     return icvGetContext()->err_mode;
 }
 
- int cvSetErrMode(int mode)
+ int SetErrMode(int mode)
 {
     CvContext *context = icvGetContext();
     int prev_mode = context->err_mode;
@@ -155,22 +155,22 @@ cvStdErrReport(int code, const char *func_name, const char *err_msg,
     return prev_mode;
 }
 
- int cvGetErrStatus()
+ int GetErrStatus()
 {
     return icvGetContext()->err_code;
 }
 
- void cvSetErrStatus(int code)
+ void SetErrStatus(int code)
 {
     icvGetContext()->err_code = code;
 }
 
- void cvError(int code, const char *func_name,
+ void SysError(int code, const char *func_name,
                       const char *err_msg,
                       const char *file_name, int line)
 {
     if (code == VOS_StsOk)
-        cvSetErrStatus(code);
+        SetErrStatus(code);
     else
     {
         CvContext *context = icvGetContext();
@@ -204,7 +204,7 @@ cvStdErrReport(int code, const char *func_name, const char *err_msg,
 
 /* function, which converts int to int */
  int
-cvErrorFromStatus(int status)
+SysErrorFromStatus(int status)
 {
     switch (status)
     {

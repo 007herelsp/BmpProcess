@@ -1,5 +1,3 @@
-
-
 #ifndef _VOS_INTERNAL_H_
 #define _VOS_INTERNAL_H_
 
@@ -15,7 +13,7 @@
 
 typedef unsigned char uchar;
 typedef unsigned short ushort;
-
+typedef unsigned long ulong;
 /* helper tables */
 extern const uchar icvSaturate8u_cv[];
 #define VOS_FAST_CAST_8U(t)  (assert(-256 <= (t) || (t) <= 512), icvSaturate8u_cv[(t)+256])
@@ -24,12 +22,7 @@ extern const uchar icvSaturate8u_cv[];
 
 extern const float icv8x32fTab_cv[];
 #define VOS_8TO32F(x)  icv8x32fTab_cv[(x)+256]
-
-
 #define  VOS_CALC_MIN(a, b) if((a) > (b)) (a) = (b)
-
 #define  VOS_CALC_MAX(a, b) if((a) < (b)) (a) = (b)
-
-
 
 #endif /*_VOS_INTERNAL_H_*/

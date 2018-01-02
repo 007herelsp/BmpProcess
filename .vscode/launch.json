@@ -10,7 +10,7 @@
             "miDebuggerPath": "gdb.exe", // miDebugger的路径，注意这里要与MinGw的路径对应
             "args": [
                 "${workspaceRoot}/images/out.bmp",
-                "${workspaceRoot}/images/Target19.bmp",
+                "${workspaceRoot}/images/Target17.bmp",
                 "${workspaceRoot}/images/Source1_1.bmp",
                 "${workspaceRoot}/images/Source1_2.bmp",
                 "${workspaceRoot}/images/Source1_3.bmp",
