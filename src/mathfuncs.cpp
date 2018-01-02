@@ -2,7 +2,7 @@
 
 //static const double _0_5 = 0.5, _1_5 = 1.5;
 
-static CvStatus icvInvSqrt_32f(const float *src, float *dst, int len)
+static CvStatus iInvSqrt_32f(const float *src, float *dst, int len)
 {
     int i = 0;
 
@@ -15,7 +15,7 @@ static CvStatus icvInvSqrt_32f(const float *src, float *dst, int len)
     return VOS_OK;
 }
 
-static CvStatus icvSqrt_32f(const float *src, float *dst, int len)
+static CvStatus iSqrt_32f(const float *src, float *dst, int len)
 {
     int i = 0;
 
@@ -28,7 +28,7 @@ static CvStatus icvSqrt_32f(const float *src, float *dst, int len)
     return VOS_OK;
 }
 
-typedef CvStatus(*CvSqrtFunc)(const void *src, void *dst, int len);
+typedef CvStatus(*SqrtFunc_t)(const void *src, void *dst, int len);
 
  void SysPow(const CvArr *srcarr, CvArr *dstarr, double power)
 {
@@ -80,7 +80,7 @@ typedef CvStatus(*CvSqrtFunc)(const void *src, void *dst, int len);
     assert(depth == VOS_32F);
     if( fabs(fabs(power) - 0.5) < DBL_EPSILON )
     {
-        CvSqrtFunc sqrt_func =( power < 0) ? (CvSqrtFunc)icvInvSqrt_32f : (CvSqrtFunc)icvSqrt_32f;
+        SqrtFunc_t sqrt_func =( power < 0) ? (SqrtFunc_t)iInvSqrt_32f : (SqrtFunc_t)iSqrt_32f;
 
         for (y = 0; y < size.height; y++)
         {

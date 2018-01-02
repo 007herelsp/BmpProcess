@@ -150,10 +150,10 @@ void Morphology::init(int _operation, int _max_width, int _src_dst_type,
             for (j = 0; j < ksize.width; j++)
             {
                 if (element->data.ptr[i * element->step + j])
-                    nz_loc[k++] = cvPoint(j * cn, i);
+                    nz_loc[k++] = InitPoint(j * cn, i);
             }
         if (k == 0)
-            nz_loc[k++] = cvPoint(anchor.x * cn, anchor.y);
+            nz_loc[k++] = InitPoint(anchor.x * cn, anchor.y);
         el_sparse_count = k;
     }
     __END__;
@@ -638,7 +638,7 @@ CreateStructuringElementEx(int cols, int rows,
     {
         Mat el_hdr = InitMat(rows, cols, VOS_32SC1, element->values);
         VOS_CALL(Morphology::init_binary_element(&el_hdr,
-                                                 shape, cvPoint(anchorX, anchorY)));
+                                                 shape, InitPoint(anchorX, anchorY)));
     }
 
     __END__;
@@ -726,15 +726,15 @@ iMorphOp(const void *srcarr, void *dstarr, IplConvKernel *element,
 
     if (element)
     {
-        el_size = cvSize(element->nCols, element->nRows);
-        el_anchor = cvPoint(element->anchorX, element->anchorY);
+        el_size = GetSize(element->nCols, element->nRows);
+        el_anchor = InitPoint(element->anchorX, element->anchorY);
         el_shape = (int)(element->nShiftR);
         el_shape = el_shape < VOS_SHAPE_CUSTOM ? el_shape : VOS_SHAPE_CUSTOM;
     }
     else
     {
-        el_size = cvSize(3, 3);
-        el_anchor = cvPoint(1, 1);
+        el_size = GetSize(3, 3);
+        el_anchor = InitPoint(1, 1);
         el_shape = VOS_SHAPE_RECT;
     }
 

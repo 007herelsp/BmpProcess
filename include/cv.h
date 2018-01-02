@@ -9,7 +9,7 @@ extern "C" {
 #endif
 
 
-typedef struct _CvContourScanner* ContourScanner;
+typedef struct _ContourScanner* ContourScanner;
 
 /* contour retrieval mode */
 #define VOS_RETR_EXTERNAL 0
@@ -59,7 +59,7 @@ void  CvtColor( const CvArr* src, CvArr* dst, int code );
 /* Warps image with perspective (projective) transform */
 void  WarpPerspective( const CvArr* src, CvArr* dst, const Mat* map_matrix,
                          int flags VOS_DEFAULT(VOS_INTER_LINEAR+VOS_WARP_FILL_OUTLIERS),
-                         Scalar fillval VOS_DEFAULT(cvScalarAll(0)) );
+                         Scalar fillval VOS_DEFAULT(ScalarAll(0)) );
 
 /* Computes perspective transform matrix for mapping src[i] to dst[i] (i=0,1,2,3) */
 Mat* GetPerspectiveTransform( const Point2D32f* src,
@@ -95,16 +95,16 @@ int FindContours( CvArr* image, MemStorage* storage, Seq** first_contour,
                     int header_size VOS_DEFAULT(sizeof(CvContour)),
                     int mode VOS_DEFAULT(VOS_RETR_LIST),
                     int method VOS_DEFAULT(VOS_CHAIN_APPROX_SIMPLE),
-                    Point offset VOS_DEFAULT(cvPoint(0,0)));
+                    Point offset VOS_DEFAULT(InitPoint(0,0)));
 
 ContourScanner  StartFindContours( CvArr* image, MemStorage* storage,
                                        int header_size VOS_DEFAULT(sizeof(CvContour)),
                                        int mode VOS_DEFAULT(VOS_RETR_LIST),
                                        int method VOS_DEFAULT(VOS_CHAIN_APPROX_SIMPLE),
-                                       Point offset VOS_DEFAULT(cvPoint(0,0)));
+                                       Point offset VOS_DEFAULT(InitPoint(0,0)));
 
 /* Retrieves next contour */
-Seq*  cvFindNextContour( ContourScanner scanner );
+Seq*  FindNextContour( ContourScanner scanner );
 
 
 /* Releases contour scanner and returns pointer to the first outer contour */

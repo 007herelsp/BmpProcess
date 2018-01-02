@@ -59,7 +59,6 @@ bool GrFmtBmpReader::ReadHeader()
             m_rle_code = (BmpCompression)m_strm.GetDWord();
             m_strm.Skip(12);
             int clrused = m_strm.GetDWord();
-            clrused;
             m_strm.Skip(size - 36);
 
             if (m_width > 0 && m_height > 0 &&

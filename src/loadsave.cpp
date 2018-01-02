@@ -3,7 +3,7 @@
 #include "grfmt_bmp.h"
 
 static void *
-icvLoadImage(const char *filename, int flags)
+iLoadImage(const char *filename, int flags)
 {
     GrFmtBmpReader *reader = 0;
     IplImage *image = 0;
@@ -58,7 +58,7 @@ icvLoadImage(const char *filename, int flags)
  IplImage *
 LoadImage(const char *filename, int iscolor)
 {
-    return (IplImage *)icvLoadImage(filename, iscolor);
+    return (IplImage *)iLoadImage(filename, iscolor);
 }
 
  int
@@ -96,7 +96,7 @@ SaveImage(const char *filename, const CvArr *arr)
         VOS_ERROR(VOS_StsError, "could not find a filter for the specified extension");
     }
 
-    ipl_depth = cvCvToIplDepth(image->type);
+    ipl_depth = CvToIplDepth(image->type);
 
     if (!writer->WriteImage(image->data.ptr, image->step, image->width,
                             image->height, ipl_depth, channels))

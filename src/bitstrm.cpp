@@ -287,7 +287,6 @@ void  WBaseStream::WriteBlock()
     fwrite( m_start, 1, size, m_file );
     m_current = m_start;
 
-    /*if( written < size ) throw RBS_THROW_EOS;*/
     
     m_block_pos += size;
 }

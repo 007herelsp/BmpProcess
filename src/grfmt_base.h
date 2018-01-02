@@ -30,7 +30,6 @@ protected:
     int     m_height;   // height of the image ( filled by ReadHeader )
     int     m_bit_depth;// bit depth per channel (normally 8)
     char    m_filename[_MAX_PATH]; // filename
-    bool    m_native_depth;// use the native bit depth of the image
 };
 
 

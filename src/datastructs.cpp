@@ -44,7 +44,7 @@ static void
 iInitMemStorage( MemStorage* storage, int block_size )
 {
     VOS_FUNCNAME( "iInitMemStorage " );
-    
+
     __BEGIN__;
 
     if( !storage )
@@ -220,9 +220,9 @@ static void
 iGoNextMemBlock( MemStorage * storage )
 {
     VOS_FUNCNAME( "iGoNextMemBlock" );
-    
+
     __BEGIN__;
-    
+
     if( !storage )
         VOS_ERROR( VOS_StsNullPtr, "" );
 
@@ -346,7 +346,7 @@ RestoreMemStoragePos( MemStorage * storage, MemStoragePos * pos )
 MemStorageAlloc( MemStorage* storage, size_t size )
 {
     char *ptr = 0;
-    
+
     VOS_FUNCNAME( "MemStorageAlloc" );
 
     __BEGIN__;
@@ -508,7 +508,7 @@ SliceLength( Slice slice, const Seq* seq )
 {
     int total = seq->total;
     int length = slice.end_index - slice.start_index;
-    
+
     if( length != 0 )
     {
         if( slice.start_index < 0 )
@@ -945,14 +945,14 @@ StartReadSeq( const Seq *seq, SeqReader * reader, int reverse )
 
 /* changes the current reading block to the previous or to the next */
  void
-cvChangeSeqBlock( void* _reader, int direction )
+ChangeSeqBlock( void* _reader, int direction )
 {
     VOS_FUNCNAME( "cvChangeSeqBlock" );
 
     __BEGIN__;
 
     SeqReader* reader = (SeqReader*)_reader;
-    
+
     if( !reader )
         VOS_ERROR( VOS_StsNullPtr, "" );
 
@@ -1363,11 +1363,11 @@ SetAdd( Set* set, SetElem* element, SetElem** inserted_element )
 
 typedef struct CvTreeNode
 {
-    int       flags;         /* micsellaneous flags */         
-    int       header_size;   /* size of sequence header */     
-    struct    CvTreeNode* h_prev; /* previous sequence */      
-    struct    CvTreeNode* h_next; /* next sequence */          
-    struct    CvTreeNode* v_prev; /* 2nd previous sequence */  
+    int       flags;         /* micsellaneous flags */
+    int       header_size;   /* size of sequence header */
+    struct    CvTreeNode* h_prev; /* previous sequence */
+    struct    CvTreeNode* h_next; /* next sequence */
+    struct    CvTreeNode* v_prev; /* 2nd previous sequence */
     struct    CvTreeNode* v_next; /* 2nd next sequence */
 }
 CvTreeNode;

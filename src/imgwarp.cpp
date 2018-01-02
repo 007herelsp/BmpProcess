@@ -45,7 +45,7 @@ Solve( const CvArr* A, const CvArr* b, CvArr* x, int method )
     else if( method != VOS_LU )
         VOS_ERROR( VOS_StsBadArg, "Unknown inversion method" );
 
-    
+
     __END__;
 
     if( buffer && !local_alloc )
@@ -97,8 +97,8 @@ static CvStatus iWarpPerspective_Bilinear_8u_CnR(const uchar *src, int step,
                 const uchar *ptr = src + step * iys + ixs * cn;
                 for (k = 0; k < cn; k++)
                 {
-                    p0 = icv8x32fTab_cv[(ptr[k]) + 256] + a * (icv8x32fTab_cv[(ptr[k + cn]) + 256] - icv8x32fTab_cv[(ptr[k]) + 256]);
-                    p1 = icv8x32fTab_cv[(ptr[k + step]) + 256] + a * (icv8x32fTab_cv[(ptr[k + cn + step]) + 256] - icv8x32fTab_cv[(ptr[k + step]) + 256]);
+                    p0 = i8x32fTab_cv[(ptr[k]) + 256] + a * (i8x32fTab_cv[(ptr[k + cn]) + 256] - i8x32fTab_cv[(ptr[k]) + 256]);
+                    p1 = i8x32fTab_cv[(ptr[k + step]) + 256] + a * (i8x32fTab_cv[(ptr[k + cn + step]) + 256] - i8x32fTab_cv[(ptr[k + step]) + 256]);
                     dst[x * cn + k] = (uchar)SysRound(p0 + b * (p1 - p0));
                 }
             }
@@ -115,8 +115,8 @@ static CvStatus iWarpPerspective_Bilinear_8u_CnR(const uchar *src, int step,
                 ptr3 = src + y1 * step + x1 * cn;
                 for (k = 0; k < cn; k++)
                 {
-                    p0 = icv8x32fTab_cv[(ptr0[k]) + 256] + a * (icv8x32fTab_cv[(ptr1[k]) + 256] - icv8x32fTab_cv[(ptr0[k]) + 256]);
-                    p1 = icv8x32fTab_cv[(ptr2[k]) + 256] + a * (icv8x32fTab_cv[(ptr3[k]) + 256] - icv8x32fTab_cv[(ptr2[k]) + 256]);
+                    p0 = i8x32fTab_cv[(ptr0[k]) + 256] + a * (i8x32fTab_cv[(ptr1[k]) + 256] - i8x32fTab_cv[(ptr0[k]) + 256]);
+                    p1 = i8x32fTab_cv[(ptr2[k]) + 256] + a * (i8x32fTab_cv[(ptr3[k]) + 256] - i8x32fTab_cv[(ptr2[k]) + 256]);
                     dst[x * cn + k] = (uchar)SysRound(p0 + b * (p1 - p0));
                 }
             }

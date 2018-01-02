@@ -3,7 +3,7 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
-#define icvGivens_64f(n, x, y, c, s)   \
+#define iGivens_64f(n, x, y, c, s)   \
     \
 {                                 \
         int _i;                        \
@@ -22,7 +22,7 @@
 
 /* y[0:m,0:n] += diag(a[0:1,0:m]) * x[0:m,0:n] */
 static void
-icvMatrAXPY_64f(int m, int n, const double *x, int dx,
+iMatrAXPY_64f(int m, int n, const double *x, int dx,
                 const double *a, double *y, int dy)
 {
     int i, j;
@@ -51,7 +51,7 @@ icvMatrAXPY_64f(int m, int n, const double *x, int dx,
 /* y[1:m,-1] = h*y[1:m,0:n]*x[0:1,0:n]'*x[-1]  (this is used for U&V reconstruction)
    y[1:m,0:n] += h*y[1:m,0:n]*x[0:1,0:n]'*x[0:1,0:n] */
 static void
-icvMatrAXPY3_64f(int m, int n, const double *x, int l, double *y, double h)
+iMatrAXPY3_64f(int m, int n, const double *x, int l, double *y, double h)
 {
     int i, j;
 
@@ -110,7 +110,7 @@ pythag(double a, double b)
 #define MAX_ITERS 30
 
 static void
-icvSVD_64f(double *a, int lda, int m, int n,
+iSVD_64f(double *a, int lda, int m, int n,
            double *w,
            double *uT, int lduT, int nu,
            double *vT, int ldvT,
@@ -182,12 +182,12 @@ icvSVD_64f(double *a, int lda, int m, int n,
             memset(temp, 0, n1 * sizeof(temp[0]));
 
             /* calc temp[0:n-i] = a[i:m,i:n]'*hv[0:m-i] */
-            icvMatrAXPY_64f(m1, n1 - 1, a + 1, lda, hv, temp + 1, 0);
+            iMatrAXPY_64f(m1, n1 - 1, a + 1, lda, hv, temp + 1, 0);
             for (k = 1; k < n1; k++)
                 temp[k] *= h;
 
             /* modify a: a[i:m,i:n] = a[i:m,i:n] + hv[0:m-i]*temp[0:n-i]' */
-            icvMatrAXPY_64f(m1, n1 - 1, temp + 1, 0, hv, a + 1, lda);
+            iMatrAXPY_64f(m1, n1 - 1, temp + 1, 0, hv, a + 1, lda);
             *w1 = g * scale;
         }
         w1++;
@@ -239,7 +239,7 @@ icvSVD_64f(double *a, int lda, int m, int n,
             hv[-1] = 0.;
 
             /* update a[i:m:i+1:n] = a[i:m,i+1:n] + (a[i:m,i+1:n]*hv[0:m-i])*... */
-            icvMatrAXPY3_64f(m1, n1, hv, lda, a, h);
+            iMatrAXPY3_64f(m1, n1, hv, lda, a, h);
 
             *e1 = g * scale;
         }
@@ -289,7 +289,7 @@ icvSVD_64f(double *a, int lda, int m, int n,
             if (h != 0)
             {
                 uT = hv;
-                icvMatrAXPY3_64f(lh, l - 1, hv + 1, lduT, uT + 1, h);
+                iMatrAXPY3_64f(lh, l - 1, hv + 1, lduT, uT + 1, h);
 
                 s = hv[0] * h;
                 for (k = 0; k < l; k++)
@@ -333,7 +333,7 @@ icvSVD_64f(double *a, int lda, int m, int n,
             if (h != 0)
             {
                 vT = hv;
-                icvMatrAXPY3_64f(lh, l - 1, hv + 1, ldvT, vT + 1, h);
+                iMatrAXPY3_64f(lh, l - 1, hv + 1, ldvT, vT + 1, h);
 
                 s = hv[0] * h;
                 for (k = 0; k < l; k++)
@@ -408,7 +408,7 @@ icvSVD_64f(double *a, int lda, int m, int n,
                     s = -f / h;
 
                     if (uT)
-                        icvGivens_64f(m, uT + lduT * (l - 1), uT + lduT * i, c, s);
+                        iGivens_64f(m, uT + lduT * (l - 1), uT + lduT * i, c, s);
                 }
             }
 
@@ -445,7 +445,7 @@ icvSVD_64f(double *a, int lda, int m, int n,
                 y *= c;
 
                 if (vT)
-                    icvGivens_64f(n, vT + ldvT * (i - 1), vT + ldvT * i, c, s);
+                    iGivens_64f(n, vT + ldvT * (i - 1), vT + ldvT * i, c, s);
 
                 z = pythag(f, h);
                 w[i - 1] = z;
@@ -460,7 +460,7 @@ icvSVD_64f(double *a, int lda, int m, int n,
                 x = -s * g + c * y;
 
                 if (uT)
-                    icvGivens_64f(m, uT + lduT * (i - 1), uT + lduT * i, c, s);
+                    iGivens_64f(m, uT + lduT * (i - 1), uT + lduT * i, c, s);
             }
 
             e[l] = 0;
@@ -507,7 +507,7 @@ icvSVD_64f(double *a, int lda, int m, int n,
 }
 
 static void
-icvSVBkSb_64f(int m, int n, const double *w,
+iSVBkSb_64f(int m, int n, const double *w,
               const double *uT, int lduT,
               const double *vT, int ldvT,
               const double *b, int ldb, int nb,
@@ -584,7 +584,7 @@ icvSVBkSb_64f(int m, int n, const double *w,
                 if (b)
                 {
                     memset(buffer, 0, nb * sizeof(buffer[0]));
-                    icvMatrAXPY_64f(m, nb, b, ldb, uT, buffer, 0);
+                    iMatrAXPY_64f(m, nb, b, ldb, uT, buffer, 0);
                     for (j = 0; j < nb; j++)
                         buffer[j] *= wi;
                 }
@@ -593,7 +593,7 @@ icvSVBkSb_64f(int m, int n, const double *w,
                     for (j = 0; j < nb; j++)
                         buffer[j] = uT[j] * wi;
                 }
-                icvMatrAXPY_64f(n, nb, buffer, 0, vT, x, ldx);
+                iMatrAXPY_64f(n, nb, buffer, 0, vT, x, ldx);
             }
         }
     }
@@ -771,7 +771,7 @@ SVD(CvArr *aarr, CvArr *warr, CvArr *uarr, CvArr *varr, int flags)
 
     if (type == VOS_64FC1)
     {
-        icvSVD_64f(a->data.db, a->step / sizeof(double), a->rows, a->cols,
+        iSVD_64f(a->data.db, a->step / sizeof(double), a->rows, a->cols,
                    (double *)tw, u->data.db, u->step / sizeof(double), u_cols,
                    v->data.db, v->step / sizeof(double), (double *)buffer);
     }
@@ -914,7 +914,7 @@ SVBkSb(const CvArr *warr, const CvArr *uarr,
 
     if (type == VOS_64FC1)
     {
-        icvSVBkSb_64f(m, n, (double *)tw, u->data.db, u->step / sizeof(double),
+        iSVBkSb_64f(m, n, (double *)tw, u->data.db, u->step / sizeof(double),
                       v->data.db, v->step / sizeof(double),
                       b->data.db, b->step / sizeof(double), b->cols,
                       x->data.db, x->step / sizeof(double),

@@ -6,7 +6,7 @@
 
 #include "_cv.h"
 
-const float icv8x32fTab_cv[] =
+const float i8x32fTab_cv[] =
 {
     -256.f, -255.f, -254.f, -253.f, -252.f, -251.f, -250.f, -249.f,
     -248.f, -247.f, -246.f, -245.f, -244.f, -243.f, -242.f, -241.f,
@@ -106,7 +106,7 @@ const float icv8x32fTab_cv[] =
      504.f,  505.f,  506.f,  507.f,  508.f,  509.f,  510.f,  511.f,
 };
 
-const uchar icvSaturate8u_cv[] = 
+const uchar iSaturate8u_cv[] =
 {
       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,

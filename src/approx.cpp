@@ -6,7 +6,7 @@
 \****************************************************************************************/
 /* the version for integer point coordinates */
 static CvStatus
-icvApproxPolyDP_32s(Seq *src_contour, int header_size,
+iApproxPolyDP_32s(Seq *src_contour, int header_size,
                     MemStorage *storage,
                     Seq **dst_contour, float eps)
 {
@@ -279,7 +279,7 @@ ApproxPoly(const void *array, int header_size,
     {
         Seq *contour = 0;
 
-        FUN_CALL(icvApproxPolyDP_32s(src_seq, header_size, storage,
+        FUN_CALL(iApproxPolyDP_32s(src_seq, header_size, storage,
                                       &contour, (float)parameter));
 
         assert(contour);

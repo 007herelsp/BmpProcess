@@ -1,12 +1,12 @@
 #include "_cxcore.h"
 
-static const signed char icvDepthToType[] =
+static const signed char iDepthToType[] =
     {
         -1, -1, VOS_8U, VOS_8S, VOS_16U, VOS_16S, -1, -1,
         VOS_32F, VOS_32S, -1, -1, -1, -1, -1, -1, VOS_64F, -1};
 
 #define icvIplToCvDepth(depth) \
-    icvDepthToType[(((depth)&255) >> 2) + ((depth) < 0)]
+    iDepthToType[(((depth)&255) >> 2) + ((depth) < 0)]
 
 /****************************************************************************************\
 *                               Mat creation and basic operations                      *
@@ -33,7 +33,7 @@ CreateMat(int height, int width, int type)
     return arr;
 }
 
-static void icvCheckHuge(Mat *arr)
+static void iCheckHuge(Mat *arr)
 {
     if ((int64)arr->step * arr->rows > INT_MAX)
         arr->type &= ~VOS_MAT_CONT_FLAG;
@@ -70,7 +70,7 @@ CreateMatHeader(int rows, int cols, int type)
     arr->refcount = 0;
     arr->hdr_refcount = 1;
 
-    icvCheckHuge(arr);
+    iCheckHuge(arr);
 
     __END__;
 
@@ -126,7 +126,7 @@ InitMatHeader(Mat *arr, int rows, int cols,
     arr->type = VOS_MAT_MAGIC_VAL | type |
                 (arr->step == min_step ? VOS_MAT_CONT_FLAG : 0);
 
-    icvCheckHuge(arr);
+    iCheckHuge(arr);
 
     __END__;
 
@@ -242,7 +242,7 @@ SetData(CvArr *arr, void *data, int step)
         mat->data.ptr = (uchar *)data;
         mat->type = VOS_MAT_MAGIC_VAL | type |
                     (mat->step == min_step ? VOS_MAT_CONT_FLAG : 0);
-        icvCheckHuge(mat);
+        iCheckHuge(mat);
     }
     else if (VOS_IS_IMAGE_HDR(arr))
     {

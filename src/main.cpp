@@ -62,31 +62,6 @@ bool isEqu(float x1, float x2)
 	return (fabs(x1 - x2) <= MAX_P);
 }
 
-struct SymBoxCmp
-{
-	bool operator()(const Box &x, const Box &y) const
-	{
-		if (fabs(x.box.center.x - y.box.center.x) <= MAX_P && fabs(x.box.center.y - y.box.center.y) <= MAX_P)
-		{
-			if (fabs(x.box.size.width - y.box.size.width) <= MAX_P && fabs(x.box.size.height - y.box.size.height) <= MAX_P)
-			{
-				return false;
-			}
-		}
-
-		bool ret = false;
-		if (x.box.center.x == y.box.center.x)
-		{
-			ret = x.box.center.y < y.box.center.y;
-		}
-		else
-		{
-			ret = x.box.center.x < y.box.center.x;
-		}
-		return ret;
-	}
-};
-
 struct SymUBoxCmp
 {
 	bool operator()(const Box &x, const Box &y) const
@@ -98,7 +73,7 @@ struct SymUBoxCmp
 				return false;
 			}
 		}
-	
+
 		bool ret = false;
 		if (x.box.center.x == y.box.center.x)
 		{
@@ -109,7 +84,6 @@ struct SymUBoxCmp
 			ret = x.box.center.x < y.box.center.x;
 		}
 		return ret;
-		return true;
 	}
 };
 
@@ -125,7 +99,7 @@ set<Box, SymUBoxCmp> SearchProcess_v2(IplImage *lpSrcImg)
 	set<Box, SymUBoxCmp> lstRes;
 	// ����һ�����������ڴ洢�����ǵ�
 	FindContours(lpSrcImg, storage, &contours, sizeof(CvContour),
-				 VOS_RETR_LIST, VOS_CHAIN_APPROX_SIMPLE, cvPoint(0, 0));
+				 VOS_RETR_LIST, VOS_CHAIN_APPROX_SIMPLE, InitPoint(0, 0));
 	int iCount = 0;
 	SaveImage("c.bmp", lpSrcImg);
 	// �����ҵ���ÿ������contours
@@ -179,14 +153,6 @@ set<Box, SymUBoxCmp> SearchProcess_v2(IplImage *lpSrcImg)
 					printf("centerInfo:[%f,%f]:[%f,%f]\n", End_Rage2D.center.x, End_Rage2D.center.y, End_Rage2D.size.width, End_Rage2D.size.height);
 					lstRes.insert(box);
 					iCount++;
-
-					// if (abs(x.box.center.x - y.box.center.x) <= MAX_P && abs(x.box.center.y - y.box.center.y) <= MAX_P)
-					// {
-					//     //if(abs(x.box.size.width - y.box.size.width)  <= MAX_P && abs(x.box.size.height - y.box.size.height)<= MAX_P )
-					//     {
-					//         return false;
-					//     }
-					// }
 				}
 			}
 		}
@@ -201,8 +167,6 @@ set<Box, SymUBoxCmp> SearchProcess_v2(IplImage *lpSrcImg)
 
 int process_v2(IplImage *lpImg, IplImage *lpTargetImg, int argc, char *argv[])
 {
-
-	set<Box, SymBoxCmp> lstRes;
 	set<Box, SymUBoxCmp> setURes = SearchProcess_v2(lpImg);
 	set<Box, SymUBoxCmp>::iterator itu;
 	Point2D32f srcTri[4], dstTri[4];
@@ -225,20 +189,18 @@ int process_v2(IplImage *lpImg, IplImage *lpTargetImg, int argc, char *argv[])
 			printf("%f,%f",  tbox.pt[i].x, tbox.pt[i].y);
 		}
 		printf("\n");
-		lstRes.insert(*itu);
 	}
-	set<Box, SymBoxCmp>::iterator it;
 
 	Box box;
-	it = lstRes.begin();
-	for (int i = 0; i < argc && it != lstRes.end(); i++)
+	itu = setURes.begin();
+	for (int i = 0; i < argc && itu != setURes.end(); i++)
 	{
 		printf("%s\n", argv[i]);
 		IplImage *lpSrcImg = LoadImage(argv[i], 1);
 		if (lpSrcImg != NULL)
 		{
-			box = *it;
-			it++;
+			box = *itu;
+			itu++;
 
 			temp = lpSrcImg;
 
@@ -356,6 +318,7 @@ int main(int argc, char **args)
 
 	IplImage *gray = CreateImage(GetSize(lpTargetImg), 8, 1);
 	CvtColor(lpTargetImg, gray, VOS_RGB2GRAY);
+	SaveImage("gray.bmp", gray);
 	IplImage *lpCannyImg = CreateImage(GetSize(lpTargetImg), 8, 1);
 	IplImage *tmp = CreateImage(GetSize(lpTargetImg), 8, 1);
 	IplImage *lpDilateImg = CreateImage(GetSize(lpTargetImg), 8, 1);

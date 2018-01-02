@@ -22,12 +22,20 @@ BGR2Gray_8u_CnC1R(const uchar *src, int srcstep,
 {
     int i;
     srcstep -= size.width * src_cn;
+    int b,g,r;
     for (; size.height--; src += srcstep, dst += dststep)
     {
         for (i = 0; i < size.width; i++, src += src_cn)
         {
             int t0 = src[blue_idx] * cscGb + src[1] * cscGg + src[blue_idx ^ 2] * cscGr;
+            b = src[2];
+            g = src[1];
+            r = src[0];
+            //t0 = b>g?b:g;
+            //t0 = t0 >r?t0:r;
+            //t0 = b;
             dst[i] = (uchar)VOS_DESCALE(t0, csc_shift);
+            //dst[i+0]  =r;
         }
     }
     return VOS_OK;
@@ -40,7 +48,7 @@ BGR2Gray_8u_CnC1R(const uchar *src, int srcstep,
  void
 CvtColor(const CvArr *srcarr, CvArr *dstarr, int code)
 {
-    VOS_FUNCNAME("cvCvtColor");
+    VOS_FUNCNAME("CvtColor");
 
     __BEGIN__;
 

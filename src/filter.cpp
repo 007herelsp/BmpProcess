@@ -103,7 +103,7 @@ void BaseImageFilter::init(int _max_width, int _src_type, int _dst_type,
     get_work_params();
 
     prev_width = 0;
-    prev_x_range = cvSlice(0, 0);
+    prev_x_range = GetSlice(0, 0);
 
     buf_size = Align(buf_size, ALIGN);
 
@@ -407,7 +407,7 @@ int BaseImageFilter::process(const Mat *src, Mat *dst,
 
     // initialize horizontal border relocation tab if it is not initialized yet
     if (phase & VOS_START)
-        start_process(cvSlice(src_roi.x, src_roi.x + src_roi.width), width);
+        start_process(GetSlice(src_roi.x, src_roi.x + src_roi.width), width);
     else if (prev_width != width || prev_x_range.start_index != src_roi.x ||
              prev_x_range.end_index != src_roi.x + src_roi.width)
         VOS_ERROR(VOS_StsBadArg,

@@ -239,7 +239,7 @@ SetSeqReaderPos(SeqReader *reader, int index,
 
 /************ Internal sequence functions ************/
 void
-cvChangeSeqBlock(void *reader, int direction);
+ChangeSeqBlock(void *reader, int direction);
 void
 CreateSeqBlock(SeqWriter *writer);
 

@@ -1,5 +1,5 @@
 #include "_cxcore.h"
-static CvStatus icvCopy_8u_C1R(const uchar *src, int srcstep,
+static CvStatus iCopy_8u_C1R(const uchar *src, int srcstep,
                                uchar *dst, int dststep, Size size)
 {
     for (; size.height--; src += srcstep, dst += dststep)
@@ -51,7 +51,7 @@ Copy(const void *srcarr, void *dstarr, const void *maskarr)
         }
 
         if (src->data.ptr != dst->data.ptr)
-            icvCopy_8u_C1R(src->data.ptr, src_step,
+            iCopy_8u_C1R(src->data.ptr, src_step,
                            dst->data.ptr, dst_step, size);
     }
     else

@@ -10,11 +10,6 @@
 #include <limits.h>
 #include <ctype.h>
 
-
-#define  RBS_THROW_EOS    -123  /* <end of stream> exception code */
-#define  RBS_THROW_FORB   -124  /* <forrbidden huffman code> exception code */
-#define  RBS_HUFF_FORB    2047  /* forrbidden huffman code "value" */
-
 typedef unsigned char uchar;
 typedef unsigned long ulong;
 

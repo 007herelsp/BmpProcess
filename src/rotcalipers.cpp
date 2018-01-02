@@ -7,7 +7,7 @@
 
 
 static void
-icvRotatingCalipers( Point2D32f* points, int n, int mode, float* out )
+iRotatingCalipers( Point2D32f* points, int n, int mode, float* out )
 {
     float minarea = FLT_MAX;
     float max_dist = 0;
@@ -18,10 +18,6 @@ icvRotatingCalipers( Point2D32f* points, int n, int mode, float* out )
     int left = 0, bottom = 0, right = 0, top = 0;
     int seq[4] = { -1, -1, -1, -1 };
 
-    /* rotating calipers sides will always have coordinates
-       (a,b) (-b,a) (-a,-b) (b, -a)
-     */
-    /* this is a first base bector (a,b) initialized by (1,0) */
     float orientation = 0;
     float base_a;
     float base_b = 0;
@@ -98,11 +94,6 @@ icvRotatingCalipers( Point2D32f* points, int n, int mode, float* out )
     /* all of edges will be checked while rotating calipers by 90 degrees */
     for( k = 0; k < n; k++ )
     {
-        /* sinus of minimal angle */
-        /*float sinus;*/
-
-        /* compute cosine of angle between calipers side and polygon edge */
-        /* dp - dot product */
         float dp0 = base_a * vect[seq[0]].x + base_b * vect[seq[0]].y;
         float dp1 = -base_b * vect[seq[1]].x + base_a * vect[seq[1]].y;
         float dp2 = -base_a * vect[seq[2]].x - base_b * vect[seq[2]].y;
@@ -158,10 +149,6 @@ icvRotatingCalipers( Point2D32f* points, int n, int mode, float* out )
         {
         case VOS_CALIPERS_MAXHEIGHT:
             {
-                /* now main element lies on edge alligned to calipers side */
-
-                /* find opposite element i.e. transform  */
-                /* 0->2, 1->3, 2->0, 3->1                */
                 int opposite_el = main_element ^ 2;
 
                 float dx = points[seq[opposite_el]].x - points[seq[main_element]].x;
@@ -354,7 +341,7 @@ MinAreaRect2( const CvArr* array, MemStorage* storage )
 
     if( n > 2 )
     {
-        icvRotatingCalipers( points, n, VOS_CALIPERS_MINAREARECT, (float*)out );
+        iRotatingCalipers( points, n, VOS_CALIPERS_MINAREARECT, (float*)out );
         box.center.x = out[0].x + (out[1].x + out[2].x)*0.5f;
         box.center.y = out[0].y + (out[1].y + out[2].y)*0.5f;
         box.size.height = (float)sqrt((double)out[1].x*out[1].x + (double)out[1].y*out[1].y);

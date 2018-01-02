@@ -6,28 +6,28 @@
 #include <pthread.h>
 #endif
 
-typedef struct
+typedef struct StackRecord
 {
     const char *file;
     int line;
-} CvStackRecord;
+} StackRecord;
 
-typedef struct CvContext
+typedef struct Context
 {
     int err_code;
     int err_mode;
     SysErrorCallback error_callback;
     void *userdata;
     char err_msg[4096];
-    CvStackRecord err_ctx;
-} CvContext;
+    StackRecord err_ctx;
+} Context;
 
 #define VOS_DEFAULT_ERROR_CALLBACK StdErrReport
 
-static CvContext *
-icvCreateContext(void)
+static Context *
+iCreateContext(void)
 {
-    CvContext *context = (CvContext *)malloc(sizeof(*context));
+    Context *context = (Context *)malloc(sizeof(*context));
 
     context->err_mode = VOS_ErrModeLeaf;
     context->err_code = VOS_StsOk;
@@ -39,18 +39,18 @@ icvCreateContext(void)
 }
 
 static void
-icvDestroyContext(CvContext *context)
+iDestroyContext(Context *context)
 {
     free(context);
 }
 
-static CvContext *
-icvGetContext(void)
+static Context *
+iGetContext(void)
 {
     /* static single-thread library case */
-    static CvContext *context = 0;
+    static Context *context = 0;
     if (!context)
-        context = icvCreateContext();
+        context = iCreateContext();
     return context;
 }
 
@@ -144,12 +144,12 @@ StdErrReport(int code, const char *func_name, const char *err_msg,
 
  int GetErrMode(void)
 {
-    return icvGetContext()->err_mode;
+    return iGetContext()->err_mode;
 }
 
  int SetErrMode(int mode)
 {
-    CvContext *context = icvGetContext();
+    Context *context = iGetContext();
     int prev_mode = context->err_mode;
     context->err_mode = mode;
     return prev_mode;
@@ -157,12 +157,12 @@ StdErrReport(int code, const char *func_name, const char *err_msg,
 
  int GetErrStatus()
 {
-    return icvGetContext()->err_code;
+    return iGetContext()->err_code;
 }
 
  void SetErrStatus(int code)
 {
-    icvGetContext()->err_code = code;
+    iGetContext()->err_code = code;
 }
 
  void SysError(int code, const char *func_name,
@@ -173,7 +173,7 @@ StdErrReport(int code, const char *func_name, const char *err_msg,
         SetErrStatus(code);
     else
     {
-        CvContext *context = icvGetContext();
+        Context *context = iGetContext();
 
         if (code != VOS_StsBackTrace && code != VOS_StsAutoTrace)
         {

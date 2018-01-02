@@ -8,29 +8,29 @@
      (deltas)[4] = -(nch), (deltas)[5] = (step) - (nch),   \
      (deltas)[6] = (step), (deltas)[7] = (step) + (nch))
 
-static const Point icvCodeDeltas[8] =
+static const Point iCodeDeltas[8] =
     {{1, 0}, {1, -1}, {0, -1}, {-1, -1}, {-1, 0}, {-1, 1}, {0, 1}, {1, 1}};
 
 /****************************************************************************************\
 *                         Raster->Chain Tree (Suzuki algorithms)                         *
 \****************************************************************************************/
 
-typedef struct _CvContourInfo
+typedef struct _ContourInfo
 {
     int flags;
-    struct _CvContourInfo *next;   /* next contour with the same mark value */
-    struct _CvContourInfo *parent; /* information about parent contour */
+    struct _ContourInfo *next;   /* next contour with the same mark value */
+    struct _ContourInfo *parent; /* information about parent contour */
     Seq *contour;                /* corresponding contour (may be 0, if rejected) */
     Rect rect;                   /* bounding rectangle */
     Point origin;                /* origin point (where the contour was traced from) */
     int is_hole;                   /* hole flag */
-} _CvContourInfo;
+} _ContourInfo;
 
 /*
   Structure that is used for sequental retrieving contours from the image.
   It supports both hierarchical and plane variants of Suzuki algorithm.
 */
-typedef struct _CvContourScanner
+typedef struct _ContourScanner
 {
     MemStorage *storage1;      /* contains fetched contours */
     MemStorage *storage2;      /* contains approximated contours
@@ -48,9 +48,9 @@ typedef struct _CvContourScanner
     Point pt;                  /* current scanner position */
     Point lnbd;                /* position of the last met contour */
     int nbd;                     /* current mark val */
-    _CvContourInfo *l_cinfo;     /* information about latest approx. contour */
-    _CvContourInfo cinfo_temp;   /* temporary var which is used in simple modes */
-    _CvContourInfo frame_info;   /* information about frame */
+    _ContourInfo *l_cinfo;     /* information about latest approx. contour */
+    _ContourInfo cinfo_temp;   /* temporary var which is used in simple modes */
+    _ContourInfo frame_info;   /* information about frame */
     Seq frame;                 /* frame itself */
     int approx_method1;          /* approx method when tracing */
     int approx_method2;          /* final approx method */
@@ -66,13 +66,13 @@ typedef struct _CvContourScanner
     int seq_type2;    /*                                       */
     int header_size2; /*        the same for approx. contours  */
     int elem_size2;   /*                                       */
-    _CvContourInfo *cinfo_table[126];
-} _CvContourScanner;
+    _ContourInfo *cinfo_table[126];
+} _ContourScanner;
 
 #define _VOS_FIND_CONTOURS_FLAGS_EXTERNAL_ONLY 1
 #define _VOS_FIND_CONTOURS_FLAGS_HIERARCHIC 2
 
-/* 
+/*
    Initializes scanner structure.
    Prepare image for scanning ( clear borders and convert all pixels to 0-1.
 */
@@ -100,7 +100,7 @@ StartFindContours(void *_img, MemStorage *storage,
     if (!VOS_IS_MASK_ARR(mat))
         VOS_ERROR(VOS_StsUnsupportedFormat, "[Start]FindContours support only 8uC1 images");
 
-    size = cvSize(mat->width, mat->height);
+    size = GetSize(mat->width, mat->height);
     step = mat->step;
     img = (uchar *)(mat->data.ptr);
 
@@ -133,7 +133,7 @@ StartFindContours(void *_img, MemStorage *storage,
     scanner->frame_info.is_hole = 1;
     scanner->frame_info.next = 0;
     scanner->frame_info.parent = 0;
-    scanner->frame_info.rect = cvRect(0, 0, size.width, size.height);
+    scanner->frame_info.rect = initRect(0, 0, size.width, size.height);
     scanner->l_cinfo = 0;
     scanner->subst_flag = 0;
 
@@ -180,9 +180,9 @@ StartFindContours(void *_img, MemStorage *storage,
 }
 
 static void
-icvEndProcessContour(ContourScanner scanner)
+iEndProcessContour(ContourScanner scanner)
 {
-    _CvContourInfo *l_cinfo = scanner->l_cinfo;
+    _ContourInfo *l_cinfo = scanner->l_cinfo;
 
     if (l_cinfo)
     {
@@ -209,7 +209,7 @@ icvEndProcessContour(ContourScanner scanner)
     }
 }
 
-/* 
+/*
     marks domain border with +/-<constant> and stores the contour into Seq.
         method:
             <0  - chain
@@ -217,7 +217,7 @@ icvEndProcessContour(ContourScanner scanner)
             >0  - simple approximation
 */
 static CvStatus
-icvFetchContour(char *ptr,
+iFetchContour(char *ptr,
                 int step,
                 Point pt,
                 Seq *contour,
@@ -299,8 +299,8 @@ icvFetchContour(char *ptr,
                     prev_s = s;
                 }
 
-                pt.x += icvCodeDeltas[s].x;
-                pt.y += icvCodeDeltas[s].y;
+                pt.x += iCodeDeltas[s].x;
+                pt.y += iCodeDeltas[s].y;
             }
 
             if (i4 == i0 && i3 == i1)
@@ -325,7 +325,7 @@ icvFetchContour(char *ptr,
 }
 
 Seq *
-cvFindNextContour(ContourScanner scanner)
+FindNextContour(ContourScanner scanner)
 {
     char *img0;
     char *img;
@@ -345,7 +345,7 @@ cvFindNextContour(ContourScanner scanner)
 
     if (!scanner)
         VOS_ERROR(VOS_StsNullPtr, "");
-    icvEndProcessContour(scanner);
+    iEndProcessContour(scanner);
 
     /* initialize local state */
     img0 = scanner->img0;
@@ -369,8 +369,8 @@ cvFindNextContour(ContourScanner scanner)
 
             if (p != prev)
             {
-                _CvContourInfo *par_info = 0;
-                _CvContourInfo *l_cinfo = 0;
+                _ContourInfo *par_info = 0;
+                _ContourInfo *l_cinfo = 0;
                 Seq *seq = 0;
                 int is_hole = 0;
                 Point origin;
@@ -421,8 +421,8 @@ cvFindNextContour(ContourScanner scanner)
                 if (mode <= 1)
                 {
                     l_cinfo = &(scanner->cinfo_temp);
-                    result = icvFetchContour(img + x - is_hole, step,
-                                             cvPoint(origin.x + scanner->offset.x,
+                    result = iFetchContour(img + x - is_hole, step,
+                                             InitPoint(origin.x + scanner->offset.x,
                                                      origin.y + scanner->offset.y),
                                              seq, scanner->approx_method1);
                     if (result < 0)
@@ -500,8 +500,8 @@ exit_func:
     return contour;
 }
 
-/* 
-   The function add to tree the last retrieved/substituted contour, 
+/*
+   The function add to tree the last retrieved/substituted contour,
    releases temp_storage, restores state of dst_storage (if needed), and
    returns pointer to root of the contour tree */
 Seq *
@@ -520,7 +520,7 @@ EndFindContours(ContourScanner *_scanner)
 
     if (scanner)
     {
-        icvEndProcessContour(scanner);
+        iEndProcessContour(scanner);
 
         if (scanner->storage1 != scanner->storage2)
             ReleaseMemStorage(&(scanner->storage1));
@@ -560,7 +560,7 @@ int FindContours(void *img, MemStorage *storage,
     do
     {
         count++;
-        contour = cvFindNextContour(scanner);
+        contour = FindNextContour(scanner);
     } while (contour != 0);
 
     *firstContour = EndFindContours(&scanner);

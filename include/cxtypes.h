@@ -256,19 +256,14 @@ IplConvKernel;
 #define VOS_16SC1 VOS_MAKETYPE(VOS_16S,1)
 #define VOS_16SC2 VOS_MAKETYPE(VOS_16S,2)
 #define VOS_16SC3 VOS_MAKETYPE(VOS_16S,3)
-#define VOS_16SC4 VOS_MAKETYPE(VOS_16S,4)
-#define VOS_16SC(n) VOS_MAKETYPE(VOS_16S,(n))
 
 #define VOS_32SC1 VOS_MAKETYPE(VOS_32S,1)
 #define VOS_32SC2 VOS_MAKETYPE(VOS_32S,2)
 #define VOS_32SC3 VOS_MAKETYPE(VOS_32S,3)
-#define VOS_32SC4 VOS_MAKETYPE(VOS_32S,4)
-#define VOS_32SC(n) VOS_MAKETYPE(VOS_32S,(n))
 
 #define VOS_32FC1 VOS_MAKETYPE(VOS_32F,1)
 #define VOS_32FC2 VOS_MAKETYPE(VOS_32F,2)
 #define VOS_32FC3 VOS_MAKETYPE(VOS_32F,3)
-#define VOS_32FC4 VOS_MAKETYPE(VOS_32F,4)
 #define VOS_32FC(n) VOS_MAKETYPE(VOS_32F,(n))
 
 #define VOS_64FC1 VOS_MAKETYPE(VOS_64F,1)
@@ -278,7 +273,6 @@ IplConvKernel;
 #define VOS_64FC(n) VOS_MAKETYPE(VOS_64F,(n))
 
 #define VOS_AUTO_STEP  0x7fffffff
-#define VOS_WHOLE_ARR  cvSlice( 0, 0x3fffffff )
 
 #define VOS_MAT_CN_MASK          ((VOS_CN_MAX - 1) << VOS_CN_SHIFT)
 #define VOS_MAT_CN(flags)        ((((flags) & VOS_MAT_CN_MASK) >> VOS_CN_SHIFT) + 1)
@@ -393,7 +387,7 @@ VOS_INLINE Mat InitMat( int rows, int cols, int type, void* data VOS_DEFAULT(NUL
 }
 
 
-VOS_INLINE int cvCvToIplDepth( int type )
+VOS_INLINE int CvToIplDepth( int type )
 {
     int depth = VOS_MAT_DEPTH(type);
     return VOS_ELEM_SIZE1(depth)*8 | (depth == VOS_8S || depth == VOS_16S ||
@@ -403,12 +397,6 @@ VOS_INLINE int cvCvToIplDepth( int type )
 
 
 struct Set;
-
-
-
-/****************************************************************************************\
-*                      Other supplementary data type definitions                         *
-\****************************************************************************************/
 
 /*************************************** Rect *****************************************/
 
@@ -421,7 +409,7 @@ typedef struct Rect
 }
 Rect;
 
-VOS_INLINE  Rect  cvRect( int x, int y, int width, int height )
+VOS_INLINE  Rect  initRect( int x, int y, int width, int height )
 {
     Rect r;
 
@@ -444,7 +432,7 @@ typedef struct Point
 Point;
 
 
-VOS_INLINE  Point  cvPoint( int x, int y )
+VOS_INLINE  Point  InitPoint( int x, int y )
 {
     Point p;
 
@@ -463,7 +451,7 @@ typedef struct Point2D32f
 Point2D32f;
 
 
-VOS_INLINE  Point2D32f  cvPoint2D32f( double x, double y )
+VOS_INLINE  Point2D32f  initPoint2D32f( double x, double y )
 {
     Point2D32f p;
 
@@ -474,13 +462,13 @@ VOS_INLINE  Point2D32f  cvPoint2D32f( double x, double y )
 }
 
 
-VOS_INLINE  Point2D32f  cvPointTo32f( Point point )
+VOS_INLINE  Point2D32f  PointTo32f( Point point )
 {
-    return cvPoint2D32f( (float)point.x, (float)point.y );
+    return initPoint2D32f( (float)point.x, (float)point.y );
 }
 
 
-VOS_INLINE  Point  cvPointFrom32f( Point2D32f point )
+VOS_INLINE  Point  PointFrom32f( Point2D32f point )
 {
     Point ipt;
     ipt.x = SysRound(point.x);
@@ -492,36 +480,16 @@ VOS_INLINE  Point  cvPointFrom32f( Point2D32f point )
 
 
 
-typedef struct Point2D64f
-{
-    double x;
-    double y;
-}
-Point2D64f;
-
-
-VOS_INLINE  Point2D64f  cvPoint2D64f( double x, double y )
-{
-    Point2D64f p;
-
-    p.x = x;
-    p.y = y;
-
-    return p;
-}
-
-
-
 /******************************** Size's & CvBox **************************************/
 
-typedef struct
+typedef struct Size
 {
     int width;
     int height;
 }
 Size;
 
-VOS_INLINE  Size  cvSize( int width, int height )
+VOS_INLINE  Size  GetSize( int width, int height )
 {
     Size s;
 
@@ -538,16 +506,6 @@ typedef struct Size2D32f
 }
 Size2D32f;
 
-
-VOS_INLINE  Size2D32f  cvSize2D32f( double width, double height )
-{
-    Size2D32f s;
-
-    s.width = (float)width;
-    s.height = (float)height;
-
-    return s;
-}
 
 typedef struct Box2D
 {
@@ -567,7 +525,7 @@ typedef struct Slice
 }
 Slice;
 
-VOS_INLINE  Slice  cvSlice( int start, int end )
+VOS_INLINE  Slice  GetSlice( int start, int end )
 {
     Slice slice;
     slice.start_index = start;
@@ -577,7 +535,7 @@ VOS_INLINE  Slice  cvSlice( int start, int end )
 }
 
 #define VOS_WHOLE_SEQ_END_INDEX 0x3fffffff
-#define VOS_WHOLE_SEQ  cvSlice(0, VOS_WHOLE_SEQ_END_INDEX)
+#define VOS_WHOLE_SEQ  GetSlice(0, VOS_WHOLE_SEQ_END_INDEX)
 
 
 /************************************* Scalar *****************************************/
@@ -588,7 +546,7 @@ typedef struct Scalar
 }
 Scalar;
 
-VOS_INLINE  Scalar  cvScalar( double val0, double val1 VOS_DEFAULT(0),
+VOS_INLINE  Scalar  GetScalar( double val0, double val1 VOS_DEFAULT(0),
                               double val2 VOS_DEFAULT(0), double val3 VOS_DEFAULT(0))
 {
     Scalar scalar;
@@ -598,7 +556,7 @@ VOS_INLINE  Scalar  cvScalar( double val0, double val1 VOS_DEFAULT(0),
 }
 
 
-VOS_INLINE  Scalar  cvRealScalar( double val0 )
+VOS_INLINE  Scalar  RealScalar( double val0 )
 {
     Scalar scalar;
     scalar.val[0] = val0;
@@ -606,7 +564,7 @@ VOS_INLINE  Scalar  cvRealScalar( double val0 )
     return scalar;
 }
 
-VOS_INLINE  Scalar  cvScalarAll( double val0123 )
+VOS_INLINE  Scalar  ScalarAll( double val0123 )
 {
     Scalar scalar;
     scalar.val[0] = val0123;
@@ -615,10 +573,6 @@ VOS_INLINE  Scalar  cvScalarAll( double val0123 )
     scalar.val[3] = val0123;
     return scalar;
 }
-
-/****************************************************************************************\
-*                                   Dynamic Data structures                              *
-\****************************************************************************************/
 
 /******************************** Memory storage ****************************************/
 
@@ -906,7 +860,7 @@ SeqReader;
 {                                                             \
     if( ((reader).ptr += (elem_size)) >= (reader).block_max ) \
 {                                                         \
-    cvChangeSeqBlock( &(reader), 1 );                     \
+    ChangeSeqBlock( &(reader), 1 );                     \
     }                                                         \
     }
 

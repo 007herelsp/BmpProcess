@@ -1,7 +1,7 @@
 #include "_cv.h"
 
-static CvStatus 
-icvThresh_8u_C1R(const uchar *src, int src_step, uchar *dst, int dst_step,
+static CvStatus
+iThresh_8u_C1R(const uchar *src, int src_step, uchar *dst, int dst_step,
                  Size roi, uchar thresh, uchar maxval, int type)
 {
     int i, j;
@@ -110,7 +110,7 @@ Threshold(const void *srcarr, void *dstarr, double thresh, double maxval, int ty
         imaxval = ithresh;
     imaxval = VOS_CAST_8U(imaxval);
 
-    icvThresh_8u_C1R(src->data.ptr, src_step,
+    iThresh_8u_C1R(src->data.ptr, src_step,
                      dst->data.ptr, dst_step, roi,
                      (uchar)ithresh, (uchar)imaxval, type);
 

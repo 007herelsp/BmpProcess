@@ -86,7 +86,7 @@ ArcLength(const void *array, Slice slice, int is_closed)
 
 /* area of a whole sequence */
 static CvStatus
-icvContourArea(const Seq *contour, double *area)
+iContourArea(const Seq *contour, double *area)
 {
     if (contour->total)
     {
@@ -146,7 +146,7 @@ icvContourArea(const Seq *contour, double *area)
 \****************************************************************************************/
 
 static CvStatus
-icvMemCopy(double **buf1, double **buf2, double **buf3, int *b_max)
+iMemCopy(double **buf1, double **buf2, double **buf3, int *b_max)
 {
     int bb;
 
@@ -186,7 +186,7 @@ icvMemCopy(double **buf1, double **buf2, double **buf3, int *b_max)
 }
 
 /* area of a contour sector */
-static CvStatus icvContourSecArea(Seq *contour, Slice slice, double *area)
+static CvStatus iContourSecArea(Seq *contour, Slice slice, double *area)
 {
     Point pt;         /*  pointer to points   */
     Point pt_s, pt_e; /*  first and last points  */
@@ -270,7 +270,7 @@ static CvStatus icvContourSecArea(Seq *contour, Slice slice, double *area)
                         a00 = a00 + dxy;
 
                         if (p_ind >= p_max)
-                            icvMemCopy(&p_are1, &p_are2, &p_are, &p_max);
+                            iMemCopy(&p_are1, &p_are2, &p_are, &p_max);
 
                         p_are[p_ind] = a00 / 2.;
                         p_ind++;
@@ -301,7 +301,7 @@ static CvStatus icvContourSecArea(Seq *contour, Slice slice, double *area)
                             dxy = x_s * y0 - x0 * y_s;
                             a00 += dxy;
                             if (p_ind >= p_max)
-                                icvMemCopy(&p_are1, &p_are2, &p_are, &p_max);
+                                iMemCopy(&p_are1, &p_are2, &p_are, &p_max);
 
                             p_are[p_ind] = a00 / 2.;
                             p_ind++;
@@ -331,7 +331,7 @@ static CvStatus icvContourSecArea(Seq *contour, Slice slice, double *area)
         a00 += dxy;
 
         if (p_ind >= p_max)
-            icvMemCopy(&p_are1, &p_are2, &p_are, &p_max);
+            iMemCopy(&p_are1, &p_are2, &p_are, &p_max);
 
         p_are[p_ind] = a00 / 2.;
         p_ind++;
@@ -376,14 +376,14 @@ ContourArea(const void *array, Slice slice)
 
     if (SliceLength(slice, contour) == contour->total)
     {
-        FUN_CALL(icvContourArea(contour, &area));
+        FUN_CALL(iContourArea(contour, &area));
     }
     else
     {
         if (VOS_SEQ_ELTYPE(contour) != VOS_32SC2)
             VOS_ERROR(VOS_StsUnsupportedFormat,
                      "Only curves with integer coordinates are supported in case of contour slice");
-        FUN_CALL(icvContourSecArea(contour, slice, &area));
+        FUN_CALL(iContourSecArea(contour, slice, &area));
     }
 
     __END__;
