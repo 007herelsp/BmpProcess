@@ -293,7 +293,7 @@ cvGetSeqReaderPos(CvSeqReader *reader);
 /* Changes sequence reader position. It may seek to an absolute or
    to relative to the current position */
 CVAPI(void)
-cvSetSeqReaderPos(CvSeqReader *reader, int index,
+SetSeqReaderPos(CvSeqReader *reader, int index,
                   int is_relative VOS_DEFAULT(0));
 
 /************ Internal sequence functions ************/
