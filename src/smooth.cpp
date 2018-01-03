@@ -2,9 +2,8 @@
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
- void
-Smooth(const void *srcarr, void *dstarr, int smooth_type,
-         int param1, int param2, double param3, double param4)
+void Smooth(const void *srcarr, void *dstarr, int smooth_type,
+            int param1, int param2, double param3, double param4)
 {
     SepFilter gaussian_filter;
 
@@ -38,25 +37,21 @@ Smooth(const void *srcarr, void *dstarr, int smooth_type,
 
     if (!VOS_ARE_TYPES_EQ(src, dst))
         VOS_ERROR(VOS_StsUnmatchedFormats,
-                 "The specified smoothing algorithm requires input and ouput arrays be of the same type");
+                  "The specified smoothing algorithm requires input and ouput arrays be of the same type");
 
-    // automatic detection of kernel size from sigma
-    if (smooth_type == VOS_GAUSSIAN)
-    {
-        sigma1 = param3;
-        sigma2 = param4 ? param4 : param3;
+    sigma1 = param3;
+    sigma2 = param4 ? param4 : param3;
 
-        if (param1 == 0 && sigma1 > 0)
-            param1 = SysRound(sigma1 * (depth == VOS_8U ? 3 : 4) * 2 + 1) | 1;
-        if (param2 == 0 && sigma2 > 0)
-            param2 = SysRound(sigma2 * (depth == VOS_8U ? 3 : 4) * 2 + 1) | 1;
-    }
+    if (param1 == 0 && sigma1 > 0)
+        param1 = SysRound(sigma1 * (depth == VOS_8U ? 3 : 4) * 2 + 1) | 1;
+    if (param2 == 0 && sigma2 > 0)
+        param2 = SysRound(sigma2 * (depth == VOS_8U ? 3 : 4) * 2 + 1) | 1;
 
     if (param2 == 0)
         param2 = size.height == 1 ? 1 : param1;
     if (param1 < 1 || (param1 & 1) == 0 || param2 < 1 || (param2 & 1) == 0)
         VOS_ERROR(VOS_StsOutOfRange,
-                 "Both mask width and height must be >=1 and odd");
+                  "Both mask width and height must be >=1 and odd");
 
     if (param1 == 1 && param2 == 1)
     {
@@ -64,7 +59,6 @@ Smooth(const void *srcarr, void *dstarr, int smooth_type,
         EXIT;
     }
 
-    if (smooth_type == VOS_GAUSSIAN)
     {
         Size ksize = {param1, param2};
         float *kx = (float *)cvStackAlloc(ksize.width * sizeof(kx[0]));
@@ -87,10 +81,7 @@ Smooth(const void *srcarr, void *dstarr, int smooth_type,
         VOS_CALL(gaussian_filter.init(src->cols, src_type, dst_type, &KX, &KY));
         VOS_CALL(gaussian_filter.process(src, dst));
     }
-    else
-    {
-        assert("herelsp remove" && 0);
-    }
+    
 
     __END__;
 

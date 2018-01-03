@@ -1,7 +1,7 @@
 #include "_cv.h"
 
 static int
-Solve( const CvArr* A, const CvArr* b, CvArr* x, int method )
+Solve( const VOID* A, const VOID* b, VOID* x, int method )
 {
     Mat* u = 0;
     Mat* v = 0;
@@ -30,7 +30,7 @@ Solve( const CvArr* A, const CvArr* b, CvArr* x, int method )
 
     if( method == VOS_SVD || method == VOS_SVD_SYM )
     {
-        int n = MIN(src->rows,src->cols);
+        int n = VOS_MIN(src->rows,src->cols);
 
         if( method == VOS_SVD_SYM && src->rows != src->cols )
             VOS_ERROR( VOS_StsBadSize, "VOS_SVD_SYM method is used for non-square matrix" );
@@ -129,7 +129,7 @@ static CvStatus iWarpPerspective_Bilinear_8u_CnR(const uchar *src, int step,
 }
 
  void
-WarpPerspective(const CvArr *srcarr, CvArr *dstarr,
+WarpPerspective(const VOID *srcarr, VOID *dstarr,
                   const Mat *matrix, int flags, Scalar fillval)
 {
     VOS_FUNCNAME("WarpPerspective");
@@ -139,10 +139,9 @@ WarpPerspective(const CvArr *srcarr, CvArr *dstarr,
     Mat srcstub, *src = (Mat *)srcarr;
     Mat dststub, *dst = (Mat *)dstarr;
     int type, depth, cn;
-    double src_matrix[9], dst_matrix[9];
+    double dst_matrix[9];
     double fillbuf[4];
-    Mat A = InitMat(3, 3, VOS_64F, src_matrix),
-          invA = InitMat(3, 3, VOS_64F, dst_matrix);
+    Mat invA = InitMat(3, 3, VOS_64F, dst_matrix);
 
     Size ssize, dsize;
     VOS_CALL(src = GetMat(srcarr, &srcstub));

@@ -46,7 +46,7 @@ typedef unsigned short ushort;
 /* CvArr* is used to pass arbitrary array-like data structures
    into the functions where the particular
    array type is recognized at runtime */
-typedef void CvArr;
+typedef void VOID;
 
 typedef union Cv32suf
 {
@@ -65,26 +65,8 @@ Cv32suf;
 #define VOS_LOG2 0.69314718055994530941723212145818
 
 #define VOS_SWAP(a,b,t) ((t) = (a), (a) = (b), (b) = (t))
-
-#ifndef MIN
-#define MIN(a,b)  ((a) > (b) ? (b) : (a))
-#endif
-
-#ifndef MAX
-#define MAX(a,b)  ((a) < (b) ? (b) : (a))
-#endif
-
-/* min & max without jumps */
-#define  VOS_IMIN(a, b)  ((a) ^ (((a)^(b)) & (((a) < (b)) - 1)))
-
-#define  VOS_IMAX(a, b)  ((a) ^ (((a)^(b)) & (((a) > (b)) - 1)))
-
-/* absolute value without jumps */
-#ifndef __cplusplus
-#define  VOS_IABS(a)     (((a) ^ ((a) < 0 ? -1 : 0)) - ((a) < 0 ? -1 : 0))
-#else
-#define  VOS_IABS(a)     abs(a)
-#endif
+#define VOS_MIN(a,b)  ((a) > (b) ? (b) : (a))
+#define VOS_MAX(a,b)  ((a) < (b) ? (b) : (a))
 #define  VOS_CMP(a,b)    (((a) > (b)) - ((a) < (b)))
 #define  VOS_SIGN(a)     VOS_CMP((a),0)
 
@@ -105,8 +87,8 @@ VOS_INLINE  int  SysCeil( double value )
     return ceil(value);
 }
 
-#define SysInvSqrt(value) ((float)(1./sqrt(value)))
-#define SysSqrt(value)  ((float)sqrt(value))
+#define SYS_INVSQRT(value) ((float)(1./sqrt(value)))
+#define SYS_SQRT(value)  ((float)sqrt(value))
 
 
 

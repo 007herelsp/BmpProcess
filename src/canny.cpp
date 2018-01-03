@@ -119,7 +119,7 @@ Canny( const void* srcarr, void* dstarr,
     map = (uchar*)(mag_buf[2] + size.width + 2);
     mapstep = size.width + 2;
 
-    maxsize = MAX( 1 << 10, size.width*size.height/10 );
+    maxsize = VOS_MAX( 1 << 10, size.width*size.height/10 );
     VOS_CALL( stack_top = stack_bottom = (uchar**)SysAlloc( maxsize*sizeof(stack_top[0]) ));
 
     memset( mag_buf[0], 0, (size.width+2)*sizeof(int) );
@@ -207,7 +207,7 @@ Canny( const void* srcarr, void* dstarr,
         if( (stack_top - stack_bottom) + size.width > maxsize )
         {
             uchar** new_stack_bottom;
-            maxsize = MAX( maxsize * 3/2, maxsize + size.width );
+            maxsize = VOS_MAX( maxsize * 3/2, maxsize + size.width );
             VOS_CALL( new_stack_bottom = (uchar**)SysAlloc( maxsize * sizeof(stack_top[0])) );
             memcpy( new_stack_bottom, stack_bottom, (stack_top - stack_bottom)*sizeof(stack_top[0]) );
             stack_top = new_stack_bottom + (stack_top - stack_bottom);
@@ -296,7 +296,7 @@ Canny( const void* srcarr, void* dstarr,
         if( (stack_top - stack_bottom) + 8 > maxsize )
         {
             uchar** new_stack_bottom;
-            maxsize = MAX( maxsize * 3/2, maxsize + 8 );
+            maxsize = VOS_MAX( maxsize * 3/2, maxsize + 8 );
             VOS_CALL( new_stack_bottom = (uchar**)SysAlloc( maxsize * sizeof(stack_top[0])) );
             memcpy( new_stack_bottom, stack_bottom, (stack_top - stack_bottom)*sizeof(stack_top[0]) );
             stack_top = new_stack_bottom + (stack_top - stack_bottom);

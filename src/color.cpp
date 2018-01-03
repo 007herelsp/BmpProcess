@@ -15,7 +15,7 @@
 #define cscGg fix(cscGg_32f, csc_shift)
 #define cscGb /*fix(cscGb_32f,csc_shift)*/ ((1 << csc_shift) - cscGr - cscGg)
 
-static CvStatus 
+static CvStatus
 BGR2Gray_8u_CnC1R(const uchar *src, int srcstep,
                       uchar *dst, int dststep, Size size,
                       int src_cn, int blue_idx)
@@ -46,7 +46,7 @@ BGR2Gray_8u_CnC1R(const uchar *src, int srcstep,
 \****************************************************************************************/
 
  void
-CvtColor(const CvArr *srcarr, CvArr *dstarr, int code)
+CvtColor(const VOID *srcarr, VOID *dstarr, int code)
 {
     VOS_FUNCNAME("CvtColor");
 
@@ -57,7 +57,7 @@ CvtColor(const CvArr *srcarr, CvArr *dstarr, int code)
     Size size;
     int src_step, dst_step;
     int src_cn, dst_cn, depth;
-  
+
     VOS_CALL(src = GetMat(srcarr, &srcstub));
     VOS_CALL(dst = GetMat(dstarr, &dststub));
 

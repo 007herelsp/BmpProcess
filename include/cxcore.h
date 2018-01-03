@@ -63,7 +63,7 @@ ReleaseMat(Mat **mat);
 
 /* Decrements Mat data reference counter and deallocates the data if
    it reaches 0 */
-VOS_INLINE void DecRefData(CvArr *arr)
+VOS_INLINE void DecRefData(VOID *arr)
 {
     if (VOS_IS_MAT(arr))
     {
@@ -84,10 +84,10 @@ void
 ScalarToRawData(const Scalar *scalar, void *data, int type);
 
 int
-GetElemType(const CvArr *arr);
+GetElemType(const VOID *arr);
 
 Mat *
-GetMat(const CvArr *arr, Mat *header,
+GetMat(const VOID *arr, Mat *header,
          int *coi VOS_DEFAULT(NULL),
          int allowND VOS_DEFAULT(0));
 
@@ -95,33 +95,32 @@ GetMat(const CvArr *arr, Mat *header,
 
 /* Allocates array data */
 void
-CreateData(CvArr *arr);
+CreateData(VOID *arr);
 
 /* Releases array data */
 void
-ReleaseData(CvArr *arr);
+ReleaseData(VOID *arr);
 
 void
-SetData(CvArr *arr, void *data, int step);
+SetData(VOID *arr, void *data, int step);
 
 /* Returns width and height of array in elements */
 Size
-GetSize(const CvArr *arr);
+GetSize(const VOID *arr);
 
 /* Copies source array to destination array */
 void
-Copy(const CvArr *src, CvArr *dst,
-       const CvArr *mask VOS_DEFAULT(NULL));
+Copy(const VOID *src, VOID *dst,
+       const VOID *mask VOS_DEFAULT(NULL));
 
 void
-ConvertScale(const CvArr *src, CvArr *dst,
+ConvertScale(const VOID *src, VOID *dst,
                double scale VOS_DEFAULT(1),
                double shift VOS_DEFAULT(0));
 #define Convert(src, dst) ConvertScale((src), (dst), 1, 0)
 
-/* Does powering: dst(idx) = src(idx)^power */
 void
-SysPow(const CvArr *src, CvArr *dst, double power);
+SysPow(const VOID *src, VOID *dst, double power);
 
 #define VOS_SVD_MODIFY_A 1
 #define VOS_SVD_U_T 2
@@ -129,15 +128,15 @@ SysPow(const CvArr *src, CvArr *dst, double power);
 
 /* Performs Singular Value Decomposition of a matrix */
 void
-SVD(CvArr *A, CvArr *W, CvArr *U VOS_DEFAULT(NULL),
-      CvArr *V VOS_DEFAULT(NULL), int flags VOS_DEFAULT(0));
+SVD(VOID *A, VOID *W, VOID *U VOS_DEFAULT(NULL),
+      VOID *V VOS_DEFAULT(NULL), int flags VOS_DEFAULT(0));
 
 /* Performs Singular Value Back Substitution (solves A*X = B):
    flags must be the same as in SVD */
 void
-SVBkSb(const CvArr *W, const CvArr *U,
-         const CvArr *V, const CvArr *B,
-         CvArr *X, int flags);
+SVBkSb(const VOID *W, const VOID *U,
+         const VOID *V, const VOID *B,
+         VOID *X, int flags);
 
 #define VOS_LU 0
 #define VOS_SVD 1
@@ -188,9 +187,6 @@ SeqPush(Seq *seq, void *element VOS_DEFAULT(NULL));
 void
 SeqPop(Seq *seq, void *element VOS_DEFAULT(NULL));
 
-#define VOS_FRONT 1
-#define VOS_BACK 0
-
 /* Removes several elements from the end of sequence and optionally saves them */
 void
 SeqPopMulti(Seq *seq, void *elements,
@@ -236,16 +232,6 @@ void
 ChangeSeqBlock(void *reader, int direction);
 void
 CreateSeqBlock(SeqWriter *writer);
-
-/* Creates a new set */
-Set *
-CreateSet(int set_flags, int header_size,
-            int elem_size, MemStorage *storage);
-
-/* Adds new element to the set and returns pointer to it */
-int
-SetAdd(Set *set_header, SetElem *elem VOS_DEFAULT(NULL),
-         SetElem **inserted_elem VOS_DEFAULT(NULL));
 
 int
 StdErrReport(int status, const char *func_name, const char *err_msg,

@@ -78,10 +78,10 @@ typedef int (*sklansky_func)(Point **points, int start, int end,
                              int *stack, int sign, int sign2);
 
 #define cmp_pts(pt1, pt2) \
-    ((pt1)->x < (pt2)->x || (pt1)->x <= (pt2)->x && (pt1)->y < (pt2)->y)
+    (((pt1)->x < (pt2)->x) || ((pt1)->x <= (pt2)->x && (pt1)->y < (pt2)->y))
 // static VOS_IMPLEMENT_QSORT(icvSortPointsByPointers_32s, Point *, cmp_pts)
 
-static void icvSortPointsByPointers_32s(Point **array, size_t total, int aux)
+static void iSortPointsByPointers_32s(Point **array, size_t total, int aux)
 {
     int isort_thresh = 7;
     Point *t;
@@ -193,11 +193,11 @@ static void icvSortPointsByPointers_32s(Point **array, size_t total, int aux)
                     left = left0, right = right0;
                     goto insert_sort;
                 }
-                n = MIN((int)(left1 - left0), (int)(left - left1));
+                n = VOS_MIN((int)(left1 - left0), (int)(left - left1));
                 for (i = 0; i < n; i++)
                     VOS_SWAP(left0[i], left[i - n], t);
 
-                n = MIN((int)(right0 - right1), (int)(right1 - right));
+                n = VOS_MIN((int)(right0 - right1), (int)(right1 - right));
                 for (i = 0; i < n; i++)
                     VOS_SWAP(left[i], right0[i - n + 1], t);
                 n = (int)(left - left1);
@@ -232,7 +232,7 @@ static void icvSortPointsByPointers_32s(Point **array, size_t total, int aux)
 }
 
  Seq *
-ConvexHull2(const CvArr *array, void *hull_storage,
+ConvexHull2(const VOID *array, void *hull_storage,
               int orientation, int return_points)
 {
     union {
@@ -322,7 +322,7 @@ ConvexHull2(const CvArr *array, void *hull_storage,
 
     // sort the point set by x-coordinate, find min and max y
 
-    icvSortPointsByPointers_32s(pointer, total, 0);
+    iSortPointsByPointers_32s(pointer, total, 0);
     for (i = 1; i < total; i++)
     {
         int y = pointer[i]->y;
@@ -379,15 +379,15 @@ ConvexHull2(const CvArr *array, void *hull_storage,
         if (stop_idx >= 0)
         {
             int check_idx = bl_count > 2 ? bl_stack[1] : bl_count + br_count > 2 ? br_stack[2 - bl_count] : -1;
-            if (check_idx == stop_idx || check_idx >= 0 &&
+            if (check_idx == stop_idx || (check_idx >= 0 &&
                                              pointer[check_idx]->x == pointer[stop_idx]->x &&
-                                             pointer[check_idx]->y == pointer[stop_idx]->y)
+                                             pointer[check_idx]->y == pointer[stop_idx]->y))
             {
                 /* if all the points lie on the same line, then
                    the bottom part of the convex hull is the mirrored top part
                    (except the exteme points).*/
-                bl_count = MIN(bl_count, 2);
-                br_count = MIN(br_count, 2);
+                bl_count = VOS_MIN(bl_count, 2);
+                br_count = VOS_MIN(br_count, 2);
             }
         }
 
@@ -425,7 +425,7 @@ finish_hull:
 }
 
  int
-CheckContourConvexity(const CvArr *array)
+CheckContourConvexity(const VOID *array)
 {
     int flag = -1;
 

@@ -166,7 +166,7 @@ ReleaseMat(Mat **array)
 
 // Allocates underlying array data
  void
-CreateData(CvArr *arr)
+CreateData(VOID *arr)
 {
     VOS_FUNCNAME("CreateData");
 
@@ -209,7 +209,7 @@ CreateData(CvArr *arr)
 
 // Assigns external data to array
  void
-SetData(CvArr *arr, void *data, int step)
+SetData(VOID *arr, void *data, int step)
 {
     VOS_FUNCNAME("SetData");
 
@@ -285,7 +285,7 @@ SetData(CvArr *arr, void *data, int step)
 
 // Deallocates array's data
  void
-ReleaseData(CvArr *arr)
+ReleaseData(VOID *arr)
 {
     VOS_FUNCNAME("ReleaseData");
 
@@ -313,7 +313,7 @@ ReleaseData(CvArr *arr)
 }
 
  int
-GetElemType(const CvArr *arr)
+GetElemType(const VOID *arr)
 {
     int type = -1;
 
@@ -340,7 +340,7 @@ GetElemType(const CvArr *arr)
 
 // Returns the size of Mat or IplImage
  Size
-GetSize(const CvArr *arr)
+GetSize(const VOID *arr)
 {
     Size size = {0, 0};
 
@@ -412,7 +412,7 @@ ScalarToRawData(const Scalar *scalar, void *data, int type)
 
 // convert array (Mat or IplImage) to Mat
  Mat *
-GetMat(const CvArr *array, Mat *mat,
+GetMat(const VOID *array, Mat *mat,
          int *pCOI, int allowND)
 {
     Mat *result = 0;
@@ -551,7 +551,7 @@ InitImageHeader(IplImage *image, Size size, int depth,
     image->width = size.width;
     image->height = size.height;
 
-    image->nChannels = MAX(channels, 1);
+    image->nChannels = VOS_MAX(channels, 1);
     image->depth = depth;
     image->align = align;
     image->widthStep = (((image->width * image->nChannels *

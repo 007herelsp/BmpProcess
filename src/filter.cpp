@@ -35,14 +35,14 @@ BaseImageFilter::~BaseImageFilter()
 
 void BaseImageFilter::get_work_params()
 {
-    int min_rows = max_ky * 2 + 3, rows = MAX(min_rows, 10), row_sz;
+    int min_rows = max_ky * 2 + 3, rows = VOS_MAX(min_rows, 10), row_sz;
     int width = max_width, trow_sz = 0;
 
     if (is_separable)
     {
-        int max_depth = MAX(VOS_MAT_DEPTH(src_type), VOS_MAT_DEPTH(dst_type));
-        int max_cn = MAX(VOS_MAT_CN(src_type), VOS_MAT_CN(dst_type));
-        max_depth = MAX(max_depth, min_depth);
+        int max_depth = VOS_MAX(VOS_MAT_DEPTH(src_type), VOS_MAT_DEPTH(dst_type));
+        int max_cn = VOS_MAX(VOS_MAT_CN(src_type), VOS_MAT_CN(dst_type));
+        max_depth = VOS_MAX(max_depth, min_depth);
         work_type = VOS_MAKETYPE(max_depth, max_cn);
         trow_sz = Align((max_width + ksize.width - 1) * VOS_ELEM_SIZE(src_type), ALIGN);
     }
@@ -53,8 +53,8 @@ void BaseImageFilter::get_work_params()
     }
     row_sz = Align(width * VOS_ELEM_SIZE(work_type), ALIGN);
     buf_size = rows * row_sz;
-    buf_size = MIN(buf_size, 1 << 16);
-    buf_size = MAX(buf_size, min_rows * row_sz);
+    buf_size = VOS_MIN(buf_size, 1 << 16);
+    buf_size = VOS_MAX(buf_size, min_rows * row_sz);
     max_rows = (buf_size / row_sz) * 3 + max_ky * 2 + 8;
     buf_size += trow_sz;
 }
@@ -88,7 +88,7 @@ void BaseImageFilter::init(int _max_width, int _src_type, int _dst_type,
     if (anchor.y == -1)
         anchor.y = ksize.height / 2;
 
-    max_ky = MAX(anchor.y, ksize.height - anchor.y - 1);
+    max_ky = VOS_MAX(anchor.y, ksize.height - anchor.y - 1);
     border_mode = _border_mode;
     border_value = _border_value;
 
@@ -156,7 +156,7 @@ void BaseImageFilter::start_process(Slice x_range, int width)
     if (mode == IPL_BORDER_CONSTANT)
         bsz -= buf_step;
     buf_max_count = bsz / buf_step;
-    buf_max_count = MIN(buf_max_count, max_rows - max_ky * 2);
+    buf_max_count = VOS_MIN(buf_max_count, max_rows - max_ky * 2);
     buf_end = buf_start + buf_max_count * buf_step;
 
     if (mode == IPL_BORDER_CONSTANT)
@@ -216,8 +216,8 @@ void BaseImageFilter::start_process(Slice x_range, int width)
                 border_tab[i + j] = idx + ofs + j;
             if (mode != IPL_BORDER_REPLICATE)
             {
-                if (delta > 0 && idx == width ||
-                    delta < 0 && idx == 0)
+                if ((delta > 0 && idx == width) ||
+                    (delta < 0 && idx == 0))
                 {
                     if (mode == IPL_BORDER_REFLECT_101)
                         idx -= delta * 2;
@@ -471,7 +471,7 @@ int BaseImageFilter::process(const Mat *src, Mat *dst,
 
         row_count = top_rows + buf_count;
 
-        if (!rows[0] || (phase & VOS_END) && src_y == src_y2)
+        if (!rows[0] || ((phase & VOS_END) && src_y == src_y2))
         {
             int br = (phase & VOS_END) && src_y == src_y2 ? bottom_rows : 0;
             make_y_border(row_count, top_rows, br);
@@ -496,7 +496,7 @@ int BaseImageFilter::process(const Mat *src, Mat *dst,
                     buf_head = buf_start;
             }
             rows_processed += count;
-            top_rows = MAX(top_rows - count, 0);
+            top_rows = VOS_MAX(top_rows - count, 0);
         }
     }
 
@@ -562,18 +562,10 @@ void SepFilter::init(int _max_width, int _src_type, int _dst_type,
     double xsum = 0, ysum = 0;
     const float eps = FLT_EPSILON * 100.f;
 
-    if (!VOS_IS_MAT(_kx) || !VOS_IS_MAT(_ky) ||
-        _kx->cols != 1 && _kx->rows != 1 ||
-        _ky->cols != 1 && _ky->rows != 1 ||
-        VOS_MAT_CN(_kx->type) != 1 || VOS_MAT_CN(_ky->type) != 1 ||
-        !VOS_ARE_TYPES_EQ(_kx, _ky))
-        VOS_ERROR(VOS_StsBadArg,
-                 "Both kernels must be valid 1d single-channel vectors of the same types");
-
     if (VOS_MAT_CN(_src_type) != VOS_MAT_CN(_dst_type))
         VOS_ERROR(VOS_StsUnmatchedFormats, "Input and output must have the same number of channels");
 
-    filter_type = MAX(VOS_32F, VOS_MAT_DEPTH(_kx->type));
+    filter_type = VOS_MAX(VOS_32F, VOS_MAT_DEPTH(_kx->type));
 
     _ksize.width = _kx->rows + _kx->cols - 1;
     _ksize.height = _ky->rows + _ky->cols - 1;
@@ -1300,11 +1292,6 @@ void SepFilter::init_gaussian_kernel(Mat *kernel, double sigma)
 
     type = VOS_MAT_TYPE(kernel->type);
 
-    if (kernel->cols != 1 && kernel->rows != 1 ||
-        (kernel->cols + kernel->rows - 1) % 2 == 0 ||
-        type != VOS_32FC1)
-        VOS_ERROR(VOS_StsBadSize, "kernel should be 1D floating-point vector of odd (2*k+1) size");
-
     n = kernel->cols + kernel->rows - 1;
 
     if (n <= VOS_SMALL_GAUSSIAN_SIZE && sigma <= 0)
@@ -1348,7 +1335,7 @@ void SepFilter::init_sobel_kernel(Mat *_kx, Mat *_ky, int dx, int dy, int flags)
     if (!VOS_IS_MAT(_kx) || !VOS_IS_MAT(_ky))
         VOS_ERROR(VOS_StsBadArg, "One of the kernel matrices is not valid");
 
-    msz = MAX(_kx->cols + _kx->rows, _ky->cols + _ky->rows);
+    msz = VOS_MAX(_kx->cols + _kx->rows, _ky->cols + _ky->rows);
     if (msz > 32)
         VOS_ERROR(VOS_StsOutOfRange, "Too large kernel size");
 
@@ -1368,11 +1355,6 @@ void SepFilter::init_sobel_kernel(Mat *_kx, Mat *_ky, int dx, int dy, int flags)
         double scale = !normalize ? 1. : 1. / (1 << (n - order - 1));
         int iscale = 1;
 
-        if (kernel->cols != 1 && kernel->rows != 1 ||
-            (kernel->cols + kernel->rows - 1) % 2 == 0 ||
-            type != VOS_32FC1)
-            VOS_ERROR(VOS_StsOutOfRange,
-                     "Both kernels must be 1D floating-point or integer vectors of odd (2*k+1) size.");
 
         if (n <= order)
             VOS_ERROR(VOS_StsOutOfRange,

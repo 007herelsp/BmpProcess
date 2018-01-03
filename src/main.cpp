@@ -33,20 +33,6 @@ double angle(Point *pt1, Point *pt2, Point *pt0)
 	return (dx1 * dx2 + dy1 * dy2) / sqrt((dx1 * dx1 + dy1 * dy1) * (dx2 * dx2 + dy2 * dy2) + 1e-10);
 }
 
-struct SymCmp
-{
-	bool operator()(const Box2D &x, const Box2D &y) const
-	{
-		if (x.center.x == y.center.x)
-		{
-			return x.center.y < y.center.y;
-		}
-		else
-		{
-			return x.center.x < y.center.x;
-		}
-	}
-};
 
 typedef struct stBox
 {
@@ -186,7 +172,7 @@ int process_v2(IplImage *lpImg, IplImage *lpTargetImg, int argc, char *argv[])
 
 		for (int i = 0; i < 4; i++)
 		{
-			printf("%f,%f",  tbox.pt[i].x, tbox.pt[i].y);
+			printf("%d,%d",  tbox.pt[i].x, tbox.pt[i].y);
 		}
 		printf("\n");
 	}
@@ -244,8 +230,11 @@ int process_v2(IplImage *lpImg, IplImage *lpTargetImg, int argc, char *argv[])
 				p[2] = box.pt[2];
 				p[3] = box.pt[3];
 			}
-			int diff = +5;
+			int diff = +1;
+			if(p[0].x -diff >=0)
+			{
 			p[0].x -= diff;
+			}
 			p[0].y += diff;
 
 			p[1].x -= diff;
@@ -266,12 +255,12 @@ int process_v2(IplImage *lpImg, IplImage *lpTargetImg, int argc, char *argv[])
 			{
 				srcTri[1].x = 0;
 				srcTri[1].y = 0;
-				srcTri[2].x = temp->width - 1; //��Сһ������
+				srcTri[2].x = temp->width - 1 +1; //��Сһ������
 				srcTri[2].y = 0;
-				srcTri[3].x = temp->width - 1;
-				srcTri[3].y = temp->height - 1;
+				srcTri[3].x = temp->width - 1+1;
+				srcTri[3].y = temp->height - 1+1;
 				srcTri[0].x = 0; //bot right
-				srcTri[0].y = temp->height - 1;
+				srcTri[0].y = temp->height - 1+1;
 			}
 			else
 			{
@@ -283,15 +272,6 @@ int process_v2(IplImage *lpImg, IplImage *lpTargetImg, int argc, char *argv[])
 				srcTri[3].y = temp->height - 1 + 1;
 				srcTri[0].x = 0; //bot right
 				srcTri[0].y = temp->height - 1 + 1;
-
-				// srcTri[2].x = 0;
-				// srcTri[2].y = 0;
-				// srcTri[3].x = temp->width - 1; //��Сһ������
-				// srcTri[3].y = 0;
-				// srcTri[0].x = temp->width - 1;
-				// srcTri[0].y = temp->height - 1;
-				// srcTri[1].x = 0; //bot right
-				// srcTri[1].y = temp->height - 1;
 			}
 
 			GetPerspectiveTransform(dstTri, srcTri, warp_mat);										 //�����Ե�������任
@@ -315,7 +295,7 @@ int main(int argc, char **args)
 	{
 		return ERR_1;
 	}
-
+	IplImage *lpOutImg = CloneImage(lpTargetImg);
 	IplImage *gray = CreateImage(GetSize(lpTargetImg), 8, 1);
 	CvtColor(lpTargetImg, gray, VOS_RGB2GRAY);
 	SaveImage("gray.bmp", gray);
@@ -348,7 +328,7 @@ int main(int argc, char **args)
 		//SaveImage("canny2.bmp", lpCannyImg);
 	}
 	//����Ŀ������
-	IplImage *lpOutImg = CloneImage(lpTargetImg);
+
 	int iCunt = 0;
 	if (NULL != lpOutImg)
 	{

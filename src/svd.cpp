@@ -96,12 +96,12 @@ pythag(double a, double b)
     if (a > b)
     {
         b /= a;
-        a *= SysSqrt(1. + b * b);
+        a *= SYS_SQRT(1. + b * b);
     }
     else if (b != 0)
     {
         a /= b;
-        a = b * SysSqrt(1. + a * a);
+        a = b * SYS_SQRT(1. + a * a);
     }
 
     return a;
@@ -514,7 +514,7 @@ iSVBkSb_64f(int m, int n, const double *w,
               double *x, int ldx, double *buffer)
 {
     double threshold = 0;
-    int i, j, nm = MIN(m, n);
+    int i, j, nm = VOS_MIN(m, n);
 
     if (!b)
         nb = m;
@@ -600,7 +600,7 @@ iSVBkSb_64f(int m, int n, const double *w,
 }
 
  void
-SVD(CvArr *aarr, CvArr *warr, CvArr *uarr, CvArr *varr, int flags)
+SVD(VOID *aarr, VOID *warr, VOID *uarr, VOID *varr, int flags)
 {
     uchar *buffer = 0;
     int local_alloc = 0;
@@ -647,7 +647,7 @@ SVD(CvArr *aarr, CvArr *warr, CvArr *uarr, CvArr *varr, int flags)
     }
     else
     {
-        CvArr *t;
+        VOID *t;
         VOS_SWAP(uarr, varr, t);
         m = a->cols;
         n = a->rows;
@@ -799,9 +799,9 @@ SVD(CvArr *aarr, CvArr *warr, CvArr *uarr, CvArr *varr, int flags)
 }
 
  void
-SVBkSb(const CvArr *warr, const CvArr *uarr,
-         const CvArr *varr, const CvArr *barr,
-         CvArr *xarr, int flags)
+SVBkSb(const VOID *warr, const VOID *uarr,
+         const VOID *varr, const VOID *barr,
+         VOID *xarr, int flags)
 {
     uchar *buffer = 0;
     int local_alloc = 0;
@@ -854,7 +854,7 @@ SVBkSb(const CvArr *warr, const CvArr *uarr,
 
     m = u_rows;
     n = v_rows;
-    nm = MIN(n, m);
+    nm = VOS_MIN(n, m);
 
     if ((u_rows != u_cols && v_rows != v_cols) || x->rows != v_rows)
         VOS_ERROR(VOS_StsBadSize, "V or U matrix must be square");
@@ -894,7 +894,7 @@ SVBkSb(const CvArr *warr, const CvArr *uarr,
     }
 
     t_buf_offset = buf_size;
-    buf_size += (MAX(m, n) + b->cols) * pix_size;
+    buf_size += (VOS_MAX(m, n) + b->cols) * pix_size;
 
     if (buf_size <= VOS_MAX_LOCAL_SIZE)
     {

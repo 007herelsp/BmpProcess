@@ -316,11 +316,6 @@ iFetchContour(char *ptr,
     if (_method != VOS_CHAIN_CODE)
         BoundingRect(contour, 1);
 
-    assert(writer.seq->total == 0 && writer.seq->first == 0 ||
-           writer.seq->total > writer.seq->first->count ||
-           (writer.seq->first->prev == writer.seq->first &&
-            writer.seq->first->next == writer.seq->first));
-
     return VOS_OK;
 }
 

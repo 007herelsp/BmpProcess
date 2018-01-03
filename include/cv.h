@@ -2,12 +2,9 @@
 #define _VOS_H_
 
 #include "cxcore.h"
-
-
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 
 typedef struct _ContourScanner* ContourScanner;
 
@@ -23,18 +20,13 @@ typedef struct _ContourScanner* ContourScanner;
 #define VOS_CHAIN_APPROX_SIMPLE      2
 #define VOS_LINK_RUNS                3
 
-
-
-
-
 #define VOS_BLUR_NO_SCALE 0
 #define VOS_BLUR  1
 #define VOS_GAUSSIAN  2
 #define VOS_MEDIAN 3
 #define VOS_BILATERAL 4
 
-/* Smoothes array (removes noise) */
-void Smooth( const CvArr* src, CvArr* dst,
+void Smooth( const VOID* src, VOID* dst,
                int smoothtype VOS_DEFAULT(VOS_GAUSSIAN),
                int param1 VOS_DEFAULT(3),
                int param2 VOS_DEFAULT(0),
@@ -48,7 +40,7 @@ void Smooth( const CvArr* src, CvArr* dst,
 #define  VOS_RGB2GRAY    7
 
 /* Converts input array pixels from one color space to another */
-void  CvtColor( const CvArr* src, CvArr* dst, int code );
+void  CvtColor( const VOID* src, VOID* dst, int code );
 
 #define  VOS_INTER_LINEAR    1
 
@@ -57,7 +49,7 @@ void  CvtColor( const CvArr* src, CvArr* dst, int code );
 
 
 /* Warps image with perspective (projective) transform */
-void  WarpPerspective( const CvArr* src, CvArr* dst, const Mat* map_matrix,
+void  WarpPerspective( const VOID* src, VOID* dst, const Mat* map_matrix,
                          int flags VOS_DEFAULT(VOS_INTER_LINEAR+VOS_WARP_FILL_OUTLIERS),
                          Scalar fillval VOS_DEFAULT(ScalarAll(0)) );
 
@@ -81,23 +73,23 @@ void  ReleaseStructuringElement( IplConvKernel** element );
 
 /* erodes input image (applies minimum filter) one or more times.
    If element pointer is NULL, 3x3 rectangular element is used */
-void  Erode( const CvArr* src, CvArr* dst,
+void  Erode( const VOID* src, VOID* dst,
                IplConvKernel* element VOS_DEFAULT(NULL),
                int iterations VOS_DEFAULT(1) );
 
 /* dilates input image (applies maximum filter) one or more times.
    If element pointer is NULL, 3x3 rectangular element is used */
-void  Dilate( const CvArr* src, CvArr* dst,
+void  Dilate( const VOID* src, VOID* dst,
                 IplConvKernel* element VOS_DEFAULT(NULL),
                 int iterations VOS_DEFAULT(1) );
 
-int FindContours( CvArr* image, MemStorage* storage, Seq** first_contour,
+int FindContours( VOID* image, MemStorage* storage, Seq** first_contour,
                     int header_size VOS_DEFAULT(sizeof(CvContour)),
                     int mode VOS_DEFAULT(VOS_RETR_LIST),
                     int method VOS_DEFAULT(VOS_CHAIN_APPROX_SIMPLE),
                     Point offset VOS_DEFAULT(InitPoint(0,0)));
 
-ContourScanner  StartFindContours( CvArr* image, MemStorage* storage,
+ContourScanner  StartFindContours( VOID* image, MemStorage* storage,
                                        int header_size VOS_DEFAULT(sizeof(CvContour)),
                                        int mode VOS_DEFAULT(VOS_RETR_LIST),
                                        int method VOS_DEFAULT(VOS_CHAIN_APPROX_SIMPLE),
@@ -133,7 +125,7 @@ double  ArcLength( const void* curve,
 
 /* Calculates contour boundning rectangle (update=1) or
    just retrieves pre-calculated rectangle (update=0) */
-Rect  BoundingRect( CvArr* points, int update VOS_DEFAULT(0) );
+Rect  BoundingRect( VOID* points, int update VOS_DEFAULT(0) );
 
 /* Calculates area of a contour or contour segment */
 double  ContourArea(  const Seq *contour,
@@ -155,13 +147,13 @@ Box2D  MinAreaRect2( const Seq* points,
 #define VOS_COUNTER_CLOCKWISE 2
 
 /* Calculates exact convex hull of 2d point set */
-Seq* ConvexHull2( const CvArr* input,
+Seq* ConvexHull2( const VOID* input,
                       void* hull_storage VOS_DEFAULT(NULL),
                       int orientation VOS_DEFAULT(VOS_CLOCKWISE),
                       int return_points VOS_DEFAULT(0));
 
 /* Checks whether the contour is convex or not (returns 1 if convex, 0 if not) */
-int  CheckContourConvexity( const CvArr* contour );
+int  CheckContourConvexity( const VOID* contour );
 
 /* Finds minimum rectangle containing two given rectangles */
 
@@ -178,7 +170,7 @@ int  CheckContourConvexity( const CvArr* contour );
 
 /* Applies fixed-level threshold to grayscale image.
    This is a basic operation applied before retrieving contours */
-void  Threshold( const CvArr*  src, CvArr*  dst,
+void  Threshold( const VOID*  src, VOID*  dst,
                    double  threshold, double  max_value,
                    int threshold_type );
 
@@ -190,7 +182,7 @@ void  Threshold( const CvArr*  src, CvArr*  dst,
 #define VOS_CANNY_L2_GRADIENT  (1 << 31)
 
 /* Runs canny edge detector */
-void  Canny( const CvArr* image, CvArr* edges, double threshold1,
+void  Canny( const VOID* image, VOID* edges, double threshold1,
              double threshold2, int  aperture_size VOS_DEFAULT(3) );
 
 

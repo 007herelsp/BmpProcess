@@ -90,7 +90,7 @@ CreateMemStorage( int block_size )
 MemStorage *
 CreateChildMemStorage( MemStorage * parent )
 {
-    MemStorage *storage = 0;
+    MemStorage *storage = NULL;
     VOS_FUNCNAME( "CreateChildMemStorage" );
 
     __BEGIN__;
@@ -120,8 +120,8 @@ iDestroyMemStorage( MemStorage* storage )
 
     int k = 0;
 
-    MemBlock *block;
-    MemBlock *dst_top = 0;
+    MemBlock *block = NULL;
+    MemBlock *dst_top = NULL;
 
     if( !storage )
         VOS_ERROR( VOS_StsNullPtr, "" );
@@ -147,7 +147,7 @@ iDestroyMemStorage( MemStorage* storage )
             else
             {
                 dst_top = storage->parent->bottom = storage->parent->top = temp;
-                temp->prev = temp->next = 0;
+                temp->prev = temp->next =NULL;
                 storage->free_space = storage->block_size - sizeof( *temp );
             }
         }
@@ -157,7 +157,7 @@ iDestroyMemStorage( MemStorage* storage )
         }
     }
 
-    storage->top = storage->bottom = 0;
+    storage->top = storage->bottom = NULL;
     storage->free_space = 0;
 
     __END__;
@@ -177,7 +177,7 @@ ReleaseMemStorage( MemStorage** storage )
         VOS_ERROR( VOS_StsNullPtr, "" );
 
     st = *storage;
-    *storage = 0;
+    *storage = NULL;
 
     if( st )
     {
@@ -248,7 +248,7 @@ iGoNextMemBlock( MemStorage * storage )
             if( block == parent->top )  /* the single allocated block */
             {
                 assert( parent->bottom == block );
-                parent->top = parent->bottom = 0;
+                parent->top = parent->bottom = NULL;
                 parent->free_space = 0;
             }
             else
@@ -261,7 +261,7 @@ iGoNextMemBlock( MemStorage * storage )
         }
 
         /* link block */
-        block->next = 0;
+        block->next = NULL;
         block->prev = storage->top;
 
         if( storage->top )
@@ -327,7 +327,7 @@ RestoreMemStoragePos( MemStorage * storage, MemStoragePos * pos )
 void*
 MemStorageAlloc( MemStorage* storage, size_t size )
 {
-    char *ptr = 0;
+    char *ptr = NULL;
 
     VOS_FUNCNAME( "MemStorageAlloc" );
 
@@ -368,7 +368,7 @@ MemStorageAlloc( MemStorage* storage, size_t size )
 Seq *
 CreateSeq( int seq_flags, int header_size, int elem_size, MemStorage * storage )
 {
-    Seq *seq = 0;
+    Seq *seq = NULL;
 
     VOS_FUNCNAME( "CreateSeq" );
 
@@ -427,15 +427,15 @@ SetSeqBlockSize( Seq *seq, int delta_elements )
                                     sizeof(SeqBlock), VOS_STRUCT_ALIGN);
     elem_size = seq->elem_size;
 
-    if( delta_elements == 0 )
+    if( 0 == delta_elements )
     {
         delta_elements = (1 << 10) / elem_size;
-        delta_elements = MAX( delta_elements, 1 );
+        delta_elements = VOS_MAX( delta_elements, 1 );
     }
     if( delta_elements * elem_size > useful_block_size )
     {
         delta_elements = useful_block_size / elem_size;
-        if( delta_elements == 0 )
+        if( 0 == delta_elements )
             VOS_ERROR( VOS_StsOutOfRange, "Storage block size is too small "
                                           "to fit the sequence elements" );
     }
@@ -458,7 +458,7 @@ GetSeqElem( const Seq *seq, int index )
         index += index < 0 ? total : 0;
         index -= index >= total ? total : 0;
         if( (unsigned)index >= (unsigned)total )
-            return 0;
+            return NULL;
     }
 
     block = seq->first;
@@ -504,8 +504,6 @@ SliceLength( Slice slice, const Seq* seq )
     if( length < 0 )
     {
         length += total;
-        /*if( length < 0 )
-            length += total;*/
     }
     else if( length > total )
         length = total;
@@ -513,13 +511,10 @@ SliceLength( Slice slice, const Seq* seq )
     return length;
 }
 
-/* the function allocates space for at least one more sequence element.
-   if there are free sequence blocks (seq->free_blocks != 0),
-   they are reused, otherwise the space is allocated in the storage */
 static void
-icvGrowSeq( Seq *seq, int in_front_of )
+iGrowSeq( Seq *seq, int in_front_of )
 {
-    VOS_FUNCNAME( "icvGrowSeq" );
+    VOS_FUNCNAME( "iGrowSeq" );
 
     __BEGIN__;
 
@@ -549,7 +544,7 @@ icvGrowSeq( Seq *seq, int in_front_of )
         {
             int delta = storage->free_space / elem_size;
 
-            delta = MIN( delta, delta_elems ) * elem_size;
+            delta = VOS_MIN( delta, delta_elems ) * elem_size;
             seq->block_max += delta;
             storage->free_space = cvAlignLeft((int)(((char*)storage->top + storage->block_size) -
                                                     seq->block_max), VOS_STRUCT_ALIGN );
@@ -562,7 +557,7 @@ icvGrowSeq( Seq *seq, int in_front_of )
             /* try to allocate <delta_elements> elements */
             if( storage->free_space < delta )
             {
-                int small_block_size = MAX(1, delta_elems/3)*elem_size +
+                int small_block_size = VOS_MAX(1, delta_elems/3)*elem_size +
                         IVOS_ALIGNED_SEQ_BLOCK_SIZE;
                 /* try to allocate smaller part */
                 if( storage->free_space >= small_block_size + VOS_STRUCT_ALIGN )
@@ -580,7 +575,7 @@ icvGrowSeq( Seq *seq, int in_front_of )
             VOS_CALL( block = (SeqBlock*)MemStorageAlloc( storage, delta ));
             block->data = (char*)AlignPtr( block + 1, VOS_STRUCT_ALIGN );
             block->count = delta - IVOS_ALIGNED_SEQ_BLOCK_SIZE;
-            block->prev = block->next = 0;
+            block->prev = block->next = NULL;
         }
     }
     else
@@ -796,7 +791,7 @@ FlushSeqWriter( SeqWriter * writer )
 Seq *
 EndWriteSeq( SeqWriter * writer )
 {
-    Seq *seq = 0;
+    Seq *seq = NULL;
 
     VOS_FUNCNAME( "EndWriteSeq" );
 
@@ -849,7 +844,7 @@ CreateSeqBlock( SeqWriter * writer )
 
     FlushSeqWriter( writer );
 
-    VOS_CALL( icvGrowSeq( seq, 0 ));
+    VOS_CALL( iGrowSeq( seq, 0 ));
 
     writer->block = seq->first->prev;
     writer->ptr = seq->ptr;
@@ -970,6 +965,10 @@ GetSeqReaderPos( SeqReader* reader )
         VOS_ERROR( VOS_StsNullPtr, "" );
 
     elem_size = reader->seq->elem_size;
+	if(elem_size - 1	<0)
+		{
+		VOS_ERROR( VOS_StsNullPtr, "" );
+		}
     if( elem_size <= IVOS_SHIFT_TAB_MAX && (index = iPower2ShiftTab[elem_size - 1]) >= 0 )
         index = (int)((reader->ptr - reader->block_min) >> index);
     else
@@ -1087,7 +1086,7 @@ SetSeqReaderPos( SeqReader* reader, int index, int is_relative )
 char*
 SeqPush( Seq *seq, void *element )
 {
-    char *ptr = 0;
+    char *ptr = NULL;
     size_t elem_size;
 
     VOS_FUNCNAME( "SeqPush" );
@@ -1102,7 +1101,7 @@ SeqPush( Seq *seq, void *element )
 
     if( ptr >= seq->block_max )
     {
-        VOS_CALL( icvGrowSeq( seq, 0 ));
+        VOS_CALL( iGrowSeq( seq, 0 ));
 
         ptr = seq->ptr;
         assert( ptr + elem_size <= seq->block_max /*&& ptr == seq->block_min */  );
@@ -1170,7 +1169,7 @@ SeqPopMulti( Seq *seq, void *_elements, int count, int front )
     if( count < 0 )
         VOS_ERROR( VOS_StsBadSize, "number of removed elements is negative" );
 
-    count = MIN( count, seq->total );
+    count = VOS_MIN( count, seq->total );
 
     if( !front )
     {
@@ -1181,7 +1180,7 @@ SeqPopMulti( Seq *seq, void *_elements, int count, int front )
         {
             int delta = seq->first->prev->count;
 
-            delta = MIN( delta, count );
+            delta = VOS_MIN( delta, count );
             assert( delta > 0 );
 
             seq->first->prev->count -= delta;
@@ -1206,7 +1205,7 @@ SeqPopMulti( Seq *seq, void *_elements, int count, int front )
         {
             int delta = seq->first->count;
 
-            delta = MIN( delta, count );
+            delta = VOS_MIN( delta, count );
             assert( delta > 0 );
 
             seq->first->count -= delta;
@@ -1222,7 +1221,7 @@ SeqPopMulti( Seq *seq, void *_elements, int count, int front )
             }
 
             seq->first->data += delta;
-            if( seq->first->count == 0 )
+            if( 0 == seq->first->count )
                 iFreeSeqBlock( seq, 1 );
         }
     }
@@ -1240,89 +1239,6 @@ typedef struct CvSeqReaderPos
     char* block_max;
 }
 CvSeqReaderPos;
-
-/****************************************************************************************\
-*                                      Set implementation                                *
-\****************************************************************************************/
-
-/* creates empty set */
-Set*
-CreateSet( int set_flags, int header_size, int elem_size, MemStorage * storage )
-{
-    Set *set = 0;
-
-    VOS_FUNCNAME( "CreateSet" );
-
-    __BEGIN__;
-
-    if( !storage )
-        VOS_ERROR( VOS_StsNullPtr, "" );
-    if( header_size < (int)sizeof( Set ) ||
-            elem_size < (int)sizeof(void*)*2 ||
-            (elem_size & (sizeof(void*)-1)) != 0 )
-        VOS_ERROR( VOS_StsBadSize, "" );
-
-    set = (Set*) CreateSeq( set_flags, header_size, elem_size, storage );
-    set->flags = (set->flags & ~VOS_MAGIC_MASK) | VOS_SET_MAGIC_VAL;
-
-    __END__;
-
-    return set;
-}
-
-
-/* adds new element to the set */
-int
-SetAdd( Set* set, SetElem* element, SetElem** inserted_element )
-{
-    int id = -1;
-
-    VOS_FUNCNAME( "SetAdd" );
-
-    __BEGIN__;
-
-    SetElem *free_elem;
-
-    if( !set )
-        VOS_ERROR( VOS_StsNullPtr, "" );
-
-    if( !(set->free_elems) )
-    {
-        int count = set->total;
-        int elem_size = set->elem_size;
-        char *ptr;
-        VOS_CALL( icvGrowSeq( (Seq *) set, 0 ));
-
-        set->free_elems = (SetElem*) (ptr = set->ptr);
-        for( ; ptr + elem_size <= set->block_max; ptr += elem_size, count++ )
-        {
-            ((SetElem*)ptr)->flags = count | VOS_SET_ELEM_FREE_FLAG;
-            ((SetElem*)ptr)->next_free = (SetElem*)(ptr + elem_size);
-        }
-        assert( count <= VOS_SET_ELEM_IDX_MASK+1 );
-        ((SetElem*)(ptr - elem_size))->next_free = 0;
-        set->first->prev->count += count - set->total;
-        set->total = count;
-        set->ptr = set->block_max;
-    }
-
-    free_elem = set->free_elems;
-    set->free_elems = free_elem->next_free;
-
-    id = free_elem->flags & VOS_SET_ELEM_IDX_MASK;
-    if( element )
-        VOS_MEMCPY_INT( free_elem, element, (size_t)set->elem_size/sizeof(int) );
-
-    free_elem->flags = id;
-    set->active_count++;
-
-    if( inserted_element )
-        *inserted_element = free_elem;
-
-    __END__;
-
-    return id;
-}
 
 /****************************************************************************************\
 *                                 Working with sequence tree                             *

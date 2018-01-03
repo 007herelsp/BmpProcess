@@ -286,7 +286,7 @@ void Morphology::init_binary_element(Mat *element, int element_shape, Point anch
         uchar *ptr = element->data.ptr + i * element->step;
         int j1 = 0, j2 = 0, jx, t = 0;
 
-        if (element_shape == RECT || element_shape == CROSS && i == anchor.y)
+        if (element_shape == RECT || (element_shape == CROSS && i == anchor.y))
             j2 = cols;
         else if (element_shape == CROSS)
             j1 = anchor.x, j2 = j1 + 1;
@@ -296,8 +296,8 @@ void Morphology::init_binary_element(Mat *element, int element_shape, Point anch
             if (abs(dy) <= r)
             {
                 int dx = SysRound(c * sqrt(((double)r * r - dy * dy) * inv_r2));
-                j1 = MAX(c - dx, 0);
-                j2 = MIN(c + dx + 1, cols);
+                j1 = VOS_MAX(c - dx, 0);
+                j2 = VOS_MIN(c + dx + 1, cols);
             }
         }
 

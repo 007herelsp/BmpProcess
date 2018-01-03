@@ -62,7 +62,7 @@ LoadImage(const char *filename, int iscolor)
 }
 
  int
-SaveImage(const char *filename, const CvArr *arr)
+SaveImage(const char *filename, const VOID *arr)
 {
     int origin = 0;
     GrFmtBmpWriter *writer = 0;

@@ -1,5 +1,3 @@
-
-
 #ifndef _CXCORE_INTERNAL_H_
 #define _CXCORE_INTERNAL_H_
 #include "cxcore.h"

@@ -1,8 +1,7 @@
 #include "_cxcore.h"
 
-// default <malloc>
 static void*
-icvDefaultAlloc( size_t size)
+iDefaultAlloc( size_t size)
 {
     char *ptr, *ptr0 = (char*)malloc(
         (size_t)(size + VOS_MALLOC_ALIGN*((size >= 4096) + 1) + sizeof(char*)));
@@ -20,7 +19,7 @@ icvDefaultAlloc( size_t size)
 
 // default <free>
 static int
-icvDefaultFree( void* ptr)
+iDefaultFree( void* ptr)
 {
     // Pointer must be aligned by VOS_MALLOC_ALIGN
     if( ((size_t)ptr & (VOS_MALLOC_ALIGN-1)) != 0 )
@@ -34,7 +33,7 @@ icvDefaultFree( void* ptr)
  void*  SysAlloc( size_t size )
 {
     void* ptr = 0;
-    
+
     VOS_FUNCNAME( "SysAlloc" );
 
     __BEGIN__;
@@ -43,7 +42,7 @@ icvDefaultFree( void* ptr)
         VOS_ERROR( VOS_StsOutOfRange,
                   "Negative or too large argument of SysAlloc function" );
 
-    ptr = icvDefaultAlloc( size );
+    ptr = iDefaultAlloc( size );
     if( !ptr )
         VOS_ERROR( VOS_StsNoMem, "Out of memory" );
 
@@ -61,7 +60,7 @@ icvDefaultFree( void* ptr)
 
     if( ptr )
     {
-        OPTStatus status = icvDefaultFree( ptr );
+        OPTStatus status = iDefaultFree( ptr );
         if( status < 0 )
             VOS_ERROR( status, "Deallocation error" );
     }

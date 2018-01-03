@@ -24,7 +24,7 @@ iApproxPolyDP_32s(Seq *src_contour, int header_size,
     assert(VOS_SEQ_ELTYPE(src_contour) == VOS_32SC2);
     StartWriteSeq(src_contour->flags, header_size, sizeof(pt), storage, &writer);
 
-    if (src_contour->total == 0)
+    if (0 == src_contour->total)
     {
         *dst_contour = EndWriteSeq(&writer);
         return VOS_OK;

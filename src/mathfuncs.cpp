@@ -30,7 +30,7 @@ static CvStatus iSqrt_32f(const float *src, float *dst, int len)
 
 typedef CvStatus(*SqrtFunc_t)(const void *src, void *dst, int len);
 
- void SysPow(const CvArr *srcarr, CvArr *dstarr, double power)
+ void SysPow(const VOID *srcarr, VOID *dstarr, double power)
 {
     VOS_FUNCNAME("SysPow");
 
