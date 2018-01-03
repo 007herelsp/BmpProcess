@@ -354,8 +354,6 @@ Mat;
 #define VOS_ARE_SIZES_EQ(mat1, mat2) \
     ((mat1)->height == (mat2)->height && (mat1)->width == (mat2)->width)
 
-#define VOS_IS_MAT_CONST(mat)  \
-    (((mat)->height|(mat)->width) == 1)
 
 /* size of each channel item,
    0x124489 = 1000 0100 0100 0010 0010 0001 0001 ~ array of sizeof(arr_type_elem) */

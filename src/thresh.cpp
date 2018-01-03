@@ -2,7 +2,7 @@
 
 static CvStatus
 iThresh_8u_C1R(const uchar *src, int src_step, uchar *dst, int dst_step,
-                 Size roi, uchar thresh, uchar maxval, int type)
+               Size roi, uchar thresh, uchar maxval, int type)
 {
     int i, j;
     uchar tab[256];
@@ -39,8 +39,7 @@ iThresh_8u_C1R(const uchar *src, int src_step, uchar *dst, int dst_step,
     return VOS_NO_ERR;
 }
 
- void
-Threshold(const void *srcarr, void *dstarr, double thresh, double maxval, int type)
+void Threshold(const void *srcarr, void *dstarr, double thresh, double maxval, int type)
 {
     VOS_FUNCNAME("Threshold");
 
@@ -50,10 +49,8 @@ Threshold(const void *srcarr, void *dstarr, double thresh, double maxval, int ty
     int src_step, dst_step;
     Mat src_stub, *src = (Mat *)srcarr;
     Mat dst_stub, *dst = (Mat *)dstarr;
-    Mat src0, dst0;
     int coi1 = 0, coi2 = 0;
-    int ithresh, imaxval, cn;
-    bool use_otsu;
+    int ithresh, imaxval;
 
     VOS_CALL(src = GetMat(src, &src_stub, &coi1));
     VOS_CALL(dst = GetMat(dst, &dst_stub, &coi2));
@@ -64,20 +61,7 @@ Threshold(const void *srcarr, void *dstarr, double thresh, double maxval, int ty
     if (!VOS_ARE_CNS_EQ(src, dst))
         VOS_ERROR(VOS_StsUnmatchedFormats, "Both arrays must have equal number of channels");
 
-    cn = VOS_MAT_CN(src->type);
-    if (cn > 1)
-    {
-        src = Reshape(src, &src0, 1);
-        dst = Reshape(dst, &dst0, 1);
-    }
-
-    use_otsu = (type & ~VOS_THRESH_MASK) == VOS_THRESH_OTSU;
     type &= VOS_THRESH_MASK;
-
-    if (use_otsu)
-    {
-        assert("herelsp remove" && 0);
-    }
 
     if (!VOS_ARE_DEPTHS_EQ(src, dst))
     {
@@ -106,13 +90,11 @@ Threshold(const void *srcarr, void *dstarr, double thresh, double maxval, int ty
 
     ithresh = SysFloor(thresh);
     imaxval = SysRound(maxval);
-    if (type == VOS_THRESH_TRUNC)
-        imaxval = ithresh;
     imaxval = VOS_CAST_8U(imaxval);
 
     iThresh_8u_C1R(src->data.ptr, src_step,
-                     dst->data.ptr, dst_step, roi,
-                     (uchar)ithresh, (uchar)imaxval, type);
+                   dst->data.ptr, dst_step, roi,
+                   (uchar)ithresh, (uchar)imaxval, type);
 
     __END__;
 }

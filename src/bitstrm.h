@@ -38,7 +38,6 @@ protected:
     int     m_unGetsize;
     int     m_block_size;
     int     m_block_pos;
-    bool    m_jmp_set;
     bool    m_is_opened;
 
     virtual void  ReadBlock();

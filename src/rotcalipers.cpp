@@ -82,14 +82,14 @@ iRotatingCalipers( Point2D32f* points, int n, int mode, float* out )
     }
     base_a = orientation;
 
-/*****************************************************************************************/
-/*                         init calipers position                                        */
+    /*****************************************************************************************/
+    /*                         init calipers position                                        */
     seq[0] = bottom;
     seq[1] = right;
     seq[2] = top;
     seq[3] = left;
-/*****************************************************************************************/
-/*                         Main loop - evaluate angles and rotate calipers               */
+    /*****************************************************************************************/
+    /*                         Main loop - evaluate angles and rotate calipers               */
 
     /* all of edges will be checked while rotating calipers by 90 degrees */
     for( k = 0; k < n; k++ )
@@ -148,98 +148,98 @@ iRotatingCalipers( Point2D32f* points, int n, int mode, float* out )
         switch (mode)
         {
         case VOS_CALIPERS_MAXHEIGHT:
-            {
-                int opposite_el = main_element ^ 2;
+        {
+            int opposite_el = main_element ^ 2;
 
-                float dx = points[seq[opposite_el]].x - points[seq[main_element]].x;
-                float dy = points[seq[opposite_el]].y - points[seq[main_element]].y;
-                float dist;
+            float dx = points[seq[opposite_el]].x - points[seq[main_element]].x;
+            float dy = points[seq[opposite_el]].y - points[seq[main_element]].y;
+            float dist;
 
-                if( main_element & 1 )
-                    dist = (float)fabs(dx * base_a + dy * base_b);
-                else
-                    dist = (float)fabs(dx * (-base_b) + dy * base_a);
+            if( main_element & 1 )
+                dist = (float)fabs(dx * base_a + dy * base_b);
+            else
+                dist = (float)fabs(dx * (-base_b) + dy * base_a);
 
-                if( dist > max_dist )
-                    max_dist = dist;
+            if( dist > max_dist )
+                max_dist = dist;
 
-                break;
-            }
+            break;
+        }
         case VOS_CALIPERS_MINAREARECT:
             /* find area of rectangle */
+        {
+            float height;
+            float area;
+
+            /* find vector left-right */
+            float dx = points[seq[1]].x - points[seq[3]].x;
+            float dy = points[seq[1]].y - points[seq[3]].y;
+
+            /* dotproduct */
+            float width = dx * base_a + dy * base_b;
+
+            /* find vector left-right */
+            dx = points[seq[2]].x - points[seq[0]].x;
+            dy = points[seq[2]].y - points[seq[0]].y;
+
+            /* dotproduct */
+            height = -dx * base_b + dy * base_a;
+
+            area = width * height;
+            if( area <= minarea )
             {
-                float height;
-                float area;
+                float *buf = (float *) buffer;
 
-                /* find vector left-right */
-                float dx = points[seq[1]].x - points[seq[3]].x;
-                float dy = points[seq[1]].y - points[seq[3]].y;
-
-                /* dotproduct */
-                float width = dx * base_a + dy * base_b;
-
-                /* find vector left-right */
-                dx = points[seq[2]].x - points[seq[0]].x;
-                dy = points[seq[2]].y - points[seq[0]].y;
-
-                /* dotproduct */
-                height = -dx * base_b + dy * base_a;
-
-                area = width * height;
-                if( area <= minarea )
-                {
-                    float *buf = (float *) buffer;
-
-                    minarea = area;
-                    /* leftist point */
-                    ((int *) buf)[0] = seq[3];
-                    buf[1] = base_a;
-                    buf[2] = width;
-                    buf[3] = base_b;
-                    buf[4] = height;
-                    /* bottom point */
-                    ((int *) buf)[5] = seq[0];
-                    buf[6] = area;
-                }
-                break;
+                minarea = area;
+                /* leftist point */
+                ((int *) buf)[0] = seq[3];
+                buf[1] = base_a;
+                buf[2] = width;
+                buf[3] = base_b;
+                buf[4] = height;
+                /* bottom point */
+                ((int *) buf)[5] = seq[0];
+                buf[6] = area;
             }
+            break;
+        }
         }                       /*switch */
     }                           /* for */
 
     switch (mode)
     {
     case VOS_CALIPERS_MINAREARECT:
-        {
-            float *buf = (float *) buffer;
+    {
+        float *buf = (float *) buffer;
 
-            float A1 = buf[1];
-            float B1 = buf[3];
+        float A1 = buf[1];
+        float B1 = buf[3];
 
-            float A2 = -buf[3];
-            float B2 = buf[1];
+        float A2 = -buf[3];
+        float B2 = buf[1];
 
-            float C1 = A1 * points[((int *) buf)[0]].x + points[((int *) buf)[0]].y * B1;
-            float C2 = A2 * points[((int *) buf)[5]].x + points[((int *) buf)[5]].y * B2;
+        float C1 = A1 * points[((int *) buf)[0]].x + points[((int *) buf)[0]].y * B1;
+        float C2 = A2 * points[((int *) buf)[5]].x + points[((int *) buf)[5]].y * B2;
 
-            float idet = 1.f / (A1 * B2 - A2 * B1);
+        float idet = 1.f / (A1 * B2 - A2 * B1);
 
-            float px = (C1 * B2 - C2 * B1) * idet;
-            float py = (A1 * C2 - A2 * C1) * idet;
+        float px = (C1 * B2 - C2 * B1) * idet;
+        float py = (A1 * C2 - A2 * C1) * idet;
 
-            out[0] = px;
-            out[1] = py;
+        out[0] = px;
+        out[1] = py;
 
-            out[2] = A1 * buf[2];
-            out[3] = B1 * buf[2];
+        out[2] = A1 * buf[2];
+        out[3] = B1 * buf[2];
 
-            out[4] = A2 * buf[4];
-            out[5] = B2 * buf[4];
-        }
+        out[4] = A2 * buf[4];
+        out[5] = B2 * buf[4];
+    }
         break;
     case VOS_CALIPERS_MAXHEIGHT:
-        {
-            out[0] = max_dist;
-        }
+    {
+        out[0] = max_dist;
+    }
         break;
     }
 
@@ -248,39 +248,25 @@ iRotatingCalipers( Point2D32f* points, int n, int mode, float* out )
 }
 
 
-  Box2D
-MinAreaRect2( const CvArr* array, MemStorage* storage )
+Box2D
+MinAreaRect2( const Seq* array, MemStorage* storage )
 {
     MemStorage* temp_storage = 0;
     Box2D box;
     Point2D32f* points = 0;
 
     VOS_FUNCNAME( "MinAreaRect2" );
-
+    Seq* ptseq = (Seq*)array;
     memset(&box, 0, sizeof(box));
 
     __BEGIN__;
 
     int i, n;
     SeqReader reader;
-    Seq* ptseq = (Seq*)array;
     Point2D32f out[3];
 
-    if( VOS_IS_SEQ(ptseq) )
-    {
-        if( !VOS_IS_SEQ_POINT_SET(ptseq) &&
-            (VOS_SEQ_KIND(ptseq) != VOS_SEQ_KIND_CURVE || !VOS_IS_SEQ_CONVEX(ptseq) ||
-            VOS_SEQ_ELTYPE(ptseq) != VOS_SEQ_ELTYPE_PPOINT ))
-            VOS_ERROR( VOS_StsUnsupportedFormat,
-                "Input sequence must consist of 2d points or pointers to 2d points" );
-        if( !storage )
-            storage = ptseq->storage;
-    }
-    else
-    {
-    VOS_ERROR( VOS_StsBadArg, "Unsupported sequence type" );
-
-    }
+    if( !storage )
+        storage = ptseq->storage;
 
     if( storage )
     {
@@ -295,32 +281,12 @@ MinAreaRect2( const CvArr* array, MemStorage* storage )
     {
         VOS_CALL( ptseq = ConvexHull2( ptseq, temp_storage, VOS_CLOCKWISE, 1 ));
     }
-    else if( !VOS_IS_SEQ_POINT_SET( ptseq ))
-    {
-        SeqWriter writer;
-
-        if( !VOS_IS_SEQ(ptseq->v_prev) || !VOS_IS_SEQ_POINT_SET(ptseq->v_prev))
-            VOS_ERROR( VOS_StsBadArg,
-            "Convex hull must have valid pointer to point sequence stored in v_prev" );
-        StartReadSeq( ptseq, &reader );
-        StartWriteSeq( VOS_SEQ_KIND_CURVE|VOS_SEQ_FLAG_CONVEX|VOS_SEQ_ELTYPE(ptseq->v_prev),
-                         sizeof(CvContour), VOS_ELEM_SIZE(ptseq->v_prev->flags),
-                         temp_storage, &writer );
-
-        for( i = 0; i < ptseq->total; i++ )
-        {
-            Point pt = **(Point**)(reader.ptr);
-            VOS_WRITE_SEQ_ELEM( pt, writer );
-        }
-
-        ptseq = EndWriteSeq( &writer );
-    }
-
+   
     n = ptseq->total;
 
     VOS_CALL( points = (Point2D32f*)SysAlloc( n*sizeof(points[0]) ));
     StartReadSeq( ptseq, &reader );
-
+   
     if( VOS_SEQ_ELTYPE( ptseq ) == VOS_32SC2 )
     {
         for( i = 0; i < n; i++ )

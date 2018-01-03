@@ -20,13 +20,13 @@ cvAlignLeft( int size, int align )
 {                                     \
     int k;                            \
     for( k = 0; k < elem_size; k++ )  \
-    {                                 \
-        char t0 = (a)[k];             \
-        char t1 = (b)[k];             \
-        (a)[k] = t1;                  \
-        (b)[k] = t0;                  \
+{                                 \
+    char t0 = (a)[k];             \
+    char t1 = (b)[k];             \
+    (a)[k] = t1;                  \
+    (b)[k] = t0;                  \
     }                                 \
-}
+    }
 
 #define IVOS_SHIFT_TAB_MAX 32
 static const char iPower2ShiftTab[] =
@@ -65,7 +65,7 @@ iInitMemStorage( MemStorage* storage, int block_size )
 
 
 /* creates root memory storage */
- MemStorage*
+MemStorage*
 CreateMemStorage( int block_size )
 {
     MemStorage *storage = 0;
@@ -87,7 +87,7 @@ CreateMemStorage( int block_size )
 
 
 /* creates child memory storage */
- MemStorage *
+MemStorage *
 CreateChildMemStorage( MemStorage * parent )
 {
     MemStorage *storage = 0;
@@ -165,7 +165,7 @@ iDestroyMemStorage( MemStorage* storage )
 
 
 /* releases memory storage */
- void
+void
 ReleaseMemStorage( MemStorage** storage )
 {
     MemStorage *st;
@@ -190,7 +190,7 @@ ReleaseMemStorage( MemStorage** storage )
 
 
 /* clears memory storage (returns blocks to the parent if any) */
- void
+void
 ClearMemStorage( MemStorage * storage )
 {
     VOS_FUNCNAME( "ClearMemStorage" );
@@ -280,7 +280,7 @@ iGoNextMemBlock( MemStorage * storage )
 
 
 /* remembers memory storage position */
- void
+void
 SaveMemStoragePos( const MemStorage * storage, MemStoragePos * pos )
 {
     VOS_FUNCNAME( "SaveMemStoragePos" );
@@ -298,7 +298,7 @@ SaveMemStoragePos( const MemStorage * storage, MemStoragePos * pos )
 
 
 /* restores memory storage position */
- void
+void
 RestoreMemStoragePos( MemStorage * storage, MemStoragePos * pos )
 {
     VOS_FUNCNAME( "RestoreMemStoragePos" );
@@ -309,24 +309,6 @@ RestoreMemStoragePos( MemStorage * storage, MemStoragePos * pos )
         VOS_ERROR( VOS_StsNullPtr, "" );
     if( pos->free_space > storage->block_size )
         VOS_ERROR( VOS_StsBadSize, "" );
-
-    /*
-    // this breaks iGoNextMemBlock, so comment it off for now
-    if( storage->parent && (!pos->top || pos->top->next) )
-    {
-        MemBlock* save_bottom;
-        if( !pos->top )
-            save_bottom = 0;
-        else
-        {
-            save_bottom = storage->bottom;
-            storage->bottom = pos->top->next;
-            pos->top->next = 0;
-            storage->bottom->prev = 0;
-        }
-        iDestroyMemStorage( storage );
-        storage->bottom = save_bottom;
-    }*/
 
     storage->top = pos->top;
     storage->free_space = pos->free_space;
@@ -342,7 +324,7 @@ RestoreMemStoragePos( MemStorage * storage, MemStoragePos * pos )
 
 
 /* Allocates continuous buffer of the specified size in the storage */
- void*
+void*
 MemStorageAlloc( MemStorage* storage, size_t size )
 {
     char *ptr = 0;
@@ -383,7 +365,7 @@ MemStorageAlloc( MemStorage* storage, size_t size )
 \****************************************************************************************/
 
 /* creates empty sequence */
- Seq *
+Seq *
 CreateSeq( int seq_flags, int header_size, int elem_size, MemStorage * storage )
 {
     Seq *seq = 0;
@@ -408,10 +390,10 @@ CreateSeq( int seq_flags, int header_size, int elem_size, MemStorage * storage )
         int typesize = VOS_ELEM_SIZE(elemtype);
 
         if( elemtype != VOS_SEQ_ELTYPE_GENERIC &&
-            typesize != 0 && typesize != elem_size )
+                typesize != 0 && typesize != elem_size )
             VOS_ERROR( VOS_StsBadSize,
-            "Specified element size doesn't match to the size of the specified element type "
-            "(try to use 0 for element type)" );
+                       "Specified element size doesn't match to the size of the specified element type "
+                       "(try to use 0 for element type)" );
     }
     seq->elem_size = elem_size;
     seq->storage = storage;
@@ -426,7 +408,7 @@ CreateSeq( int seq_flags, int header_size, int elem_size, MemStorage * storage )
 
 /* adjusts <delta_elems> field of sequence. It determines how much the sequence
    grows if there are no free space inside the sequence buffers */
- void
+void
 SetSeqBlockSize( Seq *seq, int delta_elements )
 {
     int elem_size;
@@ -455,7 +437,7 @@ SetSeqBlockSize( Seq *seq, int delta_elements )
         delta_elements = useful_block_size / elem_size;
         if( delta_elements == 0 )
             VOS_ERROR( VOS_StsOutOfRange, "Storage block size is too small "
-                                        "to fit the sequence elements" );
+                                          "to fit the sequence elements" );
     }
 
     seq->delta_elems = delta_elements;
@@ -465,7 +447,7 @@ SetSeqBlockSize( Seq *seq, int delta_elements )
 
 
 /* finds sequence element by its index */
- char*
+char*
 GetSeqElem( const Seq *seq, int index )
 {
     SeqBlock *block;
@@ -503,7 +485,7 @@ GetSeqElem( const Seq *seq, int index )
 }
 
 
- int
+int
 SliceLength( Slice slice, const Seq* seq )
 {
     int total = seq->total;
@@ -563,14 +545,14 @@ icvGrowSeq( Seq *seq, int in_front_of )
            and it's big enough then enlarge the last block
            (this can happen only if the new block is added to the end of sequence */
         if( (unsigned)(IVOS_FREE_PTR(storage) - seq->block_max) < VOS_STRUCT_ALIGN &&
-            storage->free_space >= seq->elem_size && !in_front_of )
+                storage->free_space >= seq->elem_size && !in_front_of )
         {
             int delta = storage->free_space / elem_size;
 
             delta = MIN( delta, delta_elems ) * elem_size;
             seq->block_max += delta;
             storage->free_space = cvAlignLeft((int)(((char*)storage->top + storage->block_size) -
-                                              seq->block_max), VOS_STRUCT_ALIGN );
+                                                    seq->block_max), VOS_STRUCT_ALIGN );
             EXIT;
         }
         else
@@ -581,7 +563,7 @@ icvGrowSeq( Seq *seq, int in_front_of )
             if( storage->free_space < delta )
             {
                 int small_block_size = MAX(1, delta_elems/3)*elem_size +
-                                       IVOS_ALIGNED_SEQ_BLOCK_SIZE;
+                        IVOS_ALIGNED_SEQ_BLOCK_SIZE;
                 /* try to allocate smaller part */
                 if( storage->free_space >= small_block_size + VOS_STRUCT_ALIGN )
                 {
@@ -628,7 +610,7 @@ icvGrowSeq( Seq *seq, int in_front_of )
         seq->ptr = block->data;
         seq->block_max = block->data + block->count;
         block->start_index = block == block->prev ? 0 :
-            block->prev->start_index + block->prev->count;
+                                                    block->prev->start_index + block->prev->count;
     }
     else
     {
@@ -690,7 +672,7 @@ iFreeSeqBlock( Seq *seq, int in_front_of )
 
             block->count = (int)(seq->block_max - seq->ptr);
             seq->block_max = seq->ptr = block->prev->data +
-                block->prev->count * seq->elem_size;
+                    block->prev->count * seq->elem_size;
         }
         else
         {
@@ -728,7 +710,7 @@ iFreeSeqBlock( Seq *seq, int in_front_of )
 \****************************************************************************************/
 
 /* initializes sequence writer */
- void
+void
 StartAppendToSeq( Seq *seq, SeqWriter * writer )
 {
     VOS_FUNCNAME( "StartAppendToSeq" );
@@ -751,9 +733,9 @@ StartAppendToSeq( Seq *seq, SeqWriter * writer )
 
 
 /* initializes sequence writer */
- void
+void
 StartWriteSeq( int seq_flags, int header_size,
-                 int elem_size, MemStorage * storage, SeqWriter * writer )
+               int elem_size, MemStorage * storage, SeqWriter * writer )
 {
     Seq *seq = 0;
 
@@ -772,7 +754,7 @@ StartWriteSeq( int seq_flags, int header_size,
 
 
 /* updates sequence header */
- void
+void
 FlushSeqWriter( SeqWriter * writer )
 {
     Seq *seq = 0;
@@ -811,7 +793,7 @@ FlushSeqWriter( SeqWriter * writer )
 
 
 /* calls icvFlushSeqWriter and finishes writing process */
- Seq *
+Seq *
 EndWriteSeq( SeqWriter * writer )
 {
     Seq *seq = 0;
@@ -835,7 +817,7 @@ EndWriteSeq( SeqWriter * writer )
         assert( writer->block->count > 0 );
 
         if( (unsigned)((storage_block_max - storage->free_space)
-            - seq->block_max) < VOS_STRUCT_ALIGN )
+                       - seq->block_max) < VOS_STRUCT_ALIGN )
         {
             storage->free_space = cvAlignLeft((int)(storage_block_max - seq->ptr), VOS_STRUCT_ALIGN);
             seq->block_max = seq->ptr;
@@ -851,7 +833,7 @@ EndWriteSeq( SeqWriter * writer )
 
 
 /* creates new sequence block */
- void
+void
 CreateSeqBlock( SeqWriter * writer )
 {
     VOS_FUNCNAME( "CreateSeqBlock" );
@@ -882,7 +864,7 @@ CreateSeqBlock( SeqWriter * writer )
 \****************************************************************************************/
 
 /* initializes sequence reader */
- void
+void
 StartReadSeq( const Seq *seq, SeqReader * reader, int reverse )
 {
     SeqBlock *first_block;
@@ -944,7 +926,7 @@ StartReadSeq( const Seq *seq, SeqReader * reader, int reverse )
 
 
 /* changes the current reading block to the previous or to the next */
- void
+void
 ChangeSeqBlock( void* _reader, int direction )
 {
     VOS_FUNCNAME( "cvChangeSeqBlock" );
@@ -974,7 +956,7 @@ ChangeSeqBlock( void* _reader, int direction )
 
 
 /* returns the current reader position */
- int
+int
 GetSeqReaderPos( SeqReader* reader )
 {
     int elem_size;
@@ -1003,7 +985,7 @@ GetSeqReaderPos( SeqReader* reader )
 
 /* sets reader position to given absolute or relative
    (relatively to the current one) position */
- void
+void
 SetSeqReaderPos( SeqReader* reader, int index, int is_relative )
 {
     VOS_FUNCNAME( "cvSetSeqReaderPos" );
@@ -1102,7 +1084,7 @@ SetSeqReaderPos( SeqReader* reader, int index, int is_relative )
 
 
 /* pushes element to the sequence */
- char*
+char*
 SeqPush( Seq *seq, void *element )
 {
     char *ptr = 0;
@@ -1139,7 +1121,7 @@ SeqPush( Seq *seq, void *element )
 
 
 /* pops the last element out of the sequence */
- void
+void
 SeqPop( Seq *seq, void *element )
 {
     char *ptr;
@@ -1174,7 +1156,7 @@ SeqPop( Seq *seq, void *element )
 
 
 /* removes several elements from the end of sequence */
- void
+void
 SeqPopMulti( Seq *seq, void *_elements, int count, int front )
 {
     char *elements = (char *) _elements;
@@ -1249,21 +1231,6 @@ SeqPopMulti( Seq *seq, void *_elements, int count, int front )
 }
 
 
-/* removes all elements from the sequence */
- void
-ClearSeq( Seq *seq )
-{
-    VOS_FUNCNAME( "ClearSeq" );
-
-    __BEGIN__;
-
-    if( !seq )
-        VOS_ERROR( VOS_StsNullPtr, "" );
-    SeqPopMulti( seq, 0, seq->total );
-
-    __END__;
-}
-
 
 typedef struct CvSeqReaderPos
 {
@@ -1279,7 +1246,7 @@ CvSeqReaderPos;
 \****************************************************************************************/
 
 /* creates empty set */
- Set*
+Set*
 CreateSet( int set_flags, int header_size, int elem_size, MemStorage * storage )
 {
     Set *set = 0;
@@ -1291,8 +1258,8 @@ CreateSet( int set_flags, int header_size, int elem_size, MemStorage * storage )
     if( !storage )
         VOS_ERROR( VOS_StsNullPtr, "" );
     if( header_size < (int)sizeof( Set ) ||
-        elem_size < (int)sizeof(void*)*2 ||
-        (elem_size & (sizeof(void*)-1)) != 0 )
+            elem_size < (int)sizeof(void*)*2 ||
+            (elem_size & (sizeof(void*)-1)) != 0 )
         VOS_ERROR( VOS_StsBadSize, "" );
 
     set = (Set*) CreateSeq( set_flags, header_size, elem_size, storage );
@@ -1305,7 +1272,7 @@ CreateSet( int set_flags, int header_size, int elem_size, MemStorage * storage )
 
 
 /* adds new element to the set */
- int
+int
 SetAdd( Set* set, SetElem* element, SetElem** inserted_element )
 {
     int id = -1;
@@ -1377,7 +1344,7 @@ CvTreeNode;
 // Insert contour into tree given certain parent sequence.
 // If parent is equal to frame (the most external contour),
 // then added contour will have null pointer to parent.
- void
+void
 InsertNodeIntoTree( void* _node, void* _parent, void* _frame )
 {
     VOS_FUNCNAME( "InsertNodeIntoTree" );

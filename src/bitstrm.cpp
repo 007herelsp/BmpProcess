@@ -30,7 +30,6 @@ RBaseStream::RBaseStream()
     m_block_size = BS_DEF_BLOCK_SIZE;
     m_unGetsize = 4; // 32 bits
     m_is_opened = false;
-    m_jmp_set = false;
 }
 
 

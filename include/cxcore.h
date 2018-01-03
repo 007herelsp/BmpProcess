@@ -91,9 +91,7 @@ GetMat(const CvArr *arr, Mat *header,
          int *coi VOS_DEFAULT(NULL),
          int allowND VOS_DEFAULT(0));
 
-Mat *
-Reshape(const CvArr *arr, Mat *header,
-          int new_cn, int new_rows VOS_DEFAULT(0));
+
 
 /* Allocates array data */
 void
@@ -197,10 +195,6 @@ SeqPop(Seq *seq, void *element VOS_DEFAULT(NULL));
 void
 SeqPopMulti(Seq *seq, void *elements,
               int count, int in_front VOS_DEFAULT(0));
-
-
-void
-ClearSeq(Seq *seq);
 
 
 char *

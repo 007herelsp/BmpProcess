@@ -136,11 +136,11 @@ double  ArcLength( const void* curve,
 Rect  BoundingRect( CvArr* points, int update VOS_DEFAULT(0) );
 
 /* Calculates area of a contour or contour segment */
-double  ContourArea( const CvArr* contour,
+double  ContourArea(  const Seq *contour,
                        Slice slice VOS_DEFAULT(VOS_WHOLE_SEQ));
 
 /* Finds minimum area rotated rectangle bounding a set of points */
-Box2D  MinAreaRect2( const CvArr* points,
+Box2D  MinAreaRect2( const Seq* points,
                        MemStorage* storage VOS_DEFAULT(NULL));
 
 

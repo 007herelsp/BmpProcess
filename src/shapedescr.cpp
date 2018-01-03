@@ -1,7 +1,7 @@
 
 #include "_cv.h"
 
- double
+double
 ArcLength(const void *array, Slice slice, int is_closed)
 {
     double perimeter = 0;
@@ -32,8 +32,6 @@ ArcLength(const void *array, Slice slice, int is_closed)
 
     if (contour->total > 1)
     {
-        int is_float = VOS_SEQ_ELTYPE(contour) == VOS_32FC2;
-
         StartReadSeq(contour, &reader, 0);
         SetSeqReaderPos(&reader, slice.start_index);
         count = SliceLength(slice, contour);
@@ -48,22 +46,11 @@ ArcLength(const void *array, Slice slice, int is_closed)
         {
             float dx, dy;
 
-            if (!is_float)
-            {
-                Point *pt = (Point *)reader.ptr;
-                Point *prev_pt = (Point *)reader.prev_elem;
+            Point *pt = (Point *)reader.ptr;
+            Point *prev_pt = (Point *)reader.prev_elem;
 
-                dx = (float)pt->x - (float)prev_pt->x;
-                dy = (float)pt->y - (float)prev_pt->y;
-            }
-            else
-            {
-                Point2D32f *pt = (Point2D32f *)reader.ptr;
-                Point2D32f *prev_pt = (Point2D32f *)reader.prev_elem;
-
-                dx = pt->x - prev_pt->x;
-                dy = pt->y - prev_pt->y;
-            }
+            dx = (float)pt->x - (float)prev_pt->x;
+            dy = (float)pt->y - (float)prev_pt->y;
 
             reader.prev_elem = reader.ptr;
             VOS_NEXT_SEQ_ELEM(contour->elem_size, reader);
@@ -93,36 +80,20 @@ iContourArea(const Seq *contour, double *area)
         SeqReader reader;
         int lpt = contour->total;
         double a00 = 0, xi_1, yi_1;
-        int is_float = VOS_SEQ_ELTYPE(contour) == VOS_32FC2;
-
         StartReadSeq(contour, &reader, 0);
 
-        if (!is_float)
-        {
-            xi_1 = ((Point *)(reader.ptr))->x;
-            yi_1 = ((Point *)(reader.ptr))->y;
-        }
-        else
-        {
-            xi_1 = ((Point2D32f *)(reader.ptr))->x;
-            yi_1 = ((Point2D32f *)(reader.ptr))->y;
-        }
+        xi_1 = ((Point *)(reader.ptr))->x;
+        yi_1 = ((Point *)(reader.ptr))->y;
+
         VOS_NEXT_SEQ_ELEM(contour->elem_size, reader);
 
         while (lpt-- > 0)
         {
             double dxy, xi, yi;
 
-            if (!is_float)
-            {
-                xi = ((Point *)(reader.ptr))->x;
-                yi = ((Point *)(reader.ptr))->y;
-            }
-            else
-            {
-                xi = ((Point2D32f *)(reader.ptr))->x;
-                yi = ((Point2D32f *)(reader.ptr))->y;
-            }
+            xi = ((Point *)(reader.ptr))->x;
+            yi = ((Point *)(reader.ptr))->y;
+
             VOS_NEXT_SEQ_ELEM(contour->elem_size, reader);
 
             dxy = xi_1 * yi - xi * yi_1;
@@ -186,7 +157,7 @@ iMemCopy(double **buf1, double **buf2, double **buf3, int *b_max)
 }
 
 /* area of a contour sector */
-static CvStatus iContourSecArea(Seq *contour, Slice slice, double *area)
+static CvStatus iContourSecArea(const Seq *contour, Slice slice, double *area)
 {
     Point pt;         /*  pointer to points   */
     Point pt_s, pt_e; /*  first and last points  */
@@ -200,19 +171,14 @@ static CvStatus iContourSecArea(Seq *contour, Slice slice, double *area)
     double eps = 1.e-5;
     double *p_are1, *p_are2, *p_are;
 
-    assert(contour != NULL);
-
-    if (contour == NULL)
+    if (NULL == contour)
         return VOS_NULLPTR_ERR;
 
     if (!VOS_IS_SEQ_POLYGON(contour))
         return VOS_BADFLAG_ERR;
 
     lpt = SliceLength(slice, contour);
-    /*if( n2 >= n1 )
-        lpt = n2 - n1 + 1;
-    else
-        lpt = contour->total - n1 + n2 + 1;*/
+
 
     if (contour->total && lpt > 2)
     {
@@ -353,8 +319,8 @@ static CvStatus iContourSecArea(Seq *contour, Slice slice, double *area)
 }
 
 /* external contour area function */
- double
-ContourArea(const void *array, Slice slice)
+double
+ContourArea(const Seq *contour, Slice slice)
 {
     double area = 0;
 
@@ -362,17 +328,9 @@ ContourArea(const void *array, Slice slice)
 
     __BEGIN__;
 
-    Seq *contour = 0;
-    if (VOS_IS_SEQ(array))
-    {
-        contour = (Seq *)array;
-        if (!VOS_IS_SEQ_POLYLINE(contour))
-            VOS_ERROR(VOS_StsBadArg, "Unsupported sequence type");
-    }
-    else
-    {
-        VOS_ERROR(VOS_StsBadArg, "Unsupported sequence type");
-    }
+    if (NULL == contour)
+        VOS_ERROR( VOS_StsNullPtr, "" );
+
 
     if (SliceLength(slice, contour) == contour->total)
     {
@@ -382,7 +340,7 @@ ContourArea(const void *array, Slice slice)
     {
         if (VOS_SEQ_ELTYPE(contour) != VOS_32SC2)
             VOS_ERROR(VOS_StsUnsupportedFormat,
-                     "Only curves with integer coordinates are supported in case of contour slice");
+                      "Only curves with integer coordinates are supported in case of contour slice");
         FUN_CALL(iContourSecArea(contour, slice, &area));
     }
 
@@ -392,8 +350,7 @@ ContourArea(const void *array, Slice slice)
 }
 
 /* Calculates bounding rectagnle of a point set or retrieves already calculated */
- Rect
-BoundingRect(CvArr *array, int update)
+Rect BoundingRect(CvArr *array, int update)
 {
     SeqReader reader;
     Rect rect = {0, 0, 0, 0};

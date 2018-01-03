@@ -3,13 +3,13 @@
 #include "_cv.h"
 
 static void
-cvSobel( const void* srcarr, void* dstarr, int dx, int dy, int aperture_size )
+Sobel( const void* srcarr, void* dstarr, int dx, int dy, int aperture_size )
 {
     SepFilter filter;
     void* buffer = 0;
     int local_alloc = 0;
 
-    VOS_FUNCNAME( "cvSobel" );
+    VOS_FUNCNAME( "Sobel" );
 
     __BEGIN__;
 
@@ -91,8 +91,8 @@ Canny( const void* srcarr, void* dstarr,
 
     dx = CreateMat( size.height, size.width, VOS_16SC1 );
     dy = CreateMat( size.height, size.width, VOS_16SC1 );
-    cvSobel( src, dx, 1, 0, aperture_size );
-    cvSobel( src, dy, 0, 1, aperture_size );
+    Sobel( src, dx, 1, 0, aperture_size );
+    Sobel( src, dy, 0, 1, aperture_size );
 
 
     if( flags & VOS_CANNY_L2_GRADIENT )
