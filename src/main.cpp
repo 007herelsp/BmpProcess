@@ -98,17 +98,17 @@ struct SymUBoxCmp
 				return false;
 			}
 		}
-
-		// bool ret = false;
-		// if (x.box.center.x == y.box.center.x)
-		// {
-		// 	ret = x.box.center.y < y.box.center.y;
-		// }
-		// else
-		// {
-		// 	ret = x.box.center.x < y.box.center.x;
-		// }
-		// return ret;
+	
+		bool ret = false;
+		if (x.box.center.x == y.box.center.x)
+		{
+			ret = x.box.center.y < y.box.center.y;
+		}
+		else
+		{
+			ret = x.box.center.x < y.box.center.x;
+		}
+		return ret;
 		return true;
 	}
 };
@@ -218,7 +218,8 @@ int process_v2(IplImage *lpImg, IplImage *lpTargetImg, int argc, char *argv[])
 			iCount++;
 		}
 		tbox = *itu;
-		printf("%f,%f", tbox.box.center.x, tbox.box.center.y);
+		printf("test centerInfo:[%f,%f]:[%f,%f] ->", tbox.box.center.x, tbox.box.center.y, tbox.box.size.width, tbox.box.size.height);
+
 		for (int i = 0; i < 4; i++)
 		{
 			printf("%f,%f",  tbox.pt[i].x, tbox.pt[i].y);
