@@ -36,7 +36,8 @@ clean:
 
 
 testcase0:
-	$(BIN_TARGET) ./images/out.bmp ./images/Target17.bmp ./images/Source1_1.bmp ./images/Source1_2.bmp ./images/Source1_3.bmp ./images/Source1_4.bmp ./images/Source1_5.bmp ./images/Source1_6.bmp
+	$(BIN_TARGET) ./images/test0.bmp ./images/Target17.bmp ./images/Source1_1.bmp ./images/Source1_2.bmp ./images/Source1_3.bmp ./images/Source1_4.bmp ./images/Source1_5.bmp ./images/Source1_6.bmp
+	$(BIN_TARGET) ./images/test1.bmp ./images/Target19.bmp ./images/Source1_1.bmp ./images/Source1_2.bmp ./images/Source1_3.bmp ./images/Source1_4.bmp ./images/Source1_5.bmp ./images/Source1_6.bmp
 
 #
 #check:

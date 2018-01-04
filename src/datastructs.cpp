@@ -8,7 +8,7 @@
     (int)Align(sizeof(SeqBlock), VOS_STRUCT_ALIGN)
 
 VOS_INLINE int
-cvAlignLeft(int size, int align)
+sysAlignLeft(int size, int align)
 {
     return size & -align;
 }
@@ -16,19 +16,6 @@ cvAlignLeft(int size, int align)
 #define VOS_GET_LAST_ELEM(seq, block) \
     ((block)->data + ((block)->count - 1) * ((seq)->elem_size))
 
-#define VOS_SWAP_ELEMS(a, b, elem_size) \
-    \
-{                                  \
-        int k;                          \
-        for (k = 0; k < elem_size; k++) \
-        \
-{                              \
-            char t0 = (a)[k];           \
-            char t1 = (b)[k];           \
-            (a)[k] = t1;                \
-            (b)[k] = t0;                \
-        }                               \
-    }
 
 #define IVOS_SHIFT_TAB_MAX 32
 static const char iPower2ShiftTab[] =
@@ -207,8 +194,7 @@ void ClearMemStorage(MemStorage *storage)
     __END__;
 }
 
-/* moves stack pointer to next block.
-   If no blocks, allocate new one and link it to the storage */
+
 static void
 iGoNextMemBlock(MemStorage *storage)
 {
@@ -331,7 +317,7 @@ MemStorageAlloc(MemStorage *storage, size_t size)
 
     if ((size_t)storage->free_space < size)
     {
-        size_t max_free_space = cvAlignLeft(storage->block_size - sizeof(MemBlock), VOS_STRUCT_ALIGN);
+        size_t max_free_space = sysAlignLeft(storage->block_size - sizeof(MemBlock), VOS_STRUCT_ALIGN);
         if (max_free_space < size)
             VOS_ERROR(VOS_StsOutOfRange, "requested size is negative or too big");
 
@@ -340,7 +326,7 @@ MemStorageAlloc(MemStorage *storage, size_t size)
 
     ptr = IVOS_FREE_PTR(storage);
     assert((size_t)ptr % VOS_STRUCT_ALIGN == 0);
-    storage->free_space = cvAlignLeft(storage->free_space - (int)size, VOS_STRUCT_ALIGN);
+    storage->free_space = sysAlignLeft(storage->free_space - (int)size, VOS_STRUCT_ALIGN);
 
     __END__;
 
@@ -404,7 +390,7 @@ void SetSeqBlockSize(Seq *seq, int delta_elements)
     if (delta_elements < 0)
         VOS_ERROR(VOS_StsOutOfRange, "");
 
-    useful_block_size = cvAlignLeft(seq->storage->block_size - sizeof(MemBlock) -
+    useful_block_size = sysAlignLeft(seq->storage->block_size - sizeof(MemBlock) -
                                         sizeof(SeqBlock),
                                     VOS_STRUCT_ALIGN);
     elem_size = seq->elem_size;
@@ -521,7 +507,7 @@ iGrowSeq(Seq *seq, int in_front_of)
 
             delta = VOS_MIN(delta, delta_elems) * elem_size;
             seq->block_max += delta;
-            storage->free_space = cvAlignLeft((int)(((char *)storage->top + storage->block_size) -
+            storage->free_space = sysAlignLeft((int)(((char *)storage->top + storage->block_size) -
                                                     seq->block_max),
                                               VOS_STRUCT_ALIGN);
             EXIT;
@@ -776,7 +762,7 @@ Seq *EndWriteSeq(SeqWriter *writer)
 
         if ((unsigned)((storage_block_max - storage->free_space) - seq->block_max) < VOS_STRUCT_ALIGN)
         {
-            storage->free_space = cvAlignLeft((int)(storage_block_max - seq->ptr), VOS_STRUCT_ALIGN);
+            storage->free_space = sysAlignLeft((int)(storage_block_max - seq->ptr), VOS_STRUCT_ALIGN);
             seq->block_max = seq->ptr;
         }
     }

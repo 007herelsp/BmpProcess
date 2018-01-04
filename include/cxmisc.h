@@ -38,18 +38,6 @@
 /* default storage block size */
 #define  VOS_STORAGE_BLOCK_SIZE   ((1<<16) - 128)
 
-/* default memory block for sparse array elements */
-#define  VOS_SPARSE_MAT_BLOCK    (1<<12)
-
-/* initial hash table size */
-#define  VOS_SPARSE_HASH_SIZE0    (1<<10)
-
-/* maximal average node_count/hash_size ratio beyond which hash table is resized */
-#define  VOS_SPARSE_HASH_RATIO    3
-
-/* max length of strings */
-#define  VOS_MAX_STRLEN  1024
-
 
 /****************************************************************************************\
 *                                  Common declarations                                   *
@@ -68,9 +56,7 @@
 #endif
 
 
-
-
-#define cvStackAlloc(size) AlignPtr( alloca((size) + VOS_MALLOC_ALIGN), VOS_MALLOC_ALIGN )
+#define sysStackAlloc(size) AlignPtr( alloca((size) + VOS_MALLOC_ALIGN), VOS_MALLOC_ALIGN )
 
 /* default step, set in case of continuous data
    to work around checks for valid step in some ipp functions */
@@ -130,19 +116,6 @@ VOS_INLINE  Size  GetMatSize( const Mat* mat )
 }
 
 #define  VOS_DESCALE(x,n)     (((x) + (1 << ((n)-1))) >> (n))
-
-
-#define VOS_SYS_MEMCPY_INT( dst, src, len )                                              \
-{                                                                                   \
-    size_t _icv_SYS_MEMCPY_i_, _icv_SYS_MEMCPY_len_ = (len);                                \
-    int* _icv_SYS_MEMCPY_dst_ = (int*)(dst);                                            \
-    const int* _icv_SYS_MEMCPY_src_ = (const int*)(src);                                \
-    assert( ((size_t)_icv_SYS_MEMCPY_src_&(sizeof(int)-1)) == 0 &&                      \
-            ((size_t)_icv_SYS_MEMCPY_dst_&(sizeof(int)-1)) == 0 );                      \
-                                                                                    \
-    for(_icv_SYS_MEMCPY_i_=0;_icv_SYS_MEMCPY_i_<_icv_SYS_MEMCPY_len_;_icv_SYS_MEMCPY_i_++)          \
-        _icv_SYS_MEMCPY_dst_[_icv_SYS_MEMCPY_i_] = _icv_SYS_MEMCPY_src_[_icv_SYS_MEMCPY_i_];        \
-}
 
 
 #define VOS_SYS_MEMCPY_AUTO( dst, src, len )                                             \

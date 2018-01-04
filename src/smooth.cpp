@@ -61,8 +61,8 @@ void Smooth(const void *srcarr, void *dstarr, int smooth_type,
 
     {
         Size ksize = {param1, param2};
-        float *kx = (float *)cvStackAlloc(ksize.width * sizeof(kx[0]));
-        float *ky = (float *)cvStackAlloc(ksize.height * sizeof(ky[0]));
+        float *kx = (float *)sysStackAlloc(ksize.width * sizeof(kx[0]));
+        float *ky = (float *)sysStackAlloc(ksize.height * sizeof(ky[0]));
         Mat KX = InitMat(1, ksize.width, VOS_32F, kx);
         Mat KY = InitMat(1, ksize.height, VOS_32F, ky);
 

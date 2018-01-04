@@ -1,13 +1,7 @@
-//#include "core.hpp"
-//#include "types_c.h"
-//#include "core_c.h"
-//#include "imgproc_c.h"
-//#include "highgui_c.h"
+
 #include "cv.h"
 #include "highgui.h"
 #include <stdio.h>
-//#include "common.h"
-
 #include <math.h>
 #include <string.h>
 #include <iostream>
@@ -20,11 +14,7 @@
 #define ERR_1 -1
 using namespace std;
 
-#define cvShowImage(x, y)
-
-#define cvWaitKey(x)
-
-double angle(Point *pt1, Point *pt2, Point *pt0)
+static double angle(Point *pt1, Point *pt2, Point *pt0)
 {
 	double dx1 = pt1->x - pt0->x;
 	double dy1 = pt1->y - pt0->y;
@@ -136,7 +126,7 @@ set<Box, SymUBoxCmp> SearchProcess_v2(IplImage *lpSrcImg)
 					{
 						box.isRect = false;
 					}
-					printf("centerInfo:[%f,%f]:[%f,%f]\n", End_Rage2D.center.x, End_Rage2D.center.y, End_Rage2D.size.width, End_Rage2D.size.height);
+					//printf("centerInfo:[%f,%f]:[%f,%f]\n", End_Rage2D.center.x, End_Rage2D.center.y, End_Rage2D.size.width, End_Rage2D.size.height);
 					lstRes.insert(box);
 					iCount++;
 				}
@@ -168,20 +158,20 @@ int process_v2(IplImage *lpImg, IplImage *lpTargetImg, int argc, char *argv[])
 			iCount++;
 		}
 		tbox = *itu;
-		printf("test centerInfo:[%f,%f]:[%f,%f] ->", tbox.box.center.x, tbox.box.center.y, tbox.box.size.width, tbox.box.size.height);
+		// printf("test centerInfo:[%f,%f]:[%f,%f] ->", tbox.box.center.x, tbox.box.center.y, tbox.box.size.width, tbox.box.size.height);
 
-		for (int i = 0; i < 4; i++)
-		{
-			printf("%d,%d",  tbox.pt[i].x, tbox.pt[i].y);
-		}
-		printf("\n");
+		// for (int i = 0; i < 4; i++)
+		// {
+		// 	printf("%d,%d",  tbox.pt[i].x, tbox.pt[i].y);
+		// }
+		// printf("\n");
 	}
 
 	Box box;
 	itu = setURes.begin();
 	for (int i = 0; i < argc && itu != setURes.end(); i++)
 	{
-		printf("%s\n", argv[i]);
+		//printf("%s\n", argv[i]);
 		IplImage *lpSrcImg = LoadImage(argv[i], 1);
 		if (lpSrcImg != NULL)
 		{
@@ -206,7 +196,7 @@ int process_v2(IplImage *lpImg, IplImage *lpTargetImg, int argc, char *argv[])
 					}
 				}
 			}
-			printf("after centerInfo:[%f,%f]:[%f,%f]\n", box.box.center.x, box.box.center.y, box.box.size.width, box.box.size.height);
+			//printf("after centerInfo:[%f,%f]:[%f,%f]\n", box.box.center.x, box.box.center.y, box.box.size.width, box.box.size.height);
 
 			//��p0��
 			if (box.pt[0].y > box.pt[1].y)
@@ -304,11 +294,11 @@ int main(int argc, char **args)
 	IplImage *lpDilateImg = CreateImage(GetSize(lpTargetImg), 8, 1);
 	Smooth(gray, tmp, VOS_GAUSSIAN, 3, 3, 0, 0); //��˹�˲�
 	SaveImage("tmp.bmp", tmp);
-	printf("save\n");
+	//printf("save\n");
 	if (NULL != lpCannyImg && NULL != lpDilateImg)
 	{
-		//Smooth(gray, gray, VOS_GAUSSIAN, 3, 3, 0, 0);
-		Canny(gray, lpCannyImg, 0.5, 20, 3);
+		Smooth(gray, gray, VOS_GAUSSIAN, 3, 3, 0, 0);
+		Canny(gray, lpCannyImg, 0.5, 1.5, 3);
 		SaveImage("canny1.bmp", lpCannyImg);
 		Dilate(lpCannyImg, lpDilateImg, 0, 1);
 		SaveImage("lpDilate.bmp", lpDilateImg);

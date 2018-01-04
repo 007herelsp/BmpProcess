@@ -302,7 +302,6 @@ static CvStatus iContourSecArea(const Seq *contour, Slice slice, double *area)
         p_are[p_ind] = a00 / 2.;
         p_ind++;
 
-        /*     common area calculation    */
         *area = 0;
         for (i = 0; i < p_ind; i++)
             (*area) += fabs(p_are[i]);

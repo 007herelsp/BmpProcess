@@ -305,31 +305,6 @@ void ReleaseData(VOID *arr)
     __END__;
 }
 
-int GetElemType(const VOID *arr)
-{
-    int type = -1;
-
-    VOS_FUNCNAME("GetElemType");
-
-    __BEGIN__;
-
-    if (VOS_IS_MAT_HDR(arr))
-    {
-        type = VOS_MAT_TYPE(((Mat *)arr)->type);
-    }
-    else if (VOS_IS_IMAGE(arr))
-    {
-        IplImage *img = (IplImage *)arr;
-        type = VOS_MAKETYPE(icvIplToCvDepth(img->depth), img->nChannels);
-    }
-    else
-        VOS_ERROR(VOS_StsBadArg, "unrecognized or unsupported array type");
-
-    __END__;
-
-    return type;
-}
-
 // Returns the size of Mat or IplImage
 Size GetSize(const VOID *arr)
 {

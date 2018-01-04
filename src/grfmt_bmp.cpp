@@ -138,7 +138,7 @@ bool GrFmtBmpWriter::WriteImage(const uchar *data, int step,
 {
     bool result = false;
     int fileStep = (width * channels + 3) & -4;
-    uchar zeropad[] = "\0\0\0\0";
+    static uchar zeropad[] = "\0\0\0\0";
 
     assert(data && width > 0 && height > 0 && step >= fileStep);
 

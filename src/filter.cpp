@@ -1339,7 +1339,7 @@ void SepFilter::init_sobel_kernel(Mat *_kx, Mat *_ky, int dx, int dy, int flags)
     if (msz > 32)
         VOS_ERROR(VOS_StsOutOfRange, "Too large kernel size");
 
-    kerI = (int *)cvStackAlloc(msz * sizeof(kerI[0]));
+    kerI = (int *)sysStackAlloc(msz * sizeof(kerI[0]));
 
     if (dx < 0 || dy < 0 || dx + dy <= 0)
         VOS_ERROR(VOS_StsOutOfRange,
@@ -1462,7 +1462,7 @@ void SepFilter::init_gaussian(int _max_width, int _src_type, int _dst_type,
     if (gaussian_size <= VOS_MIN_GAUSSIN_SIZE || gaussian_size > VOS_MAX_GAUSSIAN_SIZE)
         VOS_ERROR(VOS_StsBadSize, "Incorrect size of gaussian kernel");
 
-    kdata = (float *)cvStackAlloc(gaussian_size * sizeof(kdata[0]));
+    kdata = (float *)sysStackAlloc(gaussian_size * sizeof(kdata[0]));
     _kernel = InitMat(1, gaussian_size, VOS_32F, kdata);
 
     VOS_CALL(init_gaussian_kernel(&_kernel, sigma));

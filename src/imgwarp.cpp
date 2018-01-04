@@ -97,8 +97,8 @@ static CvStatus iWarpPerspective_Bilinear_8u_CnR(const uchar *src, int step,
                 const uchar *ptr = src + step * iys + ixs * cn;
                 for (k = 0; k < cn; k++)
                 {
-                    p0 = i8x32fTab_cv[(ptr[k]) + 256] + a * (i8x32fTab_cv[(ptr[k + cn]) + 256] - i8x32fTab_cv[(ptr[k]) + 256]);
-                    p1 = i8x32fTab_cv[(ptr[k + step]) + 256] + a * (i8x32fTab_cv[(ptr[k + cn + step]) + 256] - i8x32fTab_cv[(ptr[k + step]) + 256]);
+                    p0 = VOS_8TO32F(ptr[k]) + a * (VOS_8TO32F(ptr[k + cn]) - VOS_8TO32F(ptr[k]));
+                    p1 = VOS_8TO32F(ptr[k + step]) + a * (VOS_8TO32F(ptr[k + cn + step]) - VOS_8TO32F(ptr[k + step]));
                     dst[x * cn + k] = (uchar)SysRound(p0 + b * (p1 - p0));
                 }
             }
@@ -115,8 +115,8 @@ static CvStatus iWarpPerspective_Bilinear_8u_CnR(const uchar *src, int step,
                 ptr3 = src + y1 * step + x1 * cn;
                 for (k = 0; k < cn; k++)
                 {
-                    p0 = i8x32fTab_cv[(ptr0[k]) + 256] + a * (i8x32fTab_cv[(ptr1[k]) + 256] - i8x32fTab_cv[(ptr0[k]) + 256]);
-                    p1 = i8x32fTab_cv[(ptr2[k]) + 256] + a * (i8x32fTab_cv[(ptr3[k]) + 256] - i8x32fTab_cv[(ptr2[k]) + 256]);
+                    p0 = VOS_8TO32F(ptr0[k])  + a * (VOS_8TO32F(ptr1[k])  - VOS_8TO32F(ptr0[k]) );
+                    p1 = VOS_8TO32F(ptr2[k]) + a * (VOS_8TO32F(ptr3[k])  - VOS_8TO32F(ptr2[k]) );
                     dst[x * cn + k] = (uchar)SysRound(p0 + b * (p1 - p0));
                 }
             }
@@ -150,17 +150,9 @@ WarpPerspective(const VOID *srcarr, VOID *dstarr,
     if (!VOS_ARE_TYPES_EQ(src, dst))
         VOS_ERROR(VOS_StsUnmatchedFormats, "");
 
-    if (!VOS_IS_MAT(matrix) || VOS_MAT_CN(matrix->type) != 1 ||
-        VOS_MAT_DEPTH(matrix->type) < VOS_32F || matrix->rows != 3 || matrix->cols != 3)
-        VOS_ERROR(VOS_StsBadArg,
-                 "Transformation matrix should be 3x3 floating-point single-channel matrix");
 
-    if (flags & VOS_WARP_INVERSE_MAP)
         ConvertScale(matrix, &invA);
-    else
-    {
-        VOS_ERROR(VOS_StsUnmatchedFormats, "herelsp remove");
-    }
+
 
     type = VOS_MAT_TYPE(src->type);
     depth = VOS_MAT_DEPTH(type);

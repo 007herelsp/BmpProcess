@@ -69,28 +69,18 @@ ReleaseMat(Mat **mat);
 
 /* Decrements Mat data reference counter and deallocates the data if
    it reaches 0 */
-VOS_INLINE void DecRefData(VOID *arr)
+VOS_INLINE void DecRefData(Mat *arr)
 {
-    if (VOS_IS_MAT(arr))
-    {
         Mat *mat = (Mat *)arr;
         mat->data.ptr = NULL;
         if (mat->refcount != NULL && --*mat->refcount == 0)
             SYS_FREE(&mat->refcount);
         mat->refcount = NULL;
-    }
-    else
-    {
-        assert("herelsp remove" && 0);
-    }
 }
 
 /* low-level scalar <-> raw data conversion functions */
 void
 ScalarToRawData(const Scalar *scalar, void *data, int type);
-
-int
-GetElemType(const VOID *arr);
 
 Mat *
 GetMat(const VOID *arr, Mat *header,

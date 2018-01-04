@@ -61,8 +61,6 @@ void Threshold(const void *srcarr, void *dstarr, double thresh, double maxval, i
     if (!VOS_ARE_CNS_EQ(src, dst))
         VOS_ERROR(VOS_StsUnmatchedFormats, "Both arrays must have equal number of channels");
 
-    type &= VOS_THRESH_MASK;
-
     if (!VOS_ARE_DEPTHS_EQ(src, dst))
     {
         VOS_ERROR(VOS_BadDepth, cvUnsupportedFormat);
@@ -85,7 +83,7 @@ void Threshold(const void *srcarr, void *dstarr, double thresh, double maxval, i
     }
     if (VOS_MAT_DEPTH(src->type) != VOS_8U)
     {
-        VOS_ERROR(VOS_BadDepth, "herelsp remove");
+        VOS_ERROR(VOS_BadDepth, "");
     }
 
     ithresh = SysFloor(thresh);

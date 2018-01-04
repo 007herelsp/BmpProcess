@@ -123,7 +123,7 @@ iSVD_64f(double *a, int lda, int m, int n,
     int nm, m1, n1;
     int nv = n;
     int iters = 0;
-    double *hv0 = (double *)cvStackAlloc((m + 2) * sizeof(hv0[0])) + 1;
+    double *hv0 = (double *)sysStackAlloc((m + 2) * sizeof(hv0[0])) + 1;
 
     e = buffer;
     w1 = w;
@@ -683,7 +683,7 @@ SVD(VOID *aarr, VOID *warr, VOID *uarr, VOID *varr, int flags)
     else
     {
         u = &ustub;
-        u->data.ptr = 0;
+        u->data.ptr = NULL;
         u->step = 0;
     }
 
@@ -709,7 +709,7 @@ SVD(VOID *aarr, VOID *warr, VOID *uarr, VOID *varr, int flags)
     else
     {
         v = &vstub;
-        v->data.ptr = 0;
+        v->data.ptr = NULL;
         v->step = 0;
     }
 
@@ -730,7 +730,7 @@ SVD(VOID *aarr, VOID *warr, VOID *uarr, VOID *varr, int flags)
 
     if (VOS_MAX_LOCAL_SIZE >= buf_size)
     {
-        buffer = (uchar *)cvStackAlloc(buf_size);
+        buffer = (uchar *)sysStackAlloc(buf_size);
         local_alloc = 1;
     }
     else
@@ -755,8 +755,10 @@ SVD(VOID *aarr, VOID *warr, VOID *uarr, VOID *varr, int flags)
         u = &ustub;
     }
 
-    if (!tw)
+    if (NULL == tw)
+    	{
         tw = buffer + (n + m) * pix_size;
+    	}
 
         iSVD_64f(a->data.db, a->step / sizeof(double), a->rows, a->cols,
                    (double *)tw, u->data.db, u->step / sizeof(double), u_cols,
@@ -875,7 +877,7 @@ SVBkSb(const VOID *warr, const VOID *uarr,
 
     if (VOS_MAX_LOCAL_SIZE >= buf_size )
     {
-        buffer = (uchar *)cvStackAlloc(buf_size);
+        buffer = (uchar *)sysStackAlloc(buf_size);
         local_alloc = 1;
     }
     else

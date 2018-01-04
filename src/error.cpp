@@ -1,11 +1,5 @@
 #include "_cxcore.h"
 
-#if defined WIN32 || defined WIN64
-#include <windows.h>
-#else
-#include <pthread.h>
-#endif
-
 typedef struct StackRecord
 {
     const char *file;

@@ -49,14 +49,8 @@ public:
 protected:
     /* initializes work_type, buf_size and max_rows */
     virtual void get_work_params();
-    /* it is called (not always) from process when _phase=VOS_START or VOS_WHOLE.
-       the method initializes ring buffer (buf_end, buf_head, buf_tail, buf_count, rows),
-       prev_width, prev_x_range, const_row, border_tab, border_tab_sz* */
     virtual void start_process( Slice x_range, int width );
-    /* forms pointers to "virtual rows" above or below the processed roi using the specified
-       border mode */
     virtual void make_y_border( int row_count, int top_rows, int bottom_rows );
-
     virtual int fill_cyclic_buffer( const uchar* src, int src_step,
                                     int y, int y1, int y2 );
 
@@ -65,9 +59,6 @@ protected:
     int max_width;
     /* currently, work_type must be the same as src_type in case of non-separable filters */
     int min_depth, src_type, dst_type, work_type;
-
-    /* pointers to convolution functions, initialized by init method.
-       for non-separable filters only y_conv should be set */
     RowFilterFunc x_func;
     ColumnFilterFunc y_func;
 

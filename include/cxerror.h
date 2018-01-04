@@ -7,9 +7,6 @@
 
 typedef int OPTStatus;
 
-/* this part of OPTStatus is compatible with IPLStatus
-  Some of below symbols are not [yet] used in  
-*/
 #define VOS_StsOk                    0  /* everithing is ok                */
 #define VOS_StsBackTrace            -1  /* pseudo error for back trace     */
 #define VOS_StsError                -2  /* unknown /unspecified error      */
@@ -85,23 +82,12 @@ typedef int OPTStatus;
 #define VOS_ERROR_FROM_CODE( code )   \
     VOS_ERROR( code, "" )
 
-/*
- VOS_CHECK macro checks error status after CV (or IPL)
- function call. If error detected, control will be transferred to the exit
- label.
-*/
 #define VOS_CHECK()                                                  \
 {                                                                   \
     if( GetErrStatus() < 0 )                                      \
         VOS_ERROR( VOS_StsBackTrace, "Inner function failed." );      \
 }
 
-
-/*
- VOS_CALL macro calls CV (or IPL) function, checks error status and
- signals a error if the function failed. Useful in "parent node"
- error procesing mode
-*/
 #define VOS_CALL( Func )                                             \
 {                                                                   \
     Func;                                                           \

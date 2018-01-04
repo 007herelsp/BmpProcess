@@ -311,7 +311,6 @@ iFetchContour(char *ptr,
 
     EndWriteSeq(&writer);
 
-    if (_method != VOS_CHAIN_CODE)
         BoundingRect(contour, 1);
 
     return VOS_OK;

@@ -15,7 +15,6 @@ typedef struct _ContourScanner* ContourScanner;
 #define VOS_RETR_TREE     3
 
 /* contour approximation method */
-#define VOS_CHAIN_CODE               0
 #define VOS_CHAIN_APPROX_NONE        1
 #define VOS_CHAIN_APPROX_SIMPLE      2
 #define VOS_LINK_RUNS                3
@@ -71,14 +70,10 @@ IplConvKernel*  CreateStructuringElementEx(
 /* releases structuring element */
 void  ReleaseStructuringElement( IplConvKernel** element );
 
-/* erodes input image (applies minimum filter) one or more times.
-   If element pointer is NULL, 3x3 rectangular element is used */
 void  Erode( const VOID* src, VOID* dst,
                IplConvKernel* element VOS_DEFAULT(NULL),
                int iterations VOS_DEFAULT(1) );
 
-/* dilates input image (applies maximum filter) one or more times.
-   If element pointer is NULL, 3x3 rectangular element is used */
 void  Dilate( const VOID* src, VOID* dst,
                 IplConvKernel* element VOS_DEFAULT(NULL),
                 int iterations VOS_DEFAULT(1) );
@@ -109,8 +104,6 @@ Seq*  EndFindContours( ContourScanner* scanner );
 
 #define VOS_POLY_APPROX_DP 0
 
-/* Approximates a single polygonal curve (contour) or
-   a tree of polygonal curves (contours) */
 Seq*  ApproxPoly( const void* src_seq,
                       int header_size, MemStorage* storage,
                       int method, double parameter,
@@ -123,8 +116,6 @@ double  ArcLength( const void* curve,
                      int is_closed VOS_DEFAULT(-1));
 #define cvContourPerimeter( contour ) ArcLength( contour, VOS_WHOLE_SEQ, 1 )
 
-/* Calculates contour boundning rectangle (update=1) or
-   just retrieves pre-calculated rectangle (update=0) */
 Rect  BoundingRect( VOID* points, int update VOS_DEFAULT(0) );
 
 /* Calculates area of a contour or contour segment */
@@ -134,15 +125,6 @@ double  ContourArea(  const Seq *contour,
 /* Finds minimum area rotated rectangle bounding a set of points */
 Box2D  MinAreaRect2( const Seq* points,
                        MemStorage* storage VOS_DEFAULT(NULL));
-
-
-
-#define VOS_CONTOURS_MATCH_I1  1
-#define VOS_CONTOURS_MATCH_I2  2
-#define VOS_CONTOURS_MATCH_I3  3
-
-
-
 #define VOS_CLOCKWISE         1
 #define VOS_COUNTER_CLOCKWISE 2
 
@@ -155,21 +137,10 @@ Seq* ConvexHull2( const VOID* input,
 /* Checks whether the contour is convex or not (returns 1 if convex, 0 if not) */
 int  CheckContourConvexity( const VOID* contour );
 
-/* Finds minimum rectangle containing two given rectangles */
-
 /* Types of thresholding */
 #define VOS_THRESH_BINARY      0  /* value = value > threshold ? max_value : 0       */
-#define VOS_THRESH_BINARY_INV  1  /* value = value > threshold ? 0 : max_value       */
-#define VOS_THRESH_TRUNC       2  /* value = value > threshold ? threshold : value   */
-#define VOS_THRESH_TOZERO      3  /* value = value > threshold ? value : 0           */
-#define VOS_THRESH_TOZERO_INV  4  /* value = value > threshold ? 0 : value           */
-#define VOS_THRESH_MASK        7
 
-#define VOS_THRESH_OTSU        8  /* use Otsu algorithm to choose the optimal threshold value;
-    combine the flag with one of the above VOS_THRESH_* values */
 
-/* Applies fixed-level threshold to grayscale image.
-   This is a basic operation applied before retrieving contours */
 void  Threshold( const VOID*  src, VOID*  dst,
                    double  threshold, double  max_value,
                    int threshold_type );

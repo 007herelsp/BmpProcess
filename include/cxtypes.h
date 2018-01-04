@@ -105,14 +105,6 @@ VOS_INLINE  int  SysCeil( double value )
 #define IPL_ORIGIN_TL 0
 #define IPL_ORIGIN_BL 1
 
-#define IPL_ALIGN_4BYTES   4
-#define IPL_ALIGN_8BYTES   8
-#define IPL_ALIGN_16BYTES 16
-#define IPL_ALIGN_32BYTES 32
-
-#define IPL_ALIGN_DWORD   IPL_ALIGN_4BYTES
-#define IPL_ALIGN_QWORD   IPL_ALIGN_8BYTES
-
 #define IPL_BORDER_CONSTANT   0
 #define IPL_BORDER_REPLICATE  1
 #define IPL_BORDER_REFLECT    2
@@ -155,11 +147,6 @@ typedef struct _IplConvKernel
     int  nShiftR;
 }
 IplConvKernel;
-
-
-#define IPL_IMAGE_HEADER 1
-#define IPL_IMAGE_DATA   2
-#define IPL_IMAGE_ROI    4
 
 #endif/*HAVE_IPL*/
 
@@ -311,9 +298,7 @@ Mat;
 #define VOS_ELEM_SIZE(type) \
     (VOS_MAT_CN(type) << ((((sizeof(size_t)/4+1)*16384|0x3a50) >> VOS_MAT_DEPTH(type)*2) & 3))
 
-/* inline constructor. No data is allocated internally!!!
-   (use together with CreateData, or use CreateMat instead to
-   get a matrix with allocated data) */
+
 VOS_INLINE Mat InitMat( int rows, int cols, int type, void* data VOS_DEFAULT(NULL))
 {
     Mat m;
@@ -706,7 +691,6 @@ CvContour;
 #define VOS_SEQ_KIND( seq )     ((seq)->flags & VOS_SEQ_KIND_MASK )
 
 
-#define VOS_IS_SEQ_CURVE( seq )      (VOS_SEQ_KIND(seq) == VOS_SEQ_KIND_CURVE)
 #define VOS_IS_SEQ_CLOSED( seq )     (((seq)->flags & VOS_SEQ_FLAG_CLOSED) != 0)
 #define VOS_IS_SEQ_CONVEX( seq )     (((seq)->flags & VOS_SEQ_FLAG_CONVEX) != 0)
 #define VOS_IS_SEQ_HOLE( seq )       (((seq)->flags & VOS_SEQ_FLAG_HOLE) != 0)
