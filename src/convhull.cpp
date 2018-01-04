@@ -91,7 +91,7 @@ static void iSortPointsByPointers_32s(Point **array, size_t total, int aux)
         Point **lb;
         Point **ub;
     } stack[48];
-    aux = aux;
+
     if (total <= 1)
         return;
     stack[0].lb = array;
@@ -248,52 +248,32 @@ ConvexHull2(const VOID *array, void *hull_storage,
 
     __BEGIN__;
 
-    Mat *mat = 0;
+    Mat *mat = NULL;
     SeqReader reader;
     SeqWriter writer;
     CvContour contour_header;
-    Seq *ptseq = 0;
-    Seq *hullseq = 0;
-    int *t_stack;
+    Seq *ptseq = NULL;
+    Seq *hullseq = NULL;
+    int *t_stack = NULL;
     int t_count;
     int i, miny_ind = 0, maxy_ind = 0, total;
     int stop_idx;
-    sklansky_func sklansky;
+    sklansky_func sklansky= NULL;
 
-    if (VOS_IS_SEQ(array))
-    {
         ptseq = (Seq *)array;
-        if (!VOS_IS_SEQ_POINT_SET(ptseq))
-            VOS_ERROR(VOS_StsBadArg, "Unsupported sequence type");
-        if (hull_storage == 0)
+        if (0 == hull_storage)
             hull_storage = ptseq->storage;
-    }
-    else
-    {
-        VOS_ERROR(VOS_StsBadArg, "herelsp removed Unsupported sequence type");
-    }
+    
 
-    if (VOS_IS_STORAGE(hull_storage))
-    {
-        if (return_points)
-        {
             VOS_CALL(hullseq = CreateSeq(
                         VOS_SEQ_KIND_CURVE | VOS_SEQ_ELTYPE(ptseq) |
                             VOS_SEQ_FLAG_CLOSED | VOS_SEQ_FLAG_CONVEX,
                         sizeof(CvContour), sizeof(Point), (MemStorage *)hull_storage));
-        }
-        else
-        {
-            VOS_ERROR(VOS_StsBadArg, "herelsp remove");
-        }
-    }
-    else
-    {
-        VOS_ERROR(VOS_StsBadArg, "herelsp remove");
-    }
+       
+    
 
     total = ptseq->total;
-    if (total == 0)
+    if (0 == total)
     {
         if (mat)
             VOS_ERROR(VOS_StsBadSize,
@@ -303,10 +283,6 @@ ConvexHull2(const VOID *array, void *hull_storage,
 
     StartAppendToSeq(hullseq, &writer);
 
-    if (VOS_SEQ_ELTYPE(ptseq) == VOS_32FC2)
-    {
-        VOS_ERROR(VOS_StsBadArg, "herelsp remove");
-    }
     sklansky = (sklansky_func)icvSklansky_32s;
 
     VOS_CALL(pointer = (Point **)SysAlloc(ptseq->total * sizeof(pointer[0])));
@@ -319,8 +295,6 @@ ConvexHull2(const VOID *array, void *hull_storage,
         pointer[i] = (Point *)reader.ptr;
         VOS_NEXT_SEQ_ELEM(ptseq->elem_size, reader);
     }
-
-    // sort the point set by x-coordinate, find min and max y
 
     iSortPointsByPointers_32s(pointer, total, 0);
     for (i = 1; i < total; i++)
@@ -383,9 +357,6 @@ ConvexHull2(const VOID *array, void *hull_storage,
                                              pointer[check_idx]->x == pointer[stop_idx]->x &&
                                              pointer[check_idx]->y == pointer[stop_idx]->y))
             {
-                /* if all the points lie on the same line, then
-                   the bottom part of the convex hull is the mirrored top part
-                   (except the exteme points).*/
                 bl_count = VOS_MIN(bl_count, 2);
                 br_count = VOS_MIN(br_count, 2);
             }
@@ -439,18 +410,7 @@ CheckContourConvexity(const VOID *array)
 
     Seq *contour = (Seq *)array;
 
-    if (VOS_IS_SEQ(contour))
-    {
-        if (!VOS_IS_SEQ_POLYGON(contour))
-            VOS_ERROR(VOS_StsUnsupportedFormat,
-                     "Input sequence must be polygon (closed 2d curve)");
-    }
-    else
-    {
-        VOS_ERROR(VOS_StsBadArg, "Unsupported sequence type");
-    }
-
-    if (contour->total == 0)
+    if (0 == contour->total)
         EXIT;
 
     StartReadSeq(contour, &reader, 0);
@@ -486,7 +446,7 @@ CheckContourConvexity(const VOID *array)
              */
             orientation |= (dydx0 > dxdy0) ? 1 : ((dydx0 < dxdy0) ? 2 : 3);
 
-            if (orientation == 3)
+            if (3 == orientation)
             {
                 flag = 0;
                 break;

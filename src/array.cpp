@@ -13,8 +13,7 @@ static const signed char iDepthToType[] =
 \****************************************************************************************/
 
 // Creates Mat and underlying data
- Mat *
-CreateMat(int height, int width, int type)
+Mat *CreateMat(int height, int width, int type)
 {
     Mat *arr = 0;
 
@@ -40,8 +39,7 @@ static void iCheckHuge(Mat *arr)
 }
 
 // Creates Mat header only
- Mat *
-CreateMatHeader(int rows, int cols, int type)
+Mat *CreateMatHeader(int rows, int cols, int type)
 {
     Mat *arr = 0;
 
@@ -81,9 +79,8 @@ CreateMatHeader(int rows, int cols, int type)
 }
 
 // Initializes Mat header, allocated by the user
- Mat *
-InitMatHeader(Mat *arr, int rows, int cols,
-                int type, void *data, int step)
+Mat *InitMatHeader(Mat *arr, int rows, int cols,
+                   int type, void *data, int step)
 {
     VOS_FUNCNAME("InitMatHeader");
 
@@ -134,8 +131,7 @@ InitMatHeader(Mat *arr, int rows, int cols,
 }
 
 // Deallocates the Mat structure and underlying data
- void
-ReleaseMat(Mat **array)
+void ReleaseMat(Mat **array)
 {
     VOS_FUNCNAME("ReleaseMat");
 
@@ -165,8 +161,7 @@ ReleaseMat(Mat **array)
 \****************************************************************************************/
 
 // Allocates underlying array data
- void
-CreateData(VOID *arr)
+void CreateData(VOID *arr)
 {
     VOS_FUNCNAME("CreateData");
 
@@ -208,8 +203,7 @@ CreateData(VOID *arr)
 }
 
 // Assigns external data to array
- void
-SetData(VOID *arr, void *data, int step)
+void SetData(VOID *arr, void *data, int step)
 {
     VOS_FUNCNAME("SetData");
 
@@ -284,8 +278,7 @@ SetData(VOID *arr, void *data, int step)
 }
 
 // Deallocates array's data
- void
-ReleaseData(VOID *arr)
+void ReleaseData(VOID *arr)
 {
     VOS_FUNCNAME("ReleaseData");
 
@@ -312,8 +305,7 @@ ReleaseData(VOID *arr)
     __END__;
 }
 
- int
-GetElemType(const VOID *arr)
+int GetElemType(const VOID *arr)
 {
     int type = -1;
 
@@ -339,8 +331,7 @@ GetElemType(const VOID *arr)
 }
 
 // Returns the size of Mat or IplImage
- Size
-GetSize(const VOID *arr)
+Size GetSize(const VOID *arr)
 {
     Size size = {0, 0};
 
@@ -377,8 +368,7 @@ GetSize(const VOID *arr)
 \****************************************************************************************/
 
 // Converts Scalar to specified type
- void
-ScalarToRawData(const Scalar *scalar, void *data, int type)
+void ScalarToRawData(const Scalar *scalar, void *data, int type)
 {
     VOS_FUNCNAME("ScalarToRawData");
 
@@ -411,9 +401,8 @@ ScalarToRawData(const Scalar *scalar, void *data, int type)
 \****************************************************************************************/
 
 // convert array (Mat or IplImage) to Mat
- Mat *
-GetMat(const VOID *array, Mat *mat,
-         int *pCOI, int allowND)
+Mat *GetMat(const VOID *array, Mat *mat,
+            int *pCOI, int allowND)
 {
     Mat *result = 0;
     Mat *src = (Mat *)array;
@@ -453,7 +442,7 @@ GetMat(const VOID *array, Mat *mat,
                 VOS_ERROR(VOS_StsBadFlag, "Pixel order should be used with coi == 0");
 
             VOS_CALL(InitMatHeader(mat, img->height, img->width, type,
-                                     img->imageData, img->widthStep));
+                                   img->imageData, img->widthStep));
         }
 
         result = mat;
@@ -476,7 +465,7 @@ GetMat(const VOID *array, Mat *mat,
 \****************************************************************************************/
 
 // create IplImage header
- IplImage *
+IplImage *
 CreateImageHeader(Size size, int depth, int channels)
 {
     IplImage *img = 0;
@@ -487,7 +476,7 @@ CreateImageHeader(Size size, int depth, int channels)
 
     VOS_CALL(img = (IplImage *)SysAlloc(sizeof(*img)));
     VOS_CALL(InitImageHeader(img, size, depth, channels, IPL_ORIGIN_TL,
-                               VOS_DEFAULT_IMAGE_ROW_ALIGN));
+                             VOS_DEFAULT_IMAGE_ROW_ALIGN));
 
     __END__;
 
@@ -498,7 +487,7 @@ CreateImageHeader(Size size, int depth, int channels)
 }
 
 // create IplImage header and allocate underlying data
- IplImage *
+IplImage *
 CreateImage(Size size, int depth, int channels)
 {
     IplImage *img = 0;
@@ -520,9 +509,9 @@ CreateImage(Size size, int depth, int channels)
 }
 
 // initalize IplImage header, allocated by the user
- IplImage *
+IplImage *
 InitImageHeader(IplImage *image, Size size, int depth,
-                  int channels, int origin, int align)
+                int channels, int origin, int align)
 {
     IplImage *result = 0;
 
@@ -533,7 +522,7 @@ InitImageHeader(IplImage *image, Size size, int depth,
     if (!image)
         VOS_ERROR(VOS_HeaderIsNull, "null pointer to header");
 
-    memset(image, 0, sizeof(*image));
+    VOS_MEMSET(image, 0, sizeof(*image));
     image->nSize = sizeof(*image);
 
     if (size.width < 0 || size.height < 0)
@@ -570,8 +559,7 @@ InitImageHeader(IplImage *image, Size size, int depth,
     return result;
 }
 
- void
-ReleaseImageHeader(IplImage **image)
+void ReleaseImageHeader(IplImage **image)
 {
     VOS_FUNCNAME("ReleaseImageHeader");
 
@@ -590,8 +578,7 @@ ReleaseImageHeader(IplImage **image)
     __END__;
 }
 
- void
-ReleaseImage(IplImage **image)
+void ReleaseImage(IplImage **image)
 {
     VOS_FUNCNAME("ReleaseImage");
 
@@ -612,10 +599,10 @@ ReleaseImage(IplImage **image)
     __END__;
 }
 
- IplImage *
+IplImage *
 CloneImage(const IplImage *src)
 {
-    IplImage *dst = 0;
+    IplImage *dst = NULL;
     VOS_FUNCNAME("CloneImage");
 
     __BEGIN__;
@@ -625,19 +612,237 @@ CloneImage(const IplImage *src)
 
     VOS_CALL(dst = (IplImage *)SysAlloc(sizeof(*dst)));
 
-    memcpy(dst, src, sizeof(*src));
-    dst->imageData = dst->imageDataOrigin = 0;
+    VOS_MEMCPY(dst, src, sizeof(*src));
+    dst->imageData = dst->imageDataOrigin = NULL;
 
     if (src->imageData)
     {
         int size = src->imageSize;
         CreateData(dst);
-        memcpy(dst->imageData, src->imageData, size);
+        VOS_MEMCPY(dst->imageData, src->imageData, size);
     }
 
     __END__;
 
     return dst;
+}
+
+bool IsContourP(int x, int y, IplImage *Src_Img)
+{
+    bool p[10] = {false};
+    int LineBytes = Src_Img->widthStep;
+    char *lpPtr = (char *)(Src_Img->imageData + LineBytes * y) + x;
+
+    p[2] = *(lpPtr - LineBytes) ? true : false;
+    p[3] = *(lpPtr - LineBytes + 1) ? true : false;
+    p[4] = *(lpPtr + 1) ? true : false;
+    p[5] = *(lpPtr + LineBytes + 1) ? true : false;
+    p[6] = *(lpPtr + LineBytes) ? true : false;
+    p[7] = *(lpPtr + LineBytes - 1) ? true : false;
+    p[8] = *(lpPtr - 1) ? true : false;
+    p[9] = *(lpPtr - LineBytes - 1) ? true : false;
+
+    int Np = 0; //邻域不为零节点总数
+    int Tp = 0; //邻域节点由0变成1的次数
+    for (int i = 2; i < 10; i++)
+    {
+        Np += p[i];
+        int k = (i < 9) ? (i + 1) : 2;
+
+        if (p[k] - p[i] > 0)
+        {
+            Tp++;
+        }
+    }
+    int p246 = p[2] && p[4] && p[6];
+    int p468 = p[4] && p[6] && p[8];
+
+    int p24 = p[2] && !p[3] && p[4] && !p[5] && !p[6] && !p[7] && !p[8] && !p[9];
+    int p46 = !p[2] && !p[3] && p[4] && !p[5] && p[6] && !p[7] && !p[8] && !p[9];
+    int p68 = !p[2] && !p[3] && !p[4] && !p[5] && p[6] && !p[7] && p[8] && !p[9];
+    int p82 = p[2] && !p[3] && !p[4] && !p[5] && !p[6] && !p[7] && p[8] && !p[9];
+
+    int p782 = p[2] && !p[3] && !p[4] && !p[5] && !p[6] && p[7] && p[8] && !p[9];
+    int p924 = p[2] && !p[3] && p[4] && !p[5] && !p[6] && !p[7] && !p[8] && p[9];
+    int p346 = !p[2] && p[3] && p[4] && !p[5] && p[6] && !p[7] && !p[8] && !p[9];
+    int p568 = !p[2] && !p[3] && !p[4] && p[5] && p[6] && !p[7] && p[8] && !p[9];
+
+    int p689 = !p[2] && !p[3] && !p[4] && !p[5] && p[6] && !p[7] && p[8] && p[9];
+    int p823 = p[2] && p[3] && !p[4] && !p[5] && !p[6] && !p[7] && p[8] && !p[9];
+    int p245 = p[2] && !p[3] && p[4] && p[5] && !p[6] && !p[7] && !p[8] && !p[9];
+    int p467 = !p[2] && !p[3] && p[4] && !p[5] && p[6] && p[7] && !p[8] && !p[9];
+
+    int p2468 = p24 || p46 || p68 || p82;
+    int p3333 = p782 || p924 || p346 || p568 || p689 || p823 || p245 || p467;
+
+    //判定条件第一个由数字图像处理上得到，由于结果不够满意，又加上两个条件
+    return (!p246 && !p468 && (Np < 7) && (Np > 1) && (Tp == 1)) || p2468 || p3333;
+}
+
+void thin(IplImage *Src_Img) //细化轮廓，得到单像素轮廓
+{
+    int i, j, Remove_Num = 0;
+    Size img_size = GetSize(Src_Img);
+
+    do
+    { //循环调用，直至没有可以去掉的点
+        Remove_Num = 0;
+        for (j = 1; j < img_size.height - 1; j++)
+        {
+            for (i = 1; i < img_size.width - 1; i++)
+            {
+                char gray_value = ((char *)(Src_Img->imageData + Src_Img->widthStep * j))[i];
+                if (gray_value && IsContourP(i, j, Src_Img))
+                { //符合条件，去掉
+                    ((char *)(Src_Img->imageData + Src_Img->widthStep * j))[i] = (uchar)0;
+                    Remove_Num++;
+                } //if
+            }     //for i
+        }         //for j
+    } while (Remove_Num);
+}
+
+#define byte char
+void cvThin(IplImage *src, IplImage *dst, int iterations)
+{
+    Size size = GetSize(src);
+     Mat  *src1 = (Mat *)src;
+    Mat   *dst1 = (Mat *)dst;
+    //Copy(src1, dst1);
+    int n = 0, i = 0, j = 0;
+    for (n = 0; n < iterations; n++)
+    {
+        IplImage *t_image = CloneImage(dst);
+        for (i = 0; i < size.height; i++)
+        {
+            for (j = 0; j < size.width; j++)
+            {
+                if (VOS_IMAGE_ELEM(t_image, byte, i, j) == 1)
+                {
+                    int ap = 0;
+                    int p2 = (i == 0) ? 0 : VOS_IMAGE_ELEM(t_image, byte, i - 1, j);
+                    int p3 = (i == 0 || j == size.width - 1) ? 0 : VOS_IMAGE_ELEM(t_image, byte, i - 1, j + 1);
+                    if (p2 == 0 && p3 == 1)
+                    {
+                        ap++;
+                    }
+                    int p4 = (j == size.width - 1) ? 0 : VOS_IMAGE_ELEM(t_image, byte, i, j + 1);
+                    if (p3 == 0 && p4 == 1)
+                    {
+                        ap++;
+                    }
+                    int p5 = (i == size.height - 1 || j == size.width - 1) ? 0 : VOS_IMAGE_ELEM(t_image, byte, i + 1, j + 1);
+                    if (p4 == 0 && p5 == 1)
+                    {
+                        ap++;
+                    }
+                    int p6 = (i == size.height - 1) ? 0 : VOS_IMAGE_ELEM(t_image, byte, i + 1, j);
+                    if (p5 == 0 && p6 == 1)
+                    {
+                        ap++;
+                    }
+                    int p7 = (i == size.height - 1 || j == 0) ? 0 : VOS_IMAGE_ELEM(t_image, byte, i + 1, j - 1);
+                    if (p6 == 0 && p7 == 1)
+                    {
+                        ap++;
+                    }
+                    int p8 = (j == 0) ? 0 : VOS_IMAGE_ELEM(t_image, byte, i, j - 1);
+                    if (p7 == 0 && p8 == 1)
+                    {
+                        ap++;
+                    }
+                    int p9 = (i == 0 || j == 0) ? 0 : VOS_IMAGE_ELEM(t_image, byte, i - 1, j - 1);
+                    if (p8 == 0 && p9 == 1)
+                    {
+                        ap++;
+                    }
+                    if (p9 == 0 && p2 == 1)
+                    {
+                        ap++;
+                    }
+                    if ((p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9) > 1 && (p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9) < 7)
+                    {
+                        if (ap == 1)
+                        {
+                            if (!(p2 && p4 && p6))
+                            {
+                                if (!(p4 && p6 && p8))
+                                {
+                                    VOS_IMAGE_ELEM(dst, byte, i, j) = 0;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        ReleaseImage(&t_image);
+        t_image = CloneImage(dst);
+        for (i = 0; i < size.height; i++)
+        {
+            for (int j = 0; j < size.width; j++)
+            {
+                if (VOS_IMAGE_ELEM(t_image, byte, i, j) == 1)
+                {
+                    int ap = 0;
+                    int p2 = (i == 0) ? 0 : VOS_IMAGE_ELEM(t_image, byte, i - 1, j);
+                    int p3 = (i == 0 || j == size.width - 1) ? 0 : VOS_IMAGE_ELEM(t_image, byte, i - 1, j + 1);
+                    if (p2 == 0 && p3 == 1)
+                    {
+                        ap++;
+                    }
+                    int p4 = (j == size.width - 1) ? 0 : VOS_IMAGE_ELEM(t_image, byte, i, j + 1);
+                    if (p3 == 0 && p4 == 1)
+                    {
+                        ap++;
+                    }
+                    int p5 = (i == size.height - 1 || j == size.width - 1) ? 0 : VOS_IMAGE_ELEM(t_image, byte, i + 1, j + 1);
+                    if (p4 == 0 && p5 == 1)
+                    {
+                        ap++;
+                    }
+                    int p6 = (i == size.height - 1) ? 0 : VOS_IMAGE_ELEM(t_image, byte, i + 1, j);
+                    if (p5 == 0 && p6 == 1)
+                    {
+                        ap++;
+                    }
+                    int p7 = (i == size.height - 1 || j == 0) ? 0 : VOS_IMAGE_ELEM(t_image, byte, i + 1, j - 1);
+                    if (p6 == 0 && p7 == 1)
+                    {
+                        ap++;
+                    }
+                    int p8 = (j == 0) ? 0 : VOS_IMAGE_ELEM(t_image, byte, i, j - 1);
+                    if (p7 == 0 && p8 == 1)
+                    {
+                        ap++;
+                    }
+                    int p9 = (i == 0 || j == 0) ? 0 : VOS_IMAGE_ELEM(t_image, byte, i - 1, j - 1);
+                    if (p8 == 0 && p9 == 1)
+                    {
+                        ap++;
+                    }
+                    if (p9 == 0 && p2 == 1)
+                    {
+                        ap++;
+                    }
+                    if ((p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9) > 1 && (p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9) < 7)
+                    {
+                        if (ap == 1)
+                        {
+                            if (p2 * p4 * p8 == 0)
+                            {
+                                if (p2 * p6 * p8 == 0)
+                                {
+                                    VOS_IMAGE_ELEM(dst, byte, i, j) = 0;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        ReleaseImage(&t_image);
+    }
 }
 
 /* End of file. */

@@ -56,8 +56,6 @@ iRotatingCalipers( Point2D32f* points, int n, int mode, float* out )
         pt0 = pt;
     }
 
-    //cvbInvSqrt( inv_vect_length, inv_vect_length, n );
-
     /* find convex hull orientation */
     {
         double ax = vect[n-1].x;
@@ -72,13 +70,13 @@ iRotatingCalipers( Point2D32f* points, int n, int mode, float* out )
 
             if( convexity != 0 )
             {
-                orientation = (convexity > 0) ? 1.f : (-1.f);
+                orientation = (convexity > 0) ? 1.0f : (-1.0f);
                 break;
             }
             ax = bx;
             ay = by;
         }
-        assert( orientation != 0 );
+        assert( 0 != orientation);
     }
     base_a = orientation;
 
@@ -251,13 +249,13 @@ iRotatingCalipers( Point2D32f* points, int n, int mode, float* out )
 Box2D
 MinAreaRect2( const Seq* array, MemStorage* storage )
 {
-    MemStorage* temp_storage = 0;
+    MemStorage* temp_storage = NULL;
     Box2D box;
-    Point2D32f* points = 0;
+    Point2D32f* points = NULL;
 
     VOS_FUNCNAME( "MinAreaRect2" );
     Seq* ptseq = (Seq*)array;
-    memset(&box, 0, sizeof(box));
+    VOS_MEMSET(&box, 0, sizeof(box));
 
     __BEGIN__;
 
@@ -314,7 +312,7 @@ MinAreaRect2( const Seq* array, MemStorage* storage )
         box.size.width = (float)sqrt((double)out[2].x*out[2].x + (double)out[2].y*out[2].y);
         box.angle = (float)atan2( -(double)out[1].y, (double)out[1].x );
     }
-    else if( n == 2 )
+    else if( 2 == n )
     {
         box.center.x = (points[0].x + points[1].x)*0.5f;
         box.center.y = (points[0].y + points[1].y)*0.5f;
@@ -326,7 +324,7 @@ MinAreaRect2( const Seq* array, MemStorage* storage )
     }
     else
     {
-        if( n == 1 )
+        if( 1 == n )
             box.center = points[0];
     }
 

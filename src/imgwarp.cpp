@@ -3,11 +3,11 @@
 static int
 Solve( const VOID* A, const VOID* b, VOID* x, int method )
 {
-    Mat* u = 0;
-    Mat* v = 0;
-    Mat* w = 0;
+    Mat* u = NULL;
+    Mat* v = NULL;
+    Mat* w = NULL;
 
-    uchar* buffer = 0;
+    uchar* buffer = NULL;
     int local_alloc = 0;
     int result = 1;
 
@@ -164,7 +164,7 @@ WarpPerspective(const VOID *srcarr, VOID *dstarr,
 
     type = VOS_MAT_TYPE(src->type);
     depth = VOS_MAT_DEPTH(type);
-    assert(depth == 0);
+    assert(0 == depth);
     cn = VOS_MAT_CN(type);
     if (cn > 4)
         VOS_ERROR(VOS_BadNumChannels, "");
@@ -174,7 +174,7 @@ WarpPerspective(const VOID *srcarr, VOID *dstarr,
 
     ScalarToRawData(&fillval, fillbuf, VOS_MAT_TYPE(src->type));
 
-    FUN_CALL(iWarpPerspective_Bilinear_8u_CnR(src->data.ptr, src->step, ssize, dst->data.ptr,
+    VOS_FUN_CALL(iWarpPerspective_Bilinear_8u_CnR(src->data.ptr, src->step, ssize, dst->data.ptr,
                                                  dst->step, dsize, dst_matrix, cn,
                                                  (const uchar *)(flags & VOS_WARP_FILL_OUTLIERS ? fillbuf : 0)));
 

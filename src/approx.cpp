@@ -244,23 +244,7 @@ ApproxPoly(const void *array, int header_size,
         VOS_ERROR(VOS_StsOutOfRange, "header_size is negative. "
                                    "Pass 0 to make the destination header_size == input header_size");
 
-    if (header_size == 0)
-        header_size = src_seq->header_size;
-
-    if (!VOS_IS_SEQ_POLYLINE(src_seq))
-    {
-        if (VOS_IS_SEQ_CHAIN(src_seq))
-        {
-            VOS_ERROR(VOS_StsBadArg, "Input curves are not polygonal. "
-                                   "Use cvApproxChains first");
-        }
-        else
-        {
-            VOS_ERROR(VOS_StsBadArg, "Input curves have uknown type");
-        }
-    }
-
-    if (header_size == 0)
+    if (0 == header_size)
         header_size = src_seq->header_size;
 
     if (header_size < (int)sizeof(CvContour))
@@ -279,7 +263,7 @@ ApproxPoly(const void *array, int header_size,
     {
         Seq *contour = 0;
 
-        FUN_CALL(iApproxPolyDP_32s(src_seq, header_size, storage,
+        VOS_FUN_CALL(iApproxPolyDP_32s(src_seq, header_size, storage,
                                       &contour, (float)parameter));
 
         assert(contour);

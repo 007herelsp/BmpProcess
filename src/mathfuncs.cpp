@@ -1,7 +1,5 @@
 #include "_cxcore.h"
 
-//static const double _0_5 = 0.5, _1_5 = 1.5;
-
 static CvStatus iInvSqrt_32f(const float *src, float *dst, int len)
 {
     int i = 0;
@@ -50,7 +48,7 @@ typedef CvStatus(*SqrtFunc_t)(const void *src, void *dst, int len);
     if (!VOS_IS_MAT(dst))
         VOS_CALL(dst = GetMat(dst, &dststub, &coi2));
 
-    if (coi1 != 0 || coi2 != 0)
+    if (0 != coi1  || 0 != coi2)
         VOS_ERROR(VOS_BadCOI, "");
 
     if (!VOS_ARE_TYPES_EQ(src, dst))
@@ -77,7 +75,7 @@ typedef CvStatus(*SqrtFunc_t)(const void *src, void *dst, int len);
         size.height = 1;
     }
 
-    assert(depth == VOS_32F);
+    assert(VOS_32F == depth);
     if( fabs(fabs(power) - 0.5) < DBL_EPSILON )
     {
         SqrtFunc_t sqrt_func =( power < 0) ? (SqrtFunc_t)iInvSqrt_32f : (SqrtFunc_t)iSqrt_32f;

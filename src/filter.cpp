@@ -1273,7 +1273,7 @@ void SepFilter::init_gaussian_kernel(Mat *kernel, double sigma)
 {
     static const float small_gaussian_tab[][VOS_SMALL_GAUSSIAN_SIZE / 2 + 1] =
         {
-            {1.f},
+            {1.0f},
             {0.5f, 0.25f},
             {0.375f, 0.25f, 0.0625f},
             {0.28125f, 0.21875f, 0.109375f, 0.03125f}};
@@ -1283,7 +1283,7 @@ void SepFilter::init_gaussian_kernel(Mat *kernel, double sigma)
     __BEGIN__;
 
     int type, i, n, step;
-    const float *fixed_kernel = 0;
+    const float *fixed_kernel = NULL;
     double sigmaX, scale2X, sum;
     float *cf;
 
@@ -1360,13 +1360,13 @@ void SepFilter::init_sobel_kernel(Mat *_kx, Mat *_ky, int dx, int dy, int flags)
             VOS_ERROR(VOS_StsOutOfRange,
                      "Derivative order must be smaller than the corresponding kernel size");
 
-        if (n == 1)
+        if (1 == n)
             kerI[0] = 1;
-        else if (n == 3)
+        else if (3 == n)
         {
-            if (order == 0)
+            if (0 == order)
                 kerI[0] = 1, kerI[1] = 2, kerI[2] = 1;
-            else if (order == 1)
+            else if (1 == order)
                 kerI[0] = -1, kerI[1] = 0, kerI[2] = 1;
             else
                 kerI[0] = 1, kerI[1] = -2, kerI[2] = 1;
@@ -1428,22 +1428,17 @@ void SepFilter::init_deriv(int _max_width, int _src_type, int _dst_type,
     if (kx_size <= 0 || ky_size > VOS_MAX_SOBEL_KSIZE)
         VOS_ERROR(VOS_StsOutOfRange, "Incorrect aperture_size");
 
-    if (kx_size == 1 && dx)
+    if (1 == kx_size && dx)
         kx_size = 3;
-    if (ky_size == 1 && dy)
+    if (1 == ky_size && dy)
         ky_size = 3;
 
     _kx = InitMat(1, kx_size, VOS_32FC1, kx_data);
     _ky = InitMat(1, ky_size, VOS_32FC1, ky_data);
 
-    if (aperture_size == VOS_SCHARR)
-    {
-        VOS_ERROR(VOS_StsNotImplemented, "herelsp remove");
-    }
-    else
-    {
+  
         VOS_CALL(init_sobel_kernel(&_kx, &_ky, dx, dy, flags));
-    }
+ 
 
     VOS_CALL(init(_max_width, _src_type, _dst_type, &_kx, &_ky));
 
@@ -1456,7 +1451,7 @@ void SepFilter::init_deriv(int _max_width, int _src_type, int _dst_type,
 void SepFilter::init_gaussian(int _max_width, int _src_type, int _dst_type,
                                 int gaussian_size, double sigma)
 {
-    float *kdata = 0;
+    float *kdata = NULL;
 
     VOS_FUNCNAME("SepFilter::init_gaussian");
 

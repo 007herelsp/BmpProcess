@@ -34,4 +34,12 @@ install:
 clean:
 	rm -f $(OUT_DIR)/*.o $(BIN_TARGET)  
 
+
+testcase0:
+	$(BIN_TARGET) ./images/out.bmp ./images/Target17.bmp ./images/Source1_1.bmp ./images/Source1_2.bmp ./images/Source1_3.bmp ./images/Source1_4.bmp ./images/Source1_5.bmp ./images/Source1_6.bmp
+
+#
+#check:
+#	scan-build make
+
  

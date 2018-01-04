@@ -1,8 +1,6 @@
 #include "_cxcore.h"
 #include <float.h>
 
-/////////////////////////////////////////////////////////////////////////////////////////
-
 #define iGivens_64f(n, x, y, c, s)   \
     \
 {                                 \
@@ -20,7 +18,6 @@
     \
 }
 
-/* y[0:m,0:n] += diag(a[0:1,0:m]) * x[0:m,0:n] */
 static void
 iMatrAXPY_64f(int m, int n, const double *x, int dx,
                 const double *a, double *y, int dy)
@@ -48,8 +45,6 @@ iMatrAXPY_64f(int m, int n, const double *x, int dx,
     }
 }
 
-/* y[1:m,-1] = h*y[1:m,0:n]*x[0:1,0:n]'*x[-1]  (this is used for U&V reconstruction)
-   y[1:m,0:n] += h*y[1:m,0:n]*x[0:1,0:n]'*x[0:1,0:n] */
 static void
 iMatrAXPY3_64f(int m, int n, const double *x, int l, double *y, double h)
 {
@@ -98,7 +93,7 @@ pythag(double a, double b)
         b /= a;
         a *= SYS_SQRT(1. + b * b);
     }
-    else if (b != 0)
+    else if (0 != b)
     {
         a /= b;
         a = b * SYS_SQRT(1. + a * a);
@@ -137,8 +132,8 @@ iSVD_64f(double *a, int lda, int m, int n,
 
     temp = buffer + nm;
 
-    memset(w, 0, nm * sizeof(w[0]));
-    memset(e, 0, nm * sizeof(e[0]));
+    VOS_MEMSET(w, 0, nm * sizeof(w[0]));
+    VOS_MEMSET(e, 0, nm * sizeof(e[0]));
 
     m1 = m;
     n1 = n;
@@ -149,7 +144,7 @@ iSVD_64f(double *a, int lda, int m, int n,
         int update_u;
         int update_v;
 
-        if (m1 == 0)
+        if ( 0 == m1)
             break;
 
         scale = h = 0;
@@ -162,7 +157,7 @@ iSVD_64f(double *a, int lda, int m, int n,
             scale += fabs(hv[j] = t);
         }
 
-        if (scale != 0)
+        if ( 0 != scale)
         {
             double f = 1. / scale, g, s = 0;
 
@@ -179,7 +174,7 @@ iSVD_64f(double *a, int lda, int m, int n,
             hv[0] = f - g;
             h = 1. / (f * g - s);
 
-            memset(temp, 0, n1 * sizeof(temp[0]));
+            VOS_MEMSET(temp, 0, n1 * sizeof(temp[0]));
 
             /* calc temp[0:n-i] = a[i:m,i:n]'*hv[0:m-i] */
             iMatrAXPY_64f(m1, n1 - 1, a + 1, lda, hv, temp + 1, 0);
@@ -192,7 +187,6 @@ iSVD_64f(double *a, int lda, int m, int n,
         }
         w1++;
 
-        /* store -2/(hv'*hv) */
         if (update_u)
         {
             if (m1 == m)
@@ -206,7 +200,7 @@ iSVD_64f(double *a, int lda, int m, int n,
         if (vT)
             vT += ldvT + 1;
 
-        if (n1 == 0)
+        if (0 == n1)
             break;
 
         scale = h = 0;
@@ -220,7 +214,7 @@ iSVD_64f(double *a, int lda, int m, int n,
             scale += fabs(hv[j] = t);
         }
 
-        if (scale != 0)
+        if (0 != scale)
         {
             double f = 1. / scale, g, s = 0;
 
@@ -232,7 +226,7 @@ iSVD_64f(double *a, int lda, int m, int n,
 
             g = sqrt(s);
             f = hv[0];
-            if (f >= 0)
+            if (0 <= f)
                 g = -g;
             hv[0] = f - g;
             h = 1. / (f * g - s);
@@ -270,7 +264,7 @@ iSVD_64f(double *a, int lda, int m, int n,
         uT = u0 + m1 * lduT;
         for (i = m1; i < nu; i++, uT += lduT)
         {
-            memset(uT + m1, 0, (m - m1) * sizeof(uT[0]));
+            VOS_MEMSET(uT + m1, 0, (m - m1) * sizeof(uT[0]));
             uT[i] = 1.;
         }
 
@@ -286,7 +280,7 @@ iSVD_64f(double *a, int lda, int m, int n,
 
             assert(h <= 0);
 
-            if (h != 0)
+            if (0 != h)
             {
                 uT = hv;
                 iMatrAXPY3_64f(lh, l - 1, hv + 1, lduT, uT + 1, h);
@@ -315,7 +309,7 @@ iSVD_64f(double *a, int lda, int m, int n,
         vT = v0 + n1 * ldvT;
         for (i = n1; i < nv; i++, vT += ldvT)
         {
-            memset(vT + n1, 0, (n - n1) * sizeof(vT[0]));
+            VOS_MEMSET(vT + n1, 0, (n - n1) * sizeof(vT[0]));
             vT[i] = 1.;
         }
 
@@ -330,7 +324,7 @@ iSVD_64f(double *a, int lda, int m, int n,
 
             assert(h <= 0);
 
-            if (h != 0)
+            if (0 != h)
             {
                 vT = hv;
                 iMatrAXPY3_64f(lh, l - 1, hv + 1, ldvT, vT + 1, h);
@@ -451,7 +445,7 @@ iSVD_64f(double *a, int lda, int m, int n,
                 w[i - 1] = z;
 
                 /* rotation can be arbitrary if z == 0 */
-                if (z != 0)
+                if ( 0 != z)
                 {
                     c = f / z;
                     s = h / z;
@@ -520,7 +514,7 @@ iSVBkSb_64f(int m, int n, const double *w,
         nb = m;
 
     for (i = 0; i < n; i++)
-        memset(x + i * ldx, 0, nb * sizeof(x[0]));
+        VOS_MEMSET(x + i * ldx, 0, nb * sizeof(x[0]));
 
     for (i = 0; i < nm; i++)
         threshold += w[i];
@@ -540,7 +534,7 @@ iSVBkSb_64f(int m, int n, const double *w,
                 double s = 0;
                 if (b)
                 {
-                    if (ldb == 1)
+                    if (1 == ldb)
                     {
                         for (j = 0; j <= m - 4; j += 4)
                             s += uT[j] * b[j] + uT[j + 1] * b[j + 1] + uT[j + 2] * b[j + 2] + uT[j + 3] * b[j + 3];
@@ -556,7 +550,7 @@ iSVBkSb_64f(int m, int n, const double *w,
                 else
                     s = uT[0];
                 s *= wi;
-                if (ldx == 1)
+                if (1 == ldx)
                 {
                     for (j = 0; j <= n - 4; j += 4)
                     {
@@ -583,7 +577,7 @@ iSVBkSb_64f(int m, int n, const double *w,
             {
                 if (b)
                 {
-                    memset(buffer, 0, nb * sizeof(buffer[0]));
+                    VOS_MEMSET(buffer, 0, nb * sizeof(buffer[0]));
                     iMatrAXPY_64f(m, nb, b, ldb, uT, buffer, 0);
                     for (j = 0; j < nb; j++)
                         buffer[j] *= wi;
@@ -602,7 +596,7 @@ iSVBkSb_64f(int m, int n, const double *w,
  void
 SVD(VOID *aarr, VOID *warr, VOID *uarr, VOID *varr, int flags)
 {
-    uchar *buffer = 0;
+    uchar *buffer = NULL;
     int local_alloc = 0;
 
     VOS_FUNCNAME("SVD");
@@ -614,7 +608,7 @@ SVD(VOID *aarr, VOID *warr, VOID *uarr, VOID *varr, int flags)
     Mat ustub, *u;
     Mat vstub, *v;
     Mat tmat;
-    uchar *tw = 0;
+    uchar *tw = NULL;
     int type;
     int a_buf_offset = 0, u_buf_offset = 0, buf_size, pix_size;
     int temp_u = 0, /* temporary storage for U is needed */
@@ -633,7 +627,7 @@ SVD(VOID *aarr, VOID *warr, VOID *uarr, VOID *varr, int flags)
     if (!VOS_ARE_TYPES_EQ(a, w))
         VOS_ERROR(VOS_StsUnmatchedFormats, "");
 
-    if (flags != (VOS_SVD_U_T | VOS_SVD_V_T))
+    if ( (VOS_SVD_U_T | VOS_SVD_V_T) != flags)
     {
         VOS_ERROR(VOS_StsUnsupportedFormat, "");
     }
@@ -661,14 +655,9 @@ SVD(VOID *aarr, VOID *warr, VOID *uarr, VOID *varr, int flags)
 
     w_is_mat = w_cols > 1 && w_rows > 1;
 
-    if (!w_is_mat && VOS_IS_MAT_CONT(w->type) && w_cols + w_rows - 1 == n)
-    {
+
         tw = w->data.ptr;
-    }
-    else
-    {
-        VOS_ERROR(VOS_StsUnsupportedFormat, "herelsp remove");
-    }
+
 
     if (u)
     {
@@ -739,7 +728,7 @@ SVD(VOID *aarr, VOID *warr, VOID *uarr, VOID *varr, int flags)
 
     buf_size *= pix_size;
 
-    if (buf_size <= VOS_MAX_LOCAL_SIZE)
+    if (VOS_MAX_LOCAL_SIZE >= buf_size)
     {
         buffer = (uchar *)cvStackAlloc(buf_size);
         local_alloc = 1;
@@ -769,28 +758,16 @@ SVD(VOID *aarr, VOID *warr, VOID *uarr, VOID *varr, int flags)
     if (!tw)
         tw = buffer + (n + m) * pix_size;
 
-    if (type == VOS_64FC1)
-    {
         iSVD_64f(a->data.db, a->step / sizeof(double), a->rows, a->cols,
                    (double *)tw, u->data.db, u->step / sizeof(double), u_cols,
                    v->data.db, v->step / sizeof(double), (double *)buffer);
-    }
-    else
-    {
-        VOS_ERROR(VOS_StsUnsupportedFormat, "");
-    }
 
     if (uarr)
     {
         if (temp_u)
             Copy(u, uarr);
-        /*VOS_CHECK_NANS( uarr );*/
     }
 
-    if (varr)
-    {
-        /*VOS_CHECK_NANS( varr );*/
-    }
 
     __END__;
 
@@ -803,7 +780,7 @@ SVBkSb(const VOID *warr, const VOID *uarr,
          const VOID *varr, const VOID *barr,
          VOID *xarr, int flags)
 {
-    uchar *buffer = 0;
+    uchar *buffer = NULL;
     int local_alloc = 0;
 
     VOS_FUNCNAME("SVBkSb");
@@ -815,7 +792,7 @@ SVBkSb(const VOID *warr, const VOID *uarr,
     Mat xstub, *x = (Mat *)xarr;
     Mat ustub, *u = (Mat *)uarr;
     Mat vstub, *v = (Mat *)varr;
-    uchar *tw = 0;
+    uchar *tw = NULL;
     int type;
     int w_buf_offset = 0, t_buf_offset = 0;
     int buf_size = 0, pix_size;
@@ -838,7 +815,7 @@ SVBkSb(const VOID *warr, const VOID *uarr,
     if (!VOS_ARE_TYPES_EQ(w, u) || !VOS_ARE_TYPES_EQ(w, v) || !VOS_ARE_TYPES_EQ(w, x))
         VOS_ERROR(VOS_StsUnmatchedFormats, "All matrices must have the same type");
 
-    if (flags != (VOS_SVD_U_T | VOS_SVD_V_T))
+    if (  (VOS_SVD_U_T | VOS_SVD_V_T)!=flags)
     {
         VOS_ERROR(VOS_StsUnsupportedFormat, "");
     }
@@ -859,7 +836,7 @@ SVBkSb(const VOID *warr, const VOID *uarr,
     if ((u_rows != u_cols && v_rows != v_cols) || x->rows != v_rows)
         VOS_ERROR(VOS_StsBadSize, "V or U matrix must be square");
 
-    if ((w->rows == 1 || w->cols == 1) && w->rows + w->cols - 1 == nm)
+    if ((1 == w->rows  || 1 == w->cols) && w->rows + w->cols - 1 == nm)
     {
         if (VOS_IS_MAT_CONT(w->type))
             tw = w->data.ptr;
@@ -890,13 +867,13 @@ SVBkSb(const VOID *warr, const VOID *uarr,
     else
     {
         b = &bstub;
-        memset(b, 0, sizeof(*b));
+        VOS_MEMSET(b, 0, sizeof(*b));
     }
 
     t_buf_offset = buf_size;
     buf_size += (VOS_MAX(m, n) + b->cols) * pix_size;
 
-    if (buf_size <= VOS_MAX_LOCAL_SIZE)
+    if (VOS_MAX_LOCAL_SIZE >= buf_size )
     {
         buffer = (uchar *)cvStackAlloc(buf_size);
         local_alloc = 1;
@@ -909,21 +886,14 @@ SVBkSb(const VOID *warr, const VOID *uarr,
         int i, shift = w->cols > 1 ? pix_size : 0;
         tw = buffer + w_buf_offset;
         for (i = 0; i < nm; i++)
-            memcpy(tw + i * pix_size, w->data.ptr + i * (w->step + shift), pix_size);
+            VOS_MEMCPY(tw + i * pix_size, w->data.ptr + i * (w->step + shift), pix_size);
     }
 
-    if (type == VOS_64FC1)
-    {
         iSVBkSb_64f(m, n, (double *)tw, u->data.db, u->step / sizeof(double),
                       v->data.db, v->step / sizeof(double),
                       b->data.db, b->step / sizeof(double), b->cols,
                       x->data.db, x->step / sizeof(double),
                       (double *)(buffer + t_buf_offset));
-    }
-    else
-    {
-        VOS_ERROR(VOS_StsUnsupportedFormat, "");
-    }
 
     __END__;
 

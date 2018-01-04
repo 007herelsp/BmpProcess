@@ -1,29 +1,19 @@
 #ifndef _BITSTRM_H_
 #define _BITSTRM_H_
 
-#include <stdio.h>
-#include <assert.h>
-#include <stdlib.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+#include "cxtypes.h"
+
 #include <limits.h>
 #include <ctype.h>
 
-typedef unsigned char uchar;
-typedef unsigned long ulong;
-
-// class RBaseStream - base class for other reading streams.
 class RBaseStream
 {
 public:
-    //methods
     RBaseStream();
     virtual ~RBaseStream();
     
     virtual bool  Open( const char* filename );
     virtual void  Close();
-    void          SetBlockSize( int block_size, int unGetsize = 4 );
     bool          IsOpened();
     void          SetPos( int pos );
     int           GetPos();
@@ -45,8 +35,6 @@ protected:
     virtual void  Allocate();
 };
 
-// class RLByteStream - uchar-oriented stream.
-// l in prefix means that the least significant uchar of a multi-uchar value goes first
 class RLByteStream : public RBaseStream
 {
 public:
@@ -58,17 +46,14 @@ public:
     int     GetDWord(); 
 };
 
-// WBaseStream - base class for output streams
 class WBaseStream
 {
 public:
-    //methods
     WBaseStream();
     virtual ~WBaseStream();
     
     virtual bool  Open( const char* filename );
     virtual void  Close();
-    void          SetBlockSize( int block_size );
     bool          IsOpened();
     int           GetPos();
     
@@ -87,9 +72,6 @@ protected:
     virtual void  Allocate();
 };
 
-
-// class WLByteStream - uchar-oriented stream.
-// l in prefix means that the least significant uchar of a multi-byte value goes first
 class WLByteStream : public WBaseStream
 {
 public:

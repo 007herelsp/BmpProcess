@@ -40,6 +40,12 @@ ReleaseImage(IplImage **image);
 IplImage *
 CloneImage(const IplImage *image);
 
+void thin(IplImage *image);
+
+void cvThin( IplImage* src, IplImage* dst, int iterations=1);
+
+
+
 /* Allocates and initalizes Mat header */
 Mat *
 CreateMatHeader(int rows, int cols, int type);
@@ -114,10 +120,8 @@ Copy(const VOID *src, VOID *dst,
        const VOID *mask VOS_DEFAULT(NULL));
 
 void
-ConvertScale(const VOID *src, VOID *dst,
-               double scale VOS_DEFAULT(1),
-               double shift VOS_DEFAULT(0));
-#define Convert(src, dst) ConvertScale((src), (dst), 1, 0)
+ConvertScale(const Mat *src, Mat *dst);
+#define Convert(src, dst) ConvertScale((src), (dst))
 
 void
 SysPow(const VOID *src, VOID *dst, double power);

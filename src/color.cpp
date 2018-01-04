@@ -83,7 +83,7 @@ CvtColor(const VOID *srcarr, VOID *dstarr, int code)
 
     assert("herelsp remove" && (depth == VOS_8U));
 
-    FUN_CALL(BGR2Gray_8u_CnC1R(src->data.ptr, src_step,
+    VOS_FUN_CALL(BGR2Gray_8u_CnC1R(src->data.ptr, src_step,
                                    dst->data.ptr, dst_step, size, src_cn, 2));
 
     __END__;

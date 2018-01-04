@@ -62,20 +62,20 @@ bool GrFmtBmpReader::ReadHeader()
             m_strm.Skip(size - 36);
 
             if (m_width > 0 && m_height > 0 &&
-                ((m_bpp == 24) && (m_rle_code == BMP_RGB)))
+                ((24 == m_bpp) && (BMP_RGB == m_rle_code)))
             {
                 m_iscolor = true;
                 result = true;
             }
         }
-        else if (size == 12)
+        else if (12 == size)
         {
             m_width = m_strm.GetWord();
             m_height = m_strm.GetWord();
             m_bpp = m_strm.GetDWord() >> 16;
             m_rle_code = BMP_RGB;
 
-            if (m_width > 0 && m_height > 0 &&                (m_bpp == 24))
+            if (m_width > 0 && m_height > 0 &&                (24 == m_bpp))
             {
                 result = true;
             }
@@ -105,14 +105,12 @@ bool GrFmtBmpReader::ReadData(uchar *data, int step, int color)
 
     data += (m_height - 1) * step;
     step = -step;
-    assert("herelsp remove" && (m_bpp == 24));
+ 
     if (24 != m_bpp || (!color))
     {
         return false;
     }
 
-
-    {
         m_strm.SetPos(m_offset);
 
         /************************* 24 BPP ************************/
@@ -121,7 +119,6 @@ bool GrFmtBmpReader::ReadData(uchar *data, int step, int color)
             m_strm.GetBytes(color ? data : src, src_pitch);
         }
         result = true;
-    }
 
     return result;
 }
@@ -173,7 +170,7 @@ bool GrFmtBmpWriter::WriteImage(const uchar *data, int step,
         m_strm.PutDWord(0);
         m_strm.PutDWord(0);
 
-        if (channels == 1)
+        if (1 == channels)
         {
             FillGrayPalette(palette, 8);
             m_strm.PutBytes(palette, sizeof(palette));

@@ -5,9 +5,9 @@
 static void *
 iLoadImage(const char *filename, int flags)
 {
-    GrFmtBmpReader *reader = 0;
-    IplImage *image = 0;
-    Mat hdr, *matrix = 0;
+    GrFmtBmpReader *reader = NULL;
+    IplImage *image = NULL;
+    Mat hdr, *matrix = NULL;
 
     VOS_FUNCNAME("LoadImage");
 
@@ -65,8 +65,8 @@ LoadImage(const char *filename, int iscolor)
 SaveImage(const char *filename, const VOID *arr)
 {
     int origin = 0;
-    GrFmtBmpWriter *writer = 0;
-    Mat *temp = 0, *temp2 = 0;
+    GrFmtBmpWriter *writer = NULL;
+    Mat *temp = NULL, *temp2 = NULL;
 
     VOS_FUNCNAME("SaveImage");
 
@@ -84,7 +84,7 @@ SaveImage(const char *filename, const VOID *arr)
         origin = ((IplImage *)arr)->origin;
 
     channels = VOS_MAT_CN(image->type);
-    if (channels != 1 && channels != 3 && channels != 4)
+    if (1 != channels  && 3 != channels  && 4 != channels)
         VOS_ERROR(VOS_BadNumChannels, "");
 
     writer = new GrFmtBmpWriter(filename);

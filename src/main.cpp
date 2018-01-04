@@ -332,6 +332,10 @@ int main(int argc, char **args)
 	int iCunt = 0;
 	if (NULL != lpOutImg)
 	{
+		//cvThin(lpDilateImg,lpCannyImg,8);
+		//	Canny(lpDilateImg, lpCannyImg, 0.5, 20, 3);
+		//thin(lpDilateImg);
+		//SaveImage("thin.bmp", lpCannyImg);
 		iCunt = process_v2(lpDilateImg, lpOutImg, argc - 3, &args[3]);
 
 		SaveImage(OutputPath, lpOutImg);

@@ -4,6 +4,7 @@
 #include "cxtypes.h"
 #include <limits.h>
 
+
 /****************************************************************************************\
 *                              Compile-time tuning parameters                            *
 \****************************************************************************************/
@@ -65,6 +66,8 @@
 #elif
     #error
 #endif
+
+
 
 
 #define cvStackAlloc(size) AlignPtr( alloca((size) + VOS_MALLOC_ALIGN), VOS_MALLOC_ALIGN )
@@ -129,39 +132,39 @@ VOS_INLINE  Size  GetMatSize( const Mat* mat )
 #define  VOS_DESCALE(x,n)     (((x) + (1 << ((n)-1))) >> (n))
 
 
-#define VOS_MEMCPY_INT( dst, src, len )                                              \
+#define VOS_SYS_MEMCPY_INT( dst, src, len )                                              \
 {                                                                                   \
-    size_t _icv_memcpy_i_, _icv_memcpy_len_ = (len);                                \
-    int* _icv_memcpy_dst_ = (int*)(dst);                                            \
-    const int* _icv_memcpy_src_ = (const int*)(src);                                \
-    assert( ((size_t)_icv_memcpy_src_&(sizeof(int)-1)) == 0 &&                      \
-            ((size_t)_icv_memcpy_dst_&(sizeof(int)-1)) == 0 );                      \
+    size_t _icv_SYS_MEMCPY_i_, _icv_SYS_MEMCPY_len_ = (len);                                \
+    int* _icv_SYS_MEMCPY_dst_ = (int*)(dst);                                            \
+    const int* _icv_SYS_MEMCPY_src_ = (const int*)(src);                                \
+    assert( ((size_t)_icv_SYS_MEMCPY_src_&(sizeof(int)-1)) == 0 &&                      \
+            ((size_t)_icv_SYS_MEMCPY_dst_&(sizeof(int)-1)) == 0 );                      \
                                                                                     \
-    for(_icv_memcpy_i_=0;_icv_memcpy_i_<_icv_memcpy_len_;_icv_memcpy_i_++)          \
-        _icv_memcpy_dst_[_icv_memcpy_i_] = _icv_memcpy_src_[_icv_memcpy_i_];        \
+    for(_icv_SYS_MEMCPY_i_=0;_icv_SYS_MEMCPY_i_<_icv_SYS_MEMCPY_len_;_icv_SYS_MEMCPY_i_++)          \
+        _icv_SYS_MEMCPY_dst_[_icv_SYS_MEMCPY_i_] = _icv_SYS_MEMCPY_src_[_icv_SYS_MEMCPY_i_];        \
 }
 
 
-#define VOS_MEMCPY_AUTO( dst, src, len )                                             \
+#define VOS_SYS_MEMCPY_AUTO( dst, src, len )                                             \
 {                                                                                   \
-    size_t _icv_memcpy_i_, _icv_memcpy_len_ = (len);                                \
-    char* _icv_memcpy_dst_ = (char*)(dst);                                          \
-    const char* _icv_memcpy_src_ = (const char*)(src);                              \
-    if( (_icv_memcpy_len_ & (sizeof(int)-1)) == 0 )                                 \
+    size_t _icv_SYS_MEMCPY_i_, _icv_SYS_MEMCPY_len_ = (len);                                \
+    char* _icv_SYS_MEMCPY_dst_ = (char*)(dst);                                          \
+    const char* _icv_SYS_MEMCPY_src_ = (const char*)(src);                              \
+    if( (_icv_SYS_MEMCPY_len_ & (sizeof(int)-1)) == 0 )                                 \
     {                                                                               \
-        assert( ((size_t)_icv_memcpy_src_&(sizeof(int)-1)) == 0 &&                  \
-                ((size_t)_icv_memcpy_dst_&(sizeof(int)-1)) == 0 );                  \
-        for( _icv_memcpy_i_ = 0; _icv_memcpy_i_ < _icv_memcpy_len_;                 \
-            _icv_memcpy_i_+=sizeof(int) )                                           \
+        assert( ((size_t)_icv_SYS_MEMCPY_src_&(sizeof(int)-1)) == 0 &&                  \
+                ((size_t)_icv_SYS_MEMCPY_dst_&(sizeof(int)-1)) == 0 );                  \
+        for( _icv_SYS_MEMCPY_i_ = 0; _icv_SYS_MEMCPY_i_ < _icv_SYS_MEMCPY_len_;                 \
+            _icv_SYS_MEMCPY_i_+=sizeof(int) )                                           \
         {                                                                           \
-            *(int*)(_icv_memcpy_dst_+_icv_memcpy_i_) =                              \
-            *(const int*)(_icv_memcpy_src_+_icv_memcpy_i_);                         \
+            *(int*)(_icv_SYS_MEMCPY_dst_+_icv_SYS_MEMCPY_i_) =                              \
+            *(const int*)(_icv_SYS_MEMCPY_src_+_icv_SYS_MEMCPY_i_);                         \
         }                                                                           \
     }                                                                               \
     else                                                                            \
     {                                                                               \
-        for(_icv_memcpy_i_ = 0; _icv_memcpy_i_ < _icv_memcpy_len_; _icv_memcpy_i_++)\
-            _icv_memcpy_dst_[_icv_memcpy_i_] = _icv_memcpy_src_[_icv_memcpy_i_];    \
+        for(_icv_SYS_MEMCPY_i_ = 0; _icv_SYS_MEMCPY_i_ < _icv_SYS_MEMCPY_len_; _icv_SYS_MEMCPY_i_++)\
+            _icv_SYS_MEMCPY_dst_[_icv_SYS_MEMCPY_i_] = _icv_SYS_MEMCPY_src_[_icv_SYS_MEMCPY_i_];    \
     }                                                                               \
 }
 
@@ -213,7 +216,7 @@ CvStatus;
 #define VOS_ERROR_FROM_STATUS( result )                \
     VOS_ERROR( SysErrorFromStatus( result ), "function failed" )
 
-#define FUN_CALL( Func )                                              \
+#define VOS_FUN_CALL( Func )                                              \
 {                                                                      \
       CvStatus  fun_call_result;                                      \
       fun_call_result = Func;                                         \

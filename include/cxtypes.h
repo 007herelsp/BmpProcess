@@ -29,6 +29,13 @@
 #endif /* VOS_INLINE */
 
 
+#define VOS_MEMCPY memcpy
+#define VOS_MEMSET memset
+
+typedef unsigned char uchar;
+typedef unsigned long ulong;
+typedef unsigned short ushort;
+
 
 #if defined _MSC_VER
 typedef __int64 int64;
@@ -42,24 +49,15 @@ typedef unsigned long long uint64;
 typedef unsigned char uchar;
 typedef unsigned short ushort;
 
-
-/* CvArr* is used to pass arbitrary array-like data structures
-   into the functions where the particular
-   array type is recognized at runtime */
 typedef void VOID;
 
-typedef union Cv32suf
+typedef union Sys32suf
 {
     int i;
     unsigned u;
     float f;
 }
-Cv32suf;
-
-
-/****************************************************************************************\
-*                             Common macros and inline functions                         *
-\****************************************************************************************/
+Sys32suf;
 
 #define VOS_PI   3.1415926535897932384626433832795
 #define VOS_LOG2 0.69314718055994530941723212145818
@@ -75,12 +73,10 @@ VOS_INLINE  int  SysRound( double value )
     return (int)round(value);
 }
 
-
 VOS_INLINE  int  SysFloor( double value )
 {
     return (int)floor(value);
 }
-
 
 VOS_INLINE  int  SysCeil( double value )
 {
@@ -89,12 +85,6 @@ VOS_INLINE  int  SysCeil( double value )
 
 #define SYS_INVSQRT(value) ((float)(1./sqrt(value)))
 #define SYS_SQRT(value)  ((float)sqrt(value))
-
-
-
-/****************************************************************************************\
-*                                  Image type (IplImage)                                 *
-\****************************************************************************************/
 
 #ifndef HAVE_IPL
 
@@ -131,9 +121,7 @@ VOS_INLINE  int  SysCeil( double value )
 typedef struct _IplImage
 {
     int  nSize;         /* sizeof(IplImage) */
-    int  ID;            /* version (=0)*/
     int  nChannels;     /* Most of   functions support 1,2,3 or 4 channels */
-    int  alphaChannel;  /* ignored by   */
     int  depth;         /* pixel depth in bits: IPL_DEPTH_8U, IPL_DEPTH_8S, IPL_DEPTH_16S,
                            IPL_DEPTH_32S, IPL_DEPTH_32F and IPL_DEPTH_64F are supported */
     int  dataOrder;     /* 0 - interleaved color channels, 1 - separate color channels.
@@ -144,12 +132,11 @@ typedef struct _IplImage
                              ignores it and uses widthStep instead */
     int  width;         /* image width in pixels */
     int  height;        /* image height in pixels */
-    void  *imageId;     /* ditto */
     int  imageSize;     /* image data size in bytes
                            (==image->height*image->widthStep
                            in case of interleaved data)*/
     char *imageData;  /* pointer to aligned image data */
-    int  widthStep;   /* size of aligned image row in bytes */
+    int   widthStep;   /* size of aligned image row in bytes */
     char *imageDataOrigin; /* pointer to very origin of image data
                               (not necessarily aligned) -
                               needed for correct deallocation */
@@ -179,27 +166,14 @@ IplConvKernel;
 /* extra border mode */
 #define IPL_BORDER_REFLECT_101    4
 
-#define IPL_IMAGE_MAGIC_VAL  ((int)sizeof(IplImage))
-#define VOS_TYPE_NAME_IMAGE " -image"
-
 #define VOS_IS_IMAGE_HDR(img) \
     ((img) != NULL && ((const IplImage*)(img))->nSize == sizeof(IplImage))
 
 #define VOS_IS_IMAGE(img) \
     (VOS_IS_IMAGE_HDR(img) && ((IplImage*)img)->imageData != NULL)
 
-/* for storing double-precision
-   floating point data in IplImage's */
-#define IPL_DEPTH_64F  64
-
-/* get reference to pixel at (col,row),
-   for multi-channel images (col) should be multiplied by number of channels */
 #define VOS_IMAGE_ELEM( image, elemtype, row, col )       \
     (((elemtype*)((image)->imageData + (image)->widthStep*(row)))[(col)])
-
-/****************************************************************************************\
-*                                  Matrix type (Mat)                                   *
-\****************************************************************************************/
 
 #define VOS_CN_MAX     64
 #define VOS_CN_SHIFT   3
@@ -254,8 +228,6 @@ IplConvKernel;
 #define VOS_64FC4 VOS_MAKETYPE(VOS_64F,4)
 #define VOS_64FC(n) VOS_MAKETYPE(VOS_64F,(n))
 
-#define VOS_AUTO_STEP  0x7fffffff
-
 #define VOS_MAT_CN_MASK          ((VOS_CN_MAX - 1) << VOS_CN_SHIFT)
 #define VOS_MAT_CN(flags)        ((((flags) & VOS_MAT_CN_MASK) >> VOS_CN_SHIFT) + 1)
 #define VOS_MAT_DEPTH_MASK       (VOS_DEPTH_MAX - 1)
@@ -265,14 +237,9 @@ IplConvKernel;
 #define VOS_MAT_CONT_FLAG_SHIFT  14
 #define VOS_MAT_CONT_FLAG        (1 << VOS_MAT_CONT_FLAG_SHIFT)
 #define VOS_IS_MAT_CONT(flags)   ((flags) & VOS_MAT_CONT_FLAG)
-#define VOS_IS_CONT_MAT          VOS_IS_MAT_CONT
-#define VOS_MAT_TEMP_FLAG_SHIFT  15
-#define VOS_MAT_TEMP_FLAG        (1 << VOS_MAT_TEMP_FLAG_SHIFT)
-#define VOS_IS_TEMP_MAT(flags)   ((flags) & VOS_MAT_TEMP_FLAG)
 
 #define VOS_MAGIC_MASK       0xFFFF0000
 #define VOS_MAT_MAGIC_VAL    0x42420000
-#define VOS_TYPE_NAME_MAT    " -matrix"
 
 typedef struct Mat
 {
@@ -321,8 +288,6 @@ Mat;
 #define VOS_IS_MAT(mat) \
     (VOS_IS_MAT_HDR(mat) && ((const Mat*)(mat))->data.ptr != NULL)
 
-#define VOS_IS_MASK_ARR(mat) \
-    (((mat)->type & (VOS_MAT_TYPE_MASK & ~VOS_8SC1)) == 0)
 
 #define VOS_ARE_TYPES_EQ(mat1, mat2) \
     ((((mat1)->type ^ (mat2)->type) & VOS_MAT_TYPE_MASK) == 0)
@@ -389,7 +354,7 @@ typedef struct Rect
 }
 Rect;
 
-VOS_INLINE  Rect  initRect( int x, int y, int width, int height )
+VOS_INLINE  Rect  InitRect( int x, int y, int width, int height )
 {
     Rect r;
 
@@ -431,7 +396,7 @@ typedef struct Point2D32f
 Point2D32f;
 
 
-VOS_INLINE  Point2D32f  initPoint2D32f( double x, double y )
+VOS_INLINE  Point2D32f  InitPoint2D32f( double x, double y )
 {
     Point2D32f p;
 
@@ -444,7 +409,7 @@ VOS_INLINE  Point2D32f  initPoint2D32f( double x, double y )
 
 VOS_INLINE  Point2D32f  PointTo32f( Point point )
 {
-    return initPoint2D32f( (float)point.x, (float)point.y );
+    return InitPoint2D32f( (float)point.x, (float)point.y );
 }
 
 
@@ -576,10 +541,6 @@ typedef struct MemStorage
 }
 MemStorage;
 
-#define VOS_IS_STORAGE(storage)  \
-    ((storage) != NULL &&       \
-    (((MemStorage*)(storage))->signature & VOS_MAGIC_MASK) == VOS_STORAGE_MAGIC_VAL)
-
 
 typedef struct MemStoragePos
 {
@@ -703,11 +664,7 @@ CvContour;
 #define VOS_SEQ_ELTYPE_POINT          VOS_32SC2  /* (x,y) */
 #define VOS_SEQ_ELTYPE_CODE           VOS_8UC1   /* freeman code: 0..7 */
 #define VOS_SEQ_ELTYPE_GENERIC        0
-#define VOS_SEQ_ELTYPE_PTR            VOS_USRTYPE1
-#define VOS_SEQ_ELTYPE_PPOINT         VOS_SEQ_ELTYPE_PTR  /* &(x,y) */
 #define VOS_SEQ_ELTYPE_INDEX          VOS_32SC1  /* #(x,y) */
-#define VOS_SEQ_ELTYPE_GRAPH_EDGE     0  /* &next_o, &next_d, &vtx_o, &vtx_d */
-#define VOS_SEQ_ELTYPE_GRAPH_VERTEX   0  /* first_edge, &(x,y) */
 #define VOS_SEQ_ELTYPE_TRIAN_ATR      0  /* vertex of the binary tree   */
 #define VOS_SEQ_ELTYPE_CONNECTED_COMP 0  /* connected component  */
 #define VOS_SEQ_ELTYPE_POINT3D        VOS_32FC3  /* (x,y,z)  */
@@ -719,10 +676,6 @@ CvContour;
 #define VOS_SEQ_KIND_GENERIC     (0 << VOS_SEQ_ELTYPE_BITS)
 #define VOS_SEQ_KIND_CURVE       (1 << VOS_SEQ_ELTYPE_BITS)
 #define VOS_SEQ_KIND_BIN_TREE    (2 << VOS_SEQ_ELTYPE_BITS)
-
-/* types of sparse sequences (sets) */
-#define VOS_SEQ_KIND_GRAPH       (3 << VOS_SEQ_ELTYPE_BITS)
-#define VOS_SEQ_KIND_SUBDIV2D    (4 << VOS_SEQ_ELTYPE_BITS)
 
 #define VOS_SEQ_FLAG_SHIFT       (VOS_SEQ_KIND_BITS + VOS_SEQ_ELTYPE_BITS)
 
@@ -740,10 +693,6 @@ CvContour;
 #define VOS_SEQ_CONTOUR         VOS_SEQ_POLYGON
 #define VOS_SEQ_SIMPLE_POLYGON  (VOS_SEQ_FLAG_SIMPLE | VOS_SEQ_POLYGON  )
 
-/* chain-coded curves */
-#define VOS_SEQ_CHAIN           (VOS_SEQ_KIND_CURVE  | VOS_SEQ_ELTYPE_CODE)
-#define VOS_SEQ_CHAIN_CONTOUR   (VOS_SEQ_FLAG_CLOSED | VOS_SEQ_CHAIN)
-
 /* binary tree for the contour */
 #define VOS_SEQ_POLYGON_TREE    (VOS_SEQ_KIND_BIN_TREE  | VOS_SEQ_ELTYPE_TRIAN_ATR)
 
@@ -756,9 +705,6 @@ CvContour;
 #define VOS_SEQ_ELTYPE( seq )   ((seq)->flags & VOS_SEQ_ELTYPE_MASK)
 #define VOS_SEQ_KIND( seq )     ((seq)->flags & VOS_SEQ_KIND_MASK )
 
-/* flag checking */
-#define VOS_IS_SEQ_INDEX( seq )      ((VOS_SEQ_ELTYPE(seq) == VOS_SEQ_ELTYPE_INDEX) && \
-    (VOS_SEQ_KIND(seq) == VOS_SEQ_KIND_GENERIC))
 
 #define VOS_IS_SEQ_CURVE( seq )      (VOS_SEQ_KIND(seq) == VOS_SEQ_KIND_CURVE)
 #define VOS_IS_SEQ_CLOSED( seq )     (((seq)->flags & VOS_SEQ_FLAG_CLOSED) != 0)
@@ -777,43 +723,33 @@ CvContour;
 #define VOS_IS_SEQ_POLYGON( seq )   \
     (VOS_IS_SEQ_POLYLINE(seq) && VOS_IS_SEQ_CLOSED(seq))
 
-#define VOS_IS_SEQ_CHAIN( seq )   \
-    (VOS_SEQ_KIND(seq) == VOS_SEQ_KIND_CURVE && (seq)->elem_size == 1)
-
 
 /****************************************************************************************/
 /*                            Sequence writer & reader                                  */
 /****************************************************************************************/
 
-#define VOS_SEQ_WRITER_FIELDS()                                     \
-    int          header_size;                                      \
-    Seq*       seq;        /* the sequence written */            \
-    SeqBlock*  block;      /* current block */                   \
-    char*        ptr;        /* pointer to free space */           \
-    char*        block_min;  /* pointer to the beginning of block*/\
-    char*        block_max;  /* pointer to the end of block */
-
 typedef struct SeqWriter
 {
-    VOS_SEQ_WRITER_FIELDS()
+     int          header_size;                                    
+    Seq*       seq;        /* the sequence written */             
+    SeqBlock*  block;      /* current block */                    
+    char*        ptr;        /* pointer to free space */           
+    char*        block_min;  /* pointer to the beginning of block*/ 
+    char*        block_max;  /* pointer to the end of block */
 }
 SeqWriter;
 
 
-#define VOS_SEQ_READER_FIELDS()                                      \
-    int          header_size;                                       \
-    Seq*       seq;        /* sequence, beign read */             \
-    SeqBlock*  block;      /* current block */                    \
-    char*        ptr;        /* pointer to element be read next */  \
-    char*        block_min;  /* pointer to the beginning of block */\
-    char*        block_max;  /* pointer to the end of block */      \
-    int          delta_index;/* = seq->first->start_index   */      \
-    char*        prev_elem;  /* pointer to previous element */
-
-
 typedef struct SeqReader
 {
-    VOS_SEQ_READER_FIELDS()
+     int          header_size;                                     
+    Seq*       seq;        /* sequence, beign read */             
+    SeqBlock*  block;      /* current block */                     
+    char*        ptr;        /* pointer to element be read next */  
+    char*        block_min;  /* pointer to the beginning of block */ 
+    char*        block_max;  /* pointer to the end of block */       
+    int          delta_index;/* = seq->first->start_index   */       
+    char*        prev_elem;  /* pointer to previous element */
 }
 SeqReader;
 
@@ -830,7 +766,7 @@ SeqReader;
     CreateSeqBlock( &writer);                   \
     }                                                 \
     assert( (writer).ptr <= (writer).block_max - sizeof(elem));\
-    memcpy((writer).ptr, &(elem), sizeof(elem));      \
+    VOS_MEMCPY((writer).ptr, &(elem), sizeof(elem));      \
     (writer).ptr += sizeof(elem);                     \
     }
 
@@ -849,7 +785,7 @@ SeqReader;
 #define VOS_READ_SEQ_ELEM( elem, reader )                       \
 {                                                              \
     assert( (reader).seq->elem_size == sizeof(elem));          \
-    memcpy( &(elem), (reader).ptr, sizeof((elem)));            \
+    VOS_MEMCPY( &(elem), (reader).ptr, sizeof((elem)));            \
     VOS_NEXT_SEQ_ELEM( sizeof(elem), reader )                   \
     }
 

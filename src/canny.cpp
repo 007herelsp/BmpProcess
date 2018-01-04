@@ -42,6 +42,8 @@ Sobel( const void* srcarr, void* dstarr, int dx, int dy, int aperture_size )
         SYS_FREE( &buffer );
 }
 
+#define CANNY_SHIFT 15
+#define TG22  (int)(0.4142135623730950488016887242097*(1<<CANNY_SHIFT) + 0.5)
 
 
  void
@@ -74,9 +76,6 @@ Canny( const void* srcarr, void* dstarr,
         VOS_MAT_TYPE( dst->type ) != VOS_8UC1 )
         VOS_ERROR( VOS_StsUnsupportedFormat, "" );
 
-    if( !VOS_ARE_SIZES_EQ( src, dst ))
-        VOS_ERROR( VOS_StsUnmatchedSizes, "" );
-
     if( low_thresh > high_thresh )
     {
         double t;
@@ -97,7 +96,7 @@ Canny( const void* srcarr, void* dstarr,
 
     if( flags & VOS_CANNY_L2_GRADIENT )
     {
-        Cv32suf ul, uh;
+        Sys32suf ul, uh;
         ul.f = (float)low_thresh;
         uh.f = (float)high_thresh;
 
@@ -122,9 +121,9 @@ Canny( const void* srcarr, void* dstarr,
     maxsize = VOS_MAX( 1 << 10, size.width*size.height/10 );
     VOS_CALL( stack_top = stack_bottom = (uchar**)SysAlloc( maxsize*sizeof(stack_top[0]) ));
 
-    memset( mag_buf[0], 0, (size.width+2)*sizeof(int) );
-    memset( map, 1, mapstep );
-    memset( map + mapstep*(size.height + 1), 1, mapstep );
+    VOS_MEMSET( mag_buf[0], 0, (size.width+2)*sizeof(int) );
+    VOS_MEMSET( map, 1, mapstep );
+    VOS_MEMSET( map + mapstep*(size.height + 1), 1, mapstep );
 
     /* sector numbers
        (Top-Left Origin)
@@ -164,19 +163,10 @@ Canny( const void* srcarr, void* dstarr,
             _mag[-1] = _mag[size.width] = 0;
 
             if( !(flags & VOS_CANNY_L2_GRADIENT) )
+            	{
                 for( j = 0; j < size.width; j++ )
                     _mag[j] = abs(_dx[j]) + abs(_dy[j]);
-            else if( 0 != 0 ) // check for IPP
-            {
-                // use vectorized sqrt
-                mag_row.data.fl = _magf;
-                for( j = 0; j < size.width; j++ )
-                {
-                    x = _dx[j]; y = _dy[j];
-                    _magf[j] = (float)((double)x*x + (double)y*y);
-                }
-                SysPow( &mag_row, &mag_row, 0.5 );
-            }
+            	}
             else
             {
                 for( j = 0; j < size.width; j++ )
@@ -187,7 +177,7 @@ Canny( const void* srcarr, void* dstarr,
             }
         }
         else
-            memset( _mag-1, 0, (size.width + 2)*sizeof(int) );
+            VOS_MEMSET( _mag-1, 0, (size.width + 2)*sizeof(int) );
 
         // at the very beginning we do not have a complete ring
         // buffer of 3 magnitude rows for non-maxima suppression
@@ -209,7 +199,7 @@ Canny( const void* srcarr, void* dstarr,
             uchar** new_stack_bottom;
             maxsize = VOS_MAX( maxsize * 3/2, maxsize + size.width );
             VOS_CALL( new_stack_bottom = (uchar**)SysAlloc( maxsize * sizeof(stack_top[0])) );
-            memcpy( new_stack_bottom, stack_bottom, (stack_top - stack_bottom)*sizeof(stack_top[0]) );
+            VOS_MEMCPY( new_stack_bottom, stack_bottom, (stack_top - stack_bottom)*sizeof(stack_top[0]) );
             stack_top = new_stack_bottom + (stack_top - stack_bottom);
             SYS_FREE( &stack_bottom );
             stack_bottom = new_stack_bottom;
@@ -217,8 +207,6 @@ Canny( const void* srcarr, void* dstarr,
 
         for( j = 0; j < size.width; j++ )
         {
-            #define CANNY_SHIFT 15
-            #define TG22  (int)(0.4142135623730950488016887242097*(1<<CANNY_SHIFT) + 0.5)
 
             x = _dx[j];
             y = _dy[j];
@@ -298,7 +286,7 @@ Canny( const void* srcarr, void* dstarr,
             uchar** new_stack_bottom;
             maxsize = VOS_MAX( maxsize * 3/2, maxsize + 8 );
             VOS_CALL( new_stack_bottom = (uchar**)SysAlloc( maxsize * sizeof(stack_top[0])) );
-            memcpy( new_stack_bottom, stack_bottom, (stack_top - stack_bottom)*sizeof(stack_top[0]) );
+            VOS_MEMCPY( new_stack_bottom, stack_bottom, (stack_top - stack_bottom)*sizeof(stack_top[0]) );
             stack_top = new_stack_bottom + (stack_top - stack_bottom);
             SYS_FREE( &stack_bottom );
             stack_bottom = new_stack_bottom;

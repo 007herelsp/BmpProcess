@@ -7,7 +7,7 @@ void Smooth(const void *srcarr, void *dstarr, int smooth_type,
 {
     SepFilter gaussian_filter;
 
-    Mat *temp = 0;
+    Mat *temp = NULL;
 
     VOS_FUNCNAME("Smooth");
 
@@ -19,12 +19,12 @@ void Smooth(const void *srcarr, void *dstarr, int smooth_type,
     Size size;
     int src_type, dst_type, depth;
     double sigma1 = 0, sigma2 = 0;
-    bool have_ipp = false;
+	double sigmaltmp =0;
 
     VOS_CALL(src = GetMat(src, &srcstub, &coi1));
     VOS_CALL(dst = GetMat(dst, &dststub, &coi2));
 
-    if (coi1 != 0 || coi2 != 0)
+    if (0 != coi1 || 0 != coi2)
         VOS_ERROR(VOS_BadCOI, "");
 
     src_type = VOS_MAT_TYPE(src->type);
@@ -41,19 +41,19 @@ void Smooth(const void *srcarr, void *dstarr, int smooth_type,
 
     sigma1 = param3;
     sigma2 = param4 ? param4 : param3;
+	sigmaltmp = (VOS_8U == depth? 3 : 4) * 2;
+    if (0 == param1 && sigma1 > 0)
+        param1 = SysRound(sigma1 * sigmaltmp + 1) | 1;
+    if (0 == param2 && sigma2 > 0)
+        param2 = SysRound(sigma2 * sigmaltmp + 1) | 1;
 
-    if (param1 == 0 && sigma1 > 0)
-        param1 = SysRound(sigma1 * (depth == VOS_8U ? 3 : 4) * 2 + 1) | 1;
-    if (param2 == 0 && sigma2 > 0)
-        param2 = SysRound(sigma2 * (depth == VOS_8U ? 3 : 4) * 2 + 1) | 1;
-
-    if (param2 == 0)
-        param2 = size.height == 1 ? 1 : param1;
+    if (0 == param2)
+        param2 = 1 == size.height? 1 : param1;
     if (param1 < 1 || (param1 & 1) == 0 || param2 < 1 || (param2 & 1) == 0)
         VOS_ERROR(VOS_StsOutOfRange,
                   "Both mask width and height must be >=1 and odd");
 
-    if (param1 == 1 && param2 == 1)
+    if ( 1 == param1 && 1 == param2 )
     {
         Convert(src, dst);
         EXIT;
@@ -71,12 +71,6 @@ void Smooth(const void *srcarr, void *dstarr, int smooth_type,
             SepFilter::init_gaussian_kernel(&KY, sigma2);
         else
             KY.data.fl = kx;
-
-        if (have_ipp && size.width >= param1 * 3 &&
-            size.height >= param2 && param1 > 1 && param2 > 1)
-        {
-            assert("herelsp remove" && 0);
-        }
 
         VOS_CALL(gaussian_filter.init(src->cols, src_type, dst_type, &KX, &KY));
         VOS_CALL(gaussian_filter.process(src, dst));

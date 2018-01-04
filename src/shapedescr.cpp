@@ -15,7 +15,7 @@ ArcLength(const void *array, Slice slice, int is_closed)
     float buf[N];
     Mat buffer = InitMat(1, N, VOS_32F, buf);
     SeqReader reader;
-    Seq *contour = 0;
+    Seq *contour = NULL;
 
     if (VOS_IS_SEQ(array))
     {
@@ -121,19 +121,19 @@ iMemCopy(double **buf1, double **buf2, double **buf3, int *b_max)
 {
     int bb;
 
-    if ( (*buf1 == NULL && *buf2 == NULL) || (*buf3 == NULL))
+    if ( (NULL == *buf1  && NULL == *buf2 ) || (NULL == *buf3))
         return VOS_NULLPTR_ERR;
 
     bb = *b_max;
-    if (*buf2 == NULL)
+    if (NULL == *buf2)
     {
         *b_max = 2 * (*b_max);
         *buf2 = (double *)SysAlloc((*b_max) * sizeof(double));
 
-        if (*buf2 == NULL)
+        if (NULL == *buf2)
             return VOS_OUTOFMEM_ERR;
 
-        memcpy(*buf2, *buf3, bb * sizeof(double));
+        VOS_MEMCPY(*buf2, *buf3, bb * sizeof(double));
 
         *buf3 = *buf2;
         SYS_FREE(buf1);
@@ -144,10 +144,10 @@ iMemCopy(double **buf1, double **buf2, double **buf3, int *b_max)
         *b_max = 2 * (*b_max);
         *buf1 = (double *)SysAlloc((*b_max) * sizeof(double));
 
-        if (*buf1 == NULL)
+        if (NULL == *buf1)
             return VOS_OUTOFMEM_ERR;
 
-        memcpy(*buf1, *buf3, bb * sizeof(double));
+        VOS_MEMCPY(*buf1, *buf3, bb * sizeof(double));
 
         *buf3 = *buf1;
         SYS_FREE(buf2);
@@ -188,7 +188,7 @@ static CvStatus iContourSecArea(const Seq *contour, Slice slice, double *area)
         dxy = 0;
         p_are1 = (double *)SysAlloc(p_max * sizeof(double));
 
-        if (p_are1 == NULL)
+        if (NULL == p_are1)
             return VOS_OUTOFMEM_ERR;
 
         p_are = p_are1;
@@ -210,7 +210,7 @@ static CvStatus iContourSecArea(const Seq *contour, Slice slice, double *area)
         {
             VOS_READ_SEQ_ELEM(pt, reader);
 
-            if (flag == 0)
+            if (0 == flag)
             {
                 xi_1 = (double)pt.x;
                 yi_1 = (double)pt.y;
@@ -307,9 +307,9 @@ static CvStatus iContourSecArea(const Seq *contour, Slice slice, double *area)
         for (i = 0; i < p_ind; i++)
             (*area) += fabs(p_are[i]);
 
-        if (p_are1 != NULL)
+        if (NULL != p_are1)
             SYS_FREE(&p_are1);
-        else if (p_are2 != NULL)
+        else if (NULL != p_are2)
             SYS_FREE(&p_are2);
 
         return VOS_OK;
@@ -334,14 +334,14 @@ ContourArea(const Seq *contour, Slice slice)
 
     if (SliceLength(slice, contour) == contour->total)
     {
-        FUN_CALL(iContourArea(contour, &area));
+        VOS_FUN_CALL(iContourArea(contour, &area));
     }
     else
     {
         if (VOS_SEQ_ELTYPE(contour) != VOS_32SC2)
             VOS_ERROR(VOS_StsUnsupportedFormat,
                       "Only curves with integer coordinates are supported in case of contour slice");
-        FUN_CALL(iContourSecArea(contour, slice, &area));
+        VOS_FUN_CALL(iContourSecArea(contour, slice, &area));
     }
 
     __END__;
@@ -354,7 +354,7 @@ Rect BoundingRect(VOID *array, int update)
 {
     SeqReader reader;
     Rect rect = {0, 0, 0, 0};
-    Seq *ptseq = 0;
+    Seq *ptseq = NULL;
 
     VOS_FUNCNAME("BoundingRect");
 
@@ -371,9 +371,6 @@ Rect BoundingRect(VOID *array, int update)
 
         if (ptseq->header_size < (int)sizeof(CvContour))
         {
-            /*if( update == 1 )
-                VOS_ERROR( VOS_StsBadArg, "The header is too small to fit the rectangle, "
-                                        "so it could not be updated" );*/
             update = 0;
             calculate = 1;
         }

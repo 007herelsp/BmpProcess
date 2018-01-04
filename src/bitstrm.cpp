@@ -25,8 +25,8 @@ void  RBaseStream::Allocate()
 
 RBaseStream::RBaseStream()
 {
-    m_start = m_end = m_current = 0;
-    m_file = 0;
+    m_start = m_end = m_current = NULL;
+    m_file = NULL;
     m_block_size = BS_DEF_BLOCK_SIZE;
     m_unGetsize = 4; // 32 bits
     m_is_opened = false;
@@ -43,12 +43,12 @@ RBaseStream::~RBaseStream()
 void  RBaseStream::ReadBlock()
 {
     size_t readed;
-    assert( m_file != 0 );
+    assert(  NULL!= m_file );
 
     // copy unget buffer
     if( m_start )
     {
-        memcpy( m_start - m_unGetsize, m_end - m_unGetsize, m_unGetsize );
+        VOS_MEMCPY( m_start - m_unGetsize, m_end - m_unGetsize, m_unGetsize );
     }
 
     SetPos( GetPos() ); // normalize position
@@ -59,10 +59,6 @@ void  RBaseStream::ReadBlock()
     m_current   -= m_block_size;
     m_block_pos += m_block_size;
 
-    if( readed == 0 || m_current >= m_end )
-    {
-       
-    }
 }
 
 
@@ -78,7 +74,7 @@ bool  RBaseStream::Open( const char* filename )
         m_is_opened = true;
         SetPos(0);
     }
-    return m_file != 0;
+    return   NULL != m_file;
 }
 
 void  RBaseStream::Close()
@@ -86,7 +82,7 @@ void  RBaseStream::Close()
     if( m_file )
     {
         fclose( m_file );
-        m_file = 0;
+        m_file = NULL;
     }
     m_is_opened = false;
 }
@@ -98,21 +94,9 @@ void  RBaseStream::Release()
     {
         delete[] (m_start - m_unGetsize);
     }
-    m_start = m_end = m_current = 0;
+    m_start = m_end = m_current = NULL;
 }
 
-
-void  RBaseStream::SetBlockSize( int block_size, int unGetsize )
-{
-    assert( unGetsize >= 0 && block_size > 0 &&
-           (block_size & (block_size-1)) == 0 );
-
-    if( m_start && block_size == m_block_size && unGetsize == m_unGetsize ) return;
-    Release();
-    m_block_size = block_size;
-    m_unGetsize = unGetsize;
-    Allocate();
-}
 
 
 void  RBaseStream::SetPos( int pos )
@@ -188,17 +172,13 @@ void  RLByteStream::GetBytes( void* buffer, int count, int* readed )
             if( l > 0 ) break;
             ReadBlock();
         }
-        memcpy( data, m_current, l );
+        VOS_MEMCPY( data, m_current, l );
         m_current += l;
         data += l;
         count -= l;
         if( readed ) *readed += l;
     }
 }
-
-
-////////////  RLByteStream & RMByteStream <Get[d]word>s ////////////////
-
 
 int  RLByteStream::GetWord()
 {
@@ -217,7 +197,6 @@ int  RLByteStream::GetWord()
     }
     return val;
 }
-
 
 int  RLByteStream::GetDWord()
 {
@@ -240,26 +219,19 @@ int  RLByteStream::GetDWord()
     return val;
 }
 
-
-
-/////////////////////////// WBaseStream /////////////////////////////////
-
-// WBaseStream - base class for output streams
 WBaseStream::WBaseStream()
 {
-    m_start = m_end = m_current = 0;
+    m_start = m_end = m_current = NULL;
     m_file = 0;
     m_block_size = BS_DEF_BLOCK_SIZE;
     m_is_opened = false;
 }
-
 
 WBaseStream::~WBaseStream()
 {
     Close();    // Close files
     Release();  // free  buffers
 }
-
 
 bool  WBaseStream::IsOpened()
 { 
@@ -280,7 +252,7 @@ void  WBaseStream::Allocate()
 void  WBaseStream::WriteBlock()
 {
     int size = (int)(m_current - m_start);
-    assert( m_file != 0 );
+    assert(  NULL!=m_file  );
 
     //fseek( m_file, m_block_pos, SEEK_SET );
     fwrite( m_start, 1, size, m_file );
@@ -304,7 +276,7 @@ bool  WBaseStream::Open( const char* filename )
         m_block_pos = 0;
         m_current = m_start;
     }
-    return m_file != 0;
+    return   NULL!=m_file;
 }
 
 
@@ -314,7 +286,7 @@ void  WBaseStream::Close()
     {
         WriteBlock();
         fclose( m_file );
-        m_file = 0;
+        m_file = NULL;
     }
     m_is_opened = false;
 }
@@ -327,17 +299,6 @@ void  WBaseStream::Release()
         delete[] m_start;
     }
     m_start = m_end = m_current = 0;
-}
-
-
-void  WBaseStream::SetBlockSize( int block_size )
-{
-    assert( block_size > 0 && (block_size & (block_size-1)) == 0 );
-
-    if( m_start && block_size == m_block_size ) return;
-    Release();
-    m_block_size = block_size;
-    Allocate();
 }
 
 
@@ -377,7 +338,7 @@ void WLByteStream::PutBytes( const void* buffer, int count )
         
         if( l > 0 )
         {
-            memcpy( m_current, data, l );
+            VOS_MEMCPY( m_current, data, l );
             m_current += l;
             data += l;
             count -= l;

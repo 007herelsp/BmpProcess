@@ -36,7 +36,7 @@ public:
     virtual void clear();
 
     virtual int process( const Mat* _src, Mat* _dst,
-                         Rect _src_roi=initRect(0,0,-1,-1),
+                         Rect _src_roi=InitRect(0,0,-1,-1),
                          Point _dst_origin=InitPoint(0,0), int _flags=0 );
     /* retrieve various parameters of the filtering object */
     int get_src_type() const { return src_type; }
