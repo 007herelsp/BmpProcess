@@ -95,8 +95,6 @@
 #define  VOS_CAST_16U(t) (ushort)(!((t) & ~65535) ? (t) : (t) > 0 ? 65535 : 0)
 #define  VOS_CAST_16S(t) (short)(!(((t)+32768) & ~65535) ? (t) : (t) > 0 ? 32767 : -32768)
 
-#define  cvUnsupportedFormat "Unsupported format"
-
 VOS_INLINE void* AlignPtr( const void* ptr, int align=32 )
 {
     assert( (align & (align-1)) == 0 );

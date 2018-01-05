@@ -65,16 +65,16 @@ typedef int OPTStatus;
 /* VOS_FUNCNAME macro defines icvFuncName constant which is used by VOS_ERROR macro */
 #ifdef VOS_NO_FUNC_NAMES
     #define VOS_FUNCNAME( Name )
-    #define cvFuncName ""
+    #define sysFuncName ""
 #else    
     #define VOS_FUNCNAME( Name )  \
-    static char cvFuncName[] = Name
+    static char sysFuncName[] = Name
 #endif
 
 
 #define VOS_ERROR( Code, Msg )                                       \
 {                                                                   \
-     SysError( (Code), cvFuncName, Msg, __FILE__, __LINE__ );        \
+     SysError( (Code), sysFuncName, Msg, __FILE__, __LINE__ );        \
      EXIT;                                                          \
 }
 

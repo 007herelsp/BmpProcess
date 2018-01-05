@@ -63,7 +63,7 @@ void Threshold(const void *srcarr, void *dstarr, double thresh, double maxval, i
 
     if (!VOS_ARE_DEPTHS_EQ(src, dst))
     {
-        VOS_ERROR(VOS_BadDepth, cvUnsupportedFormat);
+        VOS_ERROR(VOS_BadDepth, "");
     }
 
     if (!VOS_ARE_SIZES_EQ(src, dst))
