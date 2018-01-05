@@ -17,13 +17,13 @@
 
 static CvStatus
 BGR2Gray_8u_CnC1R(const uchar *src, int srcstep,
-                      uchar *dst, int dststep, Size size,
-                      int src_cn, int blue_idx)
+                  uchar *dstR, uchar *dstG, uchar *dstB, int dststep, Size size,
+                  int src_cn, int blue_idx)
 {
     int i;
     srcstep -= size.width * src_cn;
-    int b,g,r;
-    for (; size.height--; src += srcstep, dst += dststep)
+    int b, g, r;
+    for (; size.height--; src += srcstep, dstR += dststep)
     {
         for (i = 0; i < size.width; i++, src += src_cn)
         {
@@ -31,40 +31,48 @@ BGR2Gray_8u_CnC1R(const uchar *src, int srcstep,
             b = src[2];
             g = src[1];
             r = src[0];
-            //t0 = b>g?b:g;
-            //t0 = t0 >r?t0:r;
-            //t0 = b;
-            dst[i] = (uchar)VOS_DESCALE(t0, csc_shift);
-            //dst[i+0]  =r;
+            // dstR[i] = (uchar)VOS_DESCALE(t0, csc_shift);
+            dstR[i] = r;
+            dstG[i] = g;
+            dstB[i] = b;
         }
     }
+
+
+
     return VOS_OK;
 }
-
+extern  int
+SaveImage(const char *filename, const VOID *arr);
 /****************************************************************************************\
 *                                   The main function                                    *
 \****************************************************************************************/
 
- void
-CvtColor(const VOID *srcarr, VOID *dstarr, int code)
+void CvtColor(const VOID *srcarr, VOID *dstarrR, VOID *dstarrG, VOID *dstarrB, int code)
 {
     VOS_FUNCNAME("CvtColor");
 
     __BEGIN__;
 
+
+
     Mat srcstub, *src = (Mat *)srcarr;
-    Mat dststub, *dst = (Mat *)dstarr;
+    Mat dststubR, *dstR = (Mat *)dstarrR;
+
+    Mat dststubG, *dstG = (Mat *)dstarrG;
+    Mat dststubB, *dstB = (Mat *)dstarrB;
     Size size;
     int src_step, dst_step;
     int src_cn, dst_cn, depth;
 
     VOS_CALL(src = GetMat(srcarr, &srcstub));
-    VOS_CALL(dst = GetMat(dstarr, &dststub));
-
-    if (!VOS_ARE_SIZES_EQ(src, dst))
+    VOS_CALL(dstR = GetMat(dstarrR, &dststubR));
+    VOS_CALL(dstG = GetMat(dstarrG, &dststubG));
+    VOS_CALL(dstB = GetMat(dstarrB, &dststubB));
+    if (!VOS_ARE_SIZES_EQ(src, dstR))
         VOS_ERROR(VOS_StsUnmatchedSizes, "");
 
-    if (!VOS_ARE_DEPTHS_EQ(src, dst))
+    if (!VOS_ARE_DEPTHS_EQ(src, dstR))
         VOS_ERROR(VOS_StsUnmatchedFormats, "");
 
     depth = VOS_MAT_DEPTH(src->type);
@@ -72,10 +80,10 @@ CvtColor(const VOID *srcarr, VOID *dstarr, int code)
         VOS_ERROR(VOS_StsUnsupportedFormat, "");
 
     src_cn = VOS_MAT_CN(src->type);
-    dst_cn = VOS_MAT_CN(dst->type);
+    dst_cn = VOS_MAT_CN(dstR->type);
     size = GetMatSize(src);
     src_step = src->step;
-    dst_step = dst->step;
+    dst_step = dstR->step;
 
     if (src_cn != 3 || dst_cn != 1)
         VOS_ERROR(VOS_BadNumChannels,
@@ -84,7 +92,12 @@ CvtColor(const VOID *srcarr, VOID *dstarr, int code)
     assert("herelsp remove" && (depth == VOS_8U));
 
     VOS_FUN_CALL(BGR2Gray_8u_CnC1R(src->data.ptr, src_step,
-                                   dst->data.ptr, dst_step, size, src_cn, 2));
+                                   dstR->data.ptr, dstG->data.ptr, dstB->data.ptr, dst_step, size, src_cn, 2));
+
+
+			SaveImage("g0.bmp", dstR);
+            SaveImage("g1.bmp", dstG);
+            SaveImage("g2.bmp", dstB);
 
     __END__;
 }

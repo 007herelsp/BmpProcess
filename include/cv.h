@@ -39,7 +39,7 @@ void Smooth( const VOID* src, VOID* dst,
 #define  VOS_RGB2GRAY    7
 
 /* Converts input array pixels from one color space to another */
-void  CvtColor( const VOID* src, VOID* dst, int code );
+void  CvtColor( const VOID* src, VOID* dstr, VOID* dstg,VOID* dstb,int code );
 
 #define  VOS_INTER_LINEAR    1
 
