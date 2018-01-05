@@ -7,10 +7,12 @@ cv2.imshow("image0",image);
 image = cv2.equalizeHist(image)#灰度图像直方图均衡化
 cv2.imshow("image",image); 
 #构造一个3×3的结构元素 
-element = cv2.getStructuringElement(cv2.MORPH_RECT,(3, 3))
+element = cv2.getStructuringElement(cv2.MORPH_CROSS,(3, 3))
 dilate = cv2.dilate(image, element)
 erode = cv2.erode(image, element)
 
+erode2 = cv2.erode(dilate, element)
+cv2.imshow("erode2",erode2);
 #将两幅图像相减获得边，第一个参数是膨胀后的图像，第二个参数是腐蚀后的图像
 result = cv2.absdiff(dilate,erode);
 

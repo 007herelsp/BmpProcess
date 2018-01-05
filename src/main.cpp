@@ -23,7 +23,6 @@ static double angle(Point *pt1, Point *pt2, Point *pt0)
 	return (dx1 * dx2 + dy1 * dy2) / sqrt((dx1 * dx1 + dy1 * dy1) * (dx2 * dx2 + dy2 * dy2) + 1e-10);
 }
 
-
 typedef struct stBox
 {
 	Point pt[4];
@@ -78,15 +77,16 @@ set<Box, SymUBoxCmp> SearchProcess_v2(IplImage *lpSrcImg)
 				 VOS_RETR_LIST, VOS_CHAIN_APPROX_SIMPLE, InitPoint(0, 0));
 	int iCount = 0;
 	SaveImage("c.bmp", lpSrcImg);
+
 	// �����ҵ���ÿ������contours
 	while (contours)
 	{
 		//��ָ�����ȱƽ����������
 		result = ApproxPoly(contours, sizeof(CvContour), storage,
-							VOS_POLY_APPROX_DP, cvContourPerimeter(contours) * 0.01, 0);
+							VOS_POLY_APPROX_DP, cvContourPerimeter(contours) * 0.02, 0);
 		if (NULL != result)
 		{
-			if (result->total == 4)
+			if (4 == result->total)
 			{
 				dContourArea = fabs(ContourArea(result, VOS_WHOLE_SEQ));
 				if (dContourArea >= 500 && dContourArea <= 1000000 && CheckContourConvexity(result))
@@ -125,6 +125,11 @@ set<Box, SymUBoxCmp> SearchProcess_v2(IplImage *lpSrcImg)
 					else
 					{
 						box.isRect = false;
+					}
+
+					if(box.box.size.width >600)
+					{
+						int ib=0;
 					}
 					//printf("centerInfo:[%f,%f]:[%f,%f]\n", End_Rage2D.center.x, End_Rage2D.center.y, End_Rage2D.size.width, End_Rage2D.size.height);
 					lstRes.insert(box);
@@ -221,9 +226,9 @@ int process_v2(IplImage *lpImg, IplImage *lpTargetImg, int argc, char *argv[])
 				p[3] = box.pt[3];
 			}
 			int diff = +1;
-			if(p[0].x -diff >=0)
+			if (p[0].x - diff >= 0)
 			{
-			p[0].x -= diff;
+				p[0].x -= diff;
 			}
 			p[0].y += diff;
 
@@ -245,12 +250,12 @@ int process_v2(IplImage *lpImg, IplImage *lpTargetImg, int argc, char *argv[])
 			{
 				srcTri[1].x = 0;
 				srcTri[1].y = 0;
-				srcTri[2].x = temp->width - 1 +1; //��Сһ������
+				srcTri[2].x = temp->width - 1 + 1; //��Сһ������
 				srcTri[2].y = 0;
-				srcTri[3].x = temp->width - 1+1;
-				srcTri[3].y = temp->height - 1+1;
+				srcTri[3].x = temp->width - 1 + 1;
+				srcTri[3].y = temp->height - 1 + 1;
 				srcTri[0].x = 0; //bot right
-				srcTri[0].y = temp->height - 1+1;
+				srcTri[0].y = temp->height - 1 + 1;
 			}
 			else
 			{
@@ -289,6 +294,9 @@ int main(int argc, char **args)
 	IplImage *gray = CreateImage(GetSize(lpTargetImg), 8, 1);
 	CvtColor(lpTargetImg, gray, VOS_RGB2GRAY);
 	SaveImage("gray.bmp", gray);
+	IplImage *pGrayImage1 = CreateImage(GetSize(lpTargetImg), IPL_DEPTH_8U, 1);
+	ImageStretchByHistogram(gray, pGrayImage1);
+	SaveImage("pGrayImage1.bmp", pGrayImage1);
 	IplImage *lpCannyImg = CreateImage(GetSize(lpTargetImg), 8, 1);
 	IplImage *tmp = CreateImage(GetSize(lpTargetImg), 8, 1);
 	IplImage *lpDilateImg = CreateImage(GetSize(lpTargetImg), 8, 1);
@@ -297,15 +305,23 @@ int main(int argc, char **args)
 	//printf("save\n");
 	if (NULL != lpCannyImg && NULL != lpDilateImg)
 	{
-		Smooth(gray, gray, VOS_GAUSSIAN, 3, 3, 0, 0);
-		Canny(gray, lpCannyImg, 0.5, 1.5, 3);
+		Smooth(pGrayImage1, gray, VOS_GAUSSIAN, 3, 3, 0, 0);
+		Canny(gray, lpCannyImg, 2, 4, 3);
 		SaveImage("canny1.bmp", lpCannyImg);
+
+		int n = 4 - 1;
+		int an = n > 0 ? n : -n;
+		IplConvKernel *element = 0;
+		int element_shape = VOS_SHAPE_RECT;
+		element = CreateStructuringElementEx(an * 2 + 1, an * 2 + 1, an, an, element_shape, 0);
+
 		Dilate(lpCannyImg, lpDilateImg, 0, 1);
 		SaveImage("lpDilate.bmp", lpDilateImg);
 		Erode(lpDilateImg, lpDilateImg, 0, 1);
 		SaveImage("lpErode.bmp", lpDilateImg);
-
+		ReleaseStructuringElement(&element);
 		IplImage *pGrayImage = CreateImage(GetSize(lpTargetImg), IPL_DEPTH_8U, 1);
+
 		IplImage *pGrayEqualizeImage = CreateImage(GetSize(lpTargetImg), IPL_DEPTH_8U, 1);
 		Smooth(lpTargetImg, lpTargetImg, VOS_GAUSSIAN, 5, 5, 0, 0); //��˹�˲�
 		SaveImage("pTargetImg.bmp", lpTargetImg);
@@ -326,6 +342,7 @@ int main(int argc, char **args)
 		//	Canny(lpDilateImg, lpCannyImg, 0.5, 20, 3);
 		//thin(lpDilateImg);
 		//SaveImage("thin.bmp", lpCannyImg);
+
 		iCunt = process_v2(lpDilateImg, lpOutImg, argc - 3, &args[3]);
 
 		SaveImage(OutputPath, lpOutImg);

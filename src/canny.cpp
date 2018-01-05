@@ -45,6 +45,100 @@ Sobel( const void* srcarr, void* dstarr, int dx, int dy, int aperture_size )
 #define CANNY_SHIFT 15
 #define TG22  (int)(0.4142135623730950488016887242097*(1<<CANNY_SHIFT) + 0.5)
 
+ 																			  
+																				  
+ // 仿照matlab，自适应求高低两个门限											   
+ void _AdaptiveFindThreshold(Mat *dx, Mat *dy, double *low, double *high)	  
+ {																				  
+	 Size size;															  													  
+	 int i,j;																  													  
+	 int hist_size = 255;													  
+	 float range_0[]={0,256};												  
+	 float* ranges[] = { range_0 }; 										  
+	 float PercentOfPixelsNotEdges = 0.7;									  
+	 size = GetSize(dx);
+     Mat * imge = CreateMat( size.height, size.width, IPL_DEPTH_32F );													  
+					  
+	 // 计算边缘的强度, 并存于图像中										   
+	 uchar maxv = 0;
+     float sb = 0;														  
+	 for(i = 0; i < size.height; i++ )										  
+	 {																		  
+		 const short* _dx = (short*)(dx->data.ptr + dx->step*i);		  
+		 const short* _dy = (short*)(dy->data.ptr + dy->step*i);		  
+		 float* _image = (float *)(imge->data.ptr + imge->step*i);  
+		 for(j = 0; j < size.width; j++)								  
+		 {																  
+			
+            sb = (abs(_dx[j]) + abs(_dy[j]));
+       	    _image[j] = (float)(sb);
+			 maxv = maxv < sb ? sb: maxv; 			  
+																			  
+		 }																  
+	 }																		  
+	 if(maxv ==0 ){ 														  
+		 *high = 0; 													  
+		 *low = 0;														  
+		 ReleaseMat( &imge );										  
+		 return;														  
+	 }																		  
+																				  
+	 // 计算直方图 														   
+	  hist_size = (int)(hist_size > maxv ? maxv:hist_size); 
+
+	 double p[256],p1[256],num[256];  
+		  
+		memset(p,0,sizeof(p));	
+		memset(p1,0,sizeof(p1));  
+		memset(num,0,sizeof(num));	
+		int height=imge->height;  
+		int width=imge->width;	
+		long wMulh = height * width;  
+		  
+		//statistics  
+		for(int x=0;x<imge->width;x++)	
+		{  
+			for(int y=0;y<imge-> height;y++){  
+				uchar v=((uchar*)(imge->data.ptr + imge->step*y))[x];  
+					num[v]++;  
+			}  
+		}  
+		//calculate probability  
+		for(int i=0;i<256;i++)	
+		{  
+			p[i]=num[i]/wMulh;	
+		}  
+	  
+		//p1[i]=sum(p[j]);	j<=i;  
+		for(int i=0;i<256;i++)	
+		{  
+			for(int k=0;k<=i;k++)  
+				p1[i]+=p[k];  
+		}  
+	  
+
+
+	 
+	 float total = (float)( size.height* size.width*PercentOfPixelsNotEdges);   
+	 float sum=0;															  
+								  
+																				  
+							  
+	 for(i = 0; i < 256; i++)											  
+	 {				
+         int intensity = SysRound(p1[i]*255/maxv); 														  
+		 sum +=intensity;													  
+		 if( sum > total )												  
+			 break; 												  
+	 }																		  
+	 // 计算高低门限															
+	  *high = (i+1) * maxv / hist_size ; 									  
+	 *low = *high * 0.4;													  
+	  ReleaseMat( &imge );												  
+												  
+ }		   
+
+
 
  void
 Canny( const void* srcarr, void* dstarr,
@@ -93,6 +187,12 @@ Canny( const void* srcarr, void* dstarr,
     Sobel( src, dx, 1, 0, aperture_size );
     Sobel( src, dy, 0, 1, aperture_size );
 
+///////////////////
+			double dl,dh;							 
+	_AdaptiveFindThreshold(dx, dy, &dl, &dh);
+	low_thresh = (float)dl;
+	high_thresh = (float)dh;
+///////////////////
 
     if( flags & VOS_CANNY_L2_GRADIENT )
     {
