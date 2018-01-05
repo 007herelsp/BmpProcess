@@ -503,7 +503,7 @@ InitImageHeader(IplImage *image, Size size, int depth,
     if (size.width < 0 || size.height < 0)
         VOS_ERROR(VOS_BadROISize, "Bad input roi");
 
-    if ((depth != (int)IPL_DEPTH_8U) ||
+    if (((depth != (int)IPL_DEPTH_8U) && ((depth != (int)IPL_DEPTH_32F))) ||
         (channels < 0))
         VOS_ERROR(VOS_BadDepth, "Unsupported format");
     if (origin != VOS_ORIGIN_BL && origin != VOS_ORIGIN_TL)

@@ -276,7 +276,7 @@ int process_v2(IplImage *lpImg, IplImage *lpTargetImg, int argc, char *argv[])
 	return iCount;
 }
 
-int main(int argc, char **args)
+int main(int argc, char** args)
 {
 	if (3 > argc)
 	{
@@ -290,59 +290,39 @@ int main(int argc, char **args)
 	{
 		return ERR_1;
 	}
-	IplImage *lpOutImg = CloneImage(lpTargetImg);
 	IplImage *gray = CreateImage(GetSize(lpTargetImg), 8, 1);
 	CvtColor(lpTargetImg, gray, VOS_RGB2GRAY);
-	SaveImage("gray.bmp", gray);
-	IplImage *pGrayImage1 = CreateImage(GetSize(lpTargetImg), IPL_DEPTH_8U, 1);
-	ImageStretchByHistogram(gray, pGrayImage1);
-	SaveImage("pGrayImage1.bmp", pGrayImage1);
 	IplImage *lpCannyImg = CreateImage(GetSize(lpTargetImg), 8, 1);
 	IplImage *tmp = CreateImage(GetSize(lpTargetImg), 8, 1);
 	IplImage *lpDilateImg = CreateImage(GetSize(lpTargetImg), 8, 1);
 	Smooth(gray, tmp, VOS_GAUSSIAN, 3, 3, 0, 0); //��˹�˲�
 	SaveImage("tmp.bmp", tmp);
-	//printf("save\n");
+	printf("save\n");
 	if (NULL != lpCannyImg && NULL != lpDilateImg)
 	{
-		Smooth(pGrayImage1, gray, VOS_GAUSSIAN, 3, 3, 0, 0);
-		Canny(gray, lpCannyImg, 2, 4, 3);
+		Canny(gray, lpCannyImg, 14.4, 36, 3);
 		SaveImage("canny1.bmp", lpCannyImg);
-
-		int n = 4 - 1;
-		int an = n > 0 ? n : -n;
-		IplConvKernel *element = 0;
-		int element_shape = VOS_SHAPE_RECT;
-		element = CreateStructuringElementEx(an * 2 + 1, an * 2 + 1, an, an, element_shape, 0);
-
 		Dilate(lpCannyImg, lpDilateImg, 0, 1);
-		SaveImage("lpDilate.bmp", lpDilateImg);
 		Erode(lpDilateImg, lpDilateImg, 0, 1);
 		SaveImage("lpErode.bmp", lpDilateImg);
-		ReleaseStructuringElement(&element);
-		IplImage *pGrayImage = CreateImage(GetSize(lpTargetImg), IPL_DEPTH_8U, 1);
 
+		IplImage *pGrayImage = CreateImage(GetSize(lpTargetImg), IPL_DEPTH_8U, 1);
 		IplImage *pGrayEqualizeImage = CreateImage(GetSize(lpTargetImg), IPL_DEPTH_8U, 1);
-		Smooth(lpTargetImg, lpTargetImg, VOS_GAUSSIAN, 5, 5, 0, 0); //��˹�˲�
-		SaveImage("pTargetImg.bmp", lpTargetImg);
+		Smooth(lpTargetImg, lpTargetImg, VOS_GAUSSIAN, 3, 3, 0, 0); //��˹�˲�
 		CvtColor(lpTargetImg, pGrayImage, VOS_BGR2GRAY);
 		SaveImage("pGrayImage.bmp", pGrayImage);
 		//cvEqualizeHist(pGrayImage, pGrayEqualizeImage);
 		SaveImage("pGrayEqualizeImage.bmp", pGrayEqualizeImage);
 
-		//Canny(pGrayEqualizeImage, lpCannyImg, 0.5, 20, 3);
-		//SaveImage("canny2.bmp", lpCannyImg);
+		Canny(pGrayEqualizeImage, lpCannyImg, 0.5, 20, 3);
+		SaveImage("canny2.bmp", lpCannyImg);
 	}
 	//����Ŀ������
-
+	IplImage *lpOutImg = CloneImage(lpTargetImg);
 	int iCunt = 0;
 	if (NULL != lpOutImg)
 	{
-		//cvThin(lpDilateImg,lpCannyImg,8);
-		//	Canny(lpDilateImg, lpCannyImg, 0.5, 20, 3);
-		//thin(lpDilateImg);
-		//SaveImage("thin.bmp", lpCannyImg);
-
+		// iCunt = process(lpDilateImg, lpOutImg, argc - 3, &args[3]);
 		iCunt = process_v2(lpDilateImg, lpOutImg, argc - 3, &args[3]);
 
 		SaveImage(OutputPath, lpOutImg);
