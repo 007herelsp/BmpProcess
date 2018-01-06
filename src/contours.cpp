@@ -11,9 +11,6 @@
 static const Point iCodeDeltas[8] =
     {{1, 0}, {1, -1}, {0, -1}, {-1, -1}, {-1, 0}, {-1, 1}, {0, 1}, {1, 1}};
 
-/****************************************************************************************\
-*                         Raster->Chain Tree (Suzuki algorithms)                         *
-\****************************************************************************************/
 
 typedef struct _ContourInfo
 {
@@ -26,10 +23,6 @@ typedef struct _ContourInfo
     int is_hole;                 /* hole flag */
 } _ContourInfo;
 
-/*
-  Structure that is used for sequental retrieving contours from the image.
-  It supports both hierarchical and plane variants of Suzuki algorithm.
-*/
 typedef struct _ContourScanner
 {
     MemStorage *storage1;      /* contains fetched contours */
@@ -214,7 +207,7 @@ iEndProcessContour(ContourScanner scanner)
             ==0 - direct
             >0  - simple approximation
 */
-static CvStatus
+static VosStatus
 iFetchContour(char *ptr,
               int step,
               Point pt,
@@ -328,7 +321,7 @@ Seq *FindNextContour(ContourScanner scanner)
     Seq *contour = NULL;
     int nbd;
     int mode;
-    CvStatus result = (CvStatus)1;
+    VosStatus result = (VosStatus)1;
 
     VOS_FUNCNAME("cvFindNextContour");
 
@@ -477,10 +470,6 @@ exit_func:
     return contour;
 }
 
-/*
-   The function add to tree the last retrieved/substituted contour,
-   releases temp_storage, restores state of dst_storage (if needed), and
-   returns pointer to root of the contour tree */
 Seq *EndFindContours(ContourScanner *_scanner)
 {
     ContourScanner scanner;

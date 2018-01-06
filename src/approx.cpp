@@ -5,7 +5,7 @@
 *                               Polygonal Approximation                                  *
 \****************************************************************************************/
 /* the version for integer point coordinates */
-static CvStatus
+static VosStatus
 iApproxPolyDP_32s(Seq *src_contour, int header_size,
                     MemStorage *storage,
                     Seq **dst_contour, float eps)

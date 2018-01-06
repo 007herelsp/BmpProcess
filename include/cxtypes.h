@@ -80,7 +80,7 @@ VOS_INLINE  int  SysFloor( double value )
 
 VOS_INLINE  int  SysCeil( double value )
 {
-    return ceil(value);
+    return (int)ceil(value);
 }
 
 #define SYS_INVSQRT(value) ((float)(1./sqrt(value)))

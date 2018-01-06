@@ -1,5 +1,3 @@
-
-
 #include "_cv.h"
 
 static void
@@ -43,22 +41,21 @@ Sobel(const void *srcarr, void *dstarr, int dx, int dy, int aperture_size)
 }
 
 #define CANNY_SHIFT 15
-#define TG22 (int)(0.4142135623730950488016887242097 * (1 << CANNY_SHIFT) + 0.5)
+static const int  TG22 = (int)(0.4142135623730950488016887242097 * (1 << CANNY_SHIFT) + 0.5);
 
 // 仿照matlab，自适应求高低两个门限
-void _AdaptiveFindThreshold(Mat *dx, Mat *dy, double *low, double *high)
+void CannyAdaptiveFindThreshold(Mat *dx, Mat *dy, double *low, double *high)
 {
     Size size;
     int i, j;
     int hist_size = 255;
-    float PercentOfPixelsNotEdges = 0.7;
+    double PercentOfPixelsNotEdges = 0.7;
     size = GetSize(dx);
     IplImage *imge = CreateImage(size, IPL_DEPTH_32F,1);
 
     // 计算边缘的强度, 并存于图像中
     float maxv = 0;
     float minv = 0;
-    float sb = 0;
     for (i = 0; i < size.height; i++)
     {
         const short *_dx = (short *)(dx->data.ptr + dx->step * i);
@@ -85,16 +82,13 @@ void _AdaptiveFindThreshold(Mat *dx, Mat *dy, double *low, double *high)
     hist_size = (int)(hist_size > maxv ? maxv : hist_size);
 
     double bins[256] = {0};
-    int height = imge->height;
-    int width = imge->width;
-
     float *img = (float *)imge->imageData;
     int sz = 255;
     int x;
     size.width *= size.height;
     size.height = 1;
-    int step = VOS_STUB_STEP;
-    step /= 4;
+    static int step = VOS_STUB_STEP/4;
+
     for (; size.height--; img += step)
     {
         float *ptr = img;
@@ -126,7 +120,7 @@ void _AdaptiveFindThreshold(Mat *dx, Mat *dy, double *low, double *high)
     }
 
     int total = (int)(imge->height * imge->width * PercentOfPixelsNotEdges);
-    float sum = 0;
+    double sum = 0;
 
     sum = 0;
     for (i = 0; i < hist_size; i++)
@@ -188,9 +182,9 @@ void Canny(const void *srcarr, void *dstarr,
     Sobel(src, dy, 0, 1, aperture_size);
 
     ///////////////////
- 
-    _AdaptiveFindThreshold(dx, dy, &low_thresh, &high_thresh);
-printf("%g,%g\n", low_thresh, high_thresh);
+
+    CannyAdaptiveFindThreshold(dx, dy, &low_thresh, &high_thresh);
+//printf("%g,%g\n", low_thresh, high_thresh);
     ///////////////////
 
     if (flags & VOS_CANNY_L2_GRADIENT)

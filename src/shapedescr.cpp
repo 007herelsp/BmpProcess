@@ -72,7 +72,7 @@ ArcLength(const void *array, Slice slice, int is_closed)
 }
 
 /* area of a whole sequence */
-static CvStatus
+static VosStatus
 iContourArea(const Seq *contour, double *area)
 {
     if (contour->total)
@@ -116,7 +116,7 @@ iContourArea(const Seq *contour, double *area)
 
 \****************************************************************************************/
 
-static CvStatus
+static VosStatus
 iMemCopy(double **buf1, double **buf2, double **buf3, int *b_max)
 {
     int bb;
@@ -157,7 +157,7 @@ iMemCopy(double **buf1, double **buf2, double **buf3, int *b_max)
 }
 
 /* area of a contour sector */
-static CvStatus iContourSecArea(const Seq *contour, Slice slice, double *area)
+static VosStatus iContourSecArea(const Seq *contour, Slice slice, double *area)
 {
     Point pt;         /*  pointer to points   */
     Point pt_s, pt_e; /*  first and last points  */

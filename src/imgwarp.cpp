@@ -67,7 +67,7 @@ Solve( const VOID* A, const VOID* b, VOID* x, int method )
 #define IVOS_WARP_CLIP_X(x) ((unsigned)(x) < (unsigned)ssize.width ? (x) : (x) < 0 ? 0 : ssize.width - 1)
 #define IVOS_WARP_CLIP_Y(y) ((unsigned)(y) < (unsigned)ssize.height ? (y) : (y) < 0 ? 0 : ssize.height - 1)
 
-static CvStatus iWarpPerspective_Bilinear_8u_CnR(const uchar *src, int step,
+static VosStatus iWarpPerspective_Bilinear_8u_CnR(const uchar *src, int step,
                                                    Size ssize, uchar *dst, int dststep, Size dsize,
                                                    const double *matrix, int cn, const uchar *fillval)
 {

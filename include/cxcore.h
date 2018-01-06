@@ -40,13 +40,8 @@ ReleaseImage(IplImage **image);
 IplImage *
 CloneImage(const IplImage *image);
 
-void thin(IplImage *image);
-
-void cvThin( IplImage* src, IplImage* dst, int iterations=1);
 
 int ImageStretchByHistogram(IplImage *src1,IplImage *dst1);
-
-
 
 /* Allocates and initalizes Mat header */
 Mat *

@@ -140,12 +140,8 @@ VOS_INLINE  Size  GetMatSize( const Mat* mat )
 }
 
 
-/****************************************************************************************\
-*                     Structures and macros for integration with IPP                     *
-\****************************************************************************************/
 
-/* IPP-compatible return codes */
-typedef enum CvStatus
+typedef enum VosStatus
 {
     VOS_BADMEMBLOCK_ERR          = -113,
     VOS_INPLACE_NOT_SUPPORTED_ERR= -112,
@@ -189,7 +185,7 @@ CvStatus;
 
 #define VOS_FUN_CALL( Func )                                              \
 {                                                                      \
-      CvStatus  fun_call_result;                                      \
+      VosStatus  fun_call_result;                                      \
       fun_call_result = Func;                                         \
                                                                        \
       if( fun_call_result < 0 )                                       \

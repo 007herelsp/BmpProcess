@@ -1,6 +1,6 @@
 #include "_cxcore.h"
 
-static CvStatus iInvSqrt_32f(const float *src, float *dst, int len)
+static VosStatus iInvSqrt_32f(const float *src, float *dst, int len)
 {
     int i = 0;
 
@@ -13,7 +13,7 @@ static CvStatus iInvSqrt_32f(const float *src, float *dst, int len)
     return VOS_OK;
 }
 
-static CvStatus iSqrt_32f(const float *src, float *dst, int len)
+static VosStatus iSqrt_32f(const float *src, float *dst, int len)
 {
     int i = 0;
 
