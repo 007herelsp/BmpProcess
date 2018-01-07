@@ -1,5 +1,6 @@
 
-#include "_cxcore.h"
+#include "core.h"
+#include "misc.h"
 
 #define IVOS_FREE_PTR(storage) \
     ((char *)(storage)->top + (storage)->block_size - (storage)->free_space)

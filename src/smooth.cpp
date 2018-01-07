@@ -1,4 +1,6 @@
-#include "_cv.h"
+
+#include "cv.h"
+#include "misc.h"
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
@@ -75,7 +77,7 @@ void Smooth(const void *srcarr, void *dstarr, int smooth_type,
         VOS_CALL(gaussian_filter.init(src->cols, src_type, dst_type, &KX, &KY));
         VOS_CALL(gaussian_filter.process(src, dst));
     }
-    
+
 
     __END__;
 

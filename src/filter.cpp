@@ -1,4 +1,6 @@
-#include "_cv.h"
+
+#include "cv.h"
+#include "misc.h"
 
 /****************************************************************************************\
                                     Base Image Filter
@@ -1436,9 +1438,9 @@ void SepFilter::init_deriv(int _max_width, int _src_type, int _dst_type,
     _kx = InitMat(1, kx_size, VOS_32FC1, kx_data);
     _ky = InitMat(1, ky_size, VOS_32FC1, ky_data);
 
-  
+
         VOS_CALL(init_sobel_kernel(&_kx, &_ky, dx, dy, flags));
- 
+
 
     VOS_CALL(init(_max_width, _src_type, _dst_type, &_kx, &_ky));
 

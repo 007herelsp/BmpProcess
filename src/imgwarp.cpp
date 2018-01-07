@@ -1,4 +1,6 @@
-#include "_cv.h"
+
+#include "cv.h"
+#include "misc.h"
 
 static int
 Solve( const VOID* A, const VOID* b, VOID* x, int method )

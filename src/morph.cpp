@@ -1,4 +1,6 @@
-#include "_cv.h"
+
+#include "cv.h"
+#include "misc.h"
 #include <limits.h>
 #include <stdio.h>
 
@@ -135,12 +137,11 @@ void Morphology::init(int _operation, int _max_width, int _src_dst_type,
         else
         {
             assert(operation == DILATE);
-            if (depth == VOS_8U)
+            if (VOS_8U == depth )
                 y_func = (ColumnFilterFunc)icvDilateAny_8u;
             else
             {
-                VOS_ERROR(VOS_StsBadArg,
-                          "herelsp remove");
+                VOS_ERROR(VOS_StsBadArg, "");
             }
         }
 
@@ -185,56 +186,7 @@ void Morphology::start_process(Slice x_range, int width)
 int Morphology::fill_cyclic_buffer(const uchar *src, int src_step,
                                    int y0, int y1, int y2)
 {
-    int i, y = y0, bsz1 = border_tab_sz1, bsz = border_tab_sz;
-    int pix_size = VOS_ELEM_SIZE(src_type);
-    int width_n = (prev_x_range.end_index - prev_x_range.start_index) * pix_size;
-
-    if (VOS_MAT_DEPTH(src_type) != VOS_32F)
-        return BaseImageFilter::fill_cyclic_buffer(src, src_step, y0, y1, y2);
-
-    // fill the cyclic buffer
-    for (; buf_count < buf_max_count && y < y2; buf_count++, y++, src += src_step)
-    {
-        uchar *trow = is_separable ? buf_end : buf_tail;
-
-        for (i = 0; i < width_n; i += sizeof(int))
-        {
-            int t = *(int *)(src + i);
-            *(int *)(trow + i + bsz1) = VOS_TOGGLE_FLT(t);
-        }
-
-        if (border_mode != IPL_BORDER_CONSTANT)
-        {
-            for (i = 0; i < bsz1; i++)
-            {
-                int j = border_tab[i];
-                trow[i] = trow[j];
-            }
-            for (; i < bsz; i++)
-            {
-                int j = border_tab[i];
-                trow[i + width_n] = trow[j];
-            }
-        }
-        else
-        {
-            const uchar *bt = (uchar *)border_tab;
-            for (i = 0; i < bsz1; i++)
-                trow[i] = bt[i];
-
-            for (; i < bsz; i++)
-                trow[i + width_n] = bt[i];
-        }
-
-        if (is_separable)
-            x_func(trow, buf_tail, this);
-
-        buf_tail += buf_step;
-        if (buf_tail >= buf_end)
-            buf_tail = buf_start;
-    }
-
-    return y - y0;
+    return BaseImageFilter::fill_cyclic_buffer(src, src_step, y0, y1, y2);
 }
 
 void Morphology::init_binary_element(Mat *element, int element_shape, Point anchor)

@@ -1,6 +1,8 @@
 
 
-#include "_cv.h"
+
+#include "cv.h"
+#include "misc.h"
 
 static int
 icvSklansky_32s(Point **array, int start, int end, int *stack, int nsign, int sign2)
@@ -236,7 +238,7 @@ ConvexHull2(const VOID *array, void *hull_storage,
               int orientation, int return_points)
 {
     union {
-        CvContour *c;
+        Contour *c;
         Seq *s;
     } hull;
     Point **pointer = 0;
@@ -251,7 +253,7 @@ ConvexHull2(const VOID *array, void *hull_storage,
     Mat *mat = NULL;
     SeqReader reader;
     SeqWriter writer;
-    CvContour contour_header;
+    Contour contour_header;
     Seq *ptseq = NULL;
     Seq *hullseq = NULL;
     int *t_stack = NULL;
@@ -263,14 +265,14 @@ ConvexHull2(const VOID *array, void *hull_storage,
         ptseq = (Seq *)array;
         if (0 == hull_storage)
             hull_storage = ptseq->storage;
-    
+
 
             VOS_CALL(hullseq = CreateSeq(
                         VOS_SEQ_KIND_CURVE | VOS_SEQ_ELTYPE(ptseq) |
                             VOS_SEQ_FLAG_CLOSED | VOS_SEQ_FLAG_CONVEX,
-                        sizeof(CvContour), sizeof(Point), (MemStorage *)hull_storage));
-       
-    
+                        sizeof(Contour), sizeof(Point), (MemStorage *)hull_storage));
+
+
 
     total = ptseq->total;
     if (0 == total)
@@ -383,7 +385,7 @@ finish_hull:
     {
         hull.s = hullseq;
         hull.c->rect = BoundingRect(ptseq,
-                                      ptseq->header_size < (int)sizeof(CvContour) ||
+                                      ptseq->header_size < (int)sizeof(Contour) ||
                                           &ptseq->flags == &contour_header.flags);
     }
 

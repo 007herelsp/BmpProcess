@@ -1,4 +1,5 @@
-#include "_cxcore.h"
+#include "core.h"
+#include "misc.h"
 static VosStatus iCopy_8u_C1R(const uchar *src, int srcstep,
                              uchar *dst, int dststep, Size size)
 {

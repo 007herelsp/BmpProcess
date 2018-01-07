@@ -1,4 +1,5 @@
-#include "_cxcore.h"
+#include "core.h"
+#include "misc.h"
 
 static VosStatus iInvSqrt_32f(const float *src, float *dst, int len)
 {
@@ -59,12 +60,6 @@ typedef CvStatus(*SqrtFunc_t)(const void *src, void *dst, int len);
 
     depth = VOS_MAT_DEPTH(src->type);
 
-    if (depth < VOS_32F)
-    {
-        VOS_ERROR(VOS_StsUnsupportedFormat,
-                 "Fractional or negative integer power factor can be used "
-                 "with floating-point types only");
-    }
 
     size = GetMatSize(src);
     size.width *= VOS_MAT_CN(src->type);

@@ -8,8 +8,6 @@
     #define _MAX_PATH    1024
 #endif
 
-
-///////////////////////////////// base class for readers ////////////////////////
 class   GrFmtReader
 {
 public:
@@ -26,14 +24,12 @@ public:
 protected:
 
     bool    m_iscolor;
-    int     m_width;    // width  of the image ( filled by ReadHeader )
-    int     m_height;   // height of the image ( filled by ReadHeader )
-    int     m_bit_depth;// bit depth per channel (normally 8)
+    int     m_width;    
+    int     m_height;  
+    int     m_bit_depth;
     char    m_filename[_MAX_PATH]; // filename
 };
 
-
-///////////////////////////// base class for writers ////////////////////////////
 class   GrFmtWriter
 {
 public:

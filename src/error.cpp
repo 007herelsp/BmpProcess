@@ -1,5 +1,6 @@
-#include "_cxcore.h"
-
+#include "core.h"
+#include "misc.h"
+#include <stdio.h>
 typedef struct StackRecord
 {
     const char *file;

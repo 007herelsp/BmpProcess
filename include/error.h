@@ -43,7 +43,6 @@ typedef int OPTStatus;
 #define VOS_StsKernelStructContentErr -30 /* incorr. transform kernel content */
 #define VOS_StsFilterOffsetErr        -31 /* incorrect filter ofset value */
 
-/*extra for CV */
 #define VOS_StsBadSize                -201 /* the input/output structure size is incorrect  */
 #define VOS_StsDivByZero              -202 /* division by zero */
 #define VOS_StsInplaceNotSupported    -203 /* in-place operation is not supported */

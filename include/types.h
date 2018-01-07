@@ -86,8 +86,6 @@ VOS_INLINE  int  SysCeil( double value )
 #define SYS_INVSQRT(value) ((float)(1./sqrt(value)))
 #define SYS_SQRT(value)  ((float)sqrt(value))
 
-#ifndef HAVE_IPL
-
 #define IPL_DEPTH_SIGN 0x80000000
 
 #define IPL_DEPTH_1U     1
@@ -148,7 +146,6 @@ typedef struct _IplConvKernel
 }
 IplConvKernel;
 
-#endif/*HAVE_IPL*/
 
 /* extra border mode */
 #define IPL_BORDER_REFLECT_101    4
@@ -173,7 +170,6 @@ IplConvKernel;
 #define VOS_32S  4
 #define VOS_32F  5
 #define VOS_64F  6
-#define VOS_USRTYPE1 7
 
 #define VOS_MAKETYPE(depth,cn) ((depth) + (((cn)-1) << VOS_CN_SHIFT))
 #define VOS_MAKE_TYPE VOS_MAKETYPE
@@ -184,36 +180,16 @@ IplConvKernel;
 #define VOS_8UC4 VOS_MAKETYPE(VOS_8U,4)
 #define VOS_8UC(n) VOS_MAKETYPE(VOS_8U,(n))
 
-#define VOS_8SC1 VOS_MAKETYPE(VOS_8S,1)
-#define VOS_8SC2 VOS_MAKETYPE(VOS_8S,2)
-#define VOS_8SC3 VOS_MAKETYPE(VOS_8S,3)
-#define VOS_8SC4 VOS_MAKETYPE(VOS_8S,4)
-#define VOS_8SC(n) VOS_MAKETYPE(VOS_8S,(n))
-
-#define VOS_16UC1 VOS_MAKETYPE(VOS_16U,1)
-#define VOS_16UC2 VOS_MAKETYPE(VOS_16U,2)
-#define VOS_16UC3 VOS_MAKETYPE(VOS_16U,3)
-#define VOS_16UC4 VOS_MAKETYPE(VOS_16U,4)
-#define VOS_16UC(n) VOS_MAKETYPE(VOS_16U,(n))
-
 #define VOS_16SC1 VOS_MAKETYPE(VOS_16S,1)
 #define VOS_16SC2 VOS_MAKETYPE(VOS_16S,2)
-#define VOS_16SC3 VOS_MAKETYPE(VOS_16S,3)
 
 #define VOS_32SC1 VOS_MAKETYPE(VOS_32S,1)
 #define VOS_32SC2 VOS_MAKETYPE(VOS_32S,2)
-#define VOS_32SC3 VOS_MAKETYPE(VOS_32S,3)
 
 #define VOS_32FC1 VOS_MAKETYPE(VOS_32F,1)
 #define VOS_32FC2 VOS_MAKETYPE(VOS_32F,2)
-#define VOS_32FC3 VOS_MAKETYPE(VOS_32F,3)
-#define VOS_32FC(n) VOS_MAKETYPE(VOS_32F,(n))
 
 #define VOS_64FC1 VOS_MAKETYPE(VOS_64F,1)
-#define VOS_64FC2 VOS_MAKETYPE(VOS_64F,2)
-#define VOS_64FC3 VOS_MAKETYPE(VOS_64F,3)
-#define VOS_64FC4 VOS_MAKETYPE(VOS_64F,4)
-#define VOS_64FC(n) VOS_MAKETYPE(VOS_64F,(n))
 
 #define VOS_MAT_CN_MASK          ((VOS_CN_MAX - 1) << VOS_CN_SHIFT)
 #define VOS_MAT_CN(flags)        ((((flags) & VOS_MAT_CN_MASK) >> VOS_CN_SHIFT) + 1)
@@ -233,7 +209,6 @@ typedef struct Mat
     int type;
     int step;
 
-    /* for internal use only */
     int* refcount;
     int hdr_refcount;
 
@@ -289,12 +264,9 @@ Mat;
     ((mat1)->height == (mat2)->height && (mat1)->width == (mat2)->width)
 
 
-/* size of each channel item,
-   0x124489 = 1000 0100 0100 0010 0010 0001 0001 ~ array of sizeof(arr_type_elem) */
 #define VOS_ELEM_SIZE1(type) \
     ((((sizeof(size_t)<<28)|0x8442211) >> VOS_MAT_DEPTH(type)*4) & 15)
 
-/* 0x3a50 = 11 10 10 01 01 00 00 ~ array of log2(sizeof(arr_type_elem)) */
 #define VOS_ELEM_SIZE(type) \
     (VOS_MAT_CN(type) << ((((sizeof(size_t)/4+1)*16384|0x3a50) >> VOS_MAT_DEPTH(type)*2) & 3))
 
@@ -316,17 +288,12 @@ VOS_INLINE Mat InitMat( int rows, int cols, int type, void* data VOS_DEFAULT(NUL
     return m;
 }
 
-
 VOS_INLINE int CvToIplDepth( int type )
 {
     int depth = VOS_MAT_DEPTH(type);
     return VOS_ELEM_SIZE1(depth)*8 | (depth == VOS_8S || depth == VOS_16S ||
                                       depth == VOS_32S ? IPL_DEPTH_SIGN : 0);
 }
-
-
-
-struct Set;
 
 /*************************************** Rect *****************************************/
 
@@ -407,11 +374,6 @@ VOS_INLINE  Point  PointFrom32f( Point2D32f point )
     return ipt;
 }
 
-
-
-
-/******************************** Size's & CvBox **************************************/
-
 typedef struct Size
 {
     int width;
@@ -446,9 +408,6 @@ typedef struct Box2D
 }
 Box2D;
 
-
-/************************************* Slice ******************************************/
-
 typedef struct Slice
 {
     int  start_index, end_index;
@@ -466,9 +425,6 @@ VOS_INLINE  Slice  GetSlice( int start, int end )
 
 #define VOS_WHOLE_SEQ_END_INDEX 0x3fffffff
 #define VOS_WHOLE_SEQ  GetSlice(0, VOS_WHOLE_SEQ_END_INDEX)
-
-
-/************************************* Scalar *****************************************/
 
 typedef struct Scalar
 {
@@ -534,9 +490,6 @@ typedef struct MemStoragePos
 }
 MemStoragePos;
 
-
-/*********************************** Sequence *******************************************/
-
 typedef struct SeqBlock
 {
     struct SeqBlock*  prev; /* previous sequence block */
@@ -557,10 +510,6 @@ SeqBlock;
     struct    node_type* v_prev; /* 2nd previous sequence */    \
     struct    node_type* v_next  /* 2nd next sequence */
 
-/*
-   Read/Write sequence.
-   Elements can be dynamically inserted to or deleted from the sequence.
-*/
 #define VOS_SEQUENCE_FIELDS()                                            \
     VOS_TREE_NODE_FIELDS(Seq);                                         \
     int       total;          /* total number of elements */            \
@@ -578,16 +527,7 @@ typedef struct Seq
 }
 Seq;
 
-#define VOS_TYPE_NAME_SEQ             " -sequence"
-#define VOS_TYPE_NAME_SEQ_TREE        " -sequence-tree"
 
-/*************************************** Set ********************************************/
-/*
-  Set.
-  Order is not preserved. There can be gaps between sequence elements.
-  After the element has been inserted it stays in the same place all the time.
-  The MSB(most-significant or sign bit) of the first field (flags) is 0 iff the element exists.
-*/
 #define VOS_SET_ELEM_FIELDS(elem_type)   \
     int  flags;                         \
     struct elem_type* next_free;
@@ -600,21 +540,13 @@ SetElem;
 
 #define VOS_SET_FIELDS()      \
     VOS_SEQUENCE_FIELDS()     \
-    SetElem* free_elems;   \
-    int active_count;
-
+    SetElem* free_elems;   
 typedef struct Set
 {
     VOS_SET_FIELDS()
 }
 Set;
 
-
-#define VOS_SET_ELEM_IDX_MASK   ((1 << 26) - 1)
-#define VOS_SET_ELEM_FREE_FLAG  (1 << (sizeof(int)*8-1))
-
-/* Checks whether the element pointed by ptr belongs to a set or not */
-#define VOS_IS_SET_ELEM( ptr )  (((SetElem*)(ptr))->flags >= 0)
 
 /*********************************** Chain/Countour *************************************/
 
@@ -624,7 +556,7 @@ Set;
     int color;               \
     int reserved[3];
 
-typedef struct CvContour
+typedef struct Contour
 {
     VOS_CONTOUR_FIELDS()
 }
@@ -652,7 +584,6 @@ CvContour;
 #define VOS_SEQ_ELTYPE_INDEX          VOS_32SC1  /* #(x,y) */
 #define VOS_SEQ_ELTYPE_TRIAN_ATR      0  /* vertex of the binary tree   */
 #define VOS_SEQ_ELTYPE_CONNECTED_COMP 0  /* connected component  */
-#define VOS_SEQ_ELTYPE_POINT3D        VOS_32FC3  /* (x,y,z)  */
 
 #define VOS_SEQ_KIND_BITS        3
 #define VOS_SEQ_KIND_MASK        (((1 << VOS_SEQ_KIND_BITS) - 1)<<VOS_SEQ_ELTYPE_BITS)

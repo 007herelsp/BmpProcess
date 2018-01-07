@@ -1,19 +1,6 @@
-#include "_cv.h"
 
-/****************************************************************************************\
-*                                 Color to/from Grayscale                                *
-\****************************************************************************************/
-
-#define fix(x, n) (int)((x) * (1 << (n)) + 0.5)
-#define cscGr_32f 0.299f
-#define cscGg_32f 0.587f
-#define cscGb_32f 0.114f
-
-/* BGR/RGB -> Gray */
-#define csc_shift 14
-#define cscGr fix(cscGr_32f, csc_shift)
-#define cscGg fix(cscGg_32f, csc_shift)
-#define cscGb /*fix(cscGb_32f,csc_shift)*/ ((1 << csc_shift) - cscGr - cscGg)
+#include "cv.h"
+#include "misc.h"
 
 static VosStatus
 BGR2Gray_8u_CnC1R(const uchar *src, int srcstep,
@@ -22,39 +9,27 @@ int src_cn, int blue_idx)
 {
 	int i;
 	srcstep -= size.width * src_cn;
-	int b, g, r;
 	for (; size.height--; src += srcstep, dstR += dststep, dstG += dststep, dstB += dststep)
 	{
 		for (i = 0; i < size.width; i++, src += src_cn)
 		{
-			//int t0 = src[blue_idx] * cscGb + src[1] * cscGg + src[blue_idx ^ 2] * cscGr;
-			b = src[2];
-			g = src[1];
-			r = src[0];
-			// dstR[i] = (uchar)VOS_DESCALE(t0, csc_shift);
-			dstR[i] = r;
-			dstG[i] = g;
-			dstB[i] = b;
+			dstR[i] = src[2];
+			dstG[i] = src[1];
+			dstB[i] = src[0];
 		}
 	}
-
 
 
 	return VOS_OK;
 }
 extern  int
 SaveImage(const char *filename, const VOID *arr);
-/****************************************************************************************\
-*                                   The main function                                    *
-\****************************************************************************************/
 
 void CvtColor(const VOID *srcarr, VOID *dstarrR, VOID *dstarrG, VOID *dstarrB, int code)
 {
 	VOS_FUNCNAME("CvtColor");
 
 	__BEGIN__;
-
-
 
 	Mat srcstub, *src = (Mat *)srcarr;
 	Mat dststubR, *dstR = (Mat *)dstarrR;

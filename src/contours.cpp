@@ -1,5 +1,7 @@
 
-#include "_cv.h"
+
+#include "cv.h"
+#include "misc.h"
 
 /* initializes 8-element array for fast access to 3x3 neighborhood of a pixel */
 #define VOS_INIT_3X3_DELTAS(deltas, step, nch)             \
@@ -62,13 +64,6 @@ typedef struct _ContourScanner
     _ContourInfo *cinfo_table[126];
 } _ContourScanner;
 
-#define _VOS_FIND_CONTOURS_FLAGS_EXTERNAL_ONLY 1
-#define _VOS_FIND_CONTOURS_FLAGS_HIERARCHIC 2
-
-/*
-   Initializes scanner structure.
-   Prepare image for scanning ( clear borders and convert all pixels to 0-1.
-*/
 ContourScanner
 StartFindContours(void *_img, MemStorage *storage,
                   int header_size, int mode,
@@ -98,7 +93,7 @@ StartFindContours(void *_img, MemStorage *storage,
     if (method < 0 || method > VOS_LINK_RUNS)
         VOS_ERROR_FROM_STATUS(VOS_BADRANGE_ERR);
 
-    if (header_size < (int)(sizeof(CvContour)))
+    if (header_size < (int)(sizeof(Contour)))
         VOS_ERROR_FROM_STATUS(VOS_BADSIZE_ERR);
 
     scanner = (ContourScanner)SysAlloc(sizeof(*scanner));

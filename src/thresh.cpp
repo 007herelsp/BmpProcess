@@ -1,4 +1,6 @@
-#include "_cv.h"
+
+#include "cv.h"
+#include "misc.h"
 
 static VosStatus
 iThresh_8u_C1R(const uchar *src, int src_step, uchar *dst, int dst_step,

@@ -1,49 +1,25 @@
 
 #ifndef _CXCORE_MISC_H_
 #define _CXCORE_MISC_H_
-#include "cxtypes.h"
+#include "types.h"
 #include <limits.h>
 
-
-/****************************************************************************************\
-*                              Compile-time tuning parameters                            *
-\****************************************************************************************/
-
-/* maximal size of vector to run matrix operations on it inline (i.e. w/o ipp calls) */
 #define  VOS_MAX_INLINE_MAT_OP_SIZE  10
 
-/* maximal linear size of matrix to allocate it on stack. */
 #define  VOS_MAX_LOCAL_MAT_SIZE  32
 
 /* maximal size of local memory storage */
 #define  VOS_MAX_LOCAL_SIZE  \
     (VOS_MAX_LOCAL_MAT_SIZE*VOS_MAX_LOCAL_MAT_SIZE*(int)sizeof(double))
-
-/* default image row align (in bytes) */
 #define  VOS_DEFAULT_IMAGE_ROW_ALIGN  4
-
-/* matrices are continuous by default */
 #define  VOS_DEFAULT_MAT_ROW_ALIGN  1
 
-/* maximum size of dynamic memory buffer.
-   SysAlloc reports an error if a larger block is requested. */
 #define  VOS_MAX_ALLOC_SIZE    (((size_t)1 << (sizeof(size_t)*8-2)))
 
-/* the alignment of all the allocated buffers */
 #define  VOS_MALLOC_ALIGN    32
-
-/* default alignment for dynamic data strucutures, resided in storages. */
 #define  VOS_STRUCT_ALIGN    ((int)sizeof(double))
-
-/* default storage block size */
 #define  VOS_STORAGE_BLOCK_SIZE   ((1<<16) - 128)
 
-
-/****************************************************************************************\
-*                                  Common declarations                                   *
-\****************************************************************************************/
-
-/* get alloca declaration */
 #ifdef __GNUC__
     #undef alloca
     #define alloca __builtin_alloca
@@ -58,35 +34,13 @@
 
 #define sysStackAlloc(size) AlignPtr( alloca((size) + VOS_MALLOC_ALIGN), VOS_MALLOC_ALIGN )
 
-/* default step, set in case of continuous data
-   to work around checks for valid step in some ipp functions */
 #define  VOS_STUB_STEP     (1 << 30)
 
 
 #define  VOS_ORIGIN_TL  0
 #define  VOS_ORIGIN_BL  1
 
-/* IEEE754 constants and macros */
-#define  VOS_TOGGLE_FLT(x) ((x)^((int)(x) < 0 ? 0x7fffffff : 0))
-
-
 #define  VOS_NOP(a)      (a)
-#define  VOS_ADD(a, b)   ((a) + (b))
-#define  VOS_SUB(a, b)   ((a) - (b))
-#define  VOS_MUL(a, b)   ((a) * (b))
-#define  VOS_AND(a, b)   ((a) & (b))
-#define  VOS_OR(a, b)    ((a) | (b))
-#define  VOS_XOR(a, b)   ((a) ^ (b))
-#define  VOS_ANDN(a, b)  (~(a) & (b))
-#define  VOS_ORN(a, b)   (~(a) | (b))
-#define  VOS_SQR(a)      ((a) * (a))
-
-#define  VOS_LT(a, b)    ((a) < (b))
-#define  VOS_LE(a, b)    ((a) <= (b))
-#define  VOS_EQ(a, b)    ((a) == (b))
-#define  VOS_NE(a, b)    ((a) != (b))
-#define  VOS_GT(a, b)    ((a) > (b))
-#define  VOS_GE(a, b)    ((a) >= (b))
 
 
 /* general-purpose saturation macros */

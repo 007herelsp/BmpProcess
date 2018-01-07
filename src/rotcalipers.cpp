@@ -1,5 +1,7 @@
 
-#include "_cv.h"
+
+#include "cv.h"
+#include "misc.h"
 
 
 #define VOS_CALIPERS_MAXHEIGHT      0
@@ -279,12 +281,12 @@ MinAreaRect2( const Seq* array, MemStorage* storage )
     {
         VOS_CALL( ptseq = ConvexHull2( ptseq, temp_storage, VOS_CLOCKWISE, 1 ));
     }
-   
+
     n = ptseq->total;
 
     VOS_CALL( points = (Point2D32f*)SysAlloc( n*sizeof(points[0]) ));
     StartReadSeq( ptseq, &reader );
-   
+
     if( VOS_SEQ_ELTYPE( ptseq ) == VOS_32SC2 )
     {
         for( i = 0; i < n; i++ )

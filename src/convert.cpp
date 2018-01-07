@@ -1,4 +1,5 @@
-#include "_cxcore.h"
+#include "core.h"
+#include "misc.h"
 
 void ConvertScale(const Mat *src, Mat *dst)
 {

@@ -119,14 +119,14 @@ void SearchProcess_v3(IplImage *lpSrcImg, set<Box, SymUBoxCmp> &lstRes)
 	Box2D End_Rage2D;
 	int index = 0;
 
-	FindContours(lpSrcImg, storage, &contours, sizeof(CvContour),
+	FindContours(lpSrcImg, storage, &contours, sizeof(Contour),
 				 VOS_RETR_LIST, VOS_CHAIN_APPROX_SIMPLE, InitPoint(0, 0));
 
 	//SaveImage("c.bmp", lpSrcImg);
 
 	while (contours)
 	{
-		result = ApproxPoly(contours, sizeof(CvContour), storage,
+		result = ApproxPoly(contours, sizeof(Contour), storage,
 							VOS_POLY_APPROX_DP, cvContourPerimeter(contours) * 0.01, 0);
 		if (NULL != result)
 		{
@@ -135,7 +135,7 @@ void SearchProcess_v3(IplImage *lpSrcImg, set<Box, SymUBoxCmp> &lstRes)
 				dContourArea = fabs(ContourArea(result, VOS_WHOLE_SEQ));
 				if (dContourArea >= 500 && dContourArea <= 1000000 && CheckContourConvexity(result))
 				{
-					End_Rage2D = MinAreaRect2(contours);
+					End_Rage2D = MinAreaRect2(result);
 					s = 0;
 					Box box = {0};
 					box.box = End_Rage2D;
@@ -163,6 +163,7 @@ void SearchProcess_v3(IplImage *lpSrcImg, set<Box, SymUBoxCmp> &lstRes)
 					if (s < 0.1)
 					{
 						box.isRect = true;
+						//box.pt = box.box.pt;
 					}
 					else
 					{

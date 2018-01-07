@@ -1,8 +1,8 @@
 #ifndef _CXCORE_H_
 #define _CXCORE_H_
 
-#include "cxtypes.h"
-#include "cxerror.h"
+#include "types.h"
+#include "error.h"
 
 #ifdef __cplusplus
 extern "C" {

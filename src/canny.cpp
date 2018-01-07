@@ -1,4 +1,6 @@
-#include "_cv.h"
+
+#include "cv.h"
+#include "misc.h"
 
 static void
 Sobel(const void *srcarr, void *dstarr, int dx, int dy, int aperture_size)
@@ -235,11 +237,7 @@ void Canny(const void *srcarr, void *dstarr,
 
     mag_row = InitMat(1, size.width, VOS_32F);
 
-    // calculate magnitude and angle of gradient, perform non-maxima supression.
-    // fill the map with one of the following values:
-    //   0 - the pixel might belong to an edge
-    //   1 - the pixel can not belong to an edge
-    //   2 - the pixel does belong to an edge
+
     for (i = 0; i <= size.height; i++)
     {
         int *_mag = mag_buf[(i > 0) + 1] + 1;
@@ -272,9 +270,8 @@ void Canny(const void *srcarr, void *dstarr,
         }
         else
             VOS_MEMSET(_mag - 1, 0, (size.width + 2) * sizeof(int));
+		
 
-        // at the very beginning we do not have a complete ring
-        // buffer of 3 magnitude rows for non-maxima suppression
         if (i == 0)
             continue;
 
