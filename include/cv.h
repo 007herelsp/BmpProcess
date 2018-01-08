@@ -6,24 +6,17 @@
 extern "C" {
 #endif
 
-typedef struct _ContourScanner* ContourScanner;
+typedef struct stContourScanner* ContourScanner;
 
 /* contour retrieval mode */
-#define VOS_RETR_EXTERNAL 0
 #define VOS_RETR_LIST     1
-#define VOS_RETR_CCOMP    2
-#define VOS_RETR_TREE     3
 
 /* contour approximation method */
 #define VOS_CHAIN_APPROX_NONE        1
 #define VOS_CHAIN_APPROX_SIMPLE      2
 #define VOS_LINK_RUNS                3
 
-#define VOS_BLUR_NO_SCALE 0
-#define VOS_BLUR  1
 #define VOS_GAUSSIAN  2
-#define VOS_MEDIAN 3
-#define VOS_BILATERAL 4
 
 void Smooth( const VOID* src, VOID* dst,
                int smoothtype VOS_DEFAULT(VOS_GAUSSIAN),
@@ -34,20 +27,13 @@ void Smooth( const VOID* src, VOID* dst,
 #define VOS_SCHARR -1
 #define VOS_MAX_SOBEL_KSIZE 7
 
-/* Constants for color conversion */
-#define  VOS_BGR2GRAY    6
-#define  VOS_RGB2GRAY    7
-
-/* Converts input array pixels from one color space to another */
-void  CvtColor( const VOID* src, VOID* dstr, VOID* dstg,VOID* dstb,int code );
+void  CvtColor( const VOID* src, VOID* dstr, VOID* dstg,VOID* dstb);
 
 #define  VOS_INTER_LINEAR    1
 
 #define  VOS_WARP_FILL_OUTLIERS 8
 #define  VOS_WARP_INVERSE_MAP  16
 
-
-/* Warps image with perspective (projective) transform */
 void  WarpPerspective( const VOID* src, VOID* dst, const Mat* map_matrix,
                          int flags VOS_DEFAULT(VOS_INTER_LINEAR+VOS_WARP_FILL_OUTLIERS),
                          Scalar fillval VOS_DEFAULT(ScalarAll(0)) );
@@ -97,11 +83,6 @@ Seq*  FindNextContour( ContourScanner scanner );
 /* Releases contour scanner and returns pointer to the first outer contour */
 Seq*  EndFindContours( ContourScanner* scanner );
 
-
-/****************************************************************************************\
-*                            Contour Processing and Shape Analysis                       *
-\****************************************************************************************/
-
 #define VOS_POLY_APPROX_DP 0
 
 Seq*  ApproxPoly( const void* src_seq,
@@ -145,27 +126,18 @@ void  Threshold( const VOID*  src, VOID*  dst,
                    double  threshold, double  max_value,
                    int threshold_type );
 
-
-/****************************************************************************************\
-*                                  Feature detection                                     *
-\****************************************************************************************/
-
 #define VOS_CANNY_L2_GRADIENT  (1 << 31)
 
 /* Runs canny edge detector */
 void  Canny( const VOID* image, VOID* edges, double threshold1,
              double threshold2, int  aperture_size VOS_DEFAULT(3) );
 
-
-
-
-
-	extern const uchar iSaturate8u_cv[];
+extern const uchar iSaturate8u_cv[];
 #define VOS_FAST_CAST_8U(t)  (assert(-256 <= (t) || (t) <= 512), iSaturate8u_cv[(t)+256])
 #define VOS_CALC_MIN_8U(a,b) (a) -= VOS_FAST_CAST_8U((a) - (b))
 #define VOS_CALC_MAX_8U(a,b) (a) += VOS_FAST_CAST_8U((b) - (a))
 
-	extern const float i8x32fTab_cv[];
+extern const float i8x32fTab_cv[];
 #define VOS_8TO32F(x)  i8x32fTab_cv[(x)+256]
 #define  VOS_CALC_MIN(a, b) if((a) > (b)) (a) = (b)
 #define  VOS_CALC_MAX(a, b) if((a) < (b)) (a) = (b)
@@ -177,10 +149,6 @@ void  Canny( const VOID* image, VOID* edges, double threshold1,
 
 
 #ifdef __cplusplus
-
-/****************************************************************************************\
-*                    BaseImageFilter: Base class for filtering operations              *
-\****************************************************************************************/
 
 #define VOS_WHOLE   0
 #define VOS_START   1
@@ -196,17 +164,15 @@ class  BaseImageFilter
 {
 public:
     BaseImageFilter();
-    /* calls init() */
-
+   
     virtual ~BaseImageFilter();
 
     virtual void init( int _max_width, int _src_type, int _dst_type,
                        bool _is_separable, Size _ksize,
                        Point _anchor=InitPoint(-1,-1),
-                       int _border_mode=IPL_BORDER_REPLICATE,
+                       int _border_mode=SYS_BORDER_REPLICATE,
                        Scalar _border_value=ScalarAll(0) );
-    /* releases all the internal buffers.
-       for the further use of the object, init() needs to be called. */
+
     virtual void clear();
 
     virtual int process( const Mat* _src, Mat* _dst,
@@ -255,8 +221,6 @@ protected:
     int prev_width;
 };
 
-
-/* Derived class, for linear separable filtering. */
 class  SepFilter : public BaseImageFilter
 {
 public:
@@ -267,7 +231,7 @@ public:
     virtual void init( int _max_width, int _src_type, int _dst_type,
                        const Mat* _kx, const Mat* _ky,
                        Point _anchor=InitPoint(-1,-1),
-                       int _border_mode=IPL_BORDER_REPLICATE,
+                       int _border_mode=SYS_BORDER_REPLICATE,
                        Scalar _border_value=ScalarAll(0) );
     virtual void init_deriv( int _max_width, int _src_type, int _dst_type,
                              int dx, int dy, int aperture_size, int flags=0 );
@@ -278,7 +242,7 @@ public:
     virtual void init( int _max_width, int _src_type, int _dst_type,
                        bool _is_separable, Size _ksize,
                        Point _anchor=InitPoint(-1,-1),
-                       int _border_mode=IPL_BORDER_REPLICATE,
+                       int _border_mode=SYS_BORDER_REPLICATE,
                        Scalar _border_value=ScalarAll(0) );
 
     virtual void clear();
@@ -298,7 +262,6 @@ protected:
     int kx_flags, ky_flags;
 };
 
-/* basic morphological operations: erosion & dilation */
 class  Morphology : public BaseImageFilter
 {
 public:
@@ -306,20 +269,20 @@ public:
     Morphology( int _operation, int _max_width, int _src_dst_type,
                   int _element_shape, Mat* _element,
                   Size _ksize=GetSize(0,0), Point _anchor=InitPoint(-1,-1),
-                  int _border_mode=IPL_BORDER_REPLICATE,
+                  int _border_mode=SYS_BORDER_REPLICATE,
                   Scalar _border_value=ScalarAll(0) );
     virtual ~Morphology();
     virtual void init( int _operation, int _max_width, int _src_dst_type,
                        int _element_shape, Mat* _element,
                        Size _ksize=GetSize(0,0), Point _anchor=InitPoint(-1,-1),
-                       int _border_mode=IPL_BORDER_REPLICATE,
+                       int _border_mode=SYS_BORDER_REPLICATE,
                        Scalar _border_value=ScalarAll(0) );
 
     /* dummy method to avoid compiler warnings */
     virtual void init( int _max_width, int _src_type, int _dst_type,
                        bool _is_separable, Size _ksize,
                        Point _anchor=InitPoint(-1,-1),
-                       int _border_mode=IPL_BORDER_REPLICATE,
+                       int _border_mode=SYS_BORDER_REPLICATE,
                        Scalar _border_value=ScalarAll(0) );
 
     virtual void clear();
@@ -349,7 +312,4 @@ protected:
 
 
 #endif /* __cplusplus */
-
-
-
 #endif /*_VOS_H_*/

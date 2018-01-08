@@ -53,7 +53,7 @@ void CannyAdaptiveFindThreshold(Mat *dx, Mat *dy, double *low, double *high)
     int hist_size = 255;
     double PercentOfPixelsNotEdges = 0.7;
     size = GetSize(dx);
-    IplImage *imge = CreateImage(size, IPL_DEPTH_32F,1);
+    IplImage *imge = CreateImage(size, SYS_DEPTH_32F,1);
 
     // 计算边缘的强度, 并存于图像中
     float maxv = 0;
@@ -166,11 +166,7 @@ void Canny(const void *srcarr, void *dstarr,
         VOS_MAT_TYPE(dst->type) != VOS_8UC1)
         VOS_ERROR(VOS_StsUnsupportedFormat, "");
 
-    if (low_thresh > high_thresh)
-    {
-        double t;
-        VOS_SWAP(low_thresh, high_thresh, t);
-    }
+    
 
     aperture_size &= INT_MAX;
     if ((aperture_size & 1) == 0 || aperture_size < 3 || aperture_size > 7)
@@ -186,6 +182,11 @@ void Canny(const void *srcarr, void *dstarr,
     ///////////////////
 
     CannyAdaptiveFindThreshold(dx, dy, &low_thresh, &high_thresh);
+	if (low_thresh > high_thresh)
+    {
+        double t;
+        VOS_SWAP(low_thresh, high_thresh, t);
+    }
 //printf("%g,%g\n", low_thresh, high_thresh);
     ///////////////////
 

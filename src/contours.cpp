@@ -14,18 +14,18 @@ static const Point iCodeDeltas[8] =
     {{1, 0}, {1, -1}, {0, -1}, {-1, -1}, {-1, 0}, {-1, 1}, {0, 1}, {1, 1}};
 
 
-typedef struct _ContourInfo
+typedef struct ContourInfo
 {
     int flags;
-    struct _ContourInfo *next;   /* next contour with the same mark value */
-    struct _ContourInfo *parent; /* information about parent contour */
+    struct ContourInfo *next;   /* next contour with the same mark value */
+    struct ContourInfo *parent; /* information about parent contour */
     Seq *contour;                /* corresponding contour (may be 0, if rejected) */
     Rect rect;                   /* bounding rectangle */
     Point origin;                /* origin point (where the contour was traced from) */
     int is_hole;                 /* hole flag */
-} _ContourInfo;
+} ContourInfo;
 
-typedef struct _ContourScanner
+typedef struct stContourScanner
 {
     MemStorage *storage1;      /* contains fetched contours */
     MemStorage *storage2;      /* contains approximated contours
@@ -43,9 +43,9 @@ typedef struct _ContourScanner
     Point pt;                  /* current scanner position */
     Point lnbd;                /* position of the last met contour */
     int nbd;                   /* current mark val */
-    _ContourInfo *l_cinfo;     /* information about latest approx. contour */
-    _ContourInfo cinfo_temp;   /* temporary var which is used in simple modes */
-    _ContourInfo frame_info;   /* information about frame */
+    ContourInfo *l_cinfo;     /* information about latest approx. contour */
+    ContourInfo cinfo_temp;   /* temporary var which is used in simple modes */
+    ContourInfo frame_info;   /* information about frame */
     Seq frame;                 /* frame itself */
     int approx_method1;        /* approx method when tracing */
     int approx_method2;        /* final approx method */
@@ -61,7 +61,7 @@ typedef struct _ContourScanner
     int seq_type2;    /*                                       */
     int header_size2; /*        the same for approx. contours  */
     int elem_size2;   /*                                       */
-    _ContourInfo *cinfo_table[126];
+    ContourInfo *cinfo_table[126];
 } _ContourScanner;
 
 ContourScanner
@@ -168,7 +168,7 @@ StartFindContours(void *_img, MemStorage *storage,
 static void
 iEndProcessContour(ContourScanner scanner)
 {
-    _ContourInfo *l_cinfo = scanner->l_cinfo;
+    ContourInfo *l_cinfo = scanner->l_cinfo;
 
     if (l_cinfo)
     {
@@ -348,8 +348,8 @@ Seq *FindNextContour(ContourScanner scanner)
 
             if (p != prev)
             {
-                _ContourInfo *par_info = NULL;
-                _ContourInfo *l_cinfo = NULL;
+                ContourInfo *par_info = NULL;
+                ContourInfo *l_cinfo = NULL;
                 Seq *seq = NULL;
                 int is_hole = 0;
                 Point origin;

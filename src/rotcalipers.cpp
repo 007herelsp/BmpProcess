@@ -1,8 +1,5 @@
-
-
 #include "cv.h"
 #include "misc.h"
-
 
 #define VOS_CALIPERS_MAXHEIGHT      0
 #define VOS_CALIPERS_MINAREARECT    1

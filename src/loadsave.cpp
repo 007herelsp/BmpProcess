@@ -33,7 +33,7 @@ iLoadImage(const char *filename, int flags)
 
     cn = iscolor ? 3 : 1;
     int type;
-    type = IPL_DEPTH_8U;
+    type = SYS_DEPTH_8U;
     VOS_CALL(image = CreateImage(size, type, cn));
     matrix = GetMat(image, &hdr);
 

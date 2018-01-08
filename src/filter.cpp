@@ -2,10 +2,6 @@
 #include "cv.h"
 #include "misc.h"
 
-/****************************************************************************************\
-                                    Base Image Filter
-\****************************************************************************************/
-
 static void default_x_filter_func(const uchar *, uchar *, void *)
 {
 }
@@ -99,7 +95,7 @@ void BaseImageFilter::init(int _max_width, int _src_type, int _dst_type,
         (unsigned)anchor.y >= (unsigned)ksize.height)
         VOS_ERROR(VOS_StsOutOfRange, "invalid kernel size and/or anchor position");
 
-    if (border_mode != IPL_BORDER_REPLICATE)
+    if (border_mode != SYS_BORDER_REPLICATE)
         VOS_ERROR(VOS_StsBadArg, "Invalid/unsupported border mode");
 
     get_work_params();
@@ -127,7 +123,7 @@ void BaseImageFilter::init(int _max_width, int _src_type, int _dst_type,
 
     buf_start = ptr;
     const_row = 0;
-    assert("herelsp remove" && (IPL_BORDER_REPLICATE == border_mode));
+    assert("herelsp remove" && (SYS_BORDER_REPLICATE == border_mode));
 
     __END__;
 }
@@ -155,13 +151,13 @@ void BaseImageFilter::start_process(Slice x_range, int width)
 
     buf_step = Align(bw * work_pix_sz, ALIGN);
 
-    if (mode == IPL_BORDER_CONSTANT)
+    if (mode == SYS_BORDER_CONSTANT)
         bsz -= buf_step;
     buf_max_count = bsz / buf_step;
     buf_max_count = VOS_MIN(buf_max_count, max_rows - max_ky * 2);
     buf_end = buf_start + buf_max_count * buf_step;
 
-    if (mode == IPL_BORDER_CONSTANT)
+    if (mode == SYS_BORDER_CONSTANT)
     {
         int i, tab_len = ksize.width * pix_sz;
         uchar *bt = (uchar *)border_tab;
@@ -180,7 +176,7 @@ void BaseImageFilter::start_process(Slice x_range, int width)
     }
 
     if (x_range.end_index - x_range.start_index <= 1)
-        mode = IPL_BORDER_REPLICATE;
+        mode = SYS_BORDER_REPLICATE;
 
     width = (width - 1) * pix_sz;
     ofs = (anchor.x - x_range.start_index) * pix_sz;
@@ -216,7 +212,7 @@ void BaseImageFilter::start_process(Slice x_range, int width)
         {
             for (j = 0; j < pix_sz; j++)
                 border_tab[i + j] = idx + ofs + j;
-            if (mode != IPL_BORDER_REPLICATE)
+            if (mode != SYS_BORDER_REPLICATE)
             {
                 if ((delta > 0 && idx == width) ||
                     (delta < 0 && idx == 0))
@@ -236,15 +232,15 @@ void BaseImageFilter::make_y_border(int row_count, int top_rows, int bottom_rows
 {
     int i;
 
-    if (IPL_BORDER_CONSTANT == border_mode ||
-        IPL_BORDER_REPLICATE == border_mode)
+    if (SYS_BORDER_CONSTANT == border_mode ||
+        SYS_BORDER_REPLICATE == border_mode)
     {
-        uchar *row1 =  IPL_BORDER_CONSTANT == border_mode ? const_row : rows[max_ky];
+        uchar *row1 =  SYS_BORDER_CONSTANT == border_mode ? const_row : rows[max_ky];
 
         for (i = 0; i < top_rows && 0== rows[i] ; i++)
             rows[i] = row1;
 
-        row1 = IPL_BORDER_CONSTANT == border_mode ? const_row : rows[row_count - 1];
+        row1 = SYS_BORDER_CONSTANT == border_mode ? const_row : rows[row_count - 1];
         for (i = 0; i < bottom_rows; i++)
             rows[i + row_count] = row1;
     }
@@ -299,7 +295,7 @@ int BaseImageFilter::fill_cyclic_buffer(const uchar *src, int src_step,
             for (i = 0; i < width_n; i++)
                 bptr[i + bsz1] = src[i];
 
-        if (  IPL_BORDER_CONSTANT != border_mode)
+        if (  SYS_BORDER_CONSTANT != border_mode)
         {
             for (i = 0; i < bsz1; i++)
             {

@@ -8,7 +8,6 @@
 
 #define  VOS_MAX_LOCAL_MAT_SIZE  32
 
-/* maximal size of local memory storage */
 #define  VOS_MAX_LOCAL_SIZE  \
     (VOS_MAX_LOCAL_MAT_SIZE*VOS_MAX_LOCAL_MAT_SIZE*(int)sizeof(double))
 #define  VOS_DEFAULT_IMAGE_ROW_ALIGN  4

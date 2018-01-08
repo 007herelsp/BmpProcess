@@ -86,34 +86,33 @@ VOS_INLINE  int  SysCeil( double value )
 #define SYS_INVSQRT(value) ((float)(1./sqrt(value)))
 #define SYS_SQRT(value)  ((float)sqrt(value))
 
-#define IPL_DEPTH_SIGN 0x80000000
+#define SYS_DEPTH_SIGN 0x80000000
 
-#define IPL_DEPTH_1U     1
-#define IPL_DEPTH_8U     8
-#define IPL_DEPTH_16U   16
-#define IPL_DEPTH_32F   32
+#define SYS_DEPTH_8U     8
+#define SYS_DEPTH_16U   16
+#define SYS_DEPTH_32F   32
 
-#define IPL_DEPTH_8S  (IPL_DEPTH_SIGN| 8)
-#define IPL_DEPTH_16S (IPL_DEPTH_SIGN|16)
-#define IPL_DEPTH_32S (IPL_DEPTH_SIGN|32)
+#define SYS_DEPTH_8S  (SYS_DEPTH_SIGN| 8)
+#define SYS_DEPTH_16S (SYS_DEPTH_SIGN|16)
+#define SYS_DEPTH_32S (SYS_DEPTH_SIGN|32)
 
-#define IPL_DATA_ORDER_PIXEL  0
-#define IPL_DATA_ORDER_PLANE  1
+#define SYS_DATA_ORDER_PIXEL  0
+#define SYS_DATA_ORDER_PLANE  1
 
-#define IPL_ORIGIN_TL 0
-#define IPL_ORIGIN_BL 1
+#define SYS_ORIGIN_TL 0
+#define SYS_ORIGIN_BL 1
 
-#define IPL_BORDER_CONSTANT   0
-#define IPL_BORDER_REPLICATE  1
-#define IPL_BORDER_REFLECT    2
-#define IPL_BORDER_WRAP       3
+#define SYS_BORDER_CONSTANT   0
+#define SYS_BORDER_REPLICATE  1
+#define SYS_BORDER_REFLECT    2
+#define SYS_BORDER_WRAP       3
 
-typedef struct _IplImage
+typedef struct tagIplImage
 {
     int  nSize;         /* sizeof(IplImage) */
     int  nChannels;     /* Most of   functions support 1,2,3 or 4 channels */
-    int  depth;         /* pixel depth in bits: IPL_DEPTH_8U, IPL_DEPTH_8S, IPL_DEPTH_16S,
-                           IPL_DEPTH_32S, IPL_DEPTH_32F and IPL_DEPTH_64F are supported */
+    int  depth;         /* pixel depth in bits: SYS_DEPTH_8U, SYS_DEPTH_8S, SYS_DEPTH_16S,
+                           SYS_DEPTH_32S, SYS_DEPTH_32F and IPL_DEPTH_64F are supported */
     int  dataOrder;     /* 0 - interleaved color channels, 1 - separate color channels.
                            CreateImage can only create interleaved images */
     int  origin;        /* 0 - top-left origin,
@@ -135,7 +134,7 @@ IplImage;
 
 
 
-typedef struct _IplConvKernel
+typedef struct tagIplConvKernel
 {
     int  nCols;
     int  nRows;
@@ -292,7 +291,7 @@ VOS_INLINE int CvToIplDepth( int type )
 {
     int depth = VOS_MAT_DEPTH(type);
     return VOS_ELEM_SIZE1(depth)*8 | (depth == VOS_8S || depth == VOS_16S ||
-                                      depth == VOS_32S ? IPL_DEPTH_SIGN : 0);
+                                      depth == VOS_32S ? SYS_DEPTH_SIGN : 0);
 }
 
 /*************************************** Rect *****************************************/
@@ -317,9 +316,6 @@ VOS_INLINE  Rect  InitRect( int x, int y, int width, int height )
 
     return r;
 }
-
-
-/******************************* Point and variants ***********************************/
 
 typedef struct Point
 {
@@ -460,8 +456,6 @@ VOS_INLINE  Scalar  ScalarAll( double val0123 )
     return scalar;
 }
 
-/******************************** Memory storage ****************************************/
-
 typedef struct MemBlock
 {
     struct MemBlock*  prev;
@@ -547,9 +541,6 @@ typedef struct Set
 }
 Set;
 
-
-/*********************************** Chain/Countour *************************************/
-
 #define VOS_CONTOUR_FIELDS()  \
     VOS_SEQUENCE_FIELDS()     \
     Rect rect;             \
@@ -561,10 +552,6 @@ typedef struct Contour
     VOS_CONTOUR_FIELDS()
 }
 CvContour;
-
-/****************************************************************************************\
-*                                    Sequence types                                      *
-\****************************************************************************************/
 
 #define VOS_SEQ_MAGIC_VAL             0x42990000
 
@@ -628,11 +615,6 @@ CvContour;
 #define VOS_IS_SEQ_POLYGON( seq )   \
     (VOS_IS_SEQ_POLYLINE(seq) && VOS_IS_SEQ_CLOSED(seq))
 
-
-/****************************************************************************************/
-/*                            Sequence writer & reader                                  */
-/****************************************************************************************/
-
 typedef struct SeqWriter
 {
      int          header_size;                                    
@@ -657,11 +639,6 @@ typedef struct SeqReader
     char*        prev_elem;  /* pointer to previous element */
 }
 SeqReader;
-
-/****************************************************************************************/
-/*                                Operations on sequences                               */
-/****************************************************************************************/
-
 
 #define VOS_WRITE_SEQ_ELEM( elem, writer )             \
 {                                                     \

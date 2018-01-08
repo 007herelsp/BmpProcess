@@ -36,7 +36,7 @@ GrFmtWriter::GrFmtWriter( const char* filename )
 
 bool  GrFmtWriter::IsFormatSupported( int depth )
 {
-    return depth == IPL_DEPTH_8U;
+    return depth == SYS_DEPTH_8U;
 }
 
 /* End of file. */

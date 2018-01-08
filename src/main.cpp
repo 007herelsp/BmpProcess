@@ -28,7 +28,6 @@ typedef struct stBox
 	Point pt[4];
 	Box2D box;
 	bool isRect;
-	int id;
 } Box;
 
 //static const float MAX_P = 40.0f;
@@ -39,77 +38,64 @@ bool isEqu(float x1, float x2)
 	return (fabs(x1 - x2) <= MAX_P);
 }
 
-struct SymStorBoxCmp
-{
-	bool operator()(const Box &x, const Box &y) const
-	{
-		if (fabs(x.box.center.x - y.box.center.x) <= MAX_P && fabs(x.box.center.y - y.box.center.y) <= MAX_P)
-		{
-			return false;
-			if (fabs(x.box.size.width - y.box.size.width) <= MAX_P && fabs(x.box.size.height - y.box.size.height) <= MAX_P)
-			{
-				return false;
-			}
-			else
-			{
-				return false;
-			}
-		}
-
-		if (x.box.center.x < y.box.center.x)
-		{
-			return true;
-		}
-		else if (fabs(x.box.center.x - y.box.center.x) <= DBL_EPSILON)
-		{
-			return (x.box.center.y < y.box.center.y);
-		}
-		else
-		{
-			return false;
-		}
-	}
-};
 struct SymUBoxCmp
 {
 	bool operator()(const Box &x, const Box &y) const
 	{
-		/*if (fabs(x.box.center.x - y.box.center.x) <= MAX_P && fabs(x.box.center.y - y.box.center.y) <= MAX_P)
-		{
-			return false;
-			if (fabs(x.box.size.width - y.box.size.width) <= MAX_P && fabs(x.box.size.height - y.box.size.height) <= MAX_P)
-			{
-				return false;
-			}
-			else
-			{
-				return false;
-			}
-		}
-
-		return x.id < y.id;
-		*/
-
 		bool ret = false;
 
-		if (x.box.center.x < y.box.center.x)
+		if(x.isRect && (!y.isRect))
 		{
 			return true;
 		}
+		
+		if (x.box.center.x < y.box.center.x)
+		{
+			ret = true;
+		}
 		else if (fabs(x.box.center.x - y.box.center.x) <= DBL_EPSILON)
 		{
-			return (x.box.center.y < y.box.center.y);
+			ret = (x.box.center.y < y.box.center.y);
 		}
 		else
 		{
-			return false;
+			ret = false;
 		}
 
 		return ret;
 	}
 };
-static int boxid = 0;
-void SearchProcess_v3(IplImage *lpSrcImg, set<Box, SymUBoxCmp> &lstRes)
+
+void AddRecord(set<Box, SymUBoxCmp> &lstRes, Box &box, int &iRectCun)
+{
+	set<Box, SymUBoxCmp>::iterator itu;
+	Point2D32f srcTri[4], dstTri[4];
+
+	Point p[4];
+	Box tbox;
+	bool flag = true;
+
+	for (itu = lstRes.begin(); itu != lstRes.end(); itu++)
+	{
+		tbox = *itu;
+
+		if (fabs(tbox.box.center.x - box.box.center.x) <= MAX_P && fabs(tbox.box.center.y - box.box.center.y) <= MAX_P)
+		{
+			flag = false;
+			break;
+		}
+	}
+	if (flag)
+	{
+		if (box.isRect)
+		{
+			iRectCun++;
+		}
+		lstRes.insert(box);
+	}
+}
+
+void SearchProcess_v3(IplImage *lpSrcImg, set<Box, SymUBoxCmp> &lstRes, int &iRectCun)
 {
 	MemStorage *storage = CreateMemStorage();
 	Seq *contours = NULL;
@@ -171,9 +157,11 @@ void SearchProcess_v3(IplImage *lpSrcImg, set<Box, SymUBoxCmp> &lstRes)
 					}
 
 					//printf("hello: %g, %g\n", box.box.center.x, box.box.center.y);
-					box.id = boxid++;
+
 					//printf("centerInfo:[%f,%f]:[%f,%f]\n", End_Rage2D.center.x, End_Rage2D.center.y, End_Rage2D.size.width, End_Rage2D.size.height);
-					lstRes.insert(box);
+					//lstRes.insert(box);
+
+					AddRecord(lstRes, box, iRectCun);
 				}
 			}
 		}
@@ -181,15 +169,12 @@ void SearchProcess_v3(IplImage *lpSrcImg, set<Box, SymUBoxCmp> &lstRes)
 	}
 
 	ReleaseMemStorage(&storage);
-
 	return;
 }
 
 int process_v3(set<Box, SymUBoxCmp> &setURes, IplImage *lpTargetImg, int argc, char *argv[])
 {
 	set<Box, SymUBoxCmp>::iterator itu;
-	set<Box, SymStorBoxCmp> storSet;
-	set<Box, SymStorBoxCmp>::iterator itStor;
 	Point2D32f srcTri[4], dstTri[4];
 	IplImage *temp;
 	Point p[4];
@@ -197,39 +182,15 @@ int process_v3(set<Box, SymUBoxCmp> &setURes, IplImage *lpTargetImg, int argc, c
 	int iCount = 0;
 	Box tbox;
 	Box tbox1;
-	bool flag = false;
-	for (itu = setURes.begin(); itu != setURes.end(); itu++)
-	{
-		tbox = *itu;
-		flag = true;
-		for (itStor = storSet.begin(); itStor != storSet.end(); itStor++)
-		{
-			tbox1 = *itStor;
-			if (fabs(tbox.box.center.x - tbox1.box.center.x) <= MAX_P && fabs(tbox.box.center.y - tbox1.box.center.y) <= MAX_P)
-			{
-				flag = false;
-				break;
-			}
-		}
-		if (flag)
-		{
-			if (tbox.isRect)
-			{
-				iCount++;
-			}
-			storSet.insert(tbox);
-		}
-	}
-
 	Box box;
-	itStor = storSet.begin();
-	for (int i = 0; i < argc && itStor != storSet.end(); i++)
+	itu = setURes.begin();
+	for (int i = 0; i < argc && itu != setURes.end(); i++)
 	{
 		IplImage *lpSrcImg = LoadImage(argv[i], 1);
 		if (lpSrcImg != NULL)
 		{
-			box = *itStor;
-			itStor++;
+			box = *itu;
+			itu++;
 
 			temp = lpSrcImg;
 
@@ -307,7 +268,7 @@ int process_v3(set<Box, SymUBoxCmp> &setURes, IplImage *lpTargetImg, int argc, c
 	return iCount;
 }
 
-int main(int argc, char** args)
+int main(int argc, char **args)
 {
 	if (3 > argc)
 	{
@@ -331,28 +292,29 @@ int main(int argc, char** args)
 		assert(NULL != imagChannels[i]);
 	}
 
-	CvtColor(lpTargetImg, imagChannels[0], imagChannels[1], imagChannels[2], VOS_RGB2GRAY);
+	CvtColor(lpTargetImg, imagChannels[0], imagChannels[1], imagChannels[2]);
 
 	IplImage *lpCannyImg = CreateImage(GetSize(lpTargetImg), 8, 1);
 	IplImage *lpDilateImg = CreateImage(GetSize(lpTargetImg), 8, 1);
 
 	set<Box, SymUBoxCmp> lstRes;
+	int iCunt = 0;
 	if (NULL != lpCannyImg && NULL != lpDilateImg)
 	{
 		for (int i = 0; i < channel; i++)
 		{
-			Canny(imagChannels[i], lpCannyImg, 14.4, 36, 3);
+			Canny(imagChannels[i], lpCannyImg, 0, 0, 3);
 			ReleaseImage(&imagChannels[i]);
 			Dilate(lpCannyImg, lpDilateImg, 0, 1);
 			Erode(lpDilateImg, lpDilateImg, 0, 1);
-			SearchProcess_v3(lpDilateImg, lstRes);
+			SearchProcess_v3(lpDilateImg, lstRes, iCunt);
 		}
 
 		IplImage *lpOutImg = CloneImage(lpTargetImg);
-		int iCunt = 0;
+
 		if (NULL != lpOutImg)
 		{
-			iCunt = process_v3(lstRes, lpOutImg, argc - 3, &args[3]);
+			process_v3(lstRes, lpOutImg, argc - 3, &args[3]);
 			SaveImage(OutputPath, lpOutImg);
 
 			ReleaseImage(&lpOutImg);

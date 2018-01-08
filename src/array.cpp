@@ -414,7 +414,7 @@ Mat *GetMat(const VOID *array, Mat *mat,
         {
             int type = VOS_MAKETYPE(depth, img->nChannels);
 
-            if (order != IPL_DATA_ORDER_PIXEL)
+            if (order != SYS_DATA_ORDER_PIXEL)
                 VOS_ERROR(VOS_StsBadFlag, "Pixel order should be used with coi == 0");
 
             VOS_CALL(InitMatHeader(mat, img->height, img->width, type,
@@ -451,7 +451,7 @@ CreateImageHeader(Size size, int depth, int channels)
     __BEGIN__;
 
     VOS_CALL(img = (IplImage *)SysAlloc(sizeof(*img)));
-    VOS_CALL(InitImageHeader(img, size, depth, channels, IPL_ORIGIN_TL,
+    VOS_CALL(InitImageHeader(img, size, depth, channels, SYS_ORIGIN_TL,
                              VOS_DEFAULT_IMAGE_ROW_ALIGN));
 
     __END__;
@@ -504,7 +504,7 @@ InitImageHeader(IplImage *image, Size size, int depth,
     if (size.width < 0 || size.height < 0)
         VOS_ERROR(VOS_BadROISize, "Bad input roi");
 
-    if (((depth != (int)IPL_DEPTH_8U) && ((depth != (int)IPL_DEPTH_32F))) ||
+    if (((depth != (int)SYS_DEPTH_8U) && ((depth != (int)SYS_DEPTH_32F))) ||
         (channels < 0))
         VOS_ERROR(VOS_BadDepth, "Unsupported format");
     if (origin != VOS_ORIGIN_BL && origin != VOS_ORIGIN_TL)
@@ -520,7 +520,7 @@ InitImageHeader(IplImage *image, Size size, int depth,
     image->depth = depth;
     image->align = align;
     image->widthStep = (((image->width * image->nChannels *
-                              (image->depth & ~IPL_DEPTH_SIGN) +
+                              (image->depth & ~SYS_DEPTH_SIGN) +
                           7) /
                          8) +
                         align - 1) &
@@ -595,7 +595,10 @@ CloneImage(const IplImage *src)
     {
         int size = src->imageSize;
         CreateData(dst);
-        VOS_MEMCPY(dst->imageData, src->imageData, size);
+        if (NULL != dst->imageData)
+        {
+            VOS_MEMCPY(dst->imageData, src->imageData, size);
+        }
     }
 
     __END__;
@@ -678,108 +681,57 @@ void thin(IplImage *Src_Img) //细化轮廓，得到单像素轮廓
     } while (Remove_Num);
 }
 
-/*************************************************
-Function:      通过直方图变换进行图像增强，将图像灰度的域值拉伸到0-255
-src1:               单通道灰度图像
-dst1:              同样大小的单通道灰度图像
-*************************************************/
-
-
-int ImageStretchByHistogram(IplImage *src1,IplImage *dst1)
-
-{
-    assert(src1->width==dst1->width);
-    double p[256],p1[256],num[256];
-
-    memset(p,0,sizeof(p));
-    memset(p1,0,sizeof(p1));
-    memset(num,0,sizeof(num));
-    int height=src1->height;
-    int width=src1->width;
-    long wMulh = height * width;
-
-    //statistics
-    for(int x=0;x<src1->width;x++)
-    {
-        for(int y=0;y<src1-> height;y++){
-            uchar v=((uchar*)(src1->imageData + src1->widthStep*y))[x];
-                num[v]++;
-        }
-    }
-    //calculate probability
-    for(int i=0;i<256;i++)
-    {
-        p[i]=num[i]/wMulh;
-    }
-
-    //p1[i]=sum(p[j]);  j<=i;
-    for(int i=0;i<256;i++)
-    {
-        for(int k=0;k<=i;k++)
-            p1[i]+=p[k];
-    }
-
-    // histogram transformation
-    for(int x=0;x<src1->width;x++)
-    {
-        for(int y=0;y<src1-> height;y++){
-            uchar v=((uchar*)(src1->imageData + src1->widthStep*y))[x];
-                ((uchar*)(dst1->imageData + dst1->widthStep*y))[x]= p1[v]*255+0.5;
-        }
-    }
-    return 0;
-}
-
 /************************************************* 
 Function:      通过直方图变换进行图像增强，将图像灰度的域值拉伸到0-255 
 src1:               单通道灰度图像                   
 dst1:              同样大小的单通道灰度图像  
-*************************************************/ 
+*************************************************/
 
+int ImageStretchByHistogram(IplImage *src1, IplImage *dst1)
 
-int ImageStretchByHistogram(IplImage *src1,IplImage *dst1)  
+{
+    assert(src1->width == dst1->width);
+    double p[256], p1[256], num[256];
 
-{  
-    assert(src1->width==dst1->width);  
-    double p[256],p1[256],num[256];  
-      
-    memset(p,0,sizeof(p));  
-    memset(p1,0,sizeof(p1));  
-    memset(num,0,sizeof(num));  
-    int height=src1->height;  
-    int width=src1->width;  
-    long wMulh = height * width;  
-      
-    //statistics  
-    for(int x=0;x<src1->width;x++)  
-    {  
-        for(int y=0;y<src1-> height;y++){  
-            uchar v=((uchar*)(src1->imageData + src1->widthStep*y))[x];  
-                num[v]++;  
-        }  
-    }  
-    //calculate probability  
-    for(int i=0;i<256;i++)  
-    {  
-        p[i]=num[i]/wMulh;  
-    }  
-  
-    //p1[i]=sum(p[j]);  j<=i;  
-    for(int i=0;i<256;i++)  
-    {  
-        for(int k=0;k<=i;k++)  
-            p1[i]+=p[k];  
-    }  
-  
-    // histogram transformation  
-    for(int x=0;x<src1->width;x++)  
-    {  
-        for(int y=0;y<src1-> height;y++){  
-            uchar v=((uchar*)(src1->imageData + src1->widthStep*y))[x];  
-                ((uchar*)(dst1->imageData + dst1->widthStep*y))[x]= p1[v]*255+0.5;              
-        }  
-    }  
-    return 0;  
-}  
+    memset(p, 0, sizeof(p));
+    memset(p1, 0, sizeof(p1));
+    memset(num, 0, sizeof(num));
+    int height = src1->height;
+    int width = src1->width;
+    long wMulh = height * width;
+
+    //statistics
+    for (int x = 0; x < src1->width; x++)
+    {
+        for (int y = 0; y < src1->height; y++)
+        {
+            uchar v = ((uchar *)(src1->imageData + src1->widthStep * y))[x];
+            num[v]++;
+        }
+    }
+    //calculate probability
+    for (int i = 0; i < 256; i++)
+    {
+        p[i] = num[i] / wMulh;
+    }
+
+    //p1[i]=sum(p[j]);  j<=i;
+    for (int i = 0; i < 256; i++)
+    {
+        for (int k = 0; k <= i; k++)
+            p1[i] += p[k];
+    }
+
+    // histogram transformation
+    for (int x = 0; x < src1->width; x++)
+    {
+        for (int y = 0; y < src1->height; y++)
+        {
+            uchar v = ((uchar *)(src1->imageData + src1->widthStep * y))[x];
+            ((uchar *)(dst1->imageData + dst1->widthStep * y))[x] = p1[v] * 255 + 0.5;
+        }
+    }
+    return 0;
+}
 
 /* End of file. */

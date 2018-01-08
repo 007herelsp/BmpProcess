@@ -25,7 +25,7 @@ int src_cn, int blue_idx)
 extern  int
 SaveImage(const char *filename, const VOID *arr);
 
-void CvtColor(const VOID *srcarr, VOID *dstarrR, VOID *dstarrG, VOID *dstarrB, int code)
+void CvtColor(const VOID *srcarr, VOID *dstarrR, VOID *dstarrG, VOID *dstarrB)
 {
 	VOS_FUNCNAME("CvtColor");
 

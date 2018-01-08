@@ -73,7 +73,7 @@ StdErrReport(int code, const char *func_name, const char *err_msg,
 
  const char *SysErrorStr(int status)
 {
-    char buf[256];
+    static char buf[256];
 
     switch (status)
     {

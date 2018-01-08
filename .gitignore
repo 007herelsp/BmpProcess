@@ -1,6 +1,7 @@
 build/
 3rd/
 tmp/
+bug/
 BmpProcess_codeb/obj/Debug/src/thresh.o
 bmp_opencv1/
 c.bmp

@@ -1,4 +1,3 @@
-
 #include "core.h"
 #include "misc.h"
 
@@ -24,11 +23,6 @@ static const char iPower2ShiftTab[] =
         0, 1, -1, 2, -1, -1, -1, 3, -1, -1, -1, -1, -1, -1, -1, 4,
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 5};
 
-/****************************************************************************************\
-*            Functions for manipulating memory storage - list of memory blocks           *
-\****************************************************************************************/
-
-/* initializes allocated storage */
 static void
 iInitMemStorage(MemStorage *storage, int block_size)
 {
@@ -333,10 +327,6 @@ MemStorageAlloc(MemStorage *storage, size_t size)
 
     return ptr;
 }
-
-/****************************************************************************************\
-*                               Sequence implementation                                  *
-\****************************************************************************************/
 
 Seq *CreateSeq(int seq_flags, int header_size, int elem_size, MemStorage *storage)
 {
@@ -658,10 +648,6 @@ iFreeSeqBlock(Seq *seq, int in_front_of)
     __END__;
 }
 
-/****************************************************************************************\
-*                             Sequence Writer implementation                             *
-\****************************************************************************************/
-
 /* initializes sequence writer */
 void StartAppendToSeq(Seq *seq, SeqWriter *writer)
 {
@@ -799,10 +785,6 @@ void CreateSeqBlock(SeqWriter *writer)
 
     __END__;
 }
-
-/****************************************************************************************\
-*                               Sequence Reader implementation                           *
-\****************************************************************************************/
 
 /* initializes sequence reader */
 void StartReadSeq(const Seq *seq, SeqReader *reader, int reverse)
@@ -1132,6 +1114,7 @@ void SeqPopMulti(Seq *seq, void *_elements, int count, int front)
     {
         while (count > 0)
         {
+            assert(NULL != seq->first);
             int delta = seq->first->count;
 
             delta = VOS_MIN(delta, count);
@@ -1158,7 +1141,7 @@ void SeqPopMulti(Seq *seq, void *_elements, int count, int front)
     __END__;
 }
 
-typedef struct SeqReaderPos
+typedef struct tagSeqReaderPos
 {
     SeqBlock *block;
     char *ptr;
@@ -1166,14 +1149,14 @@ typedef struct SeqReaderPos
     char *block_max;
 } SeqReaderPos;
 
-typedef struct TreeNode
+typedef struct tagTreeNode
 {
     int flags;                 /* micsellaneous flags */
     int header_size;           /* size of sequence header */
-    struct TreeNode *h_prev; /* previous sequence */
-    struct TreeNode *h_next; /* next sequence */
-    struct TreeNode *v_prev; /* 2nd previous sequence */
-    struct TreeNode *v_next; /* 2nd next sequence */
+    struct tagTreeNode *h_prev; /* previous sequence */
+    struct tagTreeNode *h_next; /* next sequence */
+    struct tagTreeNode *v_prev; /* 2nd previous sequence */
+    struct tagTreeNode *v_next; /* 2nd next sequence */
 } TreeNode;
 
 void InsertNodeIntoTree(void *_node, void *_parent, void *_frame)

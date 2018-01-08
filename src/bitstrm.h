@@ -84,5 +84,4 @@ public:
     void    PutDWord( int val );
 };
 
-
 #endif/*_BITSTRM_H_*/
