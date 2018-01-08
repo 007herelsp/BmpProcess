@@ -1,5 +1,6 @@
 
-#include "_cxcore.h"
+#include "core.h"
+#include "misc.h"
 
 #define IVOS_FREE_PTR(storage) \
     ((char *)(storage)->top + (storage)->block_size - (storage)->free_space)
@@ -1157,23 +1158,23 @@ void SeqPopMulti(Seq *seq, void *_elements, int count, int front)
     __END__;
 }
 
-typedef struct CvSeqReaderPos
+typedef struct SeqReaderPos
 {
     SeqBlock *block;
     char *ptr;
     char *block_min;
     char *block_max;
-} CvSeqReaderPos;
+} SeqReaderPos;
 
-typedef struct CvTreeNode
+typedef struct TreeNode
 {
     int flags;                 /* micsellaneous flags */
     int header_size;           /* size of sequence header */
-    struct CvTreeNode *h_prev; /* previous sequence */
-    struct CvTreeNode *h_next; /* next sequence */
-    struct CvTreeNode *v_prev; /* 2nd previous sequence */
-    struct CvTreeNode *v_next; /* 2nd next sequence */
-} CvTreeNode;
+    struct TreeNode *h_prev; /* previous sequence */
+    struct TreeNode *h_next; /* next sequence */
+    struct TreeNode *v_prev; /* 2nd previous sequence */
+    struct TreeNode *v_next; /* 2nd next sequence */
+} TreeNode;
 
 void InsertNodeIntoTree(void *_node, void *_parent, void *_frame)
 {
@@ -1181,8 +1182,8 @@ void InsertNodeIntoTree(void *_node, void *_parent, void *_frame)
 
     __BEGIN__;
 
-    CvTreeNode *node = (CvTreeNode *)_node;
-    CvTreeNode *parent = (CvTreeNode *)_parent;
+    TreeNode *node = (TreeNode *)_node;
+    TreeNode *parent = (TreeNode *)_parent;
 
     if (!node || !parent)
         VOS_ERROR(VOS_StsNullPtr, "");

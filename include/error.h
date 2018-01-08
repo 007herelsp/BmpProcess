@@ -43,7 +43,6 @@ typedef int OPTStatus;
 #define VOS_StsKernelStructContentErr -30 /* incorr. transform kernel content */
 #define VOS_StsFilterOffsetErr        -31 /* incorrect filter ofset value */
 
-/*extra for CV */
 #define VOS_StsBadSize                -201 /* the input/output structure size is incorrect  */
 #define VOS_StsDivByZero              -202 /* division by zero */
 #define VOS_StsInplaceNotSupported    -203 /* in-place operation is not supported */
@@ -65,16 +64,16 @@ typedef int OPTStatus;
 /* VOS_FUNCNAME macro defines icvFuncName constant which is used by VOS_ERROR macro */
 #ifdef VOS_NO_FUNC_NAMES
     #define VOS_FUNCNAME( Name )
-    #define cvFuncName ""
+    #define sysFuncName ""
 #else    
     #define VOS_FUNCNAME( Name )  \
-    static char cvFuncName[] = Name
+    static char sysFuncName[] = Name
 #endif
 
 
 #define VOS_ERROR( Code, Msg )                                       \
 {                                                                   \
-     SysError( (Code), cvFuncName, Msg, __FILE__, __LINE__ );        \
+     SysError( (Code), sysFuncName, Msg, __FILE__, __LINE__ );        \
      EXIT;                                                          \
 }
 

@@ -1,5 +1,7 @@
 
-#include "_cv.h"
+
+#include "cv.h"
+#include "misc.h"
 
 /* initializes 8-element array for fast access to 3x3 neighborhood of a pixel */
 #define VOS_INIT_3X3_DELTAS(deltas, step, nch)             \
@@ -11,9 +13,6 @@
 static const Point iCodeDeltas[8] =
     {{1, 0}, {1, -1}, {0, -1}, {-1, -1}, {-1, 0}, {-1, 1}, {0, 1}, {1, 1}};
 
-/****************************************************************************************\
-*                         Raster->Chain Tree (Suzuki algorithms)                         *
-\****************************************************************************************/
 
 typedef struct _ContourInfo
 {
@@ -26,10 +25,6 @@ typedef struct _ContourInfo
     int is_hole;                 /* hole flag */
 } _ContourInfo;
 
-/*
-  Structure that is used for sequental retrieving contours from the image.
-  It supports both hierarchical and plane variants of Suzuki algorithm.
-*/
 typedef struct _ContourScanner
 {
     MemStorage *storage1;      /* contains fetched contours */
@@ -69,13 +64,6 @@ typedef struct _ContourScanner
     _ContourInfo *cinfo_table[126];
 } _ContourScanner;
 
-#define _VOS_FIND_CONTOURS_FLAGS_EXTERNAL_ONLY 1
-#define _VOS_FIND_CONTOURS_FLAGS_HIERARCHIC 2
-
-/*
-   Initializes scanner structure.
-   Prepare image for scanning ( clear borders and convert all pixels to 0-1.
-*/
 ContourScanner
 StartFindContours(void *_img, MemStorage *storage,
                   int header_size, int mode,
@@ -105,7 +93,7 @@ StartFindContours(void *_img, MemStorage *storage,
     if (method < 0 || method > VOS_LINK_RUNS)
         VOS_ERROR_FROM_STATUS(VOS_BADRANGE_ERR);
 
-    if (header_size < (int)(sizeof(CvContour)))
+    if (header_size < (int)(sizeof(Contour)))
         VOS_ERROR_FROM_STATUS(VOS_BADSIZE_ERR);
 
     scanner = (ContourScanner)SysAlloc(sizeof(*scanner));
@@ -214,7 +202,7 @@ iEndProcessContour(ContourScanner scanner)
             ==0 - direct
             >0  - simple approximation
 */
-static CvStatus
+static VosStatus
 iFetchContour(char *ptr,
               int step,
               Point pt,
@@ -328,7 +316,7 @@ Seq *FindNextContour(ContourScanner scanner)
     Seq *contour = NULL;
     int nbd;
     int mode;
-    CvStatus result = (CvStatus)1;
+    VosStatus result = (VosStatus)1;
 
     VOS_FUNCNAME("cvFindNextContour");
 
@@ -477,10 +465,6 @@ exit_func:
     return contour;
 }
 
-/*
-   The function add to tree the last retrieved/substituted contour,
-   releases temp_storage, restores state of dst_storage (if needed), and
-   returns pointer to root of the contour tree */
 Seq *EndFindContours(ContourScanner *_scanner)
 {
     ContourScanner scanner;

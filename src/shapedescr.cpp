@@ -1,5 +1,7 @@
 
-#include "_cv.h"
+
+#include "cv.h"
+#include "misc.h"
 
 double
 ArcLength(const void *array, Slice slice, int is_closed)
@@ -72,7 +74,7 @@ ArcLength(const void *array, Slice slice, int is_closed)
 }
 
 /* area of a whole sequence */
-static CvStatus
+static VosStatus
 iContourArea(const Seq *contour, double *area)
 {
     if (contour->total)
@@ -116,7 +118,7 @@ iContourArea(const Seq *contour, double *area)
 
 \****************************************************************************************/
 
-static CvStatus
+static VosStatus
 iMemCopy(double **buf1, double **buf2, double **buf3, int *b_max)
 {
     int bb;
@@ -156,167 +158,6 @@ iMemCopy(double **buf1, double **buf2, double **buf3, int *b_max)
     return VOS_OK;
 }
 
-/* area of a contour sector */
-static CvStatus iContourSecArea(const Seq *contour, Slice slice, double *area)
-{
-    Point pt;         /*  pointer to points   */
-    Point pt_s, pt_e; /*  first and last points  */
-    SeqReader reader; /*  points reader of contour   */
-
-    int p_max = 2, p_ind;
-    int lpt, flag, i;
-    double a00; /* unnormalized moments m00    */
-    double xi, yi, xi_1, yi_1, x0, y0, dxy, sk, sk1, t;
-    double x_s, y_s, nx, ny, dx, dy, du, dv;
-    double eps = 1.e-5;
-    double *p_are1, *p_are2, *p_are;
-
-    if (NULL == contour)
-        return VOS_NULLPTR_ERR;
-
-    if (!VOS_IS_SEQ_POLYGON(contour))
-        return VOS_BADFLAG_ERR;
-
-    lpt = SliceLength(slice, contour);
-
-
-    if (contour->total && lpt > 2)
-    {
-        a00 = x0 = y0 = xi_1 = yi_1 = 0;
-        sk1 = 0;
-        flag = 0;
-        dxy = 0;
-        p_are1 = (double *)SysAlloc(p_max * sizeof(double));
-
-        if (NULL == p_are1)
-            return VOS_OUTOFMEM_ERR;
-
-        p_are = p_are1;
-        p_are2 = NULL;
-
-        StartReadSeq(contour, &reader, 0);
-        SetSeqReaderPos(&reader, slice.start_index);
-        VOS_READ_SEQ_ELEM(pt_s, reader);
-        p_ind = 0;
-        SetSeqReaderPos(&reader, slice.end_index);
-        VOS_READ_SEQ_ELEM(pt_e, reader);
-
-        /*    normal coefficients    */
-        nx = pt_s.y - pt_e.y;
-        ny = pt_e.x - pt_s.x;
-        SetSeqReaderPos(&reader, slice.start_index);
-
-        while (lpt-- > 0)
-        {
-            VOS_READ_SEQ_ELEM(pt, reader);
-
-            if (0 == flag)
-            {
-                xi_1 = (double)pt.x;
-                yi_1 = (double)pt.y;
-                x0 = xi_1;
-                y0 = yi_1;
-                sk1 = 0;
-                flag = 1;
-            }
-            else
-            {
-                xi = (double)pt.x;
-                yi = (double)pt.y;
-
-                /****************   edges intersection examination   **************************/
-                sk = nx * (xi - pt_s.x) + ny * (yi - pt_s.y);
-                if ((fabs(sk) < eps && lpt > 0) || (sk * sk1 < -eps))
-                {
-                    if (fabs(sk) < eps)
-                    {
-                        dxy = xi_1 * yi - xi * yi_1;
-                        a00 = a00 + dxy;
-                        dxy = xi * y0 - x0 * yi;
-                        a00 = a00 + dxy;
-
-                        if (p_ind >= p_max)
-                            iMemCopy(&p_are1, &p_are2, &p_are, &p_max);
-
-                        p_are[p_ind] = a00 / 2.;
-                        p_ind++;
-                        a00 = 0;
-                        sk1 = 0;
-                        x0 = xi;
-                        y0 = yi;
-                        dxy = 0;
-                    }
-                    else
-                    {
-                        /*  define intersection point    */
-                        dv = yi - yi_1;
-                        du = xi - xi_1;
-                        dx = ny;
-                        dy = -nx;
-                        if (fabs(du) > eps)
-                            t = ((yi_1 - pt_s.y) * du + dv * (pt_s.x - xi_1)) /
-                                (du * dy - dx * dv);
-                        else
-                            t = (xi_1 - pt_s.x) / dx;
-                        if (t > eps && t < 1 - eps)
-                        {
-                            x_s = pt_s.x + t * dx;
-                            y_s = pt_s.y + t * dy;
-                            dxy = xi_1 * y_s - x_s * yi_1;
-                            a00 += dxy;
-                            dxy = x_s * y0 - x0 * y_s;
-                            a00 += dxy;
-                            if (p_ind >= p_max)
-                                iMemCopy(&p_are1, &p_are2, &p_are, &p_max);
-
-                            p_are[p_ind] = a00 / 2.;
-                            p_ind++;
-
-                            a00 = 0;
-                            sk1 = 0;
-                            x0 = x_s;
-                            y0 = y_s;
-                            dxy = x_s * yi - xi * y_s;
-                        }
-                    }
-                }
-                else
-                    dxy = xi_1 * yi - xi * yi_1;
-
-                a00 += dxy;
-                xi_1 = xi;
-                yi_1 = yi;
-                sk1 = sk;
-            }
-        }
-
-        xi = x0;
-        yi = y0;
-        dxy = xi_1 * yi - xi * yi_1;
-
-        a00 += dxy;
-
-        if (p_ind >= p_max)
-            iMemCopy(&p_are1, &p_are2, &p_are, &p_max);
-
-        p_are[p_ind] = a00 / 2.;
-        p_ind++;
-
-        *area = 0;
-        for (i = 0; i < p_ind; i++)
-            (*area) += fabs(p_are[i]);
-
-        if (NULL != p_are1)
-            SYS_FREE(&p_are1);
-        else if (NULL != p_are2)
-            SYS_FREE(&p_are2);
-
-        return VOS_OK;
-    }
-    else
-        return VOS_BADSIZE_ERR;
-}
-
 /* external contour area function */
 double
 ContourArea(const Seq *contour, Slice slice)
@@ -337,10 +178,8 @@ ContourArea(const Seq *contour, Slice slice)
     }
     else
     {
-        if (VOS_SEQ_ELTYPE(contour) != VOS_32SC2)
             VOS_ERROR(VOS_StsUnsupportedFormat,
                       "Only curves with integer coordinates are supported in case of contour slice");
-        VOS_FUN_CALL(iContourSecArea(contour, slice, &area));
     }
 
     __END__;
@@ -368,7 +207,7 @@ Rect BoundingRect(VOID *array, int update)
         if (!VOS_IS_SEQ_POINT_SET(ptseq))
             VOS_ERROR(VOS_StsBadArg, "Unsupported sequence type");
 
-        if (ptseq->header_size < (int)sizeof(CvContour))
+        if (ptseq->header_size < (int)sizeof(Contour))
         {
             update = 0;
             calculate = 1;
@@ -381,7 +220,7 @@ Rect BoundingRect(VOID *array, int update)
 
     if (!calculate)
     {
-        rect = ((CvContour *)ptseq)->rect;
+        rect = ((Contour *)ptseq)->rect;
         EXIT;
     }
 
@@ -421,7 +260,7 @@ Rect BoundingRect(VOID *array, int update)
     rect.height = ymax - ymin + 1;
 
     if (update)
-        ((CvContour *)ptseq)->rect = rect;
+        ((Contour *)ptseq)->rect = rect;
 
     __END__;
 

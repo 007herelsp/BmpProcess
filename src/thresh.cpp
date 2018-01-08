@@ -1,6 +1,8 @@
-#include "_cv.h"
 
-static CvStatus
+#include "cv.h"
+#include "misc.h"
+
+static VosStatus
 iThresh_8u_C1R(const uchar *src, int src_step, uchar *dst, int dst_step,
                Size roi, uchar thresh, uchar maxval, int type)
 {
@@ -63,7 +65,7 @@ void Threshold(const void *srcarr, void *dstarr, double thresh, double maxval, i
 
     if (!VOS_ARE_DEPTHS_EQ(src, dst))
     {
-        VOS_ERROR(VOS_BadDepth, cvUnsupportedFormat);
+        VOS_ERROR(VOS_BadDepth, "");
     }
 
     if (!VOS_ARE_SIZES_EQ(src, dst))

@@ -16,7 +16,6 @@ struct PaletteEntry
     unsigned char b, g, r, a;
 };
 
-// Windows Bitmap reader
 class GrFmtBmpReader : public GrFmtReader
 {
 public:
@@ -37,8 +36,6 @@ protected:
     BmpCompression  m_rle_code;
 };
 
-
-// ... writer
 class GrFmtBmpWriter : public GrFmtWriter
 {
 public:

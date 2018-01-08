@@ -1,8 +1,8 @@
 #ifndef _HIGH_GUI_
 #define _HIGH_GUI_
 
-#include "cxcore.h"
-#include "cxmisc.h"
+#include "core.h"
+#include "misc.h"
 
 #define VOS_LOAD_IMAGE_COLOR       1
 

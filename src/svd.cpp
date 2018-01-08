@@ -1,7 +1,9 @@
-#include "_cxcore.h"
+#include "core.h"
+#include "misc.h"
+
 #include <float.h>
 
-#define iGivens_64f(n, x, y, c, s)   \
+#define iGivens_64f(n, x, y, c, s)     \
     \
 {                                 \
         int _i;                        \
@@ -20,7 +22,7 @@
 
 static void
 iMatrAXPY_64f(int m, int n, const double *x, int dx,
-                const double *a, double *y, int dy)
+              const double *a, double *y, int dy)
 {
     int i, j;
 
@@ -106,10 +108,10 @@ pythag(double a, double b)
 
 static void
 iSVD_64f(double *a, int lda, int m, int n,
-           double *w,
-           double *uT, int lduT, int nu,
-           double *vT, int ldvT,
-           double *buffer)
+         double *w,
+         double *uT, int lduT, int nu,
+         double *vT, int ldvT,
+         double *buffer)
 {
     double *e;
     double *temp;
@@ -137,14 +139,13 @@ iSVD_64f(double *a, int lda, int m, int n,
 
     m1 = m;
     n1 = n;
-
+    int update_u;
+    int update_v;
     /* transform a to bi-diagonal form */
     for (;;)
     {
-        int update_u;
-        int update_v;
 
-        if ( 0 == m1)
+        if (0 == m1)
             break;
 
         scale = h = 0;
@@ -157,7 +158,7 @@ iSVD_64f(double *a, int lda, int m, int n,
             scale += fabs(hv[j] = t);
         }
 
-        if ( 0 != scale)
+        if (0 != scale)
         {
             double f = 1. / scale, g, s = 0;
 
@@ -445,7 +446,7 @@ iSVD_64f(double *a, int lda, int m, int n,
                 w[i - 1] = z;
 
                 /* rotation can be arbitrary if z == 0 */
-                if ( 0 != z)
+                if (0 != z)
                 {
                     c = f / z;
                     s = h / z;
@@ -502,10 +503,10 @@ iSVD_64f(double *a, int lda, int m, int n,
 
 static void
 iSVBkSb_64f(int m, int n, const double *w,
-              const double *uT, int lduT,
-              const double *vT, int ldvT,
-              const double *b, int ldb, int nb,
-              double *x, int ldx, double *buffer)
+            const double *uT, int lduT,
+            const double *vT, int ldvT,
+            const double *b, int ldb, int nb,
+            double *x, int ldx, double *buffer)
 {
     double threshold = 0;
     int i, j, nm = VOS_MIN(m, n);
@@ -593,8 +594,7 @@ iSVBkSb_64f(int m, int n, const double *w,
     }
 }
 
- void
-SVD(VOID *aarr, VOID *warr, VOID *uarr, VOID *varr, int flags)
+void SVD(VOID *aarr, VOID *warr, VOID *uarr, VOID *varr, int flags)
 {
     uchar *buffer = NULL;
     int local_alloc = 0;
@@ -627,7 +627,7 @@ SVD(VOID *aarr, VOID *warr, VOID *uarr, VOID *varr, int flags)
     if (!VOS_ARE_TYPES_EQ(a, w))
         VOS_ERROR(VOS_StsUnmatchedFormats, "");
 
-    if ( (VOS_SVD_U_T | VOS_SVD_V_T) != flags)
+    if ((VOS_SVD_U_T | VOS_SVD_V_T) != flags)
     {
         VOS_ERROR(VOS_StsUnsupportedFormat, "");
     }
@@ -655,9 +655,7 @@ SVD(VOID *aarr, VOID *warr, VOID *uarr, VOID *varr, int flags)
 
     w_is_mat = w_cols > 1 && w_rows > 1;
 
-
-        tw = w->data.ptr;
-
+    tw = w->data.ptr;
 
     if (u)
     {
@@ -739,7 +737,7 @@ SVD(VOID *aarr, VOID *warr, VOID *uarr, VOID *varr, int flags)
     }
 
     InitMatHeader(&tmat, m, n, type,
-                    buffer + a_buf_offset * pix_size);
+                  buffer + a_buf_offset * pix_size);
     if (!t_svd)
         Copy(a, &tmat);
     else
@@ -756,13 +754,13 @@ SVD(VOID *aarr, VOID *warr, VOID *uarr, VOID *varr, int flags)
     }
 
     if (NULL == tw)
-    	{
+    {
         tw = buffer + (n + m) * pix_size;
-    	}
+    }
 
-        iSVD_64f(a->data.db, a->step / sizeof(double), a->rows, a->cols,
-                   (double *)tw, u->data.db, u->step / sizeof(double), u_cols,
-                   v->data.db, v->step / sizeof(double), (double *)buffer);
+    iSVD_64f(a->data.db, a->step / sizeof(double), a->rows, a->cols,
+             (double *)tw, u->data.db, u->step / sizeof(double), u_cols,
+             v->data.db, v->step / sizeof(double), (double *)buffer);
 
     if (uarr)
     {
@@ -770,17 +768,15 @@ SVD(VOID *aarr, VOID *warr, VOID *uarr, VOID *varr, int flags)
             Copy(u, uarr);
     }
 
-
     __END__;
 
     if (buffer && !local_alloc)
         SYS_FREE(&buffer);
 }
 
- void
-SVBkSb(const VOID *warr, const VOID *uarr,
-         const VOID *varr, const VOID *barr,
-         VOID *xarr, int flags)
+void SVBkSb(const VOID *warr, const VOID *uarr,
+            const VOID *varr, const VOID *barr,
+            VOID *xarr, int flags)
 {
     uchar *buffer = NULL;
     int local_alloc = 0;
@@ -817,7 +813,7 @@ SVBkSb(const VOID *warr, const VOID *uarr,
     if (!VOS_ARE_TYPES_EQ(w, u) || !VOS_ARE_TYPES_EQ(w, v) || !VOS_ARE_TYPES_EQ(w, x))
         VOS_ERROR(VOS_StsUnmatchedFormats, "All matrices must have the same type");
 
-    if (  (VOS_SVD_U_T | VOS_SVD_V_T)!=flags)
+    if ((VOS_SVD_U_T | VOS_SVD_V_T) != flags)
     {
         VOS_ERROR(VOS_StsUnsupportedFormat, "");
     }
@@ -838,7 +834,7 @@ SVBkSb(const VOID *warr, const VOID *uarr,
     if ((u_rows != u_cols && v_rows != v_cols) || x->rows != v_rows)
         VOS_ERROR(VOS_StsBadSize, "V or U matrix must be square");
 
-    if ((1 == w->rows  || 1 == w->cols) && w->rows + w->cols - 1 == nm)
+    if ((1 == w->rows || 1 == w->cols) && w->rows + w->cols - 1 == nm)
     {
         if (VOS_IS_MAT_CONT(w->type))
             tw = w->data.ptr;
@@ -875,7 +871,7 @@ SVBkSb(const VOID *warr, const VOID *uarr,
     t_buf_offset = buf_size;
     buf_size += (VOS_MAX(m, n) + b->cols) * pix_size;
 
-    if (VOS_MAX_LOCAL_SIZE >= buf_size )
+    if (VOS_MAX_LOCAL_SIZE >= buf_size)
     {
         buffer = (uchar *)sysStackAlloc(buf_size);
         local_alloc = 1;
@@ -891,11 +887,11 @@ SVBkSb(const VOID *warr, const VOID *uarr,
             VOS_MEMCPY(tw + i * pix_size, w->data.ptr + i * (w->step + shift), pix_size);
     }
 
-        iSVBkSb_64f(m, n, (double *)tw, u->data.db, u->step / sizeof(double),
-                      v->data.db, v->step / sizeof(double),
-                      b->data.db, b->step / sizeof(double), b->cols,
-                      x->data.db, x->step / sizeof(double),
-                      (double *)(buffer + t_buf_offset));
+    iSVBkSb_64f(m, n, (double *)tw, u->data.db, u->step / sizeof(double),
+                v->data.db, v->step / sizeof(double),
+                b->data.db, b->step / sizeof(double), b->cols,
+                x->data.db, x->step / sizeof(double),
+                (double *)(buffer + t_buf_offset));
 
     __END__;
 

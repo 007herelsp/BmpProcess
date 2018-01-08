@@ -1,6 +1,6 @@
 
-
-#include "_cv.h"
+#include "cv.h"
+#include "misc.h"
 
 static void
 Sobel(const void *srcarr, void *dstarr, int dx, int dy, int aperture_size)
@@ -43,40 +43,38 @@ Sobel(const void *srcarr, void *dstarr, int dx, int dy, int aperture_size)
 }
 
 #define CANNY_SHIFT 15
-#define TG22 (int)(0.4142135623730950488016887242097 * (1 << CANNY_SHIFT) + 0.5)
+static const int  TG22 = (int)(0.4142135623730950488016887242097 * (1 << CANNY_SHIFT) + 0.5);
 
 // 仿照matlab，自适应求高低两个门限
-void _AdaptiveFindThreshold(Mat *dx, Mat *dy, double *low, double *high)
+void CannyAdaptiveFindThreshold(Mat *dx, Mat *dy, double *low, double *high)
 {
     Size size;
     int i, j;
     int hist_size = 255;
-    float PercentOfPixelsNotEdges = 0.7;
+    double PercentOfPixelsNotEdges = 0.7;
     size = GetSize(dx);
-    Mat *imge = CreateMat(size.height, size.width, IPL_DEPTH_32F);
- 
+    IplImage *imge = CreateImage(size, IPL_DEPTH_32F,1);
+
     // 计算边缘的强度, 并存于图像中
     float maxv = 0;
     float minv = 0;
-    float sb = 0;
     for (i = 0; i < size.height; i++)
     {
         const short *_dx = (short *)(dx->data.ptr + dx->step * i);
         const short *_dy = (short *)(dy->data.ptr + dy->step * i);
-        float *_image = (float *)(imge->data.ptr + imge->step * i);
+        float *_image = (float *)(imge->imageData + imge->widthStep * i);
         for (j = 0; j < size.width; j++)
         {
-            sb = (float)(abs(_dx[j]) + abs(_dy[j]));
-            _image[j] = (float)(sb);
-            maxv = maxv < sb ? sb : maxv;
-            minv = minv > sb ? sb : minv;
+            _image[j] = (float)(abs(_dx[j]) + abs(_dy[j]));
+            maxv = maxv < _image[j] ? _image[j] : maxv;
+            minv = minv > _image[j] ? _image[j] : minv;
         }
     }
     if (maxv == 0 || (maxv == minv))
     {
-        *high = 0;
-        *low = 0;
-        ReleaseMat(&imge);
+        *high = 1;
+        *low = 3;
+        ReleaseImage(&imge);
         return;
     }
     float t = 255 / (maxv - minv);
@@ -86,16 +84,13 @@ void _AdaptiveFindThreshold(Mat *dx, Mat *dy, double *low, double *high)
     hist_size = (int)(hist_size > maxv ? maxv : hist_size);
 
     double bins[256] = {0};
-    int height = imge->height;
-    int width = imge->width;
-
-    float *img = (float *)imge->data.ptr;
+    float *img = (float *)imge->imageData;
     int sz = 255;
     int x;
     size.width *= size.height;
     size.height = 1;
-    int step = VOS_STUB_STEP;
-    step /= 4;
+    static int step = VOS_STUB_STEP/4;
+
     for (; size.height--; img += step)
     {
         float *ptr = img;
@@ -127,7 +122,7 @@ void _AdaptiveFindThreshold(Mat *dx, Mat *dy, double *low, double *high)
     }
 
     int total = (int)(imge->height * imge->width * PercentOfPixelsNotEdges);
-    float sum = 0;
+    double sum = 0;
 
     sum = 0;
     for (i = 0; i < hist_size; i++)
@@ -139,7 +134,7 @@ void _AdaptiveFindThreshold(Mat *dx, Mat *dy, double *low, double *high)
     // 计算高低门限
     *high = (i + 1) * maxv / hist_size;
     *low = *high * 0.4;
-    ReleaseMat(&imge);
+    ReleaseImage(&imge);
 }
 
 void Canny(const void *srcarr, void *dstarr,
@@ -189,12 +184,9 @@ void Canny(const void *srcarr, void *dstarr,
     Sobel(src, dy, 0, 1, aperture_size);
 
     ///////////////////
- 
-    double dl, dh;
-    _AdaptiveFindThreshold(dx, dy, &dl, &dh);
-    //low_thresh =dl;
-    //high_thresh =dh;
-    printf("%g,%g\n", dl, dh);
+
+    CannyAdaptiveFindThreshold(dx, dy, &low_thresh, &high_thresh);
+//printf("%g,%g\n", low_thresh, high_thresh);
     ///////////////////
 
     if (flags & VOS_CANNY_L2_GRADIENT)
@@ -245,11 +237,6 @@ void Canny(const void *srcarr, void *dstarr,
 
     mag_row = InitMat(1, size.width, VOS_32F);
 
-    // calculate magnitude and angle of gradient, perform non-maxima supression.
-    // fill the map with one of the following values:
-    //   0 - the pixel might belong to an edge
-    //   1 - the pixel can not belong to an edge
-    //   2 - the pixel does belong to an edge
     for (i = 0; i <= size.height; i++)
     {
         int *_mag = mag_buf[(i > 0) + 1] + 1;
@@ -282,9 +269,8 @@ void Canny(const void *srcarr, void *dstarr,
         }
         else
             VOS_MEMSET(_mag - 1, 0, (size.width + 2) * sizeof(int));
+		
 
-        // at the very beginning we do not have a complete ring
-        // buffer of 3 magnitude rows for non-maxima suppression
         if (i == 0)
             continue;
 

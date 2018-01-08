@@ -1,11 +1,13 @@
 
-#include "_cv.h"
+#include "cv.h"
+#include "misc.h"
+
 
 /****************************************************************************************\
 *                               Polygonal Approximation                                  *
 \****************************************************************************************/
 /* the version for integer point coordinates */
-static CvStatus
+static VosStatus
 iApproxPolyDP_32s(Seq *src_contour, int header_size,
                     MemStorage *storage,
                     Seq **dst_contour, float eps)
@@ -247,8 +249,8 @@ ApproxPoly(const void *array, int header_size,
     if (0 == header_size)
         header_size = src_seq->header_size;
 
-    if (header_size < (int)sizeof(CvContour))
-        VOS_ERROR(VOS_StsBadSize, "New header size must be non-less than sizeof(CvContour)");
+    if (header_size < (int)sizeof(Contour))
+        VOS_ERROR(VOS_StsBadSize, "New header size must be non-less than sizeof(Contour)");
 
     if (method != VOS_POLY_APPROX_DP)
         VOS_ERROR(VOS_StsOutOfRange, "Unknown approximation method");
@@ -268,7 +270,7 @@ ApproxPoly(const void *array, int header_size,
 
         assert(contour);
 
-        if (header_size >= (int)sizeof(CvContour))
+        if (header_size >= (int)sizeof(Contour))
             BoundingRect(contour, 1);
 
         contour->v_prev = parent;

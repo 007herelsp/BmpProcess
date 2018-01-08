@@ -28,41 +28,88 @@ typedef struct stBox
 	Point pt[4];
 	Box2D box;
 	bool isRect;
+	int id;
 } Box;
 
-#define MAX_P 40.0
+//static const float MAX_P = 40.0f;
+#define MAX_P 10.0
 
 bool isEqu(float x1, float x2)
 {
 	return (fabs(x1 - x2) <= MAX_P);
 }
 
-struct SymUBoxCmp
+struct SymStorBoxCmp
 {
 	bool operator()(const Box &x, const Box &y) const
 	{
 		if (fabs(x.box.center.x - y.box.center.x) <= MAX_P && fabs(x.box.center.y - y.box.center.y) <= MAX_P)
 		{
+			return false;
 			if (fabs(x.box.size.width - y.box.size.width) <= MAX_P && fabs(x.box.size.height - y.box.size.height) <= MAX_P)
+			{
+				return false;
+			}
+			else
 			{
 				return false;
 			}
 		}
 
-		bool ret = false;
-		if (x.box.center.x == y.box.center.x)
+		if (x.box.center.x < y.box.center.x)
 		{
-			ret = x.box.center.y < y.box.center.y;
+			return true;
+		}
+		else if (fabs(x.box.center.x - y.box.center.x) <= DBL_EPSILON)
+		{
+			return (x.box.center.y < y.box.center.y);
 		}
 		else
 		{
-			ret = x.box.center.x < y.box.center.x;
+			return false;
 		}
+	}
+};
+struct SymUBoxCmp
+{
+	bool operator()(const Box &x, const Box &y) const
+	{
+		/*if (fabs(x.box.center.x - y.box.center.x) <= MAX_P && fabs(x.box.center.y - y.box.center.y) <= MAX_P)
+		{
+			return false;
+			if (fabs(x.box.size.width - y.box.size.width) <= MAX_P && fabs(x.box.size.height - y.box.size.height) <= MAX_P)
+			{
+				return false;
+			}
+			else
+			{
+				return false;
+			}
+		}
+
+		return x.id < y.id;
+		*/
+
+		bool ret = false;
+
+		if (x.box.center.x < y.box.center.x)
+		{
+			return true;
+		}
+		else if (fabs(x.box.center.x - y.box.center.x) <= DBL_EPSILON)
+		{
+			return (x.box.center.y < y.box.center.y);
+		}
+		else
+		{
+			return false;
+		}
+
 		return ret;
 	}
 };
-
-set<Box, SymUBoxCmp> SearchProcess_v2(IplImage *lpSrcImg)
+static int boxid = 0;
+void SearchProcess_v3(IplImage *lpSrcImg, set<Box, SymUBoxCmp> &lstRes)
 {
 	MemStorage *storage = CreateMemStorage();
 	Seq *contours = NULL;
@@ -71,19 +118,16 @@ set<Box, SymUBoxCmp> SearchProcess_v2(IplImage *lpSrcImg)
 	double dContourArea;
 	Box2D End_Rage2D;
 	int index = 0;
-	set<Box, SymUBoxCmp> lstRes;
-	// ����һ�����������ڴ洢�����ǵ�
-	FindContours(lpSrcImg, storage, &contours, sizeof(CvContour),
-				 VOS_RETR_LIST, VOS_CHAIN_APPROX_SIMPLE, InitPoint(0, 0));
-	int iCount = 0;
-	SaveImage("c.bmp", lpSrcImg);
 
-	// �����ҵ���ÿ������contours
+	FindContours(lpSrcImg, storage, &contours, sizeof(Contour),
+				 VOS_RETR_LIST, VOS_CHAIN_APPROX_SIMPLE, InitPoint(0, 0));
+
+	//SaveImage("c.bmp", lpSrcImg);
+
 	while (contours)
 	{
-		//��ָ�����ȱƽ����������
-		result = ApproxPoly(contours, sizeof(CvContour), storage,
-							VOS_POLY_APPROX_DP, cvContourPerimeter(contours) * 0.02, 0);
+		result = ApproxPoly(contours, sizeof(Contour), storage,
+							VOS_POLY_APPROX_DP, cvContourPerimeter(contours) * 0.01, 0);
 		if (NULL != result)
 		{
 			if (4 == result->total)
@@ -91,7 +135,7 @@ set<Box, SymUBoxCmp> SearchProcess_v2(IplImage *lpSrcImg)
 				dContourArea = fabs(ContourArea(result, VOS_WHOLE_SEQ));
 				if (dContourArea >= 500 && dContourArea <= 1000000 && CheckContourConvexity(result))
 				{
-					End_Rage2D = MinAreaRect2(contours);
+					End_Rage2D = MinAreaRect2(result);
 					s = 0;
 					Box box = {0};
 					box.box = End_Rage2D;
@@ -108,8 +152,6 @@ set<Box, SymUBoxCmp> SearchProcess_v2(IplImage *lpSrcImg)
 						}
 					}
 
-					// if ����ֵ �㹻С�������϶��Ƕ�Ϊ90��ֱ��
-					//cos0.1=83�ȣ��ܽϺõ�����ֱ��
 					Point *tp;
 					for (int i = 0; i < 4; i++)
 					{
@@ -121,79 +163,84 @@ set<Box, SymUBoxCmp> SearchProcess_v2(IplImage *lpSrcImg)
 					if (s < 0.1)
 					{
 						box.isRect = true;
+						//box.pt = box.box.pt;
 					}
 					else
 					{
 						box.isRect = false;
 					}
 
-					if(box.box.size.width >600)
-					{
-						int ib=0;
-					}
+					//printf("hello: %g, %g\n", box.box.center.x, box.box.center.y);
+					box.id = boxid++;
 					//printf("centerInfo:[%f,%f]:[%f,%f]\n", End_Rage2D.center.x, End_Rage2D.center.y, End_Rage2D.size.width, End_Rage2D.size.height);
 					lstRes.insert(box);
-					iCount++;
 				}
 			}
 		}
-		// ����������һ������
 		contours = contours->h_next;
 	}
 
 	ReleaseMemStorage(&storage);
 
-	return std::move(lstRes);
+	return;
 }
 
-int process_v2(IplImage *lpImg, IplImage *lpTargetImg, int argc, char *argv[])
+int process_v3(set<Box, SymUBoxCmp> &setURes, IplImage *lpTargetImg, int argc, char *argv[])
 {
-	set<Box, SymUBoxCmp> setURes = SearchProcess_v2(lpImg);
 	set<Box, SymUBoxCmp>::iterator itu;
+	set<Box, SymStorBoxCmp> storSet;
+	set<Box, SymStorBoxCmp>::iterator itStor;
 	Point2D32f srcTri[4], dstTri[4];
 	IplImage *temp;
 	Point p[4];
 	Mat *warp_mat;
 	int iCount = 0;
 	Box tbox;
+	Box tbox1;
+	bool flag = false;
 	for (itu = setURes.begin(); itu != setURes.end(); itu++)
 	{
-		if ((*itu).isRect)
-		{
-			iCount++;
-		}
 		tbox = *itu;
-		// printf("test centerInfo:[%f,%f]:[%f,%f] ->", tbox.box.center.x, tbox.box.center.y, tbox.box.size.width, tbox.box.size.height);
-
-		// for (int i = 0; i < 4; i++)
-		// {
-		// 	printf("%d,%d",  tbox.pt[i].x, tbox.pt[i].y);
-		// }
-		// printf("\n");
+		flag = true;
+		for (itStor = storSet.begin(); itStor != storSet.end(); itStor++)
+		{
+			tbox1 = *itStor;
+			if (fabs(tbox.box.center.x - tbox1.box.center.x) <= MAX_P && fabs(tbox.box.center.y - tbox1.box.center.y) <= MAX_P)
+			{
+				flag = false;
+				break;
+			}
+		}
+		if (flag)
+		{
+			if (tbox.isRect)
+			{
+				iCount++;
+			}
+			storSet.insert(tbox);
+		}
 	}
 
 	Box box;
-	itu = setURes.begin();
-	for (int i = 0; i < argc && itu != setURes.end(); i++)
+	itStor = storSet.begin();
+	for (int i = 0; i < argc && itStor != storSet.end(); i++)
 	{
-		//printf("%s\n", argv[i]);
 		IplImage *lpSrcImg = LoadImage(argv[i], 1);
 		if (lpSrcImg != NULL)
 		{
-			box = *itu;
-			itu++;
+			box = *itStor;
+			itStor++;
 
 			temp = lpSrcImg;
 
 			warp_mat = CreateMat(3, 3, VOS_64FC1);
 
-			//����
 			Point pt;
-			for (int j = 0; j < 4; j++) /* ���ݷ�Ҫ����n��*/
+			for (int j = 0; j < 4; j++)
 			{
-				for (int i = 0; i < 4 - j; i++) /* ֵ�Ƚϴ��Ԫ�س���ȥ��ֻ��ʣ�µ�Ԫ���е����ֵ�ٳ���ȥ�Ϳ����� */
+				for (int i = 0; i < 4 - j; i++)
 				{
-					if (box.pt[i].x > box.pt[i + 1].x) /* ��ֵ�Ƚϴ��Ԫ�س����� */
+					if (box.pt[i].x > box.pt[i + 1].x)
 					{
 						pt = box.pt[i];
 						box.pt[i] = box.pt[i + 1];
@@ -203,7 +250,6 @@ int process_v2(IplImage *lpImg, IplImage *lpTargetImg, int argc, char *argv[])
 			}
 			//printf("after centerInfo:[%f,%f]:[%f,%f]\n", box.box.center.x, box.box.center.y, box.box.size.width, box.box.size.height);
 
-			//��p0��
 			if (box.pt[0].y > box.pt[1].y)
 			{
 				p[0] = box.pt[0];
@@ -241,33 +287,18 @@ int process_v2(IplImage *lpImg, IplImage *lpTargetImg, int argc, char *argv[])
 			p[3].y += diff;
 			for (int i = 0; i < 4; i++)
 			{
-				dstTri[i].x = p[i].x;
-				dstTri[i].y = p[i].y;
+				dstTri[i].x = (float)p[i].x;
+				dstTri[i].y = (float)p[i].y;
 			}
 
-			//����������任
-			if (box.box.size.width > box.box.size.height)
-			{
-				srcTri[1].x = 0;
-				srcTri[1].y = 0;
-				srcTri[2].x = temp->width - 1 + 1; //��Сһ������
-				srcTri[2].y = 0;
-				srcTri[3].x = temp->width - 1 + 1;
-				srcTri[3].y = temp->height - 1 + 1;
-				srcTri[0].x = 0; //bot right
-				srcTri[0].y = temp->height - 1 + 1;
-			}
-			else
-			{
-				srcTri[1].x = 0;
-				srcTri[1].y = 0;
-				srcTri[2].x = temp->width - 1 + 1; //��Сһ������
-				srcTri[2].y = 0;
-				srcTri[3].x = temp->width - 1 + 1;
-				srcTri[3].y = temp->height - 1 + 1;
-				srcTri[0].x = 0; //bot right
-				srcTri[0].y = temp->height - 1 + 1;
-			}
+			srcTri[1].x = (float)0;
+			srcTri[1].y = (float)0;
+			srcTri[2].x = (float)temp->width - 1 + 1;
+			srcTri[2].y = (float)0;
+			srcTri[3].x = (float)temp->width - 1 + 1;
+			srcTri[3].y = (float)temp->height - 1 + 1;
+			srcTri[0].x = (float)0; //bot right
+			srcTri[0].y = (float)temp->height - 1 + 1;
 
 			GetPerspectiveTransform(dstTri, srcTri, warp_mat);										 //�����Ե�������任
 			WarpPerspective(temp, lpTargetImg, warp_mat, VOS_INTER_LINEAR | (VOS_WARP_INVERSE_MAP)); //��ͼ��������任
@@ -290,51 +321,49 @@ int main(int argc, char** args)
 	{
 		return ERR_1;
 	}
-	IplImage *gray = CreateImage(GetSize(lpTargetImg), 8, 1);
-	CvtColor(lpTargetImg, gray, VOS_RGB2GRAY);
+
+	const int channel = 3;
+	IplImage *imagChannels[channel] = {0};
+	for (int i = 0; i < channel; i++)
+	{
+		imagChannels[i] = CreateImage(GetSize(lpTargetImg), 8, 1);
+
+		assert(NULL != imagChannels[i]);
+	}
+
+	CvtColor(lpTargetImg, imagChannels[0], imagChannels[1], imagChannels[2], VOS_RGB2GRAY);
+
 	IplImage *lpCannyImg = CreateImage(GetSize(lpTargetImg), 8, 1);
-	IplImage *tmp = CreateImage(GetSize(lpTargetImg), 8, 1);
 	IplImage *lpDilateImg = CreateImage(GetSize(lpTargetImg), 8, 1);
-	Smooth(gray, tmp, VOS_GAUSSIAN, 3, 3, 0, 0); //��˹�˲�
-	SaveImage("tmp.bmp", tmp);
-	printf("save\n");
+
+	set<Box, SymUBoxCmp> lstRes;
 	if (NULL != lpCannyImg && NULL != lpDilateImg)
 	{
-		Canny(gray, lpCannyImg, 14.4, 36, 3);
-		SaveImage("canny1.bmp", lpCannyImg);
-		Dilate(lpCannyImg, lpDilateImg, 0, 1);
-		Erode(lpDilateImg, lpDilateImg, 0, 1);
-		SaveImage("lpErode.bmp", lpDilateImg);
+		for (int i = 0; i < channel; i++)
+		{
+			Canny(imagChannels[i], lpCannyImg, 14.4, 36, 3);
+			ReleaseImage(&imagChannels[i]);
+			Dilate(lpCannyImg, lpDilateImg, 0, 1);
+			Erode(lpDilateImg, lpDilateImg, 0, 1);
+			SearchProcess_v3(lpDilateImg, lstRes);
+		}
 
-		IplImage *pGrayImage = CreateImage(GetSize(lpTargetImg), IPL_DEPTH_8U, 1);
-		IplImage *pGrayEqualizeImage = CreateImage(GetSize(lpTargetImg), IPL_DEPTH_8U, 1);
-		Smooth(lpTargetImg, lpTargetImg, VOS_GAUSSIAN, 3, 3, 0, 0); //��˹�˲�
-		CvtColor(lpTargetImg, pGrayImage, VOS_BGR2GRAY);
-		SaveImage("pGrayImage.bmp", pGrayImage);
-		//cvEqualizeHist(pGrayImage, pGrayEqualizeImage);
-		SaveImage("pGrayEqualizeImage.bmp", pGrayEqualizeImage);
+		IplImage *lpOutImg = CloneImage(lpTargetImg);
+		int iCunt = 0;
+		if (NULL != lpOutImg)
+		{
+			iCunt = process_v3(lstRes, lpOutImg, argc - 3, &args[3]);
+			SaveImage(OutputPath, lpOutImg);
 
-		Canny(pGrayEqualizeImage, lpCannyImg, 0.5, 20, 3);
-		SaveImage("canny2.bmp", lpCannyImg);
+			ReleaseImage(&lpOutImg);
+		}
+
+		printf("%d\n", iCunt);
+
+		ReleaseImage(&lpTargetImg);
+		ReleaseImage(&lpDilateImg);
+		ReleaseImage(&lpCannyImg);
 	}
-	//����Ŀ������
-	IplImage *lpOutImg = CloneImage(lpTargetImg);
-	int iCunt = 0;
-	if (NULL != lpOutImg)
-	{
-		// iCunt = process(lpDilateImg, lpOutImg, argc - 3, &args[3]);
-		iCunt = process_v2(lpDilateImg, lpOutImg, argc - 3, &args[3]);
-
-		SaveImage(OutputPath, lpOutImg);
-	}
-
-	//�������
-	printf("%d\n", iCunt);
-	//�ͷ���Դ
-	ReleaseImage(&lpOutImg);
-	ReleaseImage(&lpTargetImg);
-	ReleaseImage(&lpDilateImg);
-	ReleaseImage(&lpCannyImg);
 
 	return 0;
 }

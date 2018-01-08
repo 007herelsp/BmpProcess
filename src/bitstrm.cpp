@@ -3,9 +3,6 @@
 
 #define  BS_DEF_BLOCK_SIZE   (1<<15)
 
-
-/////////////////////////  RBaseStream ////////////////////////////
-
 bool  RBaseStream::IsOpened()
 { 
     return m_is_opened;
@@ -129,9 +126,6 @@ void  RBaseStream::Skip( int bytes )
     assert( bytes >= 0 );
     m_current += bytes;
 }
-
-
-/////////////////////////  RLByteStream ////////////////////////////
 
 RLByteStream::~RLByteStream()
 {

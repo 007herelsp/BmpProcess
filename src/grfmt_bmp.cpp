@@ -4,7 +4,6 @@
 static const char *fmtSignBmp = "BM";
 
 
-
 static void  FillGrayPalette( PaletteEntry* palette, int bpp, bool negative=false)
 {
     int i, length = 1 << bpp;

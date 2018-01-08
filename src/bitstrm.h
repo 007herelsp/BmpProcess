@@ -1,7 +1,7 @@
 #ifndef _BITSTRM_H_
 #define _BITSTRM_H_
 
-#include "cxtypes.h"
+#include "types.h"
 
 #include <limits.h>
 #include <ctype.h>

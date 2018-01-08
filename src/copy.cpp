@@ -1,5 +1,6 @@
-#include "_cxcore.h"
-static CvStatus iCopy_8u_C1R(const uchar *src, int srcstep,
+#include "core.h"
+#include "misc.h"
+static VosStatus iCopy_8u_C1R(const uchar *src, int srcstep,
                              uchar *dst, int dststep, Size size)
 {
     for (; size.height--; src += srcstep, dst += dststep)

@@ -1,4 +1,5 @@
-#include "_cxcore.h"
+#include "core.h"
+#include "misc.h"
 
 static void*
 iDefaultAlloc( size_t size)

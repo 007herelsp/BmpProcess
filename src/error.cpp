@@ -1,5 +1,6 @@
-#include "_cxcore.h"
-
+#include "core.h"
+#include "misc.h"
+#include <stdio.h>
 typedef struct StackRecord
 {
     const char *file;
@@ -72,7 +73,7 @@ StdErrReport(int code, const char *func_name, const char *err_msg,
 
  const char *SysErrorStr(int status)
 {
-    static char buf[256];
+    char buf[256];
 
     switch (status)
     {

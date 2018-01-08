@@ -1,4 +1,5 @@
-#include "_cxcore.h"
+#include "core.h"
+#include "misc.h"
 
 static const signed char iDepthToType[] =
     {
@@ -677,147 +678,56 @@ void thin(IplImage *Src_Img) //细化轮廓，得到单像素轮廓
     } while (Remove_Num);
 }
 
-#define byte char
-void cvThin(IplImage *src, IplImage *dst, int iterations)
+/*************************************************
+Function:      通过直方图变换进行图像增强，将图像灰度的域值拉伸到0-255
+src1:               单通道灰度图像
+dst1:              同样大小的单通道灰度图像
+*************************************************/
+
+
+int ImageStretchByHistogram(IplImage *src1,IplImage *dst1)
+
 {
-    Size size = GetSize(src);
-     Mat  *src1 = (Mat *)src;
-    Mat   *dst1 = (Mat *)dst;
-    //Copy(src1, dst1);
-    int n = 0, i = 0, j = 0;
-    for (n = 0; n < iterations; n++)
+    assert(src1->width==dst1->width);
+    double p[256],p1[256],num[256];
+
+    memset(p,0,sizeof(p));
+    memset(p1,0,sizeof(p1));
+    memset(num,0,sizeof(num));
+    int height=src1->height;
+    int width=src1->width;
+    long wMulh = height * width;
+
+    //statistics
+    for(int x=0;x<src1->width;x++)
     {
-        IplImage *t_image = CloneImage(dst);
-        for (i = 0; i < size.height; i++)
-        {
-            for (j = 0; j < size.width; j++)
-            {
-                if (VOS_IMAGE_ELEM(t_image, byte, i, j) == 1)
-                {
-                    int ap = 0;
-                    int p2 = (i == 0) ? 0 : VOS_IMAGE_ELEM(t_image, byte, i - 1, j);
-                    int p3 = (i == 0 || j == size.width - 1) ? 0 : VOS_IMAGE_ELEM(t_image, byte, i - 1, j + 1);
-                    if (p2 == 0 && p3 == 1)
-                    {
-                        ap++;
-                    }
-                    int p4 = (j == size.width - 1) ? 0 : VOS_IMAGE_ELEM(t_image, byte, i, j + 1);
-                    if (p3 == 0 && p4 == 1)
-                    {
-                        ap++;
-                    }
-                    int p5 = (i == size.height - 1 || j == size.width - 1) ? 0 : VOS_IMAGE_ELEM(t_image, byte, i + 1, j + 1);
-                    if (p4 == 0 && p5 == 1)
-                    {
-                        ap++;
-                    }
-                    int p6 = (i == size.height - 1) ? 0 : VOS_IMAGE_ELEM(t_image, byte, i + 1, j);
-                    if (p5 == 0 && p6 == 1)
-                    {
-                        ap++;
-                    }
-                    int p7 = (i == size.height - 1 || j == 0) ? 0 : VOS_IMAGE_ELEM(t_image, byte, i + 1, j - 1);
-                    if (p6 == 0 && p7 == 1)
-                    {
-                        ap++;
-                    }
-                    int p8 = (j == 0) ? 0 : VOS_IMAGE_ELEM(t_image, byte, i, j - 1);
-                    if (p7 == 0 && p8 == 1)
-                    {
-                        ap++;
-                    }
-                    int p9 = (i == 0 || j == 0) ? 0 : VOS_IMAGE_ELEM(t_image, byte, i - 1, j - 1);
-                    if (p8 == 0 && p9 == 1)
-                    {
-                        ap++;
-                    }
-                    if (p9 == 0 && p2 == 1)
-                    {
-                        ap++;
-                    }
-                    if ((p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9) > 1 && (p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9) < 7)
-                    {
-                        if (ap == 1)
-                        {
-                            if (!(p2 && p4 && p6))
-                            {
-                                if (!(p4 && p6 && p8))
-                                {
-                                    VOS_IMAGE_ELEM(dst, byte, i, j) = 0;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+        for(int y=0;y<src1-> height;y++){
+            uchar v=((uchar*)(src1->imageData + src1->widthStep*y))[x];
+                num[v]++;
         }
-        ReleaseImage(&t_image);
-        t_image = CloneImage(dst);
-        for (i = 0; i < size.height; i++)
-        {
-            for (int j = 0; j < size.width; j++)
-            {
-                if (VOS_IMAGE_ELEM(t_image, byte, i, j) == 1)
-                {
-                    int ap = 0;
-                    int p2 = (i == 0) ? 0 : VOS_IMAGE_ELEM(t_image, byte, i - 1, j);
-                    int p3 = (i == 0 || j == size.width - 1) ? 0 : VOS_IMAGE_ELEM(t_image, byte, i - 1, j + 1);
-                    if (p2 == 0 && p3 == 1)
-                    {
-                        ap++;
-                    }
-                    int p4 = (j == size.width - 1) ? 0 : VOS_IMAGE_ELEM(t_image, byte, i, j + 1);
-                    if (p3 == 0 && p4 == 1)
-                    {
-                        ap++;
-                    }
-                    int p5 = (i == size.height - 1 || j == size.width - 1) ? 0 : VOS_IMAGE_ELEM(t_image, byte, i + 1, j + 1);
-                    if (p4 == 0 && p5 == 1)
-                    {
-                        ap++;
-                    }
-                    int p6 = (i == size.height - 1) ? 0 : VOS_IMAGE_ELEM(t_image, byte, i + 1, j);
-                    if (p5 == 0 && p6 == 1)
-                    {
-                        ap++;
-                    }
-                    int p7 = (i == size.height - 1 || j == 0) ? 0 : VOS_IMAGE_ELEM(t_image, byte, i + 1, j - 1);
-                    if (p6 == 0 && p7 == 1)
-                    {
-                        ap++;
-                    }
-                    int p8 = (j == 0) ? 0 : VOS_IMAGE_ELEM(t_image, byte, i, j - 1);
-                    if (p7 == 0 && p8 == 1)
-                    {
-                        ap++;
-                    }
-                    int p9 = (i == 0 || j == 0) ? 0 : VOS_IMAGE_ELEM(t_image, byte, i - 1, j - 1);
-                    if (p8 == 0 && p9 == 1)
-                    {
-                        ap++;
-                    }
-                    if (p9 == 0 && p2 == 1)
-                    {
-                        ap++;
-                    }
-                    if ((p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9) > 1 && (p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9) < 7)
-                    {
-                        if (ap == 1)
-                        {
-                            if (p2 * p4 * p8 == 0)
-                            {
-                                if (p2 * p6 * p8 == 0)
-                                {
-                                    VOS_IMAGE_ELEM(dst, byte, i, j) = 0;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        ReleaseImage(&t_image);
     }
+    //calculate probability
+    for(int i=0;i<256;i++)
+    {
+        p[i]=num[i]/wMulh;
+    }
+
+    //p1[i]=sum(p[j]);  j<=i;
+    for(int i=0;i<256;i++)
+    {
+        for(int k=0;k<=i;k++)
+            p1[i]+=p[k];
+    }
+
+    // histogram transformation
+    for(int x=0;x<src1->width;x++)
+    {
+        for(int y=0;y<src1-> height;y++){
+            uchar v=((uchar*)(src1->imageData + src1->widthStep*y))[x];
+                ((uchar*)(dst1->imageData + dst1->widthStep*y))[x]= p1[v]*255+0.5;
+        }
+    }
+    return 0;
 }
 
 /************************************************* 
