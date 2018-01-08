@@ -3,8 +3,6 @@
 #ifndef _CXCORE_ERROR_H_
 #define _CXCORE_ERROR_H_
 
-/************Below is declaration of error handling stuff in PLSuite manner**/
-
 typedef int OPTStatus;
 
 #define VOS_StsOk                    0  /* everithing is ok                */
@@ -57,9 +55,6 @@ typedef int OPTStatus;
 #define VOS_StsParseError             -212 /* invalid syntax/structure of the parsed file */
 #define VOS_StsNotImplemented         -213 /* the requested function/feature is not implemented */
 #define VOS_StsBadMemBlock            -214 /* an allocated block has been corrupted */
-
-
-/****************************  -style error handling *******************************/
 
 /* VOS_FUNCNAME macro defines icvFuncName constant which is used by VOS_ERROR macro */
 #ifdef VOS_NO_FUNC_NAMES

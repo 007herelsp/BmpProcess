@@ -10,7 +10,7 @@ static VosStatus iCopy_8u_C1R(const uchar *src, int srcstep,
 }
 
 /* dst = src */
-void Copy(const void *srcarr, void *dstarr, const void *maskarr)
+void Copy(const void *srcarr, void *dstarr)
 {
     VOS_FUNCNAME("Copy");
 

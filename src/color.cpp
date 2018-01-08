@@ -1,11 +1,10 @@
-
 #include "cv.h"
 #include "misc.h"
 
 static VosStatus
 BGR2Gray_8u_CnC1R(const uchar *src, int srcstep,
 uchar *dstR, uchar *dstG, uchar *dstB, int dststep, Size size,
-int src_cn, int blue_idx)
+int src_cn)
 {
 	int i;
 	srcstep -= size.width * src_cn;
@@ -84,7 +83,7 @@ void CvtColor(const VOID *srcarr, VOID *dstarrR, VOID *dstarrG, VOID *dstarrB)
 
 
 	VOS_FUN_CALL(BGR2Gray_8u_CnC1R(src->data.ptr, src_step,
-		dstR->data.ptr, dstG->data.ptr, dstB->data.ptr, dst_step, size, src_cn, 2));
+        dstR->data.ptr, dstG->data.ptr, dstB->data.ptr, dst_step, size, src_cn));
 	__END__;
 }
 

@@ -372,13 +372,9 @@ void ScalarToRawData(const Scalar *scalar, void *data, int type)
     __END__;
 }
 
-/****************************************************************************************\
-*                             Conversion to Mat or IplImage                            *
-\****************************************************************************************/
-
 // convert array (Mat or IplImage) to Mat
 Mat *GetMat(const VOID *array, Mat *mat,
-            int *pCOI, int allowND)
+            int *pCOI)
 {
     Mat *result = 0;
     Mat *src = (Mat *)array;

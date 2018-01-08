@@ -81,8 +81,7 @@ ScalarToRawData(const Scalar *scalar, void *data, int type);
 
 Mat *
 GetMat(const VOID *arr, Mat *header,
-         int *coi VOS_DEFAULT(NULL),
-         int allowND VOS_DEFAULT(0));
+         int *coi VOS_DEFAULT(NULL));
 
 
 
@@ -103,8 +102,7 @@ GetSize(const VOID *arr);
 
 /* Copies source array to destination array */
 void
-Copy(const VOID *src, VOID *dst,
-       const VOID *mask VOS_DEFAULT(NULL));
+Copy(const VOID *src, VOID *dst);
 
 void
 ConvertScale(const Mat *src, Mat *dst);

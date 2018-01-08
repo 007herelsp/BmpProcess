@@ -4,7 +4,7 @@
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
-void Smooth(const void *srcarr, void *dstarr, int smooth_type,
+void Smooth(const void *srcarr, void *dstarr,
             int param1, int param2, double param3, double param4)
 {
     SepFilter gaussian_filter;

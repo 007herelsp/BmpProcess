@@ -28,6 +28,7 @@ typedef struct stBox
 	Point pt[4];
 	Box2D box;
 	bool isRect;
+	double contourArea;
 } Box;
 
 //static const float MAX_P = 40.0f;
@@ -44,11 +45,11 @@ struct SymUBoxCmp
 	{
 		bool ret = false;
 
-		if(x.isRect && (!y.isRect))
+		if (x.isRect && (!y.isRect))
 		{
 			return true;
 		}
-		
+
 		if (x.box.center.x < y.box.center.x)
 		{
 			ret = true;
@@ -69,9 +70,6 @@ struct SymUBoxCmp
 void AddRecord(set<Box, SymUBoxCmp> &lstRes, Box &box, int &iRectCun)
 {
 	set<Box, SymUBoxCmp>::iterator itu;
-	Point2D32f srcTri[4], dstTri[4];
-
-	Point p[4];
 	Box tbox;
 	bool flag = true;
 
@@ -82,6 +80,17 @@ void AddRecord(set<Box, SymUBoxCmp> &lstRes, Box &box, int &iRectCun)
 		if (fabs(tbox.box.center.x - box.box.center.x) <= MAX_P && fabs(tbox.box.center.y - box.box.center.y) <= MAX_P)
 		{
 			flag = false;
+			//选择最大的面积
+			//int width = VOS_MAX(tbox.box.size.width, box.box.size.width);
+			if (tbox.contourArea < box.contourArea)
+			{
+				flag = true;
+				if (tbox.isRect)
+				{
+					iRectCun--;
+				}
+				lstRes.erase(tbox);
+			}
 			break;
 		}
 	}
@@ -160,7 +169,7 @@ void SearchProcess_v3(IplImage *lpSrcImg, set<Box, SymUBoxCmp> &lstRes, int &iRe
 
 					//printf("centerInfo:[%f,%f]:[%f,%f]\n", End_Rage2D.center.x, End_Rage2D.center.y, End_Rage2D.size.width, End_Rage2D.size.height);
 					//lstRes.insert(box);
-
+					box.contourArea = dContourArea;
 					AddRecord(lstRes, box, iRectCun);
 				}
 			}
@@ -180,8 +189,6 @@ int process_v3(set<Box, SymUBoxCmp> &setURes, IplImage *lpTargetImg, int argc, c
 	Point p[4];
 	Mat *warp_mat;
 	int iCount = 0;
-	Box tbox;
-	Box tbox1;
 	Box box;
 	itu = setURes.begin();
 	for (int i = 0; i < argc && itu != setURes.end(); i++)

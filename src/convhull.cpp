@@ -83,7 +83,7 @@ typedef int (*sklansky_func)(Point **points, int start, int end,
     (((pt1)->x < (pt2)->x) || ((pt1)->x <= (pt2)->x && (pt1)->y < (pt2)->y))
 // static VOS_IMPLEMENT_QSORT(icvSortPointsByPointers_32s, Point *, cmp_pts)
 
-static void iSortPointsByPointers_32s(Point **array, size_t total, int aux)
+static void iSortPointsByPointers_32s(Point **array, size_t total)
 {
     int isort_thresh = 7;
     Point *t;
@@ -298,7 +298,7 @@ ConvexHull2(const VOID *array, void *hull_storage,
         VOS_NEXT_SEQ_ELEM(ptseq->elem_size, reader);
     }
 
-    iSortPointsByPointers_32s(pointer, total, 0);
+    iSortPointsByPointers_32s(pointer, total);
     for (i = 1; i < total; i++)
     {
         int y = pointer[i]->y;

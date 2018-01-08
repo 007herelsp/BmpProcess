@@ -19,7 +19,6 @@ typedef struct stContourScanner* ContourScanner;
 #define VOS_GAUSSIAN  2
 
 void Smooth( const VOID* src, VOID* dst,
-               int smoothtype VOS_DEFAULT(VOS_GAUSSIAN),
                int param1 VOS_DEFAULT(3),
                int param2 VOS_DEFAULT(0),
                double param3 VOS_DEFAULT(0),
