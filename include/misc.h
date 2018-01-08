@@ -71,24 +71,24 @@ VOS_INLINE  Size  GetMatSize( const Mat* mat )
 
 #define VOS_SYS_MEMCPY_AUTO( dst, src, len )                                             \
 {                                                                                   \
-    size_t _icv_SYS_MEMCPY_i_, _icv_SYS_MEMCPY_len_ = (len);                                \
-    char* _icv_SYS_MEMCPY_dst_ = (char*)(dst);                                          \
-    const char* _icv_SYS_MEMCPY_src_ = (const char*)(src);                              \
-    if( (_icv_SYS_MEMCPY_len_ & (sizeof(int)-1)) == 0 )                                 \
+    size_t _i_SYS_MEMCPY_i_, _i_SYS_MEMCPY_len_ = (len);                                \
+    char* _i_SYS_MEMCPY_dst_ = (char*)(dst);                                          \
+    const char* _i_SYS_MEMCPY_src_ = (const char*)(src);                              \
+    if( (_i_SYS_MEMCPY_len_ & (sizeof(int)-1)) == 0 )                                 \
     {                                                                               \
-        assert( ((size_t)_icv_SYS_MEMCPY_src_&(sizeof(int)-1)) == 0 &&                  \
-                ((size_t)_icv_SYS_MEMCPY_dst_&(sizeof(int)-1)) == 0 );                  \
-        for( _icv_SYS_MEMCPY_i_ = 0; _icv_SYS_MEMCPY_i_ < _icv_SYS_MEMCPY_len_;                 \
-            _icv_SYS_MEMCPY_i_+=sizeof(int) )                                           \
+        assert( ((size_t)_i_SYS_MEMCPY_src_&(sizeof(int)-1)) == 0 &&                  \
+                ((size_t)_i_SYS_MEMCPY_dst_&(sizeof(int)-1)) == 0 );                  \
+        for( _i_SYS_MEMCPY_i_ = 0; _i_SYS_MEMCPY_i_ < _i_SYS_MEMCPY_len_;                 \
+            _i_SYS_MEMCPY_i_+=sizeof(int) )                                           \
         {                                                                           \
-            *(int*)(_icv_SYS_MEMCPY_dst_+_icv_SYS_MEMCPY_i_) =                              \
-            *(const int*)(_icv_SYS_MEMCPY_src_+_icv_SYS_MEMCPY_i_);                         \
+            *(int*)(_i_SYS_MEMCPY_dst_+_i_SYS_MEMCPY_i_) =                              \
+            *(const int*)(_i_SYS_MEMCPY_src_+_i_SYS_MEMCPY_i_);                         \
         }                                                                           \
     }                                                                               \
     else                                                                            \
     {                                                                               \
-        for(_icv_SYS_MEMCPY_i_ = 0; _icv_SYS_MEMCPY_i_ < _icv_SYS_MEMCPY_len_; _icv_SYS_MEMCPY_i_++)\
-            _icv_SYS_MEMCPY_dst_[_icv_SYS_MEMCPY_i_] = _icv_SYS_MEMCPY_src_[_icv_SYS_MEMCPY_i_];    \
+        for(_i_SYS_MEMCPY_i_ = 0; _i_SYS_MEMCPY_i_ < _i_SYS_MEMCPY_len_; _i_SYS_MEMCPY_i_++)\
+            _i_SYS_MEMCPY_dst_[_i_SYS_MEMCPY_i_] = _i_SYS_MEMCPY_src_[_i_SYS_MEMCPY_i_];    \
     }                                                                               \
 }
 

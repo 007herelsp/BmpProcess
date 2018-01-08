@@ -56,7 +56,7 @@ typedef int OPTStatus;
 #define VOS_StsNotImplemented         -213 /* the requested function/feature is not implemented */
 #define VOS_StsBadMemBlock            -214 /* an allocated block has been corrupted */
 
-/* VOS_FUNCNAME macro defines icvFuncName constant which is used by VOS_ERROR macro */
+
 #ifdef VOS_NO_FUNC_NAMES
     #define VOS_FUNCNAME( Name )
     #define sysFuncName ""

@@ -62,13 +62,10 @@ StdErrReport(int code, const char *func_name, const char *err_msg,
     fprintf(stderr, "%s, %s(%d)\n", func_name ? func_name : "<unknown>",
             file != NULL ? file : "", line);
 
-    if (GetErrMode() == VOS_ErrModeLeaf)
-    {
+
         fprintf(stderr, "Terminating the application...\n");
         return 1;
-    }
-    else
-        return 0;
+
 }
 
  const char *SysErrorStr(int status)
@@ -137,18 +134,7 @@ StdErrReport(int code, const char *func_name, const char *err_msg,
     return buf;
 }
 
- int GetErrMode(void)
-{
-    return iGetContext()->err_mode;
-}
 
- int SetErrMode(int mode)
-{
-    Context *context = iGetContext();
-    int prev_mode = context->err_mode;
-    context->err_mode = mode;
-    return prev_mode;
-}
 
  int GetErrStatus()
 {
@@ -180,22 +166,15 @@ StdErrReport(int code, const char *func_name, const char *err_msg,
             context->err_ctx.line = line;
         }
 
-        if (context->err_mode != VOS_ErrModeSilent)
-        {
             int terminate = context->error_callback(code, func_name, err_msg,
                                                     file_name, line, context->userdata);
             if (terminate)
             {
-#if !defined WIN32 && !defined WIN64
-                assert(0); // for post-mortem analysis with GDB
-#endif
                 exit(-abs(terminate));
             }
-        }
     }
 }
 
-/******************** End of implementation of profiling stuff *********************/
 
 /* function, which converts int to int */
  int

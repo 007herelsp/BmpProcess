@@ -86,15 +86,13 @@ Seq*  EndFindContours( ContourScanner* scanner );
 
 Seq*  ApproxPoly( const void* src_seq,
                       int header_size, MemStorage* storage,
-                      int method, double parameter,
+                       double parameter,
                       int parameter2 VOS_DEFAULT(0));
 
-
-/* Calculates perimeter of a contour or length of a part of contour */
 double  ArcLength( const void* curve,
                      Slice slice VOS_DEFAULT(VOS_WHOLE_SEQ),
                      int is_closed VOS_DEFAULT(-1));
-#define cvContourPerimeter( contour ) ArcLength( contour, VOS_WHOLE_SEQ, 1 )
+#define ContourPerimeter( contour ) ArcLength( contour, VOS_WHOLE_SEQ, 1 )
 
 Rect  BoundingRect( VOID* points, int update VOS_DEFAULT(0) );
 
@@ -111,8 +109,7 @@ Box2D  MinAreaRect2( const Seq* points,
 /* Calculates exact convex hull of 2d point set */
 Seq* ConvexHull2( const VOID* input,
                       void* hull_storage VOS_DEFAULT(NULL),
-                      int orientation VOS_DEFAULT(VOS_CLOCKWISE),
-                      int return_points VOS_DEFAULT(0));
+                      int orientation VOS_DEFAULT(VOS_CLOCKWISE));
 
 /* Checks whether the contour is convex or not (returns 1 if convex, 0 if not) */
 int  CheckContourConvexity( const VOID* contour );
@@ -120,24 +117,19 @@ int  CheckContourConvexity( const VOID* contour );
 /* Types of thresholding */
 #define VOS_THRESH_BINARY      0  /* value = value > threshold ? max_value : 0       */
 
-
-void  Threshold( const VOID*  src, VOID*  dst,
-                   double  threshold, double  max_value,
-                   int threshold_type );
-
 #define VOS_CANNY_L2_GRADIENT  (1 << 31)
 
 /* Runs canny edge detector */
 void  Canny( const VOID* image, VOID* edges, double threshold1,
              double threshold2, int  aperture_size VOS_DEFAULT(3) );
 
-extern const uchar iSaturate8u_cv[];
-#define VOS_FAST_CAST_8U(t)  (assert(-256 <= (t) || (t) <= 512), iSaturate8u_cv[(t)+256])
+extern const uchar iSaturate8u[];
+#define VOS_FAST_CAST_8U(t)  (assert(-256 <= (t) || (t) <= 512), iSaturate8u[(t)+256])
 #define VOS_CALC_MIN_8U(a,b) (a) -= VOS_FAST_CAST_8U((a) - (b))
 #define VOS_CALC_MAX_8U(a,b) (a) += VOS_FAST_CAST_8U((b) - (a))
 
-extern const float i8x32fTab_cv[];
-#define VOS_8TO32F(x)  i8x32fTab_cv[(x)+256]
+extern const float i8x32fTab[];
+#define VOS_8TO32F(x)  i8x32fTab[(x)+256]
 #define  VOS_CALC_MIN(a, b) if((a) > (b)) (a) = (b)
 #define  VOS_CALC_MAX(a, b) if((a) < (b)) (a) = (b)
 
@@ -177,7 +169,6 @@ public:
     virtual int process( const Mat* _src, Mat* _dst,
                          Rect _src_roi=InitRect(0,0,-1,-1),
                          Point _dst_origin=InitPoint(0,0), int _flags=0 );
-    /* retrieve various parameters of the filtering object */
     int get_src_type() const { return src_type; }
     int get_dst_type() const { return dst_type; }
     Size get_kernel_size() const { return ksize; }
@@ -186,7 +177,6 @@ public:
     ColumnFilterFunc get_y_filter_func() const { return y_func; }
 
 protected:
-    /* initializes work_type, buf_size and max_rows */
     virtual void get_work_params();
     virtual void start_process( Slice x_range, int width );
     virtual void make_y_border( int row_count, int top_rows, int bottom_rows );
@@ -196,7 +186,6 @@ protected:
     enum { ALIGN=32 };
 
     int max_width;
-    /* currently, work_type must be the same as src_type in case of non-separable filters */
     int min_depth, src_type, dst_type, work_type;
     RowFilterFunc x_func;
     ColumnFilterFunc y_func;
@@ -277,7 +266,6 @@ public:
                        int _border_mode=SYS_BORDER_REPLICATE,
                        Scalar _border_value=ScalarAll(0) );
 
-    /* dummy method to avoid compiler warnings */
     virtual void init( int _max_width, int _src_type, int _dst_type,
                        bool _is_separable, Size _ksize,
                        Point _anchor=InitPoint(-1,-1),

@@ -1,9 +1,8 @@
 #include "highgui.h"
-#include "grfmt_base.h"
 #include "grfmt_bmp.h"
 
 static void *
-iLoadImage(const char *filename, int flags)
+iLoadImage(const char *filename)
 {
     GrFmtBmpReader *reader = NULL;
     IplImage *image = NULL;
@@ -56,9 +55,9 @@ iLoadImage(const char *filename, int flags)
 }
 
  IplImage *
-LoadImage(const char *filename, int iscolor)
+LoadImage(const char *filename)
 {
-    return (IplImage *)iLoadImage(filename, iscolor);
+    return (IplImage *)iLoadImage(filename);
 }
 
  int
@@ -96,7 +95,7 @@ SaveImage(const char *filename, const VOID *arr)
         VOS_ERROR(VOS_StsError, "could not find a filter for the specified extension");
     }
 
-    ipl_depth = CvToIplDepth(image->type);
+    ipl_depth = ToIplDepth(image->type);
 
     if (!writer->WriteImage(image->data.ptr, image->step, image->width,
                             image->height, ipl_depth, channels))

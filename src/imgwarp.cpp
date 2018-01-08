@@ -1,5 +1,5 @@
 
-#include "cv.h"
+#include "process.h"
 #include "misc.h"
 
 static int
@@ -44,7 +44,7 @@ Solve( const VOID* A, const VOID* b, VOID* x, int method )
         VOS_CALL( SVD( src, w, u, v, VOS_SVD_U_T + VOS_SVD_V_T ));
         VOS_CALL( SVBkSb( w, u, v ? v : u, src2, dst, VOS_SVD_U_T + VOS_SVD_V_T ));
     }
-    else if( method != VOS_LU )
+    else
         VOS_ERROR( VOS_StsBadArg, "Unknown inversion method" );
 
 
@@ -64,10 +64,8 @@ Solve( const VOID* A, const VOID* b, VOID* x, int method )
 }
 
 
-/************** interpolation constants and tables ***************/
-
-#define IVOS_WARP_CLIP_X(x) ((unsigned)(x) < (unsigned)ssize.width ? (x) : (x) < 0 ? 0 : ssize.width - 1)
-#define IVOS_WARP_CLIP_Y(y) ((unsigned)(y) < (unsigned)ssize.height ? (y) : (y) < 0 ? 0 : ssize.height - 1)
+#define VOS_WARP_CLIP_X(x) ((unsigned)(x) < (unsigned)ssize.width ? (x) : (x) < 0 ? 0 : ssize.width - 1)
+#define VOS_WARP_CLIP_Y(y) ((unsigned)(y) < (unsigned)ssize.height ? (y) : (y) < 0 ? 0 : ssize.height - 1)
 
 static VosStatus iWarpPerspective_Bilinear_8u_CnR(const uchar *src, int step,
                                                    Size ssize, uchar *dst, int dststep, Size dsize,
@@ -106,10 +104,10 @@ static VosStatus iWarpPerspective_Bilinear_8u_CnR(const uchar *src, int step,
             }
             else if ((unsigned)(ixs + 1) < (unsigned)(ssize.width + 1) && (unsigned)(iys + 1) < (unsigned)(ssize.height + 1))
             {
-                int x0 = IVOS_WARP_CLIP_X(ixs);
-                int y0 = IVOS_WARP_CLIP_Y(iys);
-                int x1 = IVOS_WARP_CLIP_Y(ixs + 1);
-                int y1 = IVOS_WARP_CLIP_Y(iys + 1);
+                int x0 = VOS_WARP_CLIP_X(ixs);
+                int y0 = VOS_WARP_CLIP_Y(iys);
+                int x1 = VOS_WARP_CLIP_Y(ixs + 1);
+                int y1 = VOS_WARP_CLIP_Y(iys + 1);
                 const uchar *ptr0, *ptr1, *ptr2, *ptr3;
                 ptr0 = src + y0 * step + x0 * cn;
                 ptr1 = src + y0 * step + x1 * cn;

@@ -21,19 +21,27 @@ static void  FillGrayPalette( PaletteEntry* palette, int bpp, bool negative=fals
 
 /************************ BMP reader *****************************/
 
-GrFmtBmpReader::GrFmtBmpReader(const char *filename) : GrFmtReader(filename)
+GrFmtBmpReader::GrFmtBmpReader(const char *filename)
 {
+    strncpy( m_filename, filename, sizeof(m_filename) - 1 );
+    m_filename[sizeof(m_filename)-1] = '\0';
+    m_width = m_height = 0;
+    m_iscolor = false;
+    m_bit_depth = 8;
     m_offset = -1;
 }
 
 GrFmtBmpReader::~GrFmtBmpReader()
 {
+	Close();
+
 }
 
 void GrFmtBmpReader::Close()
 {
     m_strm.Close();
-    GrFmtReader::Close();
+    m_width = m_height = 0;
+    m_iscolor = false;
 }
 
 bool GrFmtBmpReader::ReadHeader()
@@ -61,7 +69,7 @@ bool GrFmtBmpReader::ReadHeader()
             m_strm.Skip(size - 36);
 
             if (m_width > 0 && m_height > 0 &&
-                ((24 == m_bpp) && (BMP_RGB == m_rle_code)))
+                    ((24 == m_bpp) && (BMP_RGB == m_rle_code)))
             {
                 m_iscolor = true;
                 result = true;
@@ -104,28 +112,35 @@ bool GrFmtBmpReader::ReadData(uchar *data, int step, int color)
 
     data += (m_height - 1) * step;
     step = -step;
- 
+
     if (24 != m_bpp || (!color))
     {
         return false;
     }
 
-        m_strm.SetPos(m_offset);
+    m_strm.SetPos(m_offset);
 
-        /************************* 24 BPP ************************/
-        for (y = 0; y < m_height; y++, data += step)
-        {
-            m_strm.GetBytes(color ? data : src, src_pitch);
-        }
-        result = true;
+    /************************* 24 BPP ************************/
+    for (y = 0; y < m_height; y++, data += step)
+    {
+        m_strm.GetBytes(color ? data : src, src_pitch);
+    }
+    result = true;
 
     return result;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
-GrFmtBmpWriter::GrFmtBmpWriter(const char *filename) : GrFmtWriter(filename)
+GrFmtBmpWriter::GrFmtBmpWriter(const char *filename)
 {
+    strncpy( m_filename, filename, sizeof(m_filename) - 1 );
+    m_filename[sizeof(m_filename)-1] = '\0';
+}
+
+bool GrFmtBmpWriter::IsFormatSupported( int depth )
+{
+    return depth == SYS_DEPTH_8U;
 }
 
 GrFmtBmpWriter::~GrFmtBmpWriter()

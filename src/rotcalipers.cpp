@@ -1,4 +1,4 @@
-#include "cv.h"
+#include "process.h"
 #include "misc.h"
 
 #define VOS_CALIPERS_MAXHEIGHT      0
@@ -276,7 +276,7 @@ MinAreaRect2( const Seq* array, MemStorage* storage )
 
     if( !VOS_IS_SEQ_CONVEX( ptseq ))
     {
-        VOS_CALL( ptseq = ConvexHull2( ptseq, temp_storage, VOS_CLOCKWISE, 1 ));
+        VOS_CALL( ptseq = ConvexHull2( ptseq, temp_storage, VOS_CLOCKWISE));
     }
 
     n = ptseq->total;

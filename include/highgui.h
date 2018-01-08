@@ -6,7 +6,7 @@
 
 #define VOS_LOAD_IMAGE_COLOR       1
 
-IplImage* LoadImage( const char* filename, int iscolor VOS_DEFAULT(VOS_LOAD_IMAGE_COLOR));
+IplImage* LoadImage( const char* filename);
 
 /* save image to file */
 int SaveImage( const char* filename, const VOID* image );

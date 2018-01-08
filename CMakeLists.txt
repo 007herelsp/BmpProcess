@@ -5,7 +5,6 @@ cmake_minimum_required(VERSION 2.6)
 IF(POLICY CMP0026)
     CMAKE_POLICY(SET CMP0026 OLD)
 ENDIF()
-
 # 项目名
 project (BMP)
 SET(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -g -ggdb")

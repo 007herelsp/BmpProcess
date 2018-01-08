@@ -1,12 +1,8 @@
 
-#include "cv.h"
+#include "process.h"
 #include "misc.h"
 
 
-/****************************************************************************************\
-*                               Polygonal Approximation                                  *
-\****************************************************************************************/
-/* the version for integer point coordinates */
 static VosStatus
 iApproxPolyDP_32s(Seq *src_contour, int header_size,
                     MemStorage *storage,
@@ -211,7 +207,7 @@ iApproxPolyDP_32s(Seq *src_contour, int header_size,
 
 Seq *
 ApproxPoly(const void *array, int header_size,
-             MemStorage *storage, int method,
+             MemStorage *storage,
              double parameter, int parameter2)
 {
     Seq *dst_seq = 0;
@@ -223,21 +219,13 @@ ApproxPoly(const void *array, int header_size,
 
     __BEGIN__;
 
-    if (VOS_IS_SEQ(array))
-    {
         src_seq = (Seq *)array;
-        if (!VOS_IS_SEQ_POLYLINE(src_seq))
-            VOS_ERROR(VOS_StsBadArg, "Unsupported sequence type");
-
+    
         recursive = parameter2;
 
         if (!storage)
             storage = src_seq->storage;
-    }
-    else
-    {
-        VOS_ERROR(VOS_StsBadArg, "Unsupported sequence type");
-    }
+
 
     if (!storage)
         VOS_ERROR(VOS_StsNullPtr, "NULL storage pointer ");
@@ -251,12 +239,6 @@ ApproxPoly(const void *array, int header_size,
 
     if (header_size < (int)sizeof(Contour))
         VOS_ERROR(VOS_StsBadSize, "New header size must be non-less than sizeof(Contour)");
-
-    if (method != VOS_POLY_APPROX_DP)
-        VOS_ERROR(VOS_StsOutOfRange, "Unknown approximation method");
-
-    if (VOS_SEQ_ELTYPE(src_seq) != VOS_32SC2)
-        VOS_ERROR(VOS_StsOutOfRange, "Unknown type");
 
     if (parameter < 0)
         VOS_ERROR(VOS_StsOutOfRange, "Accuracy must be non-negative");

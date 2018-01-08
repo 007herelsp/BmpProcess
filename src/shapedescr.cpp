@@ -1,6 +1,6 @@
 
 
-#include "cv.h"
+#include "process.h"
 #include "misc.h"
 
 double
@@ -109,52 +109,6 @@ iContourArea(const Seq *contour, double *area)
     else
         *area = 0;
 
-    return VOS_OK;
-}
-
-/****************************************************************************************\
-
- copy data from one buffer to other buffer
-
-\****************************************************************************************/
-
-static VosStatus
-iMemCopy(double **buf1, double **buf2, double **buf3, int *b_max)
-{
-    int bb;
-
-    if ( (NULL == *buf1  && NULL == *buf2 ) || (NULL == *buf3))
-        return VOS_NULLPTR_ERR;
-
-    bb = *b_max;
-    if (NULL == *buf2)
-    {
-        *b_max = 2 * (*b_max);
-        *buf2 = (double *)SysAlloc((*b_max) * sizeof(double));
-
-        if (NULL == *buf2)
-            return VOS_OUTOFMEM_ERR;
-
-        VOS_MEMCPY(*buf2, *buf3, bb * sizeof(double));
-
-        *buf3 = *buf2;
-        SYS_FREE(buf1);
-        *buf1 = NULL;
-    }
-    else
-    {
-        *b_max = 2 * (*b_max);
-        *buf1 = (double *)SysAlloc((*b_max) * sizeof(double));
-
-        if (NULL == *buf1)
-            return VOS_OUTOFMEM_ERR;
-
-        VOS_MEMCPY(*buf1, *buf3, bb * sizeof(double));
-
-        *buf3 = *buf1;
-        SYS_FREE(buf2);
-        *buf2 = NULL;
-    }
     return VOS_OK;
 }
 

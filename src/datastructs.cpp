@@ -67,7 +67,6 @@ CreateMemStorage(int block_size)
     return storage;
 }
 
-/* creates child memory storage */
 MemStorage *
 CreateChildMemStorage(MemStorage *parent)
 {
@@ -90,7 +89,6 @@ CreateChildMemStorage(MemStorage *parent)
     return storage;
 }
 
-/* releases all blocks of the storage (or returns them to parent if any) */
 static void
 iDestroyMemStorage(MemStorage *storage)
 {
@@ -109,7 +107,7 @@ iDestroyMemStorage(MemStorage *storage)
     if (storage->parent)
         dst_top = storage->parent->top;
 
-    for (block = storage->bottom; block != 0; k++)
+    for (block = storage->bottom; 0 != block; k++)
     {
         MemBlock *temp = block;
 
@@ -143,7 +141,6 @@ iDestroyMemStorage(MemStorage *storage)
     __END__;
 }
 
-/* releases memory storage */
 void ReleaseMemStorage(MemStorage **storage)
 {
     MemStorage *st;
@@ -268,7 +265,6 @@ void SaveMemStoragePos(const MemStorage *storage, MemStoragePos *pos)
     __END__;
 }
 
-/* restores memory storage position */
 void RestoreMemStoragePos(MemStorage *storage, MemStoragePos *pos)
 {
     VOS_FUNCNAME("RestoreMemStoragePos");
@@ -292,7 +288,6 @@ void RestoreMemStoragePos(MemStorage *storage, MemStoragePos *pos)
     __END__;
 }
 
-/* Allocates continuous buffer of the specified size in the storage */
 void *
 MemStorageAlloc(MemStorage *storage, size_t size)
 {
@@ -404,7 +399,6 @@ void SetSeqBlockSize(Seq *seq, int delta_elements)
     __END__;
 }
 
-/* finds sequence element by its index */
 char *
 GetSeqElem(const Seq *seq, int index)
 {
@@ -648,7 +642,6 @@ iFreeSeqBlock(Seq *seq, int in_front_of)
     __END__;
 }
 
-/* initializes sequence writer */
 void StartAppendToSeq(Seq *seq, SeqWriter *writer)
 {
     VOS_FUNCNAME("StartAppendToSeq");
@@ -724,7 +717,6 @@ void FlushSeqWriter(SeqWriter *writer)
     __END__;
 }
 
-/* calls icvFlushSeqWriter and finishes writing process */
 Seq *EndWriteSeq(SeqWriter *writer)
 {
     Seq *seq = NULL;
@@ -739,7 +731,6 @@ Seq *EndWriteSeq(SeqWriter *writer)
     VOS_CALL(FlushSeqWriter(writer));
     seq = writer->seq;
 
-    /* truncate the last block */
     if (writer->block && writer->seq->storage)
     {
         MemStorage *storage = seq->storage;
@@ -761,7 +752,6 @@ Seq *EndWriteSeq(SeqWriter *writer)
     return seq;
 }
 
-/* creates new sequence block */
 void CreateSeqBlock(SeqWriter *writer)
 {
     VOS_FUNCNAME("CreateSeqBlock");
@@ -786,7 +776,6 @@ void CreateSeqBlock(SeqWriter *writer)
     __END__;
 }
 
-/* initializes sequence reader */
 void StartReadSeq(const Seq *seq, SeqReader *reader, int reverse)
 {
     SeqBlock *first_block;
@@ -846,10 +835,9 @@ void StartReadSeq(const Seq *seq, SeqReader *reader, int reverse)
     __END__;
 }
 
-/* changes the current reading block to the previous or to the next */
 void ChangeSeqBlock(void *_reader, int direction)
 {
-    VOS_FUNCNAME("cvChangeSeqBlock");
+    VOS_FUNCNAME("ChangeSeqBlock");
 
     __BEGIN__;
 
@@ -874,7 +862,6 @@ void ChangeSeqBlock(void *_reader, int direction)
     __END__;
 }
 
-/* returns the current reader position */
 int GetSeqReaderPos(SeqReader *reader)
 {
     int elem_size;
@@ -906,7 +893,7 @@ int GetSeqReaderPos(SeqReader *reader)
 
 void SetSeqReaderPos(SeqReader *reader, int index, int is_relative)
 {
-    VOS_FUNCNAME("cvSetSeqReaderPos");
+    VOS_FUNCNAME("SetSeqReaderPos");
 
     __BEGIN__;
 
@@ -1034,7 +1021,6 @@ SeqPush(Seq *seq, void *element)
     return ptr;
 }
 
-/* pops the last element out of the sequence */
 void SeqPop(Seq *seq, void *element)
 {
     char *ptr;
@@ -1066,7 +1052,6 @@ void SeqPop(Seq *seq, void *element)
     __END__;
 }
 
-/* removes several elements from the end of sequence */
 void SeqPopMulti(Seq *seq, void *_elements, int count, int front)
 {
     char *elements = (char *)_elements;

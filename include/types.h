@@ -287,7 +287,7 @@ VOS_INLINE Mat InitMat( int rows, int cols, int type, void* data VOS_DEFAULT(NUL
     return m;
 }
 
-VOS_INLINE int CvToIplDepth( int type )
+VOS_INLINE int ToIplDepth( int type )
 {
     int depth = VOS_MAT_DEPTH(type);
     return VOS_ELEM_SIZE1(depth)*8 | (depth == VOS_8S || depth == VOS_16S ||

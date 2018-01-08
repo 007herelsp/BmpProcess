@@ -59,8 +59,6 @@ InitMatHeader(Mat *mat, int rows, int cols,
 Mat *
 CreateMat(int rows, int cols, int type);
 
-/* Releases Mat header and deallocates matrix data
-   (reference counting is used for data) */
 void
 ReleaseMat(Mat **mat);
 
@@ -75,7 +73,6 @@ VOS_INLINE void DecRefData(Mat *arr)
         mat->refcount = NULL;
 }
 
-/* low-level scalar <-> raw data conversion functions */
 void
 ScalarToRawData(const Scalar *scalar, void *data, int type);
 
@@ -120,14 +117,11 @@ void
 SVD(VOID *A, VOID *W, VOID *U VOS_DEFAULT(NULL),
       VOID *V VOS_DEFAULT(NULL), int flags VOS_DEFAULT(0));
 
-/* Performs Singular Value Back Substitution (solves A*X = B):
-   flags must be the same as in SVD */
 void
 SVBkSb(const VOID *W, const VOID *U,
          const VOID *V, const VOID *B,
          VOID *X, int flags);
 
-#define VOS_LU 0
 #define VOS_SVD 1
 #define VOS_SVD_SYM 2
 
@@ -210,8 +204,6 @@ StartReadSeq(const Seq *seq, SeqReader *reader,
 int
 GetSeqReaderPos(SeqReader *reader);
 
-/* Changes sequence reader position. It may seek to an absolute or
-   to relative to the current position */
 void
 SetSeqReaderPos(SeqReader *reader, int index,
                   int is_relative VOS_DEFAULT(0));
@@ -232,7 +224,6 @@ InsertNodeIntoTree(void *node, void *parent, void *frame);
 int
 GetErrStatus(void);
 
-/* Sets error status silently */
 void
 SetErrStatus(int status);
 
@@ -240,19 +231,11 @@ SetErrStatus(int status);
 #define VOS_ErrModeParent 1 /* Print error and continue */
 #define VOS_ErrModeSilent 2 /* Don't print and continue */
 
-/* Retrives current error processing mode */
-int
-GetErrMode(void);
-
-/* Sets error processing mode, returns previously used mode */
-int
-SetErrMode(int mode);
 
 void
 SysError(int status, const char *func_name,
         const char *err_msg, const char *file_name, int line);
 
-/* Retrieves textual description of the error given its code */
 const char *
 SysErrorStr(int status);
 

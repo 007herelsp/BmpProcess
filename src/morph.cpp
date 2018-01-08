@@ -1,20 +1,20 @@
 
-#include "cv.h"
+#include "process.h"
 #include "misc.h"
 #include <limits.h>
 #include <stdio.h>
 
-static void icvErodeRectRow_8u(const uchar *src, uchar *dst, void *params);
-static void icvDilateRectRow_8u(const uchar *src, uchar *dst, void *params);
+static void iErodeRectRow_8u(const uchar *src, uchar *dst, void *params);
+static void iDilateRectRow_8u(const uchar *src, uchar *dst, void *params);
 
-static void icvErodeRectCol_8u(const uchar **src, uchar *dst, int dst_step,
+static void iErodeRectCol_8u(const uchar **src, uchar *dst, int dst_step,
                                int count, void *params);
-static void icvDilateRectCol_8u(const uchar **src, uchar *dst, int dst_step,
+static void iDilateRectCol_8u(const uchar **src, uchar *dst, int dst_step,
                                 int count, void *params);
 
-static void icvErodeAny_8u(const uchar **src, uchar *dst, int dst_step,
+static void iErodeAny_8u(const uchar **src, uchar *dst, int dst_step,
                            int count, void *params);
-static void icvDilateAny_8u(const uchar **src, uchar *dst, int dst_step,
+static void iDilateAny_8u(const uchar **src, uchar *dst, int dst_step,
                             int count, void *params);
 
 Morphology::Morphology()
@@ -75,8 +75,8 @@ void Morphology::init(int _operation, int _max_width, int _src_dst_type,
         {
             if (depth == VOS_8U)
             {
-                x_func = (RowFilterFunc)icvErodeRectRow_8u;
-                y_func = (ColumnFilterFunc)icvErodeRectCol_8u;
+                x_func = (RowFilterFunc)iErodeRectRow_8u;
+                y_func = (ColumnFilterFunc)iErodeRectCol_8u;
             }
             else
             {
@@ -89,8 +89,8 @@ void Morphology::init(int _operation, int _max_width, int _src_dst_type,
             assert(operation == DILATE);
             if (depth == VOS_8U)
             {
-                x_func = (RowFilterFunc)icvDilateRectRow_8u;
-                y_func = (ColumnFilterFunc)icvDilateRectCol_8u;
+                x_func = (RowFilterFunc)iDilateRectRow_8u;
+                y_func = (ColumnFilterFunc)iDilateRectCol_8u;
             }
             else
             {
@@ -127,7 +127,7 @@ void Morphology::init(int _operation, int _max_width, int _src_dst_type,
         if (operation == ERODE)
         {
             if (depth == VOS_8U)
-                y_func = (ColumnFilterFunc)icvErodeAny_8u;
+                y_func = (ColumnFilterFunc)iErodeAny_8u;
             else
             {
                 VOS_ERROR(VOS_StsBadArg,
@@ -138,7 +138,7 @@ void Morphology::init(int _operation, int _max_width, int _src_dst_type,
         {
             assert(operation == DILATE);
             if (VOS_8U == depth )
-                y_func = (ColumnFilterFunc)icvDilateAny_8u;
+                y_func = (ColumnFilterFunc)iDilateAny_8u;
             else
             {
                 VOS_ERROR(VOS_StsBadArg, "");
@@ -276,7 +276,7 @@ void Morphology::init_binary_element(Mat *element, int element_shape, Point anch
     worktype, update_extr_macro)           \
     \
     static void \
-    icv##name##RectRow_##flavor(const arrtype *src,                   \
+    i##name##RectRow_##flavor(const arrtype *src,                   \
     arrtype *dst, void *params)           \
     \
 {                                                            \
@@ -338,7 +338,7 @@ IVOS_MORPH_RECT_ROW(Dilate, 8u, uchar, int, VOS_CALC_MAX_8U)
     worktype, update_extr_macro, toggle_macro)            \
     \
     static void \
-    icv##name##RectCol_##flavor(const arrtype **src,                                 \
+    i##name##RectCol_##flavor(const arrtype **src,                                 \
     arrtype *dst, int dst_step, int count, void *params) \
     \
 {                                                                           \
@@ -477,7 +477,7 @@ IVOS_MORPH_RECT_COL(Dilate, 8u, uchar, int, VOS_CALC_MAX_8U, VOS_NOP)
     update_extr_macro, toggle_macro)                     \
     \
     static void \
-    icv##name##Any_##flavor(const arrtype **src, arrtype *dst,                 \
+    i##name##Any_##flavor(const arrtype **src, arrtype *dst,                 \
     int dst_step, int count, void *params)             \
     \
 {                                                                     \

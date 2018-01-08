@@ -1,5 +1,5 @@
 
-#include "cv.h"
+#include "process.h"
 #include "misc.h"
 
 static void default_x_filter_func(const uchar *, uchar *, void *)
@@ -403,7 +403,6 @@ int BaseImageFilter::process(const Mat *src, Mat *dst,
         phase = VOS_START | VOS_END;
     phase &= VOS_START | VOS_END | VOS_MIDDLE;
 
-    // initialize horizontal border relocation tab if it is not initialized yet
     if (phase & VOS_START)
         start_process(GetSlice(src_roi.x, src_roi.x + src_roi.width), width);
     else if (prev_width != width || prev_x_range.start_index != src_roi.x ||
@@ -507,20 +506,13 @@ int BaseImageFilter::process(const Mat *src, Mat *dst,
                                     Separable Linear Filter
 \****************************************************************************************/
 
-static void icvFilterRowSymm_8u32s(const uchar *src, int *dst, void *params);
-static void icvFilterColSymm_32s8u(const int **src, uchar *dst, int dst_step,
+static void iFilterRowSymm_8u32s(const uchar *src, int *dst, void *params);
+static void iFilterColSymm_32s8u(const int **src, uchar *dst, int dst_step,
                                    int count, void *params);
-static void icvFilterColSymm_32s16s(const int **src, short *dst, int dst_step,
+static void iFilterColSymm_32s16s(const int **src, short *dst, int dst_step,
                                     int count, void *params);
 
-static void icvFilterColSymm_32f8u(const float **src, uchar *dst, int dst_step,
-                                   int count, void *params);
-static void icvFilterCol_32f8u(const float **src, uchar *dst, int dst_step,
-                               int count, void *params);
-static void icvFilterColSymm_32f16s(const float **src, short *dst, int dst_step,
-                                    int count, void *params);
-static void icvFilterCol_32f16s(const float **src, short *dst, int dst_step,
-                                int count, void *params);
+
 
 SepFilter::SepFilter()
 {
@@ -637,8 +629,8 @@ void SepFilter::init(int _max_width, int _src_type, int _dst_type,
         if (VOS_MAT_DEPTH(dst_type) == VOS_8U &&
             ((kx_flags & ky_flags) & (SYMMETRICAL + POSITIVE + SUM_TO_1)) == SYMMETRICAL + POSITIVE + SUM_TO_1)
         {
-            x_func = (RowFilterFunc)icvFilterRowSymm_8u32s;
-            y_func = (ColumnFilterFunc)icvFilterColSymm_32s8u;
+            x_func = (RowFilterFunc)iFilterRowSymm_8u32s;
+            y_func = (ColumnFilterFunc)iFilterColSymm_32s8u;
             kx_flags &= ~INTEGER;
             ky_flags &= ~INTEGER;
             convert_filters = 1;
@@ -647,8 +639,8 @@ void SepFilter::init(int _max_width, int _src_type, int _dst_type,
                  (kx_flags & (SYMMETRICAL + ASYMMETRICAL)) && (kx_flags & INTEGER) &&
                  (ky_flags & (SYMMETRICAL + ASYMMETRICAL)) && (ky_flags & INTEGER))
         {
-            x_func = (RowFilterFunc)icvFilterRowSymm_8u32s;
-            y_func = (ColumnFilterFunc)icvFilterColSymm_32s16s;
+            x_func = (RowFilterFunc)iFilterRowSymm_8u32s;
+            y_func = (ColumnFilterFunc)iFilterColSymm_32s16s;
             convert_filters = 1;
         }
         else
@@ -659,26 +651,6 @@ void SepFilter::init(int _max_width, int _src_type, int _dst_type,
     else
     {
         VOS_ERROR(VOS_StsUnsupportedFormat, "Unknown or unsupported input data type");
-    }
-
-    if (!y_func)
-    {
-        if (VOS_MAT_DEPTH(dst_type) == VOS_8U)
-        {
-            if (ky_flags & (SYMMETRICAL + ASYMMETRICAL))
-                y_func = (ColumnFilterFunc)icvFilterColSymm_32f8u;
-            else
-                y_func = (ColumnFilterFunc)icvFilterCol_32f8u;
-        }
-        else if (VOS_MAT_DEPTH(dst_type) == VOS_16S)
-        {
-            if (ky_flags & (SYMMETRICAL + ASYMMETRICAL))
-                y_func = (ColumnFilterFunc)icvFilterColSymm_32f16s;
-            else
-                y_func = (ColumnFilterFunc)icvFilterCol_32f16s;
-        }
-        else
-            VOS_ERROR(VOS_StsUnsupportedFormat, "Unknown or unsupported input data type");
     }
 
     if (convert_filters)
@@ -720,7 +692,7 @@ void SepFilter::init(int _max_width, int _src_type, int _dst_type,
 }
 
 static void
-icvFilterRowSymm_8u32s(const uchar *src, int *dst, void *params)
+iFilterRowSymm_8u32s(const uchar *src, int *dst, void *params)
 {
     const SepFilter *state = (const SepFilter *)params;
     const Mat *_kx = state->get_x_kernel();
@@ -869,7 +841,7 @@ icvFilterRowSymm_8u32s(const uchar *src, int *dst, void *params)
 }
 
 static void
-icvFilterColSymm_32s8u(const int **src, uchar *dst, int dst_step, int count, void *params)
+iFilterColSymm_32s8u(const int **src, uchar *dst, int dst_step, int count, void *params)
 {
     const SepFilter *state = (const SepFilter *)params;
     const Mat *_ky = state->get_y_kernel();
@@ -953,7 +925,7 @@ icvFilterColSymm_32s8u(const int **src, uchar *dst, int dst_step, int count, voi
 }
 
 static void
-icvFilterColSymm_32s16s(const int **src, short *dst,
+iFilterColSymm_32s16s(const int **src, short *dst,
                         int dst_step, int count, void *params)
 {
     const SepFilter *state = (const SepFilter *)params;
@@ -1086,183 +1058,6 @@ icvFilterColSymm_32s16s(const int **src, short *dst,
         }
     }
 }
-
-#define IVOS_FILTER_COL(flavor, srctype, dsttype, worktype,      \
-                       cast_macro1, cast_macro2)                \
-    \
-static void \
-icvFilterCol_##flavor(const srctype **src, dsttype *dst,        \
-                      int dst_step, int count, void *params)    \
-    \
-{                                                          \
-        const SepFilter *state = (const SepFilter *)params; \
-        const Mat *_ky = state->get_y_kernel();               \
-        const srctype *ky = (const srctype *)_ky->data.ptr;     \
-        int ksize = _ky->cols + _ky->rows - 1;                  \
-        int i, k, width = state->get_width();                   \
-        int cn = VOS_MAT_CN(state->get_src_type());              \
-                                                                \
-        width *= cn;                                            \
-        dst_step /= sizeof(dst[0]);                             \
-                                                                \
-        for (; count--; dst += dst_step, src++)                 \
-        {                                                       \
-            for (i = 0; i <= width - 4; i += 4)                 \
-            {                                                   \
-                double f = ky[0];                               \
-                const srctype *sptr = src[0] + i;               \
-                double s0 = f * sptr[0], s1 = f * sptr[1],      \
-                       s2 = f * sptr[2], s3 = f * sptr[3];      \
-                worktype t0, t1;                                \
-                for (k = 1; k < ksize; k++)                     \
-                {                                               \
-                    sptr = src[k] + i;                          \
-                    f = ky[k];                                  \
-                    s0 += f * sptr[0];                          \
-                    s1 += f * sptr[1];                          \
-                    s2 += f * sptr[2];                          \
-                    s3 += f * sptr[3];                          \
-                }                                               \
-                                                                \
-                t0 = cast_macro1(s0);                           \
-                t1 = cast_macro1(s1);                           \
-                dst[i] = cast_macro2(t0);                       \
-                dst[i + 1] = cast_macro2(t1);                   \
-                t0 = cast_macro1(s2);                           \
-                t1 = cast_macro1(s3);                           \
-                dst[i + 2] = cast_macro2(t0);                   \
-                dst[i + 3] = cast_macro2(t1);                   \
-            }                                                   \
-                                                                \
-            for (; i < width; i++)                              \
-            {                                                   \
-                double s0 = (double)ky[0] * src[0][i];          \
-                worktype t0;                                    \
-                for (k = 1; k < ksize; k++)                     \
-                    s0 += (double)ky[k] * src[k][i];            \
-                t0 = cast_macro1(s0);                           \
-                dst[i] = cast_macro2(t0);                       \
-            }                                                   \
-        }                                                       \
-    \
-}
-
-IVOS_FILTER_COL(32f8u, float, uchar, int, SysRound, VOS_CAST_8U)
-IVOS_FILTER_COL(32f16s, float, short, int, SysRound, VOS_CAST_16S)
-IVOS_FILTER_COL(32f16u, float, ushort, int, SysRound, VOS_CAST_16U)
-
-#define IVOS_FILTER_COL_SYMM(flavor, srctype, dsttype, worktype,               \
-                            cast_macro1, cast_macro2)                         \
-    \
-static void \
-icvFilterColSymm_##flavor(const srctype **src, dsttype *dst,                  \
-                          int dst_step, int count, void *params)              \
-    \
-{                                                                        \
-        const SepFilter *state = (const SepFilter *)params;               \
-        const Mat *_ky = state->get_y_kernel();                             \
-        const srctype *ky = (const srctype *)_ky->data.ptr;                   \
-        int ksize = _ky->cols + _ky->rows - 1, ksize2 = ksize / 2;            \
-        int i, k, width = state->get_width();                                 \
-        int cn = VOS_MAT_CN(state->get_src_type());                            \
-        int is_symm = state->get_y_kernel_flags() & SepFilter::SYMMETRICAL; \
-                                                                              \
-        width *= cn;                                                          \
-        src += ksize2;                                                        \
-        ky += ksize2;                                                         \
-        dst_step /= sizeof(dst[0]);                                           \
-                                                                              \
-        if (is_symm)                                                          \
-        {                                                                     \
-            for (; count--; dst += dst_step, src++)                           \
-            {                                                                 \
-                for (i = 0; i <= width - 4; i += 4)                           \
-                {                                                             \
-                    double f = ky[0];                                         \
-                    const srctype *sptr = src[0] + i, *sptr2;                 \
-                    double s0 = f * sptr[0], s1 = f * sptr[1],                \
-                           s2 = f * sptr[2], s3 = f * sptr[3];                \
-                    worktype t0, t1;                                          \
-                    for (k = 1; k <= ksize2; k++)                             \
-                    {                                                         \
-                        sptr = src[k] + i;                                    \
-                        sptr2 = src[-k] + i;                                  \
-                        f = ky[k];                                            \
-                        s0 += f * (sptr[0] + sptr2[0]);                       \
-                        s1 += f * (sptr[1] + sptr2[1]);                       \
-                        s2 += f * (sptr[2] + sptr2[2]);                       \
-                        s3 += f * (sptr[3] + sptr2[3]);                       \
-                    }                                                         \
-                                                                              \
-                    t0 = cast_macro1(s0);                                     \
-                    t1 = cast_macro1(s1);                                     \
-                    dst[i] = cast_macro2(t0);                                 \
-                    dst[i + 1] = cast_macro2(t1);                             \
-                    t0 = cast_macro1(s2);                                     \
-                    t1 = cast_macro1(s3);                                     \
-                    dst[i + 2] = cast_macro2(t0);                             \
-                    dst[i + 3] = cast_macro2(t1);                             \
-                }                                                             \
-                                                                              \
-                for (; i < width; i++)                                        \
-                {                                                             \
-                    double s0 = (double)ky[0] * src[0][i];                    \
-                    worktype t0;                                              \
-                    for (k = 1; k <= ksize2; k++)                             \
-                        s0 += (double)ky[k] * (src[k][i] + src[-k][i]);       \
-                    t0 = cast_macro1(s0);                                     \
-                    dst[i] = cast_macro2(t0);                                 \
-                }                                                             \
-            }                                                                 \
-        }                                                                     \
-        else                                                                  \
-        {                                                                     \
-            for (; count--; dst += dst_step, src++)                           \
-            {                                                                 \
-                for (i = 0; i <= width - 4; i += 4)                           \
-                {                                                             \
-                    double f = ky[0];                                         \
-                    const srctype *sptr = src[0] + i, *sptr2;                 \
-                    double s0 = 0, s1 = 0, s2 = 0, s3 = 0;                    \
-                    worktype t0, t1;                                          \
-                    for (k = 1; k <= ksize2; k++)                             \
-                    {                                                         \
-                        sptr = src[k] + i;                                    \
-                        sptr2 = src[-k] + i;                                  \
-                        f = ky[k];                                            \
-                        s0 += f * (sptr[0] - sptr2[0]);                       \
-                        s1 += f * (sptr[1] - sptr2[1]);                       \
-                        s2 += f * (sptr[2] - sptr2[2]);                       \
-                        s3 += f * (sptr[3] - sptr2[3]);                       \
-                    }                                                         \
-                                                                              \
-                    t0 = cast_macro1(s0);                                     \
-                    t1 = cast_macro1(s1);                                     \
-                    dst[i] = cast_macro2(t0);                                 \
-                    dst[i + 1] = cast_macro2(t1);                             \
-                    t0 = cast_macro1(s2);                                     \
-                    t1 = cast_macro1(s3);                                     \
-                    dst[i + 2] = cast_macro2(t0);                             \
-                    dst[i + 3] = cast_macro2(t1);                             \
-                }                                                             \
-                                                                              \
-                for (; i < width; i++)                                        \
-                {                                                             \
-                    double s0 = (double)ky[0] * src[0][i];                    \
-                    worktype t0;                                              \
-                    for (k = 1; k <= ksize2; k++)                             \
-                        s0 += (double)ky[k] * (src[k][i] - src[-k][i]);       \
-                    t0 = cast_macro1(s0);                                     \
-                    dst[i] = cast_macro2(t0);                                 \
-                }                                                             \
-            }                                                                 \
-        }                                                                     \
-    \
-}
-
-IVOS_FILTER_COL_SYMM(32f8u, float, uchar, int, SysRound, VOS_CAST_8U)
-IVOS_FILTER_COL_SYMM(32f16s, float, short, int, SysRound, VOS_CAST_16S)
-IVOS_FILTER_COL_SYMM(32f16u, float, ushort, int, SysRound, VOS_CAST_16U)
 
 
 #define VOS_SMALL_GAUSSIAN_SIZE 7
@@ -1435,7 +1230,7 @@ void SepFilter::init_deriv(int _max_width, int _src_type, int _dst_type,
     _ky = InitMat(1, ky_size, VOS_32FC1, ky_data);
 
 
-        VOS_CALL(init_sobel_kernel(&_kx, &_ky, dx, dy, flags));
+    VOS_CALL(init_sobel_kernel(&_kx, &_ky, dx, dy, flags));
 
 
     VOS_CALL(init(_max_width, _src_type, _dst_type, &_kx, &_ky));

@@ -1,5 +1,5 @@
 
-#include "cv.h"
+#include "process.h"
 #include "highgui.h"
 #include <stdio.h>
 #include <math.h>
@@ -122,7 +122,7 @@ void SearchProcess_v3(IplImage *lpSrcImg, set<Box, SymUBoxCmp> &lstRes, int &iRe
 	while (contours)
 	{
 		result = ApproxPoly(contours, sizeof(Contour), storage,
-							VOS_POLY_APPROX_DP, cvContourPerimeter(contours) * 0.01, 0);
+							 ContourPerimeter(contours) * 0.01, 0);
 		if (NULL != result)
 		{
 			if (4 == result->total)
@@ -193,7 +193,7 @@ int process_v3(set<Box, SymUBoxCmp> &setURes, IplImage *lpTargetImg, int argc, c
 	itu = setURes.begin();
 	for (int i = 0; i < argc && itu != setURes.end(); i++)
 	{
-		IplImage *lpSrcImg = LoadImage(argv[i], 1);
+        IplImage *lpSrcImg = LoadImage(argv[i]);
 		if (lpSrcImg != NULL)
 		{
 			box = *itu;
@@ -284,7 +284,7 @@ int main(int argc, char **args)
 	const char *OutputPath = (const char *)args[1];
 	const char *TargetPicPath = (const char *)args[2];
 
-	IplImage *lpTargetImg = LoadImage(TargetPicPath, 1);
+    IplImage *lpTargetImg = LoadImage(TargetPicPath);
 	if (NULL == lpTargetImg)
 	{
 		return ERR_1;

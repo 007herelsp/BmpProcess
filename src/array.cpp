@@ -6,12 +6,8 @@ static const signed char iDepthToType[] =
         -1, -1, VOS_8U, VOS_8S, VOS_16U, VOS_16S, -1, -1,
         VOS_32F, VOS_32S, -1, -1, -1, -1, -1, -1, VOS_64F, -1};
 
-#define icvIplToCvDepth(depth) \
+#define iIplToCvDepth(depth) \
     iDepthToType[(((depth)&255) >> 2) + ((depth) < 0)]
-
-/****************************************************************************************\
-*                               Mat creation and basic operations                      *
-\****************************************************************************************/
 
 // Creates Mat and underlying data
 Mat *CreateMat(int height, int width, int type)
@@ -339,11 +335,6 @@ Size GetSize(const VOID *arr)
     return size;
 }
 
-/****************************************************************************************\
-*                      Operations on Scalar and accessing array elements               *
-\****************************************************************************************/
-
-// Converts Scalar to specified type
 void ScalarToRawData(const Scalar *scalar, void *data, int type)
 {
     VOS_FUNCNAME("ScalarToRawData");
@@ -402,7 +393,7 @@ Mat *GetMat(const VOID *array, Mat *mat,
         if (img->imageData == 0)
             VOS_ERROR(VOS_StsNullPtr, "The image has NULL data pointer");
 
-        depth = icvIplToCvDepth(img->depth);
+        depth = iIplToCvDepth(img->depth);
         if (depth < 0)
             VOS_ERROR_FROM_CODE(VOS_BadDepth);
 
@@ -431,10 +422,6 @@ Mat *GetMat(const VOID *array, Mat *mat,
 
     return result;
 }
-
-/****************************************************************************************\
-*                               IplImage-specific functions                              *
-\****************************************************************************************/
 
 // create IplImage header
 IplImage *
@@ -600,81 +587,6 @@ CloneImage(const IplImage *src)
     __END__;
 
     return dst;
-}
-
-bool IsContourP(int x, int y, IplImage *Src_Img)
-{
-    bool p[10] = {false};
-    int LineBytes = Src_Img->widthStep;
-    char *lpPtr = (char *)(Src_Img->imageData + LineBytes * y) + x;
-
-    p[2] = *(lpPtr - LineBytes) ? true : false;
-    p[3] = *(lpPtr - LineBytes + 1) ? true : false;
-    p[4] = *(lpPtr + 1) ? true : false;
-    p[5] = *(lpPtr + LineBytes + 1) ? true : false;
-    p[6] = *(lpPtr + LineBytes) ? true : false;
-    p[7] = *(lpPtr + LineBytes - 1) ? true : false;
-    p[8] = *(lpPtr - 1) ? true : false;
-    p[9] = *(lpPtr - LineBytes - 1) ? true : false;
-
-    int Np = 0; //邻域不为零节点总数
-    int Tp = 0; //邻域节点由0变成1的次数
-    for (int i = 2; i < 10; i++)
-    {
-        Np += p[i];
-        int k = (i < 9) ? (i + 1) : 2;
-
-        if (p[k] - p[i] > 0)
-        {
-            Tp++;
-        }
-    }
-    int p246 = p[2] && p[4] && p[6];
-    int p468 = p[4] && p[6] && p[8];
-
-    int p24 = p[2] && !p[3] && p[4] && !p[5] && !p[6] && !p[7] && !p[8] && !p[9];
-    int p46 = !p[2] && !p[3] && p[4] && !p[5] && p[6] && !p[7] && !p[8] && !p[9];
-    int p68 = !p[2] && !p[3] && !p[4] && !p[5] && p[6] && !p[7] && p[8] && !p[9];
-    int p82 = p[2] && !p[3] && !p[4] && !p[5] && !p[6] && !p[7] && p[8] && !p[9];
-
-    int p782 = p[2] && !p[3] && !p[4] && !p[5] && !p[6] && p[7] && p[8] && !p[9];
-    int p924 = p[2] && !p[3] && p[4] && !p[5] && !p[6] && !p[7] && !p[8] && p[9];
-    int p346 = !p[2] && p[3] && p[4] && !p[5] && p[6] && !p[7] && !p[8] && !p[9];
-    int p568 = !p[2] && !p[3] && !p[4] && p[5] && p[6] && !p[7] && p[8] && !p[9];
-
-    int p689 = !p[2] && !p[3] && !p[4] && !p[5] && p[6] && !p[7] && p[8] && p[9];
-    int p823 = p[2] && p[3] && !p[4] && !p[5] && !p[6] && !p[7] && p[8] && !p[9];
-    int p245 = p[2] && !p[3] && p[4] && p[5] && !p[6] && !p[7] && !p[8] && !p[9];
-    int p467 = !p[2] && !p[3] && p[4] && !p[5] && p[6] && p[7] && !p[8] && !p[9];
-
-    int p2468 = p24 || p46 || p68 || p82;
-    int p3333 = p782 || p924 || p346 || p568 || p689 || p823 || p245 || p467;
-
-    //判定条件第一个由数字图像处理上得到，由于结果不够满意，又加上两个条件
-    return (!p246 && !p468 && (Np < 7) && (Np > 1) && (Tp == 1)) || p2468 || p3333;
-}
-
-void thin(IplImage *Src_Img) //细化轮廓，得到单像素轮廓
-{
-    int i, j, Remove_Num = 0;
-    Size img_size = GetSize(Src_Img);
-
-    do
-    { //循环调用，直至没有可以去掉的点
-        Remove_Num = 0;
-        for (j = 1; j < img_size.height - 1; j++)
-        {
-            for (i = 1; i < img_size.width - 1; i++)
-            {
-                char gray_value = ((char *)(Src_Img->imageData + Src_Img->widthStep * j))[i];
-                if (gray_value && IsContourP(i, j, Src_Img))
-                { //符合条件，去掉
-                    ((char *)(Src_Img->imageData + Src_Img->widthStep * j))[i] = (uchar)0;
-                    Remove_Num++;
-                } //if
-            }     //for i
-        }         //for j
-    } while (Remove_Num);
 }
 
 /************************************************* 

@@ -1,31 +1,18 @@
 
-#include "cv.h"
+#include "process.h"
 #include "misc.h"
 
 static void
-Sobel(const void *srcarr, void *dstarr, int dx, int dy, int aperture_size)
+Sobel(const Mat *src, Mat *dst, int dx, int dy, int aperture_size)
 {
     SepFilter filter;
-    void *buffer = 0;
-    int local_alloc = 0;
 
     VOS_FUNCNAME("Sobel");
 
     __BEGIN__;
 
-    int origin = 0;
     int src_type, dst_type;
-    Mat srcstub, *src = (Mat *)srcarr;
-    Mat dststub, *dst = (Mat *)dstarr;
-
-    if (!VOS_IS_MAT(src))
-        VOS_CALL(src = GetMat(src, &srcstub));
-    if (!VOS_IS_MAT(dst))
-        VOS_CALL(dst = GetMat(dst, &dststub));
-
-    if (VOS_IS_IMAGE_HDR(srcarr))
-        origin = ((IplImage *)srcarr)->origin;
-
+ 
     src_type = VOS_MAT_TYPE(src->type);
     dst_type = VOS_MAT_TYPE(dst->type);
 
@@ -33,13 +20,10 @@ Sobel(const void *srcarr, void *dstarr, int dx, int dy, int aperture_size)
         VOS_ERROR(VOS_StsBadArg, "src and dst have different sizes");
 
     VOS_CALL(filter.init_deriv(src->cols, src_type, dst_type, dx, dy,
-                               aperture_size, origin ? SepFilter::FLIP_KERNEL : 0));
+                               aperture_size,  0));
     VOS_CALL(filter.process(src, dst));
 
     __END__;
-
-    if (buffer && !local_alloc)
-        SYS_FREE(&buffer);
 }
 
 #define CANNY_SHIFT 15
