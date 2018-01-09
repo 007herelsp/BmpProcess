@@ -17,8 +17,6 @@ static void  FillGrayPalette( PaletteEntry* palette, int bpp, bool negative=fals
     }
 }
 
-
-
 /************************ BMP reader *****************************/
 
 GrFmtBmpReader::GrFmtBmpReader(const char *filename)
@@ -130,8 +128,6 @@ bool GrFmtBmpReader::ReadData(uchar *data, int step, int color)
     return result;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-
 GrFmtBmpWriter::GrFmtBmpWriter(const char *filename)
 {
     strncpy( m_filename, filename, sizeof(m_filename) - 1 );
@@ -140,7 +136,7 @@ GrFmtBmpWriter::GrFmtBmpWriter(const char *filename)
 
 bool GrFmtBmpWriter::IsFormatSupported( int depth )
 {
-    return depth == SYS_DEPTH_8U;
+    return  SYS_DEPTH_8U==depth ;
 }
 
 GrFmtBmpWriter::~GrFmtBmpWriter()

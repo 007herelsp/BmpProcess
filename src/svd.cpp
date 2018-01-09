@@ -177,12 +177,10 @@ iSVD_64f(double *a, int lda, int m, int n,
 
             VOS_MEMSET(temp, 0, n1 * sizeof(temp[0]));
 
-            /* calc temp[0:n-i] = a[i:m,i:n]'*hv[0:m-i] */
             iMatrAXPY_64f(m1, n1 - 1, a + 1, lda, hv, temp + 1, 0);
             for (k = 1; k < n1; k++)
                 temp[k] *= h;
 
-            /* modify a: a[i:m,i:n] = a[i:m,i:n] + hv[0:m-i]*temp[0:n-i]' */
             iMatrAXPY_64f(m1, n1 - 1, temp + 1, 0, hv, a + 1, lda);
             *w1 = g * scale;
         }

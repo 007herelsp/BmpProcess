@@ -151,13 +151,13 @@ void BaseImageFilter::start_process(Slice x_range, int width)
 
     buf_step = Align(bw * work_pix_sz, ALIGN);
 
-    if (mode == SYS_BORDER_CONSTANT)
+    if ( SYS_BORDER_CONSTANT==mode )
         bsz -= buf_step;
     buf_max_count = bsz / buf_step;
     buf_max_count = VOS_MIN(buf_max_count, max_rows - max_ky * 2);
     buf_end = buf_start + buf_max_count * buf_step;
 
-    if (mode == SYS_BORDER_CONSTANT)
+    if ( SYS_BORDER_CONSTANT==mode )
     {
         int i, tab_len = ksize.width * pix_sz;
         uchar *bt = (uchar *)border_tab;
@@ -203,7 +203,7 @@ void BaseImageFilter::start_process(Slice x_range, int width)
 
         if ((unsigned)idx > (unsigned)width)
         {
-            int shift = mode == IPL_BORDER_REFLECT_101 ? pix_sz : 0;
+            int shift =  VOS_BORDER_REFLECT_101==mode  ? pix_sz : 0;
             idx = k == 0 ? shift : width - shift;
             delta = -delta;
         }
@@ -212,12 +212,12 @@ void BaseImageFilter::start_process(Slice x_range, int width)
         {
             for (j = 0; j < pix_sz; j++)
                 border_tab[i + j] = idx + ofs + j;
-            if (mode != SYS_BORDER_REPLICATE)
+            if ( SYS_BORDER_REPLICATE!=mode )
             {
                 if ((delta > 0 && idx == width) ||
                     (delta < 0 && idx == 0))
                 {
-                    if (mode == IPL_BORDER_REFLECT_101)
+                    if ( VOS_BORDER_REFLECT_101==mode )
                         idx -= delta * 2;
                     delta = -delta;
                 }
@@ -246,7 +246,7 @@ void BaseImageFilter::make_y_border(int row_count, int top_rows, int bottom_rows
     }
     else
     {
-        int j, dj = 1, shift = IPL_BORDER_REFLECT_101 == border_mode;
+        int j, dj = 1, shift = VOS_BORDER_REFLECT_101 == border_mode;
 
         for (i = top_rows - 1, j = top_rows + shift; i >= 0; i--)
         {

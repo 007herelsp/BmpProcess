@@ -29,28 +29,14 @@ static VosStatus iSqrt_32f(const float *src, float *dst, int len)
 
 typedef CvStatus(*SqrtFunc_t)(const void *src, void *dst, int len);
 
- void SysPow(const VOID *srcarr, VOID *dstarr, double power)
+ void SysPow(const Mat *src, Mat *dst, double power)
 {
     VOS_FUNCNAME("SysPow");
 
     __BEGIN__;
-
-
-    Mat srcstub, *src = (Mat *)srcarr;
-    Mat dststub, *dst = (Mat *)dstarr;
-    int coi1 = 0, coi2 = 0;
     int depth;
     Size size;
     int y;
-
-    if (!VOS_IS_MAT(src))
-        VOS_CALL(src = GetMat(src, &srcstub, &coi1));
-
-    if (!VOS_IS_MAT(dst))
-        VOS_CALL(dst = GetMat(dst, &dststub, &coi2));
-
-    if (0 != coi1  || 0 != coi2)
-        VOS_ERROR(VOS_BadCOI, "");
 
     if (!VOS_ARE_TYPES_EQ(src, dst))
         VOS_ERROR_FROM_CODE(VOS_StsUnmatchedFormats);

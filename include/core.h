@@ -90,7 +90,7 @@ ConvertScale(const Mat *src, Mat *dst);
 #define Convert(src, dst) ConvertScale((src), (dst))
 
 void
-SysPow(const VOID *src, VOID *dst, double power);
+SysPow(const Mat *src, Mat *dst, double power);
 
 #define VOS_SVD_MODIFY_A 1
 #define VOS_SVD_U_T 2

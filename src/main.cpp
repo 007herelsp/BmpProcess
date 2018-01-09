@@ -21,14 +21,14 @@ static double angle(Point *pt1, Point *pt2, Point *pt0)
 }
 //static const float MAX_P = 40.0f;
 #define MAX_P 10.0
-typedef struct stBox
+typedef struct tagBox
 {
 	Point pt[4];
 	Box2D box;
 	bool isRect;
 	double contourArea;
 
-	bool operator<(const struct stBox &x) const
+	bool operator<(const struct tagBox &x) const
 	{
 
 		if (fabs(box.center.x - x.box.center.x) <= MAX_P && fabs(box.center.y - x.box.center.y) <= MAX_P)
@@ -62,11 +62,6 @@ typedef struct stBox
 
 } Box;
 
-bool isEqu(float x1, float x2)
-{
-	return (fabs(x1 - x2) <= MAX_P);
-}
-
 struct SymUBoxCmp
 {
 	bool operator()(const Box &x, const Box &y) const
@@ -94,44 +89,11 @@ struct SymUBoxCmp
 		return ret;
 	}
 };
-void AddRecord(set<Box> &lstRes, Box &box, int &iRectCun)
-{
-	set<Box>::iterator itu;
-	Box tbox;
-	bool flag = true;
-	for (itu = lstRes.begin(); itu != lstRes.end(); itu++)
-	{
-		tbox = *itu;
-
-		if (fabs(tbox.box.center.x - box.box.center.x) <= MAX_P && fabs(tbox.box.center.y - box.box.center.y) <= MAX_P)
-		{
-			flag = false;
-			//选择最大的面积
-			//int width = VOS_MAX(tbox.box.size.width, box.box.size.width);
-			if (tbox.contourArea < box.contourArea)
-			{
-				flag = true;
-				if (tbox.isRect)
-				{
-					iRectCun--;
-				}
-				lstRes.erase(tbox);
-			}
-			break;
-		}
-	}
-	if (flag)
-	{
-		if (box.isRect)
-		{
-			iRectCun++;
-		}
-		lstRes.insert(box);
-	}
-}
+	
 #define SHAPE 4
 #define MIN_ContourArea 500
 #define MAX_ContourArea 1000000
+
 void StartSearchProcess(IplImage *lpSrcImg, set<Box> &lstRes)
 {
 	MemStorage *storage = CreateMemStorage();
@@ -158,7 +120,7 @@ void StartSearchProcess(IplImage *lpSrcImg, set<Box> &lstRes)
 				{
 					End_Rage2D = MinAreaRect2(result);
 					s = 0;
-					Box box = {0};
+                    Box box;
 					box.box = End_Rage2D;
 					for (index = 2; index < 5; index++)
 					{
@@ -337,7 +299,6 @@ int main(int argc, char **args)
 
 	set<Box> lstRes;
 	int iCunt = 0;
-	char name[100];
 	if (NULL != lpCannyImg && NULL != lpDilateImg)
 	{
 		for (int i = 0; i < channel; i++)

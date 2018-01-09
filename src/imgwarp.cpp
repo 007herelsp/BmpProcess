@@ -30,15 +30,15 @@ Solve( const VOID* A, const VOID* b, VOID* x, int method )
     if( !VOS_IS_MAT( dst ))
         VOS_CALL( dst = GetMat( dst, &dstub ));
 
-    if( method == VOS_SVD || method == VOS_SVD_SYM )
+    if( VOS_SVD == method ||   VOS_SVD_SYM ==method)
     {
         int n = VOS_MIN(src->rows,src->cols);
 
-        if( method == VOS_SVD_SYM && src->rows != src->cols )
+        if(  VOS_SVD_SYM==method  && src->rows != src->cols )
             VOS_ERROR( VOS_StsBadSize, "VOS_SVD_SYM method is used for non-square matrix" );
 
         VOS_CALL( u = CreateMat( n, src->rows, src->type ));
-        if( method != VOS_SVD_SYM )
+        if(  VOS_SVD_SYM!=method  )
             VOS_CALL( v = CreateMat( n, src->cols, src->type ));
         VOS_CALL( w = CreateMat( n, 1, src->type ));
         VOS_CALL( SVD( src, w, u, v, VOS_SVD_U_T + VOS_SVD_V_T ));

@@ -147,7 +147,7 @@ IplConvKernel;
 
 
 /* extra border mode */
-#define IPL_BORDER_REFLECT_101    4
+#define VOS_BORDER_REFLECT_101    4
 
 #define VOS_IS_IMAGE_HDR(img) \
     ((img) != NULL && ((const IplImage*)(img))->nSize == sizeof(IplImage))

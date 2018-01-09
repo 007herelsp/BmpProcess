@@ -14,8 +14,6 @@ iLoadImage(const char *filename)
     __BEGIN__;
 
     Size size;
-    int iscolor;
-    int cn;
 
     if (!filename || strlen(filename) == 0)
         VOS_ERROR(VOS_StsNullPtr, "null filename");
@@ -29,15 +27,11 @@ iLoadImage(const char *filename)
 
     size.width = reader->GetWidth();
     size.height = reader->GetHeight();
-    iscolor = 1;
 
-    cn = iscolor ? 3 : 1;
-    int type;
-    type = SYS_DEPTH_8U;
-    VOS_CALL(image = CreateImage(size, type, cn));
+    VOS_CALL(image = CreateImage(size, SYS_DEPTH_8U, 3));
     matrix = GetMat(image, &hdr);
 
-    if (!reader->ReadData(matrix->data.ptr, matrix->step, iscolor))
+    if (!reader->ReadData(matrix->data.ptr, matrix->step, 1))
     {
         ReleaseImage(&image);
         EXIT;
@@ -84,7 +78,7 @@ SaveImage(const char *filename, const VOID *arr)
         origin = ((IplImage *)arr)->origin;
 
     channels = VOS_MAT_CN(image->type);
-    if (1 != channels  && 3 != channels  && 4 != channels)
+    if (1 != channels  && 3 != channels)
         VOS_ERROR(VOS_BadNumChannels, "");
 
     writer = new GrFmtBmpWriter(filename);
