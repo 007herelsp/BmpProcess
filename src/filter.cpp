@@ -1092,7 +1092,7 @@ void SepFilter::init_gaussian_kernel(Mat *kernel, double sigma)
 
     sigmaX = sigma > 0 ? sigma : (n / 2 - 1) * 0.3 + 0.8;
     scale2X = -0.5 / (sigmaX * sigmaX);
-    step = kernel->rows == 1 ? 1 : kernel->step / VOS_ELEM_SIZE1(type);
+    step = 1==kernel->rows   ? 1 : kernel->step / VOS_ELEM_SIZE1(type);
     cf = kernel->data.fl;
 
     sum = fixed_kernel ? -fixed_kernel[0] : -1.;
@@ -1141,8 +1141,8 @@ void SepFilter::init_sobel_kernel(Mat *_kx, Mat *_ky, int dx, int dy, int flags)
 
     for (k = 0; k < 2; k++)
     {
-        Mat *kernel = k == 0 ? _kx : _ky;
-        int order = k == 0 ? dx : dy;
+        Mat *kernel =0 == k  ? _kx : _ky;
+        int order = 0==k   ? dx : dy;
         int n = kernel->cols + kernel->rows - 1, step;
         int type = VOS_MAT_TYPE(kernel->type);
         double scale = !normalize ? 1. : 1. / (1 << (n - order - 1));

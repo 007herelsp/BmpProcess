@@ -581,7 +581,6 @@ iGrowSeq(Seq *seq, int in_front_of)
     __END__;
 }
 
-/* recycles a sequence block for the further use */
 static void
 iFreeSeqBlock(Seq *seq, int in_front_of)
 {
@@ -1091,7 +1090,7 @@ void SeqPopMulti(Seq *seq, void *_elements, int count, int front)
                 VOS_MEMCPY(elements, seq->ptr, delta);
             }
 
-            if (seq->first->prev->count == 0)
+            if ( 0==seq->first->prev->count )
                 iFreeSeqBlock(seq, 0);
         }
     }

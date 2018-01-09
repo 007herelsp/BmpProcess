@@ -15,55 +15,45 @@ void
 SysFree_(void *ptr);
 #define SYS_FREE(ptr) (SysFree_(*(ptr)), *(ptr) = 0)
 
-/* Allocates and initializes IplImage header */
 IplImage *
 CreateImageHeader(Size size, int depth, int channels);
 
-/* Inializes IplImage header */
 IplImage *
 InitImageHeader(IplImage *image, Size size, int depth,
                   int channels, int origin VOS_DEFAULT(0),
                   int align VOS_DEFAULT(4));
 
-/* Creates IPL image (header and data) */
 IplImage *
 CreateImage(Size size, int depth, int channels);
 
 void
 ReleaseImageHeader(IplImage **image);
 
-/* Releases IPL image header and data */
 void
 ReleaseImage(IplImage **image);
 
-/* Creates a copy of IPL image (widthStep may differ) */
 IplImage *
 CloneImage(const IplImage *image);
 
 
 int ImageStretchByHistogram(IplImage *src1,IplImage *dst1);
 
-/* Allocates and initalizes Mat header */
 Mat *
 CreateMatHeader(int rows, int cols, int type);
 
 #define VOS_AUTOSTEP 0x7fffffff
 
-/* Initializes Mat header */
 Mat *
 InitMatHeader(Mat *mat, int rows, int cols,
                 int type, void *data VOS_DEFAULT(NULL),
                 int step VOS_DEFAULT(VOS_AUTOSTEP));
 
-/* Allocates and initializes Mat header and allocates data */
 Mat *
 CreateMat(int rows, int cols, int type);
 
 void
 ReleaseMat(Mat **mat);
 
-/* Decrements Mat data reference counter and deallocates the data if
-   it reaches 0 */
 VOS_INLINE void DecRefData(Mat *arr)
 {
         Mat *mat = (Mat *)arr;
@@ -81,23 +71,17 @@ GetMat(const VOID *arr, Mat *header,
          int *coi VOS_DEFAULT(NULL));
 
 
-
-/* Allocates array data */
 void
 CreateData(VOID *arr);
 
-/* Releases array data */
 void
 ReleaseData(VOID *arr);
 
 void
 SetData(VOID *arr, void *data, int step);
 
-/* Returns width and height of array in elements */
 Size
 GetSize(const VOID *arr);
-
-/* Copies source array to destination array */
 void
 Copy(const VOID *src, VOID *dst);
 
@@ -112,7 +96,6 @@ SysPow(const VOID *src, VOID *dst, double power);
 #define VOS_SVD_U_T 2
 #define VOS_SVD_V_T 4
 
-/* Performs Singular Value Decomposition of a matrix */
 void
 SVD(VOID *A, VOID *W, VOID *U VOS_DEFAULT(NULL),
       VOID *V VOS_DEFAULT(NULL), int flags VOS_DEFAULT(0));
@@ -131,7 +114,6 @@ SliceLength(Slice slice, const Seq *seq);
 MemStorage *
 CreateMemStorage(int block_size VOS_DEFAULT(0));
 
-/* Creates a memory storage that will borrow memory blocks from parent storage */
 MemStorage *
 CreateChildMemStorage(MemStorage *parent);
 
@@ -141,19 +123,15 @@ ReleaseMemStorage(MemStorage **storage);
 void
 ClearMemStorage(MemStorage *storage);
 
-/* Remember a storage "free memory" position */
 void
 SaveMemStoragePos(const MemStorage *storage, MemStoragePos *pos);
 
-/* Restore a storage "free memory" position */
 void
 RestoreMemStoragePos(MemStorage *storage, MemStoragePos *pos);
 
-/* Allocates continuous buffer of the specified size in the storage */
 void *
 MemStorageAlloc(MemStorage *storage, size_t size);
 
-/* Creates new empty sequence that will reside in the specified storage */
 Seq *
 CreateSeq(int seq_flags, int header_size,
             int elem_size, MemStorage *storage);
@@ -162,15 +140,12 @@ CreateSeq(int seq_flags, int header_size,
 void
 SetSeqBlockSize(Seq *seq, int delta_elems);
 
-/* Adds new element to the end of sequence. Returns pointer to the element */
 char *
 SeqPush(Seq *seq, void *element VOS_DEFAULT(NULL));
 
-/* Removes the last element from sequence and optionally saves it */
 void
 SeqPop(Seq *seq, void *element VOS_DEFAULT(NULL));
 
-/* Removes several elements from the end of sequence and optionally saves them */
 void
 SeqPopMulti(Seq *seq, void *elements,
               int count, int in_front VOS_DEFAULT(0));
@@ -179,11 +154,9 @@ SeqPopMulti(Seq *seq, void *elements,
 char *
 GetSeqElem(const Seq *seq, int index);
 
-/* Initializes sequence writer. The new elements will be added to the end of sequence */
 void
 StartAppendToSeq(Seq *seq, SeqWriter *writer);
 
-/* Combination of CreateSeq and StartAppendToSeq */
 void
 StartWriteSeq(int seq_flags, int header_size,
                 int elem_size, MemStorage *storage,
@@ -200,7 +173,6 @@ void
 StartReadSeq(const Seq *seq, SeqReader *reader,
                int reverse VOS_DEFAULT(0));
 
-/* Returns current sequence reader position (currently observed sequence element) */
 int
 GetSeqReaderPos(SeqReader *reader);
 
@@ -208,7 +180,6 @@ void
 SetSeqReaderPos(SeqReader *reader, int index,
                   int is_relative VOS_DEFAULT(0));
 
-/************ Internal sequence functions ************/
 void
 ChangeSeqBlock(void *reader, int direction);
 void

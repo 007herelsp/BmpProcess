@@ -1,4 +1,5 @@
-#include "highgui.h"
+#include "process.h"
+
 #include "grfmt_bmp.h"
 
 static void *

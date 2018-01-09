@@ -21,12 +21,10 @@ int src_cn)
 
 	return VOS_OK;
 }
-extern  int
-SaveImage(const char *filename, const VOID *arr);
 
-void CvtColor(const VOID *srcarr, VOID *dstarrR, VOID *dstarrG, VOID *dstarrB)
+void CvtBgr2Gray_8u_C3C1(const VOID *srcarr, VOID *dstarrR, VOID *dstarrG, VOID *dstarrB)
 {
-	VOS_FUNCNAME("CvtColor");
+	VOS_FUNCNAME("CvtBgr2Gray_8u_C3C1");
 
 	__BEGIN__;
 
@@ -65,7 +63,7 @@ void CvtColor(const VOID *srcarr, VOID *dstarrR, VOID *dstarrG, VOID *dstarrB)
 		VOS_ERROR(VOS_StsUnmatchedFormats, "");
 
 	depth = VOS_MAT_DEPTH(src->type);
-	if (depth != VOS_8U && depth != VOS_16U && depth != VOS_32F)
+	if (depth != VOS_8U)
 		VOS_ERROR(VOS_StsUnsupportedFormat, "");
 
 	src_cn = VOS_MAT_CN(src->type);
@@ -74,13 +72,9 @@ void CvtColor(const VOID *srcarr, VOID *dstarrR, VOID *dstarrG, VOID *dstarrB)
 	src_step = src->step;
 	dst_step = dstR->step;
 
-	if (src_cn != 3 || dst_cn != 1)
+	if (3!=src_cn   ||  1!=dst_cn )
 		VOS_ERROR(VOS_BadNumChannels,
 		"Incorrect number of channels for this conversion code");
-
-	assert("herelsp remove" && (depth == VOS_8U));
-
-
 
 	VOS_FUN_CALL(BGR2Gray_8u_CnC1R(src->data.ptr, src_step,
         dstR->data.ptr, dstG->data.ptr, dstB->data.ptr, dst_step, size, src_cn));

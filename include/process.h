@@ -18,7 +18,7 @@ typedef struct stContourScanner* ContourScanner;
 
 #define VOS_GAUSSIAN  2
 
-void Smooth( const VOID* src, VOID* dst,
+void GaussianSmooth( const VOID* src, VOID* dst,
                int param1 VOS_DEFAULT(3),
                int param2 VOS_DEFAULT(0),
                double param3 VOS_DEFAULT(0),
@@ -26,7 +26,7 @@ void Smooth( const VOID* src, VOID* dst,
 #define VOS_SCHARR -1
 #define VOS_MAX_SOBEL_KSIZE 7
 
-void  CvtColor( const VOID* src, VOID* dstr, VOID* dstg,VOID* dstb);
+void  CvtBgr2Gray_8u_C3C1( const VOID* src, VOID* dstr, VOID* dstg,VOID* dstb);
 
 #define  VOS_INTER_LINEAR    1
 
@@ -122,6 +122,19 @@ int  CheckContourConvexity( const VOID* contour );
 /* Runs canny edge detector */
 void  Canny( const VOID* image, VOID* edges, double threshold1,
              double threshold2, int  aperture_size VOS_DEFAULT(3) );
+
+			 
+
+			 
+#define VOS_LOAD_IMAGE_COLOR       1
+			 
+			 IplImage* LoadImage( const char* filename);
+			 
+			 /* save image to file */
+			 int SaveImage( const char* filename, const VOID* image );
+			 
+
+
 
 extern const uchar iSaturate8u[];
 #define VOS_FAST_CAST_8U(t)  (assert(-256 <= (t) || (t) <= 512), iSaturate8u[(t)+256])

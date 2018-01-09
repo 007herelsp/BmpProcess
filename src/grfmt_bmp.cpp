@@ -1,4 +1,4 @@
-#include "highgui.h"
+
 #include "grfmt_bmp.h"
 
 static const char *fmtSignBmp = "BM";

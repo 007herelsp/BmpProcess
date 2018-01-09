@@ -6,7 +6,7 @@ IF(POLICY CMP0026)
     CMAKE_POLICY(SET CMP0026 OLD)
 ENDIF()
 # 项目名
-project (BMP)
+project (Composer)
 SET(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -g -ggdb")
 include_directories ("./include")
 AUX_SOURCE_DIRECTORY("./src/" DIR_SRCS)
