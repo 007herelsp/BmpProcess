@@ -26,9 +26,6 @@ void GaussianSmooth(const void *srcarr, void *dstarr,
     VOS_CALL(src = GetMat(src, &srcstub, &coi1));
     VOS_CALL(dst = GetMat(dst, &dststub, &coi2));
 
-    if (0 != coi1 || 0 != coi2)
-        VOS_ERROR(VOS_BadCOI, "");
-
     src_type = VOS_MAT_TYPE(src->type);
     dst_type = VOS_MAT_TYPE(dst->type);
     depth = VOS_MAT_DEPTH(src_type);

@@ -189,7 +189,7 @@ insert_sort:
                     left++;
                     right--;
                 }
-                if (swap_cnt == 0)
+                if ( 0==swap_cnt )
                 {
                     left = left0, right = right0;
                     goto insert_sort;
@@ -240,12 +240,12 @@ ConvexHull2(const VOID *array, void *hull_storage,
         Contour *c;
         Seq *s;
     } hull;
-    Point **pointer = 0;
-    int *stack = 0;
+    Point **pointer = NULL;
+    int *stack = NULL;
 
     VOS_FUNCNAME("ConvexHull2");
 
-    hull.s = 0;
+    hull.s = NULL;
 
     __BEGIN__;
 
@@ -262,7 +262,7 @@ ConvexHull2(const VOID *array, void *hull_storage,
     sklansky_func sklansky= NULL;
 
     ptseq = (Seq *)array;
-    if (0 == hull_storage)
+    if (NULL == hull_storage)
         hull_storage = ptseq->storage;
 
 
@@ -441,10 +441,6 @@ CheckContourConvexity(const VOID *array)
             dxdy0 = dx * dy0;
             dydx0 = dy * dx0;
 
-            /* find orientation */
-            /*orient = -dy0 * dx + dx0 * dy;
-               orientation |= (orient > 0) ? 1 : 2;
-             */
             orientation |= (dydx0 > dxdy0) ? 1 : ((dydx0 < dxdy0) ? 2 : 3);
 
             if (3 == orientation)

@@ -8,7 +8,6 @@
 #include <malloc.h>
 #include <set>
 
-#define ERR_1 -1
 using namespace std;
 
 static double angle(Point *pt1, Point *pt2, Point *pt0)
@@ -89,7 +88,7 @@ struct SymUBoxCmp
 		return ret;
 	}
 };
-	
+
 #define SHAPE 4
 #define MIN_ContourArea 500
 #define MAX_ContourArea 1000000
@@ -155,6 +154,8 @@ void StartSearchProcess(IplImage *lpSrcImg, set<Box> &lstRes)
 
 					//printf("hello: %g, %g\n", box.box.center.x, box.box.center.y);
 
+
+
 					//printf("centerInfo:[%f,%f]:[%f,%f]\n", End_Rage2D.center.x, End_Rage2D.center.y, End_Rage2D.size.width, End_Rage2D.size.height);
 					//lstRes.insert(box);
 					box.contourArea = dContourArea;
@@ -191,7 +192,7 @@ int Process(set<Box> &setURes, IplImage *lpTargetImg, int argc, char *argv[])
 		if (fileIndex < argc)
 		{
 			IplImage *lpSrcImg = LoadImage(argv[fileIndex++]);
-			if (lpSrcImg != NULL)
+			if ( NULL!=lpSrcImg )
 			{
 				temp = lpSrcImg;
 				warp_mat = CreateMat(3, 3, VOS_64FC1);
@@ -272,7 +273,7 @@ int main(int argc, char **args)
 {
 	if (3 > argc)
 	{
-		return ERR_1;
+		return VOS_StsError;
 	}
 	const char *OutputPath = (const char *)args[1];
 	const char *TargetPicPath = (const char *)args[2];
@@ -280,11 +281,11 @@ int main(int argc, char **args)
 	IplImage *lpTargetImg = LoadImage(TargetPicPath);
 	if (NULL == lpTargetImg)
 	{
-		return ERR_1;
+		return VOS_StsError;
 	}
 
 	const int channel = 3;
-	IplImage *imagChannels[channel] = {0};
+	IplImage *imagChannels[channel] = {NULL};
 	for (int i = 0; i < channel; i++)
 	{
 		imagChannels[i] = CreateImage(GetSize(lpTargetImg), 8, 1);

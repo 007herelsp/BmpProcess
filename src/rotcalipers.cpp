@@ -85,10 +85,7 @@ iRotatingCalipers( Point2D32f* points, int n, int mode, float* out )
     seq[1] = right;
     seq[2] = top;
     seq[3] = left;
-    /*****************************************************************************************/
-    /*                         Main loop - evaluate angles and rotate calipers               */
-
-    /* all of edges will be checked while rotating calipers by 90 degrees */
+   
     for( k = 0; k < n; k++ )
     {
         float dp0 = base_a * vect[seq[0]].x + base_b * vect[seq[0]].y;
@@ -99,10 +96,7 @@ iRotatingCalipers( Point2D32f* points, int n, int mode, float* out )
         float cosalpha = dp0 * inv_vect_length[seq[0]];
         float maxcos = cosalpha;
 
-        /* number of calipers edges, that has minimal angle with edge */
         int main_element = 0;
-
-        /* choose minimal angle */
         cosalpha = dp1 * inv_vect_length[seq[1]];
         maxcos = (cosalpha > maxcos) ? (main_element = 1, cosalpha) : maxcos;
         cosalpha = dp2 * inv_vect_length[seq[2]];
@@ -110,9 +104,7 @@ iRotatingCalipers( Point2D32f* points, int n, int mode, float* out )
         cosalpha = dp3 * inv_vect_length[seq[3]];
         maxcos = (cosalpha > maxcos) ? (main_element = 3, cosalpha) : maxcos;
 
-        /*rotate calipers*/
         {
-            //get next base
             int pindex = seq[main_element];
             float lead_x = vect[pindex].x*inv_vect_length[pindex];
             float lead_y = vect[pindex].y*inv_vect_length[pindex];
@@ -137,7 +129,6 @@ iRotatingCalipers( Point2D32f* points, int n, int mode, float* out )
             default: assert(0);
             }
         }
-        /* change base point of main edge */
         seq[main_element] += 1;
         seq[main_element] = (seq[main_element] == n) ? 0 : seq[main_element];
 

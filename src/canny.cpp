@@ -124,9 +124,9 @@ void CannyAdaptiveFindThreshold(Mat *dx, Mat *dy, double *low, double *high)
 void Canny(const void *srcarr, void *dstarr,
            double low_thresh, double high_thresh, int aperture_size)
 {
-    Mat *dx = 0, *dy = 0;
-    void *buffer = 0;
-    uchar **stack_top, **stack_bottom = 0;
+    Mat *dx = NULL, *dy = NULL;
+    void *buffer = NULL;
+    uchar **stack_top, **stack_bottom = NULL;
 
     VOS_FUNCNAME("Canny");
 
@@ -256,7 +256,7 @@ void Canny(const void *srcarr, void *dstarr,
             VOS_MEMSET(_mag - 1, 0, (size.width + 2) * sizeof(int));
 		
 
-        if (i == 0)
+        if ( 0==i )
             continue;
 
         _map = map + mapstep * i + 1;

@@ -8,7 +8,7 @@ iDefaultAlloc( size_t size)
         (size_t)(size + VOS_MALLOC_ALIGN*((size >= 4096) + 1) + sizeof(char*)));
 
     if( !ptr0 )
-        return 0;
+        return NULL;
 
     // align the pointer
     ptr = (char*)AlignPtr(ptr0 + sizeof(char*) + 1, VOS_MALLOC_ALIGN);
@@ -24,16 +24,16 @@ iDefaultFree( void* ptr)
 {
     // Pointer must be aligned by VOS_MALLOC_ALIGN
     if( ((size_t)ptr & (VOS_MALLOC_ALIGN-1)) != 0 )
-        return VOS_BADARG_ERR;
+        return VOS_StsBadArg;
     free( *((char**)ptr - 1) );
 
-    return VOS_OK;
+    return VOS_StsOk;
 }
 
 
  void*  SysAlloc( size_t size )
 {
-    void* ptr = 0;
+    void* ptr = NULL;
 
     VOS_FUNCNAME( "SysAlloc" );
 
@@ -61,7 +61,7 @@ iDefaultFree( void* ptr)
 
     if( ptr )
     {
-        OPTStatus status = iDefaultFree( ptr );
+        int status = iDefaultFree( ptr );
         if( status < 0 )
             VOS_ERROR( status, "Deallocation error" );
     }

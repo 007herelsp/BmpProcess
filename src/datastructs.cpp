@@ -50,7 +50,7 @@ iInitMemStorage(MemStorage *storage, int block_size)
 MemStorage *
 CreateMemStorage(int block_size)
 {
-    MemStorage *storage = 0;
+    MemStorage *storage = NULL;
 
     VOS_FUNCNAME("CreateMemStorage");
 
@@ -107,7 +107,7 @@ iDestroyMemStorage(MemStorage *storage)
     if (storage->parent)
         dst_top = storage->parent->top;
 
-    for (block = storage->bottom; 0 != block; k++)
+    for (block = storage->bottom; NULL != block; k++)
     {
         MemBlock *temp = block;
 
@@ -440,7 +440,7 @@ int SliceLength(Slice slice, const Seq *seq)
     int total = seq->total;
     int length = slice.end_index - slice.start_index;
 
-    if (length != 0)
+    if ( 0!=length )
     {
         if (slice.start_index < 0)
             slice.start_index += total;
@@ -654,7 +654,7 @@ void StartAppendToSeq(Seq *seq, SeqWriter *writer)
     writer->header_size = sizeof(SeqWriter);
 
     writer->seq = seq;
-    writer->block = seq->first ? seq->first->prev : 0;
+    writer->block = seq->first ? seq->first->prev : NULL;
     writer->ptr = seq->ptr;
     writer->block_max = seq->block_max;
 
@@ -665,7 +665,7 @@ void StartAppendToSeq(Seq *seq, SeqWriter *writer)
 void StartWriteSeq(int seq_flags, int header_size,
                    int elem_size, MemStorage *storage, SeqWriter *writer)
 {
-    Seq *seq = 0;
+    Seq *seq = NULL;
 
     VOS_FUNCNAME("StartWriteSeq");
 
@@ -683,7 +683,7 @@ void StartWriteSeq(int seq_flags, int header_size,
 /* updates sequence header */
 void FlushSeqWriter(SeqWriter *writer)
 {
-    Seq *seq = 0;
+    Seq *seq = NULL;
 
     VOS_FUNCNAME("FlushSeqWriter");
 

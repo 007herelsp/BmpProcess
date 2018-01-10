@@ -74,7 +74,7 @@ ArcLength(const void *array, Slice slice, int is_closed)
 }
 
 /* area of a whole sequence */
-static VosStatus
+static int
 iContourArea(const Seq *contour, double *area)
 {
     if (contour->total)
@@ -109,7 +109,7 @@ iContourArea(const Seq *contour, double *area)
     else
         *area = 0;
 
-    return VOS_OK;
+    return VOS_StsOk;
 }
 
 /* external contour area function */

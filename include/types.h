@@ -102,10 +102,7 @@ VOS_INLINE  int  SysCeil( double value )
 #define SYS_ORIGIN_TL 0
 #define SYS_ORIGIN_BL 1
 
-#define SYS_BORDER_CONSTANT   0
 #define SYS_BORDER_REPLICATE  1
-#define SYS_BORDER_REFLECT    2
-#define SYS_BORDER_WRAP       3
 
 typedef struct tagIplImage
 {

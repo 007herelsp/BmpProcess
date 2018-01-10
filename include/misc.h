@@ -42,7 +42,6 @@
 #define  VOS_NOP(a)      (a)
 
 
-/* general-purpose saturation macros */
 #define  VOS_CAST_8U(t)  (uchar)(!((t) & ~255) ? (t) : (t) > 0 ? 255 : 0)
 #define  VOS_CAST_8S(t)  (char)(!(((t)+128) & ~255) ? (t) : (t) > 0 ? 127 : -128)
 #define  VOS_CAST_16U(t) (ushort)(!((t) & ~65535) ? (t) : (t) > 0 ? 65535 : 0)
@@ -93,56 +92,13 @@ VOS_INLINE  Size  GetMatSize( const Mat* mat )
 }
 
 
-
-typedef enum VosStatus
-{
-    VOS_BADMEMBLOCK_ERR          = -113,
-    VOS_INPLACE_NOT_SUPPORTED_ERR= -112,
-    VOS_UNMATCHED_ROI_ERR        = -111,
-    VOS_NOTFOUND_ERR             = -110,
-    VOS_BADCONVERGENCE_ERR       = -109,
-
-    VOS_BADDEPTH_ERR             = -107,
-    VOS_BADROI_ERR               = -106,
-    VOS_BADHEADER_ERR            = -105,
-    VOS_UNMATCHED_FORMATS_ERR    = -104,
-    VOS_UNSUPPORTED_COI_ERR      = -103,
-    VOS_UNSUPPORTED_CHANNELS_ERR = -102,
-    VOS_UNSUPPORTED_DEPTH_ERR    = -101,
-    VOS_UNSUPPORTED_FORMAT_ERR   = -100,
-
-    VOS_BADARG_ERR      = -49,  //
-    VOS_NOTDEFINED_ERR  = -48,  //
-
-    VOS_BADCHANNELS_ERR = -47,  //
-    VOS_BADRANGE_ERR    = -44,  //
-    VOS_BADSTEP_ERR     = -29,  //
-
-    VOS_BADFLAG_ERR     =  -12,
-    VOS_DIV_BY_ZERO_ERR =  -11, //
-    VOS_BADCOEF_ERR     =  -10,
-
-    VOS_BADFACTOR_ERR   =  -7,
-    VOS_BADPOINT_ERR    =  -6,
-    VOS_BADSCALE_ERR    =  -4,
-    VOS_OUTOFMEM_ERR    =  -3,
-    VOS_NULLPTR_ERR     =  -2,
-    VOS_BADSIZE_ERR     =  -1,
-    VOS_NO_ERR          =   0,
-    VOS_OK              =   VOS_NO_ERR
-}
-CvStatus;
-
-#define VOS_ERROR_FROM_STATUS( result )                \
-    VOS_ERROR( SysErrorFromStatus( result ), "function failed" )
-
 #define VOS_FUN_CALL( Func )                                              \
 {                                                                      \
-      VosStatus  fun_call_result;                                      \
+      int  fun_call_result;                                      \
       fun_call_result = Func;                                         \
                                                                        \
       if( fun_call_result < 0 )                                       \
-            VOS_ERROR_FROM_STATUS( (fun_call_result));                 \
+            VOS_ERROR( (fun_call_result), "");                 \
 }
 
 #endif /*_CXCORE_MISC_H_*/

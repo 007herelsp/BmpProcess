@@ -43,17 +43,6 @@ Mat* GetPerspectiveTransform( const Point2D32f* src,
                                 Mat* map_matrix );
 
 #define  VOS_SHAPE_RECT      0
-#define  VOS_SHAPE_CROSS     1
-#define  VOS_SHAPE_ELLIPSE   2
-#define  VOS_SHAPE_CUSTOM    100
-
-/* creates structuring element used for morphological operations */
-IplConvKernel*  CreateStructuringElementEx(
-        int cols, int  rows, int  anchor_x, int  anchor_y,
-        int shape, int* values VOS_DEFAULT(NULL) );
-
-/* releases structuring element */
-void  ReleaseStructuringElement( IplConvKernel** element );
 
 void  Erode( const VOID* src, VOID* dst,
                IplConvKernel* element VOS_DEFAULT(NULL),

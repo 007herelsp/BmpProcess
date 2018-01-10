@@ -210,9 +210,6 @@ SysError(int status, const char *func_name,
 const char *
 SysErrorStr(int status);
 
-int
-SysErrorFromStatus(int ipp_status);
-
 typedef int(*SysErrorCallback)(int status, const char *func_name,
                                         const char *err_msg, const char *file_name, int line, void *userdata);
 

@@ -1,9 +1,7 @@
-
 #include "process.h"
 #include "misc.h"
 
-
-static VosStatus
+static int
 iApproxPolyDP_32s(Seq *src_contour, int header_size,
                     MemStorage *storage,
                     Seq **dst_contour, float eps)
@@ -16,8 +14,8 @@ iApproxPolyDP_32s(Seq *src_contour, int header_size,
     int i = 0, j, count = src_contour->total, new_count;
     int is_closed = VOS_IS_SEQ_CLOSED(src_contour);
     int le_eps = 0;
-    MemStorage *temp_storage = 0;
-    Seq *stack = 0;
+    MemStorage *temp_storage = NULL;
+    Seq *stack = NULL;
 
     assert(VOS_SEQ_ELTYPE(src_contour) == VOS_32SC2);
     StartWriteSeq(src_contour->flags, header_size, sizeof(pt), storage, &writer);
@@ -25,12 +23,12 @@ iApproxPolyDP_32s(Seq *src_contour, int header_size,
     if (0 == src_contour->total)
     {
         *dst_contour = EndWriteSeq(&writer);
-        return VOS_OK;
+        return VOS_StsOk;
     }
 
     temp_storage = CreateChildMemStorage(storage);
 
-    assert(src_contour->first != 0);
+    assert( NULL!=src_contour->first );
     stack = CreateSeq(0, sizeof(Seq), sizeof(Slice), temp_storage);
     eps *= eps;
     StartReadSeq(src_contour, &reader, 0);
@@ -104,7 +102,7 @@ iApproxPolyDP_32s(Seq *src_contour, int header_size,
     }
 
     /* 3. run recursive process */
-    while (stack->total != 0)
+    while ( 0!=stack->total )
     {
         SeqPop(stack, &slice);
 
@@ -141,7 +139,7 @@ iApproxPolyDP_32s(Seq *src_contour, int header_size,
         {
             assert(slice.end_index > slice.start_index);
             le_eps = 1;
-            /* read starting point */
+ 
             SetSeqReaderPos(&reader, slice.start_index);
             VOS_READ_SEQ_ELEM(start_pt, reader);
         }
@@ -202,7 +200,7 @@ iApproxPolyDP_32s(Seq *src_contour, int header_size,
 
     ReleaseMemStorage(&temp_storage);
 
-    return VOS_OK;
+    return VOS_StsOk;
 }
 
 Seq *
@@ -210,9 +208,9 @@ ApproxPoly(const void *array, int header_size,
              MemStorage *storage,
              double parameter, int parameter2)
 {
-    Seq *dst_seq = 0;
-    Seq *prev_contour = 0, *parent = 0;
-    Seq *src_seq = 0;
+    Seq *dst_seq = NULL;
+    Seq *prev_contour =NULL, *parent = NULL;
+    Seq *src_seq = NULL;
     int recursive = 0;
 
     VOS_FUNCNAME("ApproxPoly");
@@ -220,7 +218,7 @@ ApproxPoly(const void *array, int header_size,
     __BEGIN__;
 
         src_seq = (Seq *)array;
-    
+
         recursive = parameter2;
 
         if (!storage)
@@ -243,9 +241,9 @@ ApproxPoly(const void *array, int header_size,
     if (parameter < 0)
         VOS_ERROR(VOS_StsOutOfRange, "Accuracy must be non-negative");
 
-    while (src_seq != 0)
+    while ( NULL!= src_seq)
     {
-        Seq *contour = 0;
+        Seq *contour = NULL;
 
         VOS_FUN_CALL(iApproxPolyDP_32s(src_seq, header_size, storage,
                                       &contour, (float)parameter));
@@ -271,17 +269,17 @@ ApproxPoly(const void *array, int header_size,
 
         if (src_seq->v_next)
         {
-            assert(prev_contour != 0);
+            assert( NULL!=prev_contour );
             parent = prev_contour;
-            prev_contour = 0;
+            prev_contour = NULL;
             src_seq = src_seq->v_next;
         }
         else
         {
-            while (src_seq->h_next == 0)
+            while ( NULL== src_seq->h_next)
             {
                 src_seq = src_seq->v_prev;
-                if (src_seq == 0)
+                if ( NULL==src_seq )
                     break;
                 prev_contour = parent;
                 if (parent)

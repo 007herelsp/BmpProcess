@@ -67,7 +67,7 @@ Solve( const VOID* A, const VOID* b, VOID* x, int method )
 #define VOS_WARP_CLIP_X(x) ((unsigned)(x) < (unsigned)ssize.width ? (x) : (x) < 0 ? 0 : ssize.width - 1)
 #define VOS_WARP_CLIP_Y(y) ((unsigned)(y) < (unsigned)ssize.height ? (y) : (y) < 0 ? 0 : ssize.height - 1)
 
-static VosStatus iWarpPerspective_Bilinear_8u_CnR(const uchar *src, int step,
+static int iWarpPerspective_Bilinear_8u_CnR(const uchar *src, int step,
                                                    Size ssize, uchar *dst, int dststep, Size dsize,
                                                    const double *matrix, int cn, const uchar *fillval)
 {
@@ -125,7 +125,7 @@ static VosStatus iWarpPerspective_Bilinear_8u_CnR(const uchar *src, int step,
                     dst[x * cn + k] = fillval[k];
         }
     }
-    return VOS_OK;
+    return VOS_StsOk;
 }
 
  void

@@ -65,7 +65,7 @@ typedef struct stContourScanner
 } _ContourScanner;
 
 
-static VosStatus
+static int
 iThresh_8u_C1R(const uchar *src, int src_step, uchar *dst, int dst_step,
                Size roi, uchar thresh, uchar maxval, int type)
 {
@@ -73,7 +73,7 @@ iThresh_8u_C1R(const uchar *src, int src_step, uchar *dst, int dst_step,
     uchar tab[256];
     if (VOS_THRESH_BINARY != type)
     {
-        return VOS_BADFLAG_ERR;
+        return VOS_StsBadArg;
     }
     for (i = 0; i <= thresh; i++)
         tab[i] = 0;
@@ -101,7 +101,7 @@ iThresh_8u_C1R(const uchar *src, int src_step, uchar *dst, int dst_step,
             dst[j] = tab[src[j]];
     }
 
-    return VOS_NO_ERR;
+    return VOS_StsOk;
 }
 
 static void Threshold(const void *srcarr, void *dstarr, double thresh, double maxval, int type)
@@ -191,14 +191,15 @@ StartFindContours(void *_img, MemStorage *storage,
     img = (uchar *)(mat->data.ptr);
 
     if (method < 0 || method > VOS_LINK_RUNS)
-        VOS_ERROR_FROM_STATUS(VOS_BADRANGE_ERR);
+		 VOS_ERROR(VOS_StsBadArg, "function failed" );
 
     if (header_size < (int)(sizeof(Contour)))
-        VOS_ERROR_FROM_STATUS(VOS_BADSIZE_ERR);
+		VOS_ERROR(VOS_StsBadSize, "function failed" );
 
     scanner = (ContourScanner)SysAlloc(sizeof(*scanner));
     if (!scanner)
-        VOS_ERROR_FROM_STATUS(VOS_OUTOFMEM_ERR);
+		VOS_ERROR(VOS_StsNoMem, "" );
+
 
     VOS_MEMSET(scanner, 0, sizeof(*scanner));
 
@@ -235,13 +236,13 @@ StartFindContours(void *_img, MemStorage *storage,
 
     if (method > VOS_CHAIN_APPROX_SIMPLE)
     {
-        VOS_ERROR_FROM_STATUS(VOS_BADRANGE_ERR);
+        VOS_ERROR(VOS_StsBadArg, "" );
         //scanner->storage1 = CreateChildMemStorage( scanner->storage2 );
     }
 
     if (mode > VOS_RETR_LIST)
     {
-        VOS_ERROR_FROM_STATUS(VOS_BADRANGE_ERR);
+        VOS_ERROR(VOS_StsBadArg, "" );
     }
 
     /* make zero borders */
@@ -302,7 +303,7 @@ iEndProcessContour(ContourScanner scanner)
             ==0 - direct
             >0  - simple approximation
 */
-static VosStatus
+static int
 iFetchContour(char *ptr,
               int step,
               Point pt,
@@ -401,7 +402,7 @@ iFetchContour(char *ptr,
 
         BoundingRect(contour, 1);
 
-    return VOS_OK;
+    return VOS_StsOk;
 }
 
 Seq *FindNextContour(ContourScanner scanner)
@@ -416,7 +417,7 @@ Seq *FindNextContour(ContourScanner scanner)
     Seq *contour = NULL;
     int nbd;
     int mode;
-    VosStatus result = (VosStatus)1;
+    int result = (int)1;
 
     VOS_FUNCNAME("FindNextContour");
 
@@ -483,7 +484,7 @@ Seq *FindNextContour(ContourScanner scanner)
                                 scanner->elem_size1, scanner->storage1);
                 if (!seq)
                 {
-                    result = VOS_OUTOFMEM_ERR;
+                    result = VOS_StsNoMem;
                     goto exit_func;
                 }
                 seq->flags |= is_hole ? VOS_SEQ_FLAG_HOLE : 0;
@@ -534,7 +535,7 @@ Seq *FindNextContour(ContourScanner scanner)
                 scanner->nbd = nbd;
                 contour = l_cinfo->contour;
 
-                result = VOS_OK;
+                result = VOS_StsOk;
                 goto exit_func;
             resume_scan:
                 prev = p;
@@ -555,10 +556,10 @@ Seq *FindNextContour(ContourScanner scanner)
 
 exit_func:
 
-    if (result != 0)
+    if ( 0!=result )
         contour = NULL;
     if (result < 0)
-        VOS_ERROR_FROM_STATUS(result);
+        VOS_ERROR(result, "");
 
     __END__;
 
@@ -621,7 +622,7 @@ int FindContours(void *img, MemStorage *storage,
     {
         count++;
         contour = FindNextContour(scanner);
-    } while (contour != 0);
+    } while ( NULL!=contour );
 
     *firstContour = EndFindContours(&scanner);
 

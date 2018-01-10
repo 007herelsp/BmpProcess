@@ -28,7 +28,7 @@ iCreateContext(void)
     context->err_code = VOS_StsOk;
 
     context->error_callback = VOS_DEFAULT_ERROR_CALLBACK;
-    context->userdata = 0;
+    context->userdata = NULL;
 
     return context;
 }
@@ -43,7 +43,7 @@ static Context *
 iGetContext(void)
 {
     /* static single-thread library case */
-    static Context *context = 0;
+    static Context *context = NULL;
     if (!context)
         context = iCreateContext();
     return context;
@@ -86,8 +86,6 @@ StdErrReport(int code, const char *func_name, const char *err_msg,
         return "Insufficient memory";
     case VOS_StsBadArg:
         return "Bad argument";
-    case VOS_StsNoConv:
-        return "Iterations do not converge";
     case VOS_StsAutoTrace:
         return "Autotrace call";
     case VOS_StsBadSize:
@@ -98,10 +96,6 @@ StdErrReport(int code, const char *func_name, const char *err_msg,
         return "Divizion by zero occured";
     case VOS_BadStep:
         return "Image step is wrong";
-    case VOS_StsInplaceNotSupported:
-        return "Inplace operation is not supported";
-    case VOS_StsObjectNotFound:
-        return "Requested object was not found";
     case VOS_BadDepth:
         return "Input image depth is not supported by function";
     case VOS_StsUnmatchedFormats:
@@ -118,16 +112,9 @@ StdErrReport(int code, const char *func_name, const char *err_msg,
         return "Bad number of channels";
     case VOS_StsBadFlag:
         return "Bad flag (parameter or structure field)";
-    case VOS_StsBadPoint:
-        return "Bad parameter of type Point";
-    case VOS_StsBadMask:
-        return "Bad type of mask argument";
-    case VOS_StsParseError:
-        return "Parsing error";
+
     case VOS_StsNotImplemented:
         return "The function/feature is not implemented";
-    case VOS_StsBadMemBlock:
-        return "Memory block has been corrupted";
     };
 
     sprintf(buf, "Unknown %s code %d", status >= 0 ? "status" : "error", status);
@@ -172,59 +159,6 @@ StdErrReport(int code, const char *func_name, const char *err_msg,
             {
                 exit(-abs(terminate));
             }
-    }
-}
-
-
-/* function, which converts int to int */
- int
-SysErrorFromStatus(int status)
-{
-    switch (status)
-    {
-    case VOS_BADSIZE_ERR:
-        return VOS_StsBadSize;
-    case VOS_BADMEMBLOCK_ERR:
-        return VOS_StsBadMemBlock;
-    case VOS_NULLPTR_ERR:
-        return VOS_StsNullPtr;
-    case VOS_DIV_BY_ZERO_ERR:
-        return VOS_StsDivByZero;
-    case VOS_BADSTEP_ERR:
-        return VOS_BadStep;
-    case VOS_OUTOFMEM_ERR:
-        return VOS_StsNoMem;
-    case VOS_BADARG_ERR:
-        return VOS_StsBadArg;
-    case VOS_NOTDEFINED_ERR:
-        return VOS_StsError;
-    case VOS_INPLACE_NOT_SUPPORTED_ERR:
-        return VOS_StsInplaceNotSupported;
-    case VOS_NOTFOUND_ERR:
-        return VOS_StsObjectNotFound;
-    case VOS_BADCONVERGENCE_ERR:
-        return VOS_StsNoConv;
-    case VOS_BADDEPTH_ERR:
-        return VOS_BadDepth;
-    case VOS_UNMATCHED_FORMATS_ERR:
-        return VOS_StsUnmatchedFormats;
-    case VOS_UNSUPPORTED_COI_ERR:
-        return VOS_BadCOI;
-    case VOS_UNSUPPORTED_CHANNELS_ERR:
-        return VOS_BadNumChannels;
-    case VOS_BADFLAG_ERR:
-        return VOS_StsBadFlag;
-    case VOS_BADRANGE_ERR:
-        return VOS_StsBadArg;
-    case VOS_BADCOEF_ERR:
-        return VOS_StsBadArg;
-    case VOS_BADFACTOR_ERR:
-        return VOS_StsBadArg;
-    case VOS_BADPOINT_ERR:
-        return VOS_StsBadPoint;
-
-    default:
-        return VOS_StsError;
     }
 }
 /* End of file */

@@ -215,7 +215,7 @@ int  RLByteStream::GetDWord()
 WBaseStream::WBaseStream()
 {
     m_start = m_end = m_current = NULL;
-    m_file = 0;
+    m_file = NULL;
     m_block_size = BS_DEF_BLOCK_SIZE;
     m_is_opened = false;
 }
@@ -291,7 +291,7 @@ void  WBaseStream::Release()
     {
         delete[] m_start;
     }
-    m_start = m_end = m_current = 0;
+    m_start = m_end = m_current = NULL;
 }
 
 

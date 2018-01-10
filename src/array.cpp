@@ -12,7 +12,7 @@ static const signed char iDepthToType[] =
 // Creates Mat and underlying data
 Mat *CreateMat(int height, int width, int type)
 {
-    Mat *arr = 0;
+    Mat *arr = NULL;
 
     VOS_FUNCNAME("CreateMat");
 
@@ -38,7 +38,7 @@ static void iCheckHuge(Mat *arr)
 // Creates Mat header only
 Mat *CreateMatHeader(int rows, int cols, int type)
 {
-    Mat *arr = 0;
+    Mat *arr = NULL;
 
     VOS_FUNCNAME("CreateMatHeader");
 
@@ -61,7 +61,7 @@ Mat *CreateMatHeader(int rows, int cols, int type)
                 (arr->step == 0 || arr->step == min_step ? VOS_MAT_CONT_FLAG : 0);
     arr->rows = rows;
     arr->cols = cols;
-    arr->data.ptr = 0;
+    arr->data.ptr = NULL;
     arr->refcount = 0;
     arr->hdr_refcount = 1;
 
@@ -144,7 +144,7 @@ void ReleaseMat(Mat **array)
         if (!VOS_IS_MAT_HDR(arr))
             VOS_ERROR_FROM_CODE(VOS_StsBadFlag);
 
-        *array = 0;
+        *array = NULL;
 
         DecRefData(arr);
         SYS_FREE(&arr);
@@ -170,10 +170,10 @@ void CreateData(VOID *arr)
         Mat *mat = (Mat *)arr;
         step = mat->step;
 
-        if (mat->data.ptr != 0)
+        if ( NULL!=mat->data.ptr )
             VOS_ERROR(VOS_StsError, "Data is already allocated");
 
-        if (step == 0)
+        if ( 0==step )
             step = VOS_ELEM_SIZE(mat->type) * mat->cols;
 
         total_size = step * mat->rows + sizeof(int) + VOS_MALLOC_ALIGN;
@@ -185,7 +185,7 @@ void CreateData(VOID *arr)
     {
         IplImage *img = (IplImage *)arr;
 
-        if (img->imageData != 0)
+        if ( NULL!=img->imageData )
             VOS_ERROR(VOS_StsError, "Data is already allocated");
 
         VOS_CALL(img->imageData = img->imageDataOrigin =
@@ -221,7 +221,7 @@ void SetData(VOID *arr, void *data, int step)
 
         if (step != VOS_AUTOSTEP)
         {
-            if (step < min_step && data != 0)
+            if (step < min_step &&  NULL!=data )
                 VOS_ERROR_FROM_CODE(VOS_BadStep);
             mat->step = step & ((mat->rows <= 1) - 1);
         }
@@ -244,7 +244,7 @@ void SetData(VOID *arr, void *data, int step)
 
         if (step != VOS_AUTOSTEP && img->height > 1)
         {
-            if (step < min_step && data != 0)
+            if (step < min_step &&  NULL!=data )
                 VOS_ERROR_FROM_CODE(VOS_BadStep);
             img->widthStep = step;
         }
@@ -291,7 +291,7 @@ void ReleaseData(VOID *arr)
         IplImage *img = (IplImage *)arr;
 
         char *ptr = img->imageDataOrigin;
-        img->imageData = img->imageDataOrigin = 0;
+        img->imageData = img->imageDataOrigin = NULL;
         SYS_FREE(&ptr);
     }
     else
@@ -367,7 +367,7 @@ void ScalarToRawData(const Scalar *scalar, void *data, int type)
 Mat *GetMat(const VOID *array, Mat *mat,
             int *pCOI)
 {
-    Mat *result = 0;
+    Mat *result = NULL;
     Mat *src = (Mat *)array;
     int coi = 0;
 
@@ -390,7 +390,7 @@ Mat *GetMat(const VOID *array, Mat *mat,
         const IplImage *img = (const IplImage *)src;
         int depth, order;
 
-        if (img->imageData == 0)
+        if ( NULL==img->imageData )
             VOS_ERROR(VOS_StsNullPtr, "The image has NULL data pointer");
 
         depth = iIplToCvDepth(img->depth);
@@ -427,7 +427,7 @@ Mat *GetMat(const VOID *array, Mat *mat,
 IplImage *
 CreateImageHeader(Size size, int depth, int channels)
 {
-    IplImage *img = 0;
+    IplImage *img = NULL;
 
     VOS_FUNCNAME("CreateImageHeader");
 
@@ -449,7 +449,7 @@ CreateImageHeader(Size size, int depth, int channels)
 IplImage *
 CreateImage(Size size, int depth, int channels)
 {
-    IplImage *img = 0;
+    IplImage *img = NULL;
 
     VOS_FUNCNAME("CreateImage");
 
@@ -472,7 +472,7 @@ IplImage *
 InitImageHeader(IplImage *image, Size size, int depth,
                 int channels, int origin, int align)
 {
-    IplImage *result = 0;
+    IplImage *result = NULL;
 
     VOS_FUNCNAME("InitImageHeader");
 
@@ -530,7 +530,7 @@ void ReleaseImageHeader(IplImage **image)
     if (*image)
     {
         IplImage *img = *image;
-        *image = 0;
+        *image = NULL;
 
         SYS_FREE(&img);
     }
@@ -549,7 +549,7 @@ void ReleaseImage(IplImage **image)
     if (*image)
     {
         IplImage *img = *image;
-        *image = 0;
+        *image = NULL;
 
         ReleaseData(img);
         ReleaseImageHeader(&img);

@@ -1,7 +1,7 @@
 #include "process.h"
 #include "misc.h"
 
-static VosStatus
+static int
 BGR2Gray_8u_CnC1R(const uchar *src, int srcstep,
 uchar *dstR, uchar *dstG, uchar *dstB, int dststep, Size size,
 int src_cn)
@@ -19,7 +19,7 @@ int src_cn)
 	}
 
 
-	return VOS_OK;
+	return VOS_StsOk;
 }
 
 void CvtBgr2Gray_8u_C3C1(const VOID *srcarr, VOID *dstarrR, VOID *dstarrG, VOID *dstarrB)

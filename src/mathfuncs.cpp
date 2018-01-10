@@ -1,33 +1,33 @@
 #include "core.h"
 #include "misc.h"
 
-static VosStatus iInvSqrt_32f(const float *src, float *dst, int len)
+static int iInvSqrt_32f(const float *src, float *dst, int len)
 {
     int i = 0;
 
     if (!(src && dst && len >= 0))
-        return VOS_BADFACTOR_ERR;
+        return VOS_StsBadArg;
 
     for (; i < len; i++)
         dst[i] = (float)(1.f / sqrt(src[i]));
 
-    return VOS_OK;
+    return VOS_StsOk;
 }
 
-static VosStatus iSqrt_32f(const float *src, float *dst, int len)
+static int iSqrt_32f(const float *src, float *dst, int len)
 {
     int i = 0;
 
     if (!(src && dst && len >= 0))
-        return VOS_BADFACTOR_ERR;
+        return VOS_StsBadArg;
 
     for (; i < len; i++)
         dst[i] = (float)sqrt(src[i]);
 
-    return VOS_OK;
+    return VOS_StsOk;
 }
 
-typedef CvStatus(*SqrtFunc_t)(const void *src, void *dst, int len);
+typedef int(*SqrtFunc_t)(const void *src, void *dst, int len);
 
  void SysPow(const Mat *src, Mat *dst, double power)
 {
