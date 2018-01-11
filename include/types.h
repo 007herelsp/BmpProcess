@@ -108,8 +108,7 @@ typedef struct tagIplImage
 {
     int  nSize;         /* sizeof(IplImage) */
     int  nChannels;     /* Most of   functions support 1,2,3 or 4 channels */
-    int  depth;         /* pixel depth in bits: SYS_DEPTH_8U, SYS_DEPTH_8S, SYS_DEPTH_16S,
-                           SYS_DEPTH_32S, SYS_DEPTH_32F and IPL_DEPTH_64F are supported */
+    int  depth;         /* pixel depth in bits*/
     int  dataOrder;     /* 0 - interleaved color channels, 1 - separate color channels.
                            CreateImage can only create interleaved images */
     int  origin;        /* 0 - top-left origin,

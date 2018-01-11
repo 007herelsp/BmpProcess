@@ -2,8 +2,6 @@
 #include "process.h"
 #include "misc.h"
 
-//////////////////////////////////////////////////////////////////////////////////////////
-
 void GaussianSmooth(const void *srcarr, void *dstarr,
             int param1, int param2, double param3, double param4)
 {

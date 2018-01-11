@@ -84,7 +84,6 @@ iMatrAXPY3_64f(int m, int n, const double *x, int l, double *y, double h)
     }
 }
 
-/* accurate hypotenuse calculation */
 static double
 pythag(double a, double b)
 {
@@ -141,7 +140,6 @@ iSVD_64f(double *a, int lda, int m, int n,
     n1 = n;
     int update_u;
     int update_v;
-    /* transform a to bi-diagonal form */
     for (;;)
     {
 

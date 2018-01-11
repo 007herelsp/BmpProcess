@@ -112,7 +112,6 @@ iContourArea(const Seq *contour, double *area)
     return VOS_StsOk;
 }
 
-/* external contour area function */
 double
 ContourArea(const Seq *contour, Slice slice)
 {
@@ -141,7 +140,6 @@ ContourArea(const Seq *contour, Slice slice)
     return area;
 }
 
-/* Calculates bounding rectagnle of a point set or retrieves already calculated */
 Rect BoundingRect(VOID *array, int update)
 {
     SeqReader reader;

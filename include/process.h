@@ -67,11 +67,7 @@ ContourScanner  StartFindContours( VOID* image, MemStorage* storage,
 /* Retrieves next contour */
 Seq*  FindNextContour( ContourScanner scanner );
 
-
-/* Releases contour scanner and returns pointer to the first outer contour */
 Seq*  EndFindContours( ContourScanner* scanner );
-
-#define VOS_POLY_APPROX_DP 0
 
 Seq*  ApproxPoly( const void* src_seq,
                       int header_size, MemStorage* storage,
@@ -85,41 +81,32 @@ double  ArcLength( const void* curve,
 
 Rect  BoundingRect( VOID* points, int update VOS_DEFAULT(0) );
 
-/* Calculates area of a contour or contour segment */
 double  ContourArea(  const Seq *contour,
                        Slice slice VOS_DEFAULT(VOS_WHOLE_SEQ));
 
-/* Finds minimum area rotated rectangle bounding a set of points */
 Box2D  MinAreaRect2( const Seq* points,
                        MemStorage* storage VOS_DEFAULT(NULL));
 #define VOS_CLOCKWISE         1
 #define VOS_COUNTER_CLOCKWISE 2
 
-/* Calculates exact convex hull of 2d point set */
 Seq* ConvexHull2( const VOID* input,
                       void* hull_storage VOS_DEFAULT(NULL),
                       int orientation VOS_DEFAULT(VOS_CLOCKWISE));
 
-/* Checks whether the contour is convex or not (returns 1 if convex, 0 if not) */
 int  CheckContourConvexity( const VOID* contour );
 
-/* Types of thresholding */
 #define VOS_THRESH_BINARY      0  /* value = value > threshold ? max_value : 0       */
 
 #define VOS_CANNY_L2_GRADIENT  (1 << 31)
 
-/* Runs canny edge detector */
 void  Canny( const VOID* image, VOID* edges, double threshold1,
              double threshold2, int  aperture_size VOS_DEFAULT(3) );
-
-			 
 
 			 
 #define VOS_LOAD_IMAGE_COLOR       1
 			 
 			 IplImage* LoadImage( const char* filename);
 			 
-			 /* save image to file */
 			 int SaveImage( const char* filename, const VOID* image );
 			 
 
@@ -227,8 +214,6 @@ public:
                              int dx, int dy, int aperture_size, int flags=0 );
     virtual void init_gaussian( int _max_width, int _src_type, int _dst_type,
                                 int gaussian_size, double sigma );
-
-    /* dummy method to avoid compiler warnings */
     virtual void init( int _max_width, int _src_type, int _dst_type,
                        bool _is_separable, Size _ksize,
                        Point _anchor=InitPoint(-1,-1),
