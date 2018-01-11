@@ -15,7 +15,6 @@ static void iDilateRectCol_8u(const uchar **src, uchar *dst, int dst_step,
 Morphology::Morphology()
 {
     element = NULL;
-    el_sparse = NULL;
 }
 
 Morphology::Morphology(int _operation, int _max_width, int _src_dst_type,
@@ -24,7 +23,6 @@ Morphology::Morphology(int _operation, int _max_width, int _src_dst_type,
                        int _border_mode, Scalar _border_value)
 {
     element = NULL;
-    el_sparse = NULL;
     init(_operation, _max_width, _src_dst_type,
          _element_shape, _element, _ksize, _anchor,
          _border_mode, _border_value);
@@ -33,7 +31,6 @@ Morphology::Morphology(int _operation, int _max_width, int _src_dst_type,
 void Morphology::clear()
 {
     ReleaseMat(&element);
-    SYS_FREE(&el_sparse);
     BaseImageFilter::clear();
 }
 
@@ -63,8 +60,7 @@ void Morphology::init(int _operation, int _max_width, int _src_dst_type,
                                    _element_shape == RECT, _ksize, _anchor, _border_mode, _border_value));
     if (VOS_8U != depth)
     {
-        VOS_ERROR(VOS_BadDepth,
-                  "");
+        VOS_ERROR(VOS_BadDepth, "");
     }
     if (el_shape == RECT)
     {
@@ -118,89 +114,6 @@ int Morphology::fill_cyclic_buffer(const uchar *src, int src_step,
                                    int y0, int y1, int y2)
 {
     return BaseImageFilter::fill_cyclic_buffer(src, src_step, y0, y1, y2);
-}
-
-void Morphology::init_binary_element(Mat *element, int element_shape, Point anchor)
-{
-    VOS_FUNCNAME("Morphology::init_binary_element");
-
-    __BEGIN__;
-
-    int type;
-    int i, j, cols, rows;
-    int r = 0, c = 0;
-    double inv_r2 = 0;
-
-    if (!VOS_IS_MAT(element))
-        VOS_ERROR(VOS_StsBadArg, "element must be valid matrix");
-
-    type = VOS_MAT_TYPE(element->type);
-    if (type != VOS_8UC1 && type != VOS_32SC1)
-        VOS_ERROR(VOS_StsUnsupportedFormat, "element must have 8uC1 or 32sC1 type");
-
-    if (-1 == anchor.x)
-        anchor.x = element->cols / 2;
-
-    if (-1 == anchor.y)
-        anchor.y = element->rows / 2;
-
-    if ((unsigned)anchor.x >= (unsigned)element->cols ||
-        (unsigned)anchor.y >= (unsigned)element->rows)
-        VOS_ERROR(VOS_StsOutOfRange, "anchor is outside of element");
-
-    if (element_shape != RECT && element_shape != CROSS && element_shape != ELLIPSE)
-        VOS_ERROR(VOS_StsBadArg, "Unknown/unsupported element shape");
-
-    rows = element->rows;
-    cols = element->cols;
-
-    if (1 == rows || 1 == cols)
-        element_shape = RECT;
-
-    if (ELLIPSE == element_shape)
-    {
-        r = rows / 2;
-        c = cols / 2;
-        inv_r2 = r ? 1. / ((double)r * r) : 0;
-    }
-
-    for (i = 0; i < rows; i++)
-    {
-        uchar *ptr = element->data.ptr + i * element->step;
-        int j1 = 0, j2 = 0, jx, t = 0;
-
-        if (RECT == element_shape || (CROSS == element_shape && i == anchor.y))
-            j2 = cols;
-        else if (CROSS == element_shape)
-            j1 = anchor.x, j2 = j1 + 1;
-        else
-        {
-            int dy = i - r;
-            if (abs(dy) <= r)
-            {
-                int dx = SysRound(c * sqrt(((double)r * r - dy * dy) * inv_r2));
-                j1 = VOS_MAX(c - dx, 0);
-                j2 = VOS_MIN(c + dx + 1, cols);
-            }
-        }
-
-        for (j = 0, jx = j1; j < cols;)
-        {
-            for (; j < jx; j++)
-            {
-                if (VOS_8UC1 == type)
-                    ptr[j] = (uchar)t;
-                else
-                    ((int *)ptr)[j] = t;
-            }
-            if (jx == j2)
-                jx = cols, t = 0;
-            else
-                jx = j2, t = 1;
-        }
-    }
-
-    __END__;
 }
 
 #define IVOS_MORPH_RECT_ROW(name, flavor, arrtype,            \
@@ -417,8 +330,7 @@ IVOS_MORPH_RECT_COL(Erode, 8u, uchar, int, VOS_CALC_MIN_8U, VOS_NOP)
 IVOS_MORPH_RECT_COL(Dilate, 8u, uchar, int, VOS_CALC_MAX_8U, VOS_NOP)
 
 static void
-iMorphOp(const void *srcarr, void *dstarr, IplConvKernel *element,
-         int iterations, int mop)
+iMorphOp(const void *srcarr, void *dstarr, int iterations, int mop)
 {
     Morphology morphology;
     void *buffer = NULL;
@@ -467,7 +379,7 @@ iMorphOp(const void *srcarr, void *dstarr, IplConvKernel *element,
 
     size = GetMatSize(src);
 
-    if (0 == iterations || (element && element->nCols == 1 && element->nRows == 1))
+    if (0 == iterations)
     {
         if (src->data.ptr != dst->data.ptr)
             Copy(src, dst);
@@ -504,14 +416,14 @@ iMorphOp(const void *srcarr, void *dstarr, IplConvKernel *element,
     ReleaseMat(&temp);
 }
 
-void Erode(const void *src, void *dst, IplConvKernel *element, int iterations)
+void Erode(const void *src, void *dst,  int iterations)
 {
-    iMorphOp(src, dst, element, iterations, 0);
+    iMorphOp(src, dst,iterations, 0);
 }
 
-void Dilate(const void *src, void *dst, IplConvKernel *element, int iterations)
+void Dilate(const void *src, void *dst,  int iterations)
 {
-    iMorphOp(src, dst, element, iterations, 1);
+    iMorphOp(src, dst, iterations, 1);
 }
 
 /* End of file. */

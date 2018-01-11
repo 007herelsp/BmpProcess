@@ -8,7 +8,6 @@ extern "C" {
 
 typedef struct stContourScanner* ContourScanner;
 
-/* contour retrieval mode */
 #define VOS_RETR_LIST     1
 
 /* contour approximation method */
@@ -37,20 +36,15 @@ void  WarpPerspective( const VOID* src, VOID* dst, const Mat* map_matrix,
                          int flags VOS_DEFAULT(VOS_INTER_LINEAR+VOS_WARP_FILL_OUTLIERS),
                          Scalar fillval VOS_DEFAULT(ScalarAll(0)) );
 
-/* Computes perspective transform matrix for mapping src[i] to dst[i] (i=0,1,2,3) */
 Mat* GetPerspectiveTransform( const Point2D32f* src,
                                 const Point2D32f* dst,
                                 Mat* map_matrix );
 
 #define  VOS_SHAPE_RECT      0
 
-void  Erode( const VOID* src, VOID* dst,
-               IplConvKernel* element VOS_DEFAULT(NULL),
-               int iterations VOS_DEFAULT(1) );
+void  Erode( const VOID* src, VOID* dst,  int iterations VOS_DEFAULT(1) );
 
-void  Dilate( const VOID* src, VOID* dst,
-                IplConvKernel* element VOS_DEFAULT(NULL),
-                int iterations VOS_DEFAULT(1) );
+void  Dilate( const VOID* src, VOID* dst,  int iterations VOS_DEFAULT(1) );
 
 int FindContours( VOID* image, MemStorage* storage, Seq** first_contour,
                     int header_size VOS_DEFAULT(sizeof(Contour)),
@@ -64,10 +58,11 @@ ContourScanner  StartFindContours( VOID* image, MemStorage* storage,
                                        int method VOS_DEFAULT(VOS_CHAIN_APPROX_SIMPLE),
                                        Point offset VOS_DEFAULT(InitPoint(0,0)));
 
-/* Retrieves next contour */
 Seq*  FindNextContour( ContourScanner scanner );
 
 Seq*  EndFindContours( ContourScanner* scanner );
+
+#define VOS_POLY_APPROX_DP 0
 
 Seq*  ApproxPoly( const void* src_seq,
                       int header_size, MemStorage* storage,
@@ -84,7 +79,7 @@ Rect  BoundingRect( VOID* points, int update VOS_DEFAULT(0) );
 double  ContourArea(  const Seq *contour,
                        Slice slice VOS_DEFAULT(VOS_WHOLE_SEQ));
 
-Box2D  MinAreaRect2( const Seq* points,
+Box2D  MinAreaRect( const Seq* points,
                        MemStorage* storage VOS_DEFAULT(NULL));
 #define VOS_CLOCKWISE         1
 #define VOS_COUNTER_CLOCKWISE 2
@@ -103,15 +98,14 @@ void  Canny( const VOID* image, VOID* edges, double threshold1,
              double threshold2, int  aperture_size VOS_DEFAULT(3) );
 
 			 
+
+			 
 #define VOS_LOAD_IMAGE_COLOR       1
 			 
 			 IplImage* LoadImage( const char* filename);
 			 
 			 int SaveImage( const char* filename, const VOID* image );
 			 
-
-
-
 extern const uchar iSaturate8u[];
 #define VOS_FAST_CAST_8U(t)  (assert(-256 <= (t) || (t) <= 512), iSaturate8u[(t)+256])
 #define VOS_CALC_MIN_8U(a,b) (a) -= VOS_FAST_CAST_8U((a) - (b))
@@ -214,6 +208,7 @@ public:
                              int dx, int dy, int aperture_size, int flags=0 );
     virtual void init_gaussian( int _max_width, int _src_type, int _dst_type,
                                 int gaussian_size, double sigma );
+
     virtual void init( int _max_width, int _src_type, int _dst_type,
                        bool _is_separable, Size _ksize,
                        Point _anchor=InitPoint(-1,-1),
@@ -260,24 +255,16 @@ public:
                        Scalar _border_value=ScalarAll(0) );
 
     virtual void clear();
-    const Mat* get_element() const { return element; }
-    int get_element_shape() const { return el_shape; }
-    int get_operation() const { return operation; }
-    uchar* get_element_sparse_buf() { return el_sparse; }
-    int get_element_sparse_count() const { return el_sparse_count; }
 
     enum { RECT=0, CROSS=1, ELLIPSE=2, CUSTOM=100, BINARY = 0, GRAYSCALE=256 };
     enum { ERODE=0, DILATE=1 };
 
-    static void init_binary_element( Mat* _element, int _element_shape,
-                                     Point _anchor=InitPoint(-1,-1) );
 protected:
 
     void start_process( Slice x_range, int width );
     int fill_cyclic_buffer( const uchar* src, int src_step,
                             int y0, int y1, int y2 );
     uchar* el_sparse;
-    int el_sparse_count;
 
     Mat *element;
     int el_shape;

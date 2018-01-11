@@ -1,6 +1,3 @@
-
-
-
 #include "process.h"
 #include "misc.h"
 
@@ -8,7 +5,6 @@ static int
 iSklansky_32s(Point **array, int start, int end, int *stack, int nsign, int sign2)
 {
     int incr = end > start ? 1 : -1;
-    /* prepare first triangle */
     int pprev = start, pcur = pprev + incr, pnext = pcur + incr;
     int stacksize = 3;
 

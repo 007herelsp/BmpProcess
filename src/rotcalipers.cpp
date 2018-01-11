@@ -191,13 +191,13 @@ iRotatingCalipers(Point2D32f *points, int n, float *out)
     SYS_FREE(&inv_vect_length);
 }
 
-Box2D MinAreaRect2(const Seq *array, MemStorage *storage)
+Box2D MinAreaRect(const Seq *array, MemStorage *storage)
 {
     MemStorage *temp_storage = NULL;
     Box2D box;
     Point2D32f *points = NULL;
 
-    VOS_FUNCNAME("MinAreaRect2");
+    VOS_FUNCNAME("MinAreaRect");
     Seq *ptseq = (Seq *)array;
     VOS_MEMSET(&box, 0, sizeof(box));
 

@@ -1,8 +1,6 @@
-
 #include "grfmt_bmp.h"
 
 static const char *fmtSignBmp = "BM";
-
 
 static void  FillGrayPalette( PaletteEntry* palette, int bpp, bool negative=false)
 {
@@ -17,8 +15,6 @@ static void  FillGrayPalette( PaletteEntry* palette, int bpp, bool negative=fals
     }
 }
 
-/************************ BMP reader *****************************/
-
 GrFmtBmpReader::GrFmtBmpReader(const char *filename)
 {
     strncpy( m_filename, filename, sizeof(m_filename) - 1 );
@@ -32,7 +28,6 @@ GrFmtBmpReader::GrFmtBmpReader(const char *filename)
 GrFmtBmpReader::~GrFmtBmpReader()
 {
 	Close();
-
 }
 
 void GrFmtBmpReader::Close()

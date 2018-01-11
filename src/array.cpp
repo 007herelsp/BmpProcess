@@ -106,7 +106,7 @@ Mat *InitMatHeader(Mat *arr, int rows, int cols,
     pix_size = VOS_ELEM_SIZE(type);
     min_step = arr->cols * pix_size & mask;
 
-    if (step != VOS_AUTOSTEP && step != 0)
+    if ( VOS_AUTOSTEP!=step  &&  0!=step )
     {
         if (step < min_step)
             VOS_ERROR_FROM_CODE(VOS_BadStep);
@@ -219,7 +219,7 @@ void SetData(VOID *arr, void *data, int step)
         pix_size = VOS_ELEM_SIZE(type);
         min_step = mat->cols * pix_size & ((mat->rows <= 1) - 1);
 
-        if (step != VOS_AUTOSTEP)
+        if ( VOS_AUTOSTEP!=step )
         {
             if (step < min_step &&  NULL!=data )
                 VOS_ERROR_FROM_CODE(VOS_BadStep);
@@ -242,7 +242,7 @@ void SetData(VOID *arr, void *data, int step)
         pix_size = ((img->depth & 255) >> 3) * img->nChannels;
         min_step = img->width * pix_size;
 
-        if (step != VOS_AUTOSTEP && img->height > 1)
+        if ( VOS_AUTOSTEP!=step  && img->height > 1)
         {
             if (step < min_step &&  NULL!=data )
                 VOS_ERROR_FROM_CODE(VOS_BadStep);

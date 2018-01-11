@@ -61,34 +61,6 @@ typedef struct tagBox
 
 } Box;
 
-struct SymUBoxCmp
-{
-	bool operator()(const Box &x, const Box &y) const
-	{
-		bool ret = false;
-
-		if (x.isRect && (!y.isRect))
-		{
-			return true;
-		}
-
-		if (x.box.center.x < y.box.center.x)
-		{
-			ret = true;
-		}
-		else if (fabs(x.box.center.x - y.box.center.x) <= DBL_EPSILON)
-		{
-			ret = (x.box.center.y < y.box.center.y);
-		}
-		else
-		{
-			ret = false;
-		}
-
-		return ret;
-	}
-};
-
 #define SHAPE 4
 #define MIN_ContourArea 500
 #define MAX_ContourArea 1000000
@@ -103,6 +75,7 @@ void StartSearchProcess(IplImage *lpSrcImg, set<Box> &lstRes)
 	Box2D End_Rage2D;
 	int index = 0;
 	int iRectCun = 0;
+	Point *tp;
 	FindContours(lpSrcImg, storage, &contours, sizeof(Contour),
 				 VOS_RETR_LIST, VOS_CHAIN_APPROX_SIMPLE, InitPoint(0, 0));
 
@@ -117,9 +90,9 @@ void StartSearchProcess(IplImage *lpSrcImg, set<Box> &lstRes)
 				dContourArea = fabs(ContourArea(result, VOS_WHOLE_SEQ));
 				if (dContourArea >= MIN_ContourArea && dContourArea <= MAX_ContourArea && CheckContourConvexity(result))
 				{
-					End_Rage2D = MinAreaRect2(result);
+					End_Rage2D = MinAreaRect(result);
 					s = 0;
-                    Box box;
+					Box box;
 					box.box = End_Rage2D;
 					for (index = 2; index < 5; index++)
 					{
@@ -134,7 +107,7 @@ void StartSearchProcess(IplImage *lpSrcImg, set<Box> &lstRes)
 						}
 					}
 
-					Point *tp;
+
 					for (int i = 0; i < SHAPE; i++)
 					{
 						tp = (Point *)GetSeqElem(result, i);
@@ -153,8 +126,6 @@ void StartSearchProcess(IplImage *lpSrcImg, set<Box> &lstRes)
 					}
 
 					//printf("hello: %g, %g\n", box.box.center.x, box.box.center.y);
-
-
 
 					//printf("centerInfo:[%f,%f]:[%f,%f]\n", End_Rage2D.center.x, End_Rage2D.center.y, End_Rage2D.size.width, End_Rage2D.size.height);
 					//lstRes.insert(box);
@@ -192,7 +163,7 @@ int Process(set<Box> &setURes, IplImage *lpTargetImg, int argc, char *argv[])
 		if (fileIndex < argc)
 		{
 			IplImage *lpSrcImg = LoadImage(argv[fileIndex++]);
-			if ( NULL!=lpSrcImg )
+			if (NULL != lpSrcImg)
 			{
 				temp = lpSrcImg;
 				warp_mat = CreateMat(3, 3, VOS_64FC1);
@@ -260,6 +231,7 @@ int Process(set<Box> &setURes, IplImage *lpTargetImg, int argc, char *argv[])
 				srcTri[3].y = (float)temp->height - 1 + 1;
 				srcTri[0].x = (float)0; //bot right
 				srcTri[0].y = (float)temp->height - 1 + 1;
+				//printf("centerInfo:[%f,%f]\n", srcTri[0].x+(srcTri[0].x+srcTri[3].x)*0.5,0);
 
 				GetPerspectiveTransform(dstTri, srcTri, warp_mat);										 //�����Ե�������任
 				WarpPerspective(temp, lpTargetImg, warp_mat, VOS_INTER_LINEAR | (VOS_WARP_INVERSE_MAP)); //��ͼ��������任
@@ -309,8 +281,8 @@ int main(int argc, char **args)
 			Canny(imagChannels[i], lpCannyImg, 0, 0, 3);
 			//SaveImage(name, lpCannyImg);
 			ReleaseImage(&imagChannels[i]);
-			Dilate(lpCannyImg, lpDilateImg, 0, 1);
-			Erode(lpDilateImg, lpDilateImg, 0, 1);
+			Dilate(lpCannyImg, lpDilateImg,  1);
+			Erode(lpDilateImg, lpDilateImg,  1);
 			StartSearchProcess(lpDilateImg, lstRes);
 		}
 

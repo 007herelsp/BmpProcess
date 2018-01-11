@@ -1,5 +1,3 @@
-
-
 #ifndef _GRFMT_BMP_H_
 #define _GRFMT_BMP_H_
 #include "bitstrm.h"
@@ -7,7 +5,6 @@
 #ifndef _MAX_PATH
 #define _MAX_PATH    1024
 #endif
-
 
 enum BmpCompression
 {

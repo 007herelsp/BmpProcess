@@ -427,7 +427,6 @@ Seq *FindNextContour(ContourScanner scanner)
         VOS_ERROR(VOS_StsNullPtr, "");
     iEndProcessContour(scanner);
 
-    /* initialize local state */
     img0 = scanner->img0;
     img = scanner->img;
     step = scanner->img_step;
@@ -457,7 +456,6 @@ Seq *FindNextContour(ContourScanner scanner)
 
                 if (!(0 == prev && 1 == p )) /* if not external contour */
                 {
-                    /* check hole */
                     if (p != 0 || prev < 1)
                         goto resume_scan;
 

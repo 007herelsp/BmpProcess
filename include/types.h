@@ -128,20 +128,6 @@ typedef struct tagIplImage
 }
 IplImage;
 
-
-
-typedef struct tagIplConvKernel
-{
-    int  nCols;
-    int  nRows;
-    int  anchorX;
-    int  anchorY;
-    int *values;
-    int  nShiftR;
-}
-IplConvKernel;
-
-
 /* extra border mode */
 #define VOS_BORDER_REFLECT_101    4
 

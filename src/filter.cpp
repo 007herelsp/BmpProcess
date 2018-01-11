@@ -129,7 +129,6 @@ void BaseImageFilter::init(int _max_width, int _src_type, int _dst_type,
 
 void BaseImageFilter::start_process(Slice x_range, int width)
 {
-    int mode = border_mode;
     int pix_sz = VOS_ELEM_SIZE(src_type), work_pix_sz = VOS_ELEM_SIZE(work_type);
     int bsz = buf_size, bw = x_range.end_index - x_range.start_index, bw1 = bw + ksize.width - 1;
     int tr_step = Align(bw1 * pix_sz, ALIGN);
@@ -153,9 +152,6 @@ void BaseImageFilter::start_process(Slice x_range, int width)
     buf_max_count = bsz / buf_step;
     buf_max_count = VOS_MIN(buf_max_count, max_rows - max_ky * 2);
     buf_end = buf_start + buf_max_count * buf_step;
-
-    if (x_range.end_index - x_range.start_index <= 1)
-        mode = SYS_BORDER_REPLICATE;
 
     width = (width - 1) * pix_sz;
     ofs = (anchor.x - x_range.start_index) * pix_sz;
@@ -182,8 +178,7 @@ void BaseImageFilter::start_process(Slice x_range, int width)
 
         if ((unsigned)idx > (unsigned)width)
         {
-            int shift = VOS_BORDER_REFLECT_101 == mode ? pix_sz : 0;
-            idx = 0 == k ? shift : width - shift;
+            idx = 0 == k ? 0 : width;
             delta = -delta;
         }
 
@@ -232,8 +227,10 @@ int BaseImageFilter::fill_cyclic_buffer(const uchar *src, int src_step,
             for (i = 0; i < width_n; i += sizeof(int))
                 *(int *)(bptr + i + bsz1) = *(int *)(src + i);
         else
+        	{
             for (i = 0; i < width_n; i++)
                 bptr[i + bsz1] = src[i];
+        	}
 
 
             for (i = 0; i < bsz1; i++)
@@ -329,7 +326,7 @@ int BaseImageFilter::process(const Mat *src, Mat *dst,
     if (dst_origin.x < 0 || dst_origin.y < 0)
         VOS_ERROR(VOS_StsOutOfRange, "Incorrect destination ROI origin");
 
-    if (phase == VOS_WHOLE)
+    if ( VOS_WHOLE==phase )
         phase = VOS_START | VOS_END;
     phase &= VOS_START | VOS_END | VOS_MIDDLE;
 
@@ -386,7 +383,6 @@ int BaseImageFilter::process(const Mat *src, Mat *dst,
         src_y += delta;
         sptr += src->step * delta;
 
-        // initialize the cyclic buffer row pointers
         bptr = buf_head;
         for (i = 0; i < buf_count; i++)
         {
@@ -431,10 +427,6 @@ int BaseImageFilter::process(const Mat *src, Mat *dst,
 
     return rows_processed;
 }
-
-/****************************************************************************************\
-                                    Separable Linear Filter
-\****************************************************************************************/
 
 static void iFilterRowSymm_8u32s(const uchar *src, int *dst, void *params);
 static void iFilterColSymm_32s8u(const int **src, uchar *dst, int dst_step,

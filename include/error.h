@@ -48,7 +48,6 @@
      EXIT;                                                          \
 }
 
-/* Simplified form of VOS_ERROR */
 #define VOS_ERROR_FROM_CODE( code )   \
     VOS_ERROR( code, "" )
 
@@ -64,8 +63,6 @@
     VOS_CHECK();                                                     \
 }
 
-
-/* Runtime assertion macro */
 #define VOS_ASSERT( Condition )                                          \
 {                                                                       \
     if( !(Condition) )                                                  \
