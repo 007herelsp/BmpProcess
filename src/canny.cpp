@@ -2,8 +2,7 @@
 #include "process.h"
 #include "misc.h"
 
-static void
-Sobel(const Mat *src, Mat *dst, int dx, int dy, int aperture_size)
+static void Sobel(const Mat *src, Mat *dst, int dx, int dy, int aperture_size)
 {
     SepFilter filter;
 
@@ -12,7 +11,7 @@ Sobel(const Mat *src, Mat *dst, int dx, int dy, int aperture_size)
     __BEGIN__;
 
     int src_type, dst_type;
- 
+
     src_type = VOS_MAT_TYPE(src->type);
     dst_type = VOS_MAT_TYPE(dst->type);
 
@@ -20,14 +19,14 @@ Sobel(const Mat *src, Mat *dst, int dx, int dy, int aperture_size)
         VOS_ERROR(VOS_StsBadArg, "src and dst have different sizes");
 
     VOS_CALL(filter.init_deriv(src->cols, src_type, dst_type, dx, dy,
-                               aperture_size,  0));
+                               aperture_size, 0));
     VOS_CALL(filter.process(src, dst));
 
     __END__;
 }
 
 #define CANNY_SHIFT 15
-static const int  TG22 = (int)(0.4142135623730950488016887242097 * (1 << CANNY_SHIFT) + 0.5);
+static const int TG22 = (int)(0.4142135623730950488016887242097 * (1 << CANNY_SHIFT) + 0.5);
 
 // 仿照matlab，自适应求高低两个门限
 void CannyAdaptiveFindThreshold(Mat *dx, Mat *dy, double *low, double *high)
@@ -37,7 +36,7 @@ void CannyAdaptiveFindThreshold(Mat *dx, Mat *dy, double *low, double *high)
     int hist_size = 255;
     double PercentOfPixelsNotEdges = 0.7;
     size = GetSize(dx);
-    IplImage *imge = CreateImage(size, SYS_DEPTH_32F,1);
+    IplImage *imge = CreateImage(size, SYS_DEPTH_32F, 1);
 
     // 计算边缘的强度, 并存于图像中
     float maxv = 0;
@@ -73,7 +72,7 @@ void CannyAdaptiveFindThreshold(Mat *dx, Mat *dy, double *low, double *high)
     int x;
     size.width *= size.height;
     size.height = 1;
-    static int step = VOS_STUB_STEP/4;
+    static int step = VOS_STUB_STEP / 4;
 
     for (; size.height--; img += step)
     {
@@ -150,8 +149,6 @@ void Canny(const void *srcarr, void *dstarr,
         VOS_MAT_TYPE(dst->type) != VOS_8UC1)
         VOS_ERROR(VOS_StsUnsupportedFormat, "");
 
-    
-
     aperture_size &= INT_MAX;
     if ((aperture_size & 1) == 0 || aperture_size < 3 || aperture_size > 7)
         VOS_ERROR(VOS_StsBadFlag, "");
@@ -166,12 +163,12 @@ void Canny(const void *srcarr, void *dstarr,
     ///////////////////
 
     CannyAdaptiveFindThreshold(dx, dy, &low_thresh, &high_thresh);
-	if (low_thresh > high_thresh)
+    if (low_thresh > high_thresh)
     {
         double t;
         VOS_SWAP(low_thresh, high_thresh, t);
     }
-//printf("%g,%g\n", low_thresh, high_thresh);
+    //printf("%g,%g\n", low_thresh, high_thresh);
     ///////////////////
 
     if (flags & VOS_CANNY_L2_GRADIENT)
@@ -254,9 +251,8 @@ void Canny(const void *srcarr, void *dstarr,
         }
         else
             VOS_MEMSET(_mag - 1, 0, (size.width + 2) * sizeof(int));
-		
 
-        if ( 0==i )
+        if (0 == i)
             continue;
 
         _map = map + mapstep * i + 1;

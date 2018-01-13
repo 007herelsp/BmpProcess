@@ -7,8 +7,7 @@
 #define IVOS_ALIGNED_SEQ_BLOCK_SIZE \
     (int)Align(sizeof(SeqBlock), VOS_STRUCT_ALIGN)
 
-VOS_INLINE int
-sysAlignLeft(int size, int align)
+VOS_INLINE int sysAlignLeft(int size, int align)
 {
     return size & -align;
 }
@@ -16,15 +15,13 @@ sysAlignLeft(int size, int align)
 #define VOS_GET_LAST_ELEM(seq, block) \
     ((block)->data + ((block)->count - 1) * ((seq)->elem_size))
 
-
 #define IVOS_SHIFT_TAB_MAX 32
 static const char iPower2ShiftTab[] =
     {
         0, 1, -1, 2, -1, -1, -1, 3, -1, -1, -1, -1, -1, -1, -1, 4,
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 5};
 
-static void
-iInitMemStorage(MemStorage *storage, int block_size)
+static void iInitMemStorage(MemStorage *storage, int block_size)
 {
     VOS_FUNCNAME("iInitMemStorage ");
 
@@ -47,8 +44,7 @@ iInitMemStorage(MemStorage *storage, int block_size)
 }
 
 /* creates root memory storage */
-MemStorage *
-CreateMemStorage(int block_size)
+MemStorage *CreateMemStorage(int block_size)
 {
     MemStorage *storage = NULL;
 
@@ -67,8 +63,7 @@ CreateMemStorage(int block_size)
     return storage;
 }
 
-MemStorage *
-CreateChildMemStorage(MemStorage *parent)
+MemStorage *CreateChildMemStorage(MemStorage *parent)
 {
     MemStorage *storage = NULL;
     VOS_FUNCNAME("CreateChildMemStorage");
@@ -89,8 +84,7 @@ CreateChildMemStorage(MemStorage *parent)
     return storage;
 }
 
-static void
-iDestroyMemStorage(MemStorage *storage)
+static void iDestroyMemStorage(MemStorage *storage)
 {
     VOS_FUNCNAME("iDestroyMemStorage");
 
@@ -186,9 +180,7 @@ void ClearMemStorage(MemStorage *storage)
     __END__;
 }
 
-
-static void
-iGoNextMemBlock(MemStorage *storage)
+static void iGoNextMemBlock(MemStorage *storage)
 {
     VOS_FUNCNAME("iGoNextMemBlock");
 
@@ -288,8 +280,7 @@ void RestoreMemStoragePos(MemStorage *storage, MemStoragePos *pos)
     __END__;
 }
 
-void *
-MemStorageAlloc(MemStorage *storage, size_t size)
+void * MemStorageAlloc(MemStorage *storage, size_t size)
 {
     char *ptr = NULL;
 
@@ -377,8 +368,8 @@ void SetSeqBlockSize(Seq *seq, int delta_elements)
         VOS_ERROR(VOS_StsOutOfRange, "");
 
     useful_block_size = sysAlignLeft(seq->storage->block_size - sizeof(MemBlock) -
-                                        sizeof(SeqBlock),
-                                    VOS_STRUCT_ALIGN);
+                                         sizeof(SeqBlock),
+                                     VOS_STRUCT_ALIGN);
     elem_size = seq->elem_size;
 
     if (0 == delta_elements)
@@ -440,7 +431,7 @@ int SliceLength(Slice slice, const Seq *seq)
     int total = seq->total;
     int length = slice.end_index - slice.start_index;
 
-    if ( 0!=length )
+    if (0 != length)
     {
         if (slice.start_index < 0)
             slice.start_index += total;
@@ -493,8 +484,8 @@ iGrowSeq(Seq *seq, int in_front_of)
             delta = VOS_MIN(delta, delta_elems) * elem_size;
             seq->block_max += delta;
             storage->free_space = sysAlignLeft((int)(((char *)storage->top + storage->block_size) -
-                                                    seq->block_max),
-                                              VOS_STRUCT_ALIGN);
+                                                     seq->block_max),
+                                               VOS_STRUCT_ALIGN);
             EXIT;
         }
         else
@@ -1090,7 +1081,7 @@ void SeqPopMulti(Seq *seq, void *_elements, int count, int front)
                 VOS_MEMCPY(elements, seq->ptr, delta);
             }
 
-            if ( 0==seq->first->prev->count )
+            if (0 == seq->first->prev->count)
                 iFreeSeqBlock(seq, 0);
         }
     }
@@ -1135,8 +1126,8 @@ typedef struct tagSeqReaderPos
 
 typedef struct tagTreeNode
 {
-    int flags;                 /* micsellaneous flags */
-    int header_size;           /* size of sequence header */
+    int flags;                  /* micsellaneous flags */
+    int header_size;            /* size of sequence header */
     struct tagTreeNode *h_prev; /* previous sequence */
     struct tagTreeNode *h_next; /* next sequence */
     struct tagTreeNode *v_prev; /* 2nd previous sequence */

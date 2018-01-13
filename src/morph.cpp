@@ -17,12 +17,10 @@ Morphology::Morphology()
 }
 
 Morphology::Morphology(int _operation, int _max_width, int _src_dst_type,
-                       Size _ksize, Point _anchor,
-                       int _border_mode, Scalar _border_value)
+                       Size _ksize, Point _anchor )
 {
     init(_operation, _max_width, _src_dst_type,
-          _ksize, _anchor,
-         _border_mode, _border_value);
+          _ksize, _anchor );
 }
 
 void Morphology::clear()
@@ -36,8 +34,7 @@ Morphology::~Morphology()
 }
 
 void Morphology::init(int _operation, int _max_width, int _src_dst_type,
-                      Size _ksize, Point _anchor,
-                      int _border_mode, Scalar _border_value)
+                      Size _ksize, Point _anchor )
 {
     VOS_FUNCNAME("Morphology::init");
 
@@ -51,7 +48,7 @@ void Morphology::init(int _operation, int _max_width, int _src_dst_type,
     operation = _operation;
 
     VOS_CALL(BaseImageFilter::init(_max_width, _src_dst_type, _src_dst_type,
-                                   true, _ksize, _anchor, _border_mode, _border_value));
+                                   true, _ksize, _anchor ));
     if (VOS_8U != depth)
     {
         VOS_ERROR(VOS_BadDepth, "");
@@ -77,11 +74,10 @@ void Morphology::init(int _operation, int _max_width, int _src_dst_type,
 
 void Morphology::init(int _max_width, int _src_type, int _dst_type,
                       bool _is_separable, Size _ksize,
-                      Point _anchor, int _border_mode,
-                      Scalar _border_value)
+                      Point _anchor )
 {
     BaseImageFilter::init(_max_width, _src_type, _dst_type, _is_separable,
-                          _ksize, _anchor, _border_mode, _border_value);
+                          _ksize, _anchor );
 }
 
 void Morphology::start_process(Slice x_range, int width)
@@ -315,8 +311,7 @@ IVOS_MORPH_RECT_ROW(Dilate, 8u, uchar, int, VOS_CALC_MAX_8U);
 IVOS_MORPH_RECT_COL(Erode, 8u, uchar, int, VOS_CALC_MIN_8U, VOS_NOP);
 IVOS_MORPH_RECT_COL(Dilate, 8u, uchar, int, VOS_CALC_MAX_8U, VOS_NOP);
 
-static void
-iMorphOp(const void *srcarr, void *dstarr, int iterations, int mop)
+static void iMorphOp(const void *srcarr, void *dstarr, int iterations, int mop)
 {
     Morphology morphology;
     void *buffer = NULL;

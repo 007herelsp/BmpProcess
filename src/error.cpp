@@ -10,7 +10,6 @@ typedef struct StackRecord
 typedef struct Context
 {
     int err_code;
-    int err_mode;
     SysErrorCallback error_callback;
     void *userdata;
     char err_msg[4096];
@@ -24,7 +23,6 @@ iCreateContext(void)
 {
     Context *context = (Context *)malloc(sizeof(*context));
 
-    context->err_mode = VOS_ErrModeLeaf;
     context->err_code = VOS_StsOk;
 
     context->error_callback = VOS_DEFAULT_ERROR_CALLBACK;

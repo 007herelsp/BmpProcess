@@ -58,8 +58,7 @@ void BaseImageFilter::get_work_params()
 }
 
 void BaseImageFilter::init(int _max_width, int _src_type, int _dst_type,
-                           bool _is_separable, Size _ksize, Point _anchor,
-                           int _border_mode, Scalar _border_value)
+                           bool _is_separable, Size _ksize, Point _anchor )
 {
     VOS_FUNCNAME("BaseImageFilter::init");
 
@@ -87,16 +86,13 @@ void BaseImageFilter::init(int _max_width, int _src_type, int _dst_type,
         anchor.y = ksize.height / 2;
 
     max_ky = VOS_MAX(anchor.y, ksize.height - anchor.y - 1);
-    border_mode = _border_mode;
-    border_value = _border_value;
+	
 
     if (ksize.width <= 0 || ksize.height <= 0 ||
         (unsigned)anchor.x >= (unsigned)ksize.width ||
         (unsigned)anchor.y >= (unsigned)ksize.height)
         VOS_ERROR(VOS_StsOutOfRange, "invalid kernel size and/or anchor position");
 
-    if (SYS_BORDER_REPLICATE != border_mode)
-        VOS_ERROR(VOS_StsBadArg, "Invalid/unsupported border mode");
 
     get_work_params();
 
@@ -458,8 +454,7 @@ SepFilter::~SepFilter()
 
 void SepFilter::init(int _max_width, int _src_type, int _dst_type,
                      const Mat *_kx, const Mat *_ky,
-                     Point _anchor, int _border_mode,
-                     Scalar _border_value)
+                     Point _anchor )
 {
     VOS_FUNCNAME("SepFilter::init");
 
@@ -481,7 +476,7 @@ void SepFilter::init(int _max_width, int _src_type, int _dst_type,
     _ksize.height = _ky->rows + _ky->cols - 1;
 
     VOS_CALL(BaseImageFilter::init(_max_width, _src_type, _dst_type, 1, _ksize,
-                                   _anchor, _border_mode, _border_value));
+                                   _anchor ));
 
     if (!(kx && VOS_ARE_SIZES_EQ(kx, _kx)))
     {
@@ -604,11 +599,10 @@ void SepFilter::init(int _max_width, int _src_type, int _dst_type,
 
 void SepFilter::init(int _max_width, int _src_type, int _dst_type,
                      bool _is_separable, Size _ksize,
-                     Point _anchor, int _border_mode,
-                     Scalar _border_value)
+                     Point _anchor )
 {
     BaseImageFilter::init(_max_width, _src_type, _dst_type, _is_separable,
-                          _ksize, _anchor, _border_mode, _border_value);
+                          _ksize, _anchor );
 }
 
 static void

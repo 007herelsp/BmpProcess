@@ -9,7 +9,6 @@ static const signed char iDepthToType[] =
 #define iIplToCvDepth(depth) \
     iDepthToType[(((depth)&255) >> 2) + ((depth) < 0)]
 
-// Creates Mat and underlying data
 Mat *CreateMat(int height, int width, int type)
 {
     Mat *arr = NULL;
@@ -35,7 +34,6 @@ static void iCheckHuge(Mat *arr)
         arr->type &= ~VOS_MAT_CONT_FLAG;
 }
 
-// Creates Mat header only
 Mat *CreateMatHeader(int rows, int cols, int type)
 {
     Mat *arr = NULL;
@@ -75,7 +73,6 @@ Mat *CreateMatHeader(int rows, int cols, int type)
     return arr;
 }
 
-// Initializes Mat header, allocated by the user
 Mat *InitMatHeader(Mat *arr, int rows, int cols,
                    int type, void *data, int step)
 {
@@ -127,7 +124,6 @@ Mat *InitMatHeader(Mat *arr, int rows, int cols,
     return arr;
 }
 
-// Deallocates the Mat structure and underlying data
 void ReleaseMat(Mat **array)
 {
     VOS_FUNCNAME("ReleaseMat");
@@ -153,11 +149,6 @@ void ReleaseMat(Mat **array)
     __END__;
 }
 
-/****************************************************************************************\
-*                          Common for multiple array types operations                    *
-\****************************************************************************************/
-
-// Allocates underlying array data
 void CreateData(VOID *arr)
 {
     VOS_FUNCNAME("CreateData");
@@ -363,7 +354,6 @@ void ScalarToRawData(const Scalar *scalar, void *data, int type)
     __END__;
 }
 
-// convert array (Mat or IplImage) to Mat
 Mat *GetMat(const VOID *array, Mat *mat,
             int *pCOI)
 {
@@ -423,7 +413,6 @@ Mat *GetMat(const VOID *array, Mat *mat,
     return result;
 }
 
-// create IplImage header
 IplImage *
 CreateImageHeader(Size size, int depth, int channels)
 {
@@ -445,7 +434,6 @@ CreateImageHeader(Size size, int depth, int channels)
     return img;
 }
 
-// create IplImage header and allocate underlying data
 IplImage *
 CreateImage(Size size, int depth, int channels)
 {

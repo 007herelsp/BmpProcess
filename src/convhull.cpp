@@ -9,8 +9,8 @@ iSklansky_32s(Point **array, int start, int end, int *stack, int nsign, int sign
     int stacksize = 3;
 
     if (start == end ||
-            (array[start]->x == array[end]->x &&
-             array[start]->y == array[end]->y))
+        (array[start]->x == array[end]->x &&
+         array[start]->y == array[end]->y))
     {
         stack[0] = start;
         return 1;
@@ -104,7 +104,7 @@ static void iSortPointsByPointers_32s(Point **array, size_t total)
             Point **ptr2;
             if (n <= isort_thresh)
             {
-insert_sort:
+            insert_sort:
                 for (ptr = left + 1; ptr <= right; ptr++)
                 {
                     for (ptr2 = ptr; ptr2 > left && cmp_pts(ptr2[0], ptr2[-1]); ptr2--)
@@ -185,7 +185,7 @@ insert_sort:
                     left++;
                     right--;
                 }
-                if ( 0==swap_cnt )
+                if (0 == swap_cnt)
                 {
                     left = left0, right = right0;
                     goto insert_sort;
@@ -228,9 +228,8 @@ insert_sort:
     }
 }
 
-Seq *
-ConvexHull2(const VOID *array, void *hull_storage,
-            int orientation)
+Seq *ConvexHull2(const VOID *array, void *hull_storage,
+                 int orientation)
 {
     union {
         Contour *c;
@@ -255,19 +254,16 @@ ConvexHull2(const VOID *array, void *hull_storage,
     int t_count;
     int i, miny_ind = 0, maxy_ind = 0, total;
     int stop_idx;
-    sklansky_func sklansky= NULL;
+    sklansky_func sklansky = NULL;
 
     ptseq = (Seq *)array;
     if (NULL == hull_storage)
         hull_storage = ptseq->storage;
 
-
     VOS_CALL(hullseq = CreateSeq(
-                VOS_SEQ_KIND_CURVE | VOS_SEQ_ELTYPE(ptseq) |
-                VOS_SEQ_FLAG_CLOSED | VOS_SEQ_FLAG_CONVEX,
-                sizeof(Contour), sizeof(Point), (MemStorage *)hull_storage));
-
-
+                 VOS_SEQ_KIND_CURVE | VOS_SEQ_ELTYPE(ptseq) |
+                     VOS_SEQ_FLAG_CLOSED | VOS_SEQ_FLAG_CONVEX,
+                 sizeof(Contour), sizeof(Point), (MemStorage *)hull_storage));
 
     total = ptseq->total;
     if (0 == total)
@@ -304,7 +300,7 @@ ConvexHull2(const VOID *array, void *hull_storage,
     }
 
     if (pointer[0]->x == pointer[total - 1]->x &&
-            pointer[0]->y == pointer[total - 1]->y)
+        pointer[0]->y == pointer[total - 1]->y)
     {
         Point pt = pointer[0][0];
         VOS_WRITE_SEQ_ELEM(pt, writer);
@@ -319,7 +315,7 @@ ConvexHull2(const VOID *array, void *hull_storage,
         int tr_count = sklansky(pointer, ptseq->total - 1, maxy_ind, tr_stack, -1, -1);
 
         /* gather upper part of convex hull to output */
-        if ( VOS_COUNTER_CLOCKWISE ==orientation)
+        if (VOS_COUNTER_CLOCKWISE == orientation)
         {
             VOS_SWAP(tl_stack, tr_stack, t_stack);
             VOS_SWAP(tl_count, tr_count, t_count);
@@ -341,7 +337,7 @@ ConvexHull2(const VOID *array, void *hull_storage,
         int *br_stack = stack + bl_count;
         int br_count = sklansky(pointer, ptseq->total - 1, miny_ind, br_stack, 1, 1);
 
-        if (  VOS_COUNTER_CLOCKWISE!=orientation)
+        if (VOS_COUNTER_CLOCKWISE != orientation)
         {
             VOS_SWAP(bl_stack, br_stack, t_stack);
             VOS_SWAP(bl_count, br_count, t_count);
@@ -381,7 +377,7 @@ finish_hull:
         hull.s = hullseq;
         hull.c->rect = BoundingRect(ptseq,
                                     ptseq->header_size < (int)sizeof(Contour) ||
-                                    &ptseq->flags == &contour_header.flags);
+                                        &ptseq->flags == &contour_header.flags);
     }
 
     __END__;
@@ -392,8 +388,7 @@ finish_hull:
     return hull.s;
 }
 
-int
-CheckContourConvexity(const VOID *array)
+int CheckContourConvexity(const VOID *array)
 {
     int flag = -1;
 

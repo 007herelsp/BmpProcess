@@ -1,69 +1,64 @@
 #include "core.h"
 #include "misc.h"
 
-static void*
-iDefaultAlloc( size_t size)
+static void *iDefaultAlloc(size_t size)
 {
-    char *ptr, *ptr0 = (char*)malloc(
-        (size_t)(size + VOS_MALLOC_ALIGN*((size >= 4096) + 1) + sizeof(char*)));
+    char *ptr, *ptr0 = (char *)malloc(
+                   (size_t)(size + VOS_MALLOC_ALIGN * ((size >= 4096) + 1) + sizeof(char *)));
 
-    if( !ptr0 )
+    if (!ptr0)
         return NULL;
 
     // align the pointer
-    ptr = (char*)AlignPtr(ptr0 + sizeof(char*) + 1, VOS_MALLOC_ALIGN);
-    *(char**)(ptr - sizeof(char*)) = ptr0;
+    ptr = (char *)AlignPtr(ptr0 + sizeof(char *) + 1, VOS_MALLOC_ALIGN);
+    *(char **)(ptr - sizeof(char *)) = ptr0;
 
     return ptr;
 }
 
-
 // default <free>
-static int
-iDefaultFree( void* ptr)
+static int iDefaultFree(void *ptr)
 {
     // Pointer must be aligned by VOS_MALLOC_ALIGN
-    if( ((size_t)ptr & (VOS_MALLOC_ALIGN-1)) != 0 )
+    if (((size_t)ptr & (VOS_MALLOC_ALIGN - 1)) != 0)
         return VOS_StsBadArg;
-    free( *((char**)ptr - 1) );
+    free(*((char **)ptr - 1));
 
     return VOS_StsOk;
 }
 
-
- void*  SysAlloc( size_t size )
+void *SysAlloc(size_t size)
 {
-    void* ptr = NULL;
+    void *ptr = NULL;
 
-    VOS_FUNCNAME( "SysAlloc" );
+    VOS_FUNCNAME("SysAlloc");
 
     __BEGIN__;
 
-    if( (size_t)size > VOS_MAX_ALLOC_SIZE )
-        VOS_ERROR( VOS_StsOutOfRange,
-                  "Negative or too large argument of SysAlloc function" );
+    if ((size_t)size > VOS_MAX_ALLOC_SIZE)
+        VOS_ERROR(VOS_StsOutOfRange,
+                  "Negative or too large argument of SysAlloc function");
 
-    ptr = iDefaultAlloc( size );
-    if( !ptr )
-        VOS_ERROR( VOS_StsNoMem, "Out of memory" );
+    ptr = iDefaultAlloc(size);
+    if (!ptr)
+        VOS_ERROR(VOS_StsNoMem, "Out of memory");
 
     __END__;
 
     return ptr;
 }
 
-
- void  SysFree_( void* ptr )
+void SysFree_(void *ptr)
 {
-    VOS_FUNCNAME( "SysFree_" );
+    VOS_FUNCNAME("SysFree_");
 
     __BEGIN__;
 
-    if( ptr )
+    if (ptr)
     {
-        int status = iDefaultFree( ptr );
-        if( status < 0 )
-            VOS_ERROR( status, "Deallocation error" );
+        int status = iDefaultFree(ptr);
+        if (status < 0)
+            VOS_ERROR(status, "Deallocation error");
     }
 
     __END__;

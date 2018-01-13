@@ -1,8 +1,7 @@
 #include "process.h"
 #include "misc.h"
 
-static void
-iRotatingCalipers(Point2D32f *points, int n, float *out)
+static void iRotatingCalipers(Point2D32f *points, int n, float *out)
 {
     float minarea = FLT_MAX;
     char buffer[32];

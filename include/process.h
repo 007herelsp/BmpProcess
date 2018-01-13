@@ -6,145 +6,135 @@
 extern "C" {
 #endif
 
-typedef struct stContourScanner* ContourScanner;
+typedef struct stContourScanner *ContourScanner;
 
-#define VOS_RETR_LIST     1
+#define VOS_RETR_LIST 1
 
 /* contour approximation method */
-#define VOS_CHAIN_APPROX_NONE        1
-#define VOS_CHAIN_APPROX_SIMPLE      2
-#define VOS_LINK_RUNS                3
-
-#define VOS_GAUSSIAN  2
-
+#define VOS_CHAIN_APPROX_NONE 1
+#define VOS_CHAIN_APPROX_SIMPLE 2
+#define VOS_LINK_RUNS 3
 #define VOS_SCHARR -1
 #define VOS_MAX_SOBEL_KSIZE 7
 
-void  CvtBgr2Gray_8u_C3C1( const VOID* src, VOID* dstr, VOID* dstg,VOID* dstb);
+void CvtBgr2Gray_8u_C3C1(const VOID *src, VOID *dstr, VOID *dstg, VOID *dstb);
 
-#define  VOS_INTER_LINEAR    1
+#define VOS_INTER_LINEAR 1
 
-#define  VOS_WARP_FILL_OUTLIERS 8
-#define  VOS_WARP_INVERSE_MAP  16
+#define VOS_WARP_FILL_OUTLIERS 8
+#define VOS_WARP_INVERSE_MAP 16
 
-void  WarpPerspective( const VOID* src, VOID* dst, const Mat* map_matrix,
-                         int flags VOS_DEFAULT(VOS_INTER_LINEAR+VOS_WARP_FILL_OUTLIERS),
-                         Scalar fillval VOS_DEFAULT(ScalarAll(0)) );
+void WarpPerspective(const VOID *src, VOID *dst, const Mat *map_matrix,
+                     int flags VOS_DEFAULT(VOS_INTER_LINEAR + VOS_WARP_FILL_OUTLIERS),
+                     Scalar fillval VOS_DEFAULT(ScalarAll(0)));
 
-Mat* GetPerspectiveTransform( const Point2D32f* src,
-                                const Point2D32f* dst,
-                                Mat* map_matrix );
+Mat *GetPerspectiveTransform(const Point2D32f *src,
+                             const Point2D32f *dst,
+                             Mat *map_matrix);
 
-void  Erode( const VOID* src, VOID* dst,  int iterations VOS_DEFAULT(1) );
+void Erode(const VOID *src, VOID *dst, int iterations VOS_DEFAULT(1));
 
-void  Dilate( const VOID* src, VOID* dst,  int iterations VOS_DEFAULT(1) );
+void Dilate(const VOID *src, VOID *dst, int iterations VOS_DEFAULT(1));
 
-int FindContours( VOID* image, MemStorage* storage, Seq** first_contour,
-                    int header_size VOS_DEFAULT(sizeof(Contour)),
-                    int mode VOS_DEFAULT(VOS_RETR_LIST),
-                    int method VOS_DEFAULT(VOS_CHAIN_APPROX_SIMPLE),
-                    Point offset VOS_DEFAULT(InitPoint(0,0)));
+int FindContours(VOID *image, MemStorage *storage, Seq **first_contour,
+                 int header_size VOS_DEFAULT(sizeof(Contour)),
+                 int mode VOS_DEFAULT(VOS_RETR_LIST),
+                 int method VOS_DEFAULT(VOS_CHAIN_APPROX_SIMPLE),
+                 Point offset VOS_DEFAULT(InitPoint(0, 0)));
 
-ContourScanner  StartFindContours( VOID* image, MemStorage* storage,
-                                       int header_size VOS_DEFAULT(sizeof(Contour)),
-                                       int mode VOS_DEFAULT(VOS_RETR_LIST),
-                                       int method VOS_DEFAULT(VOS_CHAIN_APPROX_SIMPLE),
-                                       Point offset VOS_DEFAULT(InitPoint(0,0)));
+ContourScanner StartFindContours(VOID *image, MemStorage *storage,
+                                 int header_size VOS_DEFAULT(sizeof(Contour)),
+                                 int mode VOS_DEFAULT(VOS_RETR_LIST),
+                                 int method VOS_DEFAULT(VOS_CHAIN_APPROX_SIMPLE),
+                                 Point offset VOS_DEFAULT(InitPoint(0, 0)));
 
-Seq*  FindNextContour( ContourScanner scanner );
+Seq *FindNextContour(ContourScanner scanner);
 
-Seq*  EndFindContours( ContourScanner* scanner );
+Seq *EndFindContours(ContourScanner *scanner);
 
-#define VOS_POLY_APPROX_DP 0
+Seq *ApproxPoly(const void *src_seq,
+                int header_size, MemStorage *storage,
+                double parameter,
+                int parameter2 VOS_DEFAULT(0));
 
-Seq*  ApproxPoly( const void* src_seq,
-                      int header_size, MemStorage* storage,
-                       double parameter,
-                      int parameter2 VOS_DEFAULT(0));
+double ArcLength(const void *curve,
+                 Slice slice VOS_DEFAULT(VOS_WHOLE_SEQ),
+                 int is_closed VOS_DEFAULT(-1));
+#define ContourPerimeter(contour) ArcLength(contour, VOS_WHOLE_SEQ, 1)
 
-double  ArcLength( const void* curve,
-                     Slice slice VOS_DEFAULT(VOS_WHOLE_SEQ),
-                     int is_closed VOS_DEFAULT(-1));
-#define ContourPerimeter( contour ) ArcLength( contour, VOS_WHOLE_SEQ, 1 )
+Rect BoundingRect(VOID *points, int update VOS_DEFAULT(0));
 
-Rect  BoundingRect( VOID* points, int update VOS_DEFAULT(0) );
+double ContourArea(const Seq *contour,
+                   Slice slice VOS_DEFAULT(VOS_WHOLE_SEQ));
 
-double  ContourArea(  const Seq *contour,
-                       Slice slice VOS_DEFAULT(VOS_WHOLE_SEQ));
-
-Box2D  MinAreaRect( const Seq* points,
-                       MemStorage* storage VOS_DEFAULT(NULL));
-#define VOS_CLOCKWISE         1
+Box2D MinAreaRect(const Seq *points,
+                  MemStorage *storage VOS_DEFAULT(NULL));
+#define VOS_CLOCKWISE 1
 #define VOS_COUNTER_CLOCKWISE 2
 
-Seq* ConvexHull2( const VOID* input,
-                      void* hull_storage VOS_DEFAULT(NULL),
-                      int orientation VOS_DEFAULT(VOS_CLOCKWISE));
+Seq *ConvexHull2(const VOID *input,
+                 void *hull_storage VOS_DEFAULT(NULL),
+                 int orientation VOS_DEFAULT(VOS_CLOCKWISE));
 
-int  CheckContourConvexity( const VOID* contour );
+int CheckContourConvexity(const VOID *contour);
 
-#define VOS_THRESH_BINARY      0  /* value = value > threshold ? max_value : 0       */
+#define VOS_THRESH_BINARY 0 /* value = value > threshold ? max_value : 0       */
 
-#define VOS_CANNY_L2_GRADIENT  (1 << 31)
+#define VOS_CANNY_L2_GRADIENT (1 << 31)
 
-void  Canny( const VOID* image, VOID* edges, double threshold1,
-             double threshold2, int  aperture_size VOS_DEFAULT(3) );
+void Canny(const VOID *image, VOID *edges, double threshold1,
+           double threshold2, int aperture_size VOS_DEFAULT(3));
 
-			 
+IplImage *LoadImage(const char *filename);
 
-			 
-#define VOS_LOAD_IMAGE_COLOR       1
-			 
-			 IplImage* LoadImage( const char* filename);
-			 
-			 int SaveImage( const char* filename, const VOID* image );
-			 
+int SaveImage(const char *filename, const VOID *image);
+
 extern const uchar iSaturate8u[];
-#define VOS_FAST_CAST_8U(t)  (assert(-256 <= (t) || (t) <= 512), iSaturate8u[(t)+256])
-#define VOS_CALC_MIN_8U(a,b) (a) -= VOS_FAST_CAST_8U((a) - (b))
-#define VOS_CALC_MAX_8U(a,b) (a) += VOS_FAST_CAST_8U((b) - (a))
+#define VOS_FAST_CAST_8U(t) (assert(-256 <= (t) || (t) <= 512), iSaturate8u[(t) + 256])
+#define VOS_CALC_MIN_8U(a, b) (a) -= VOS_FAST_CAST_8U((a) - (b))
+#define VOS_CALC_MAX_8U(a, b) (a) += VOS_FAST_CAST_8U((b) - (a))
 
 extern const float i8x32fTab[];
-#define VOS_8TO32F(x)  i8x32fTab[(x)+256]
-#define  VOS_CALC_MIN(a, b) if((a) > (b)) (a) = (b)
-#define  VOS_CALC_MAX(a, b) if((a) < (b)) (a) = (b)
-
+#define VOS_8TO32F(x) i8x32fTab[(x) + 256]
+#define VOS_CALC_MIN(a, b) \
+    if ((a) > (b))         \
+    (a) = (b)
+#define VOS_CALC_MAX(a, b) \
+    if ((a) < (b))         \
+    (a) = (b)
 
 #ifdef __cplusplus
 }
 #endif
 
-
 #ifdef __cplusplus
 
-#define VOS_WHOLE   0
-#define VOS_START   1
-#define VOS_END     2
-#define VOS_MIDDLE  4
+#define VOS_WHOLE 0
+#define VOS_START 1
+#define VOS_END 2
+#define VOS_MIDDLE 4
 
 #define VOS_ISOLATED_ROI 8
 
-typedef void (*RowFilterFunc)( const uchar* src, uchar* dst, void* params );
-typedef void (*ColumnFilterFunc)( uchar** src, uchar* dst, int dst_step, int count, void* params );
+typedef void (*RowFilterFunc)(const uchar *src, uchar *dst, void *params);
+typedef void (*ColumnFilterFunc)(uchar **src, uchar *dst, int dst_step, int count, void *params);
 
-class  BaseImageFilter
+class BaseImageFilter
 {
-public:
+  public:
     BaseImageFilter();
-   
+
     virtual ~BaseImageFilter();
 
-    virtual void init( int _max_width, int _src_type, int _dst_type,
-                       bool _is_separable, Size _ksize,
-                       Point _anchor=InitPoint(-1,-1),
-                       int _border_mode=SYS_BORDER_REPLICATE,
-                       Scalar _border_value=ScalarAll(0) );
+    virtual void init(int _max_width, int _src_type, int _dst_type,
+                      bool _is_separable, Size _ksize,
+                      Point _anchor = InitPoint(-1, -1));
 
     virtual void clear();
 
-    virtual int process( const Mat* _src, Mat* _dst,
-                         Rect _src_roi=InitRect(0,0,-1,-1),
-                         Point _dst_origin=InitPoint(0,0), int _flags=0 );
+    virtual int process(const Mat *_src, Mat *_dst,
+                        Rect _src_roi = InitRect(0, 0, -1, -1),
+                        Point _dst_origin = InitPoint(0, 0), int _flags = 0);
     int get_src_type() const { return src_type; }
     int get_dst_type() const { return dst_type; }
     Size get_kernel_size() const { return ksize; }
@@ -152,22 +142,25 @@ public:
     RowFilterFunc get_x_filter_func() const { return x_func; }
     ColumnFilterFunc get_y_filter_func() const { return y_func; }
 
-protected:
+  protected:
     virtual void get_work_params();
-    virtual void start_process( Slice x_range, int width );
-    virtual void make_y_border( int row_count, int top_rows, int bottom_rows );
-    virtual int fill_cyclic_buffer( const uchar* src, int src_step,
-                                    int y, int y1, int y2 );
+    virtual void start_process(Slice x_range, int width);
+    virtual void make_y_border(int row_count, int top_rows, int bottom_rows);
+    virtual int fill_cyclic_buffer(const uchar *src, int src_step,
+                                   int y, int y1, int y2);
 
-    enum { ALIGN=32 };
+    enum
+    {
+        ALIGN = 32
+    };
 
     int max_width;
     int min_depth, src_type, dst_type, work_type;
     RowFilterFunc x_func;
     ColumnFilterFunc y_func;
 
-    uchar* buffer;
-    uchar** rows;
+    uchar *buffer;
+    uchar **rows;
     int top_rows, bottom_rows, max_rows;
     uchar *buf_start, *buf_end, *buf_head, *buf_tail;
     int buf_size, buf_step, buf_count, buf_max_count;
@@ -175,52 +168,59 @@ protected:
     bool is_separable;
     Size ksize;
     Point anchor;
-    int max_ky, border_mode;
-    Scalar border_value;
-    uchar* const_row;
-    int* border_tab;
+    int max_ky;
+    uchar *const_row;
+    int *border_tab;
     int border_tab_sz1, border_tab_sz;
 
     Slice prev_x_range;
     int prev_width;
 };
 
-class  SepFilter : public BaseImageFilter
+class SepFilter : public BaseImageFilter
 {
-public:
+  public:
     SepFilter();
 
     virtual ~SepFilter();
 
-    virtual void init( int _max_width, int _src_type, int _dst_type,
-                       const Mat* _kx, const Mat* _ky,
-                       Point _anchor=InitPoint(-1,-1),
-                       int _border_mode=SYS_BORDER_REPLICATE,
-                       Scalar _border_value=ScalarAll(0) );
-    virtual void init_deriv( int _max_width, int _src_type, int _dst_type,
-                             int dx, int dy, int aperture_size, int flags=0 );
-    virtual void init_gaussian( int _max_width, int _src_type, int _dst_type,
-                                int gaussian_size, double sigma );
+    virtual void init(int _max_width, int _src_type, int _dst_type,
+                      const Mat *_kx, const Mat *_ky,
+                      Point _anchor = InitPoint(-1, -1));
+    virtual void init_deriv(int _max_width, int _src_type, int _dst_type,
+                            int dx, int dy, int aperture_size, int flags = 0);
+    virtual void init_gaussian(int _max_width, int _src_type, int _dst_type,
+                               int gaussian_size, double sigma);
 
-    virtual void init( int _max_width, int _src_type, int _dst_type,
-                       bool _is_separable, Size _ksize,
-                       Point _anchor=InitPoint(-1,-1),
-                       int _border_mode=SYS_BORDER_REPLICATE,
-                       Scalar _border_value=ScalarAll(0) );
+    virtual void init(int _max_width, int _src_type, int _dst_type,
+                      bool _is_separable, Size _ksize,
+                      Point _anchor = InitPoint(-1, -1));
 
     virtual void clear();
-    const Mat* get_x_kernel() const { return kx; }
-    const Mat* get_y_kernel() const { return ky; }
+    const Mat *get_x_kernel() const { return kx; }
+    const Mat *get_y_kernel() const { return ky; }
     int get_x_kernel_flags() const { return kx_flags; }
     int get_y_kernel_flags() const { return ky_flags; }
 
-    enum { GENERIC=0, ASYMMETRICAL=1, SYMMETRICAL=2, POSITIVE=4, SUM_TO_1=8, INTEGER=16 };
-    enum { NORMALIZE_KERNEL=1, FLIP_KERNEL=2 };
+    enum
+    {
+        GENERIC = 0,
+        ASYMMETRICAL = 1,
+        SYMMETRICAL = 2,
+        POSITIVE = 4,
+        SUM_TO_1 = 8,
+        INTEGER = 16
+    };
+    enum
+    {
+        NORMALIZE_KERNEL = 1,
+        FLIP_KERNEL = 2
+    };
 
-    static void init_gaussian_kernel( Mat* kernel, double sigma=-1 );
-    static void init_sobel_kernel( Mat* _kx, Mat* _ky, int dx, int dy, int flags=0 );
+    static void init_gaussian_kernel(Mat *kernel, double sigma = -1);
+    static void init_sobel_kernel(Mat *_kx, Mat *_ky, int dx, int dy, int flags = 0);
 
-protected:
+  protected:
     Mat *kx, *ky;
     int kx_flags, ky_flags;
 };
@@ -228,42 +228,30 @@ protected:
 #define ERODE 0
 #define DILATE 1
 
-
-class  Morphology : public BaseImageFilter
+class Morphology : public BaseImageFilter
 {
-public:
+  public:
     Morphology();
-    Morphology( int _operation, int _max_width, int _src_dst_type,
-                  Size _ksize=GetSize(0,0), Point _anchor=InitPoint(-1,-1),
-                  int _border_mode=SYS_BORDER_REPLICATE,
-                  Scalar _border_value=ScalarAll(0) );
+    Morphology(int _operation, int _max_width, int _src_dst_type,
+               Size _ksize = GetSize(0, 0), Point _anchor = InitPoint(-1, -1));
     virtual ~Morphology();
-    virtual void init( int _operation, int _max_width, int _src_dst_type,
-                       Size _ksize=GetSize(0,0), Point _anchor=InitPoint(-1,-1),
-                       int _border_mode=SYS_BORDER_REPLICATE,
-                       Scalar _border_value=ScalarAll(0) );
+    virtual void init(int _operation, int _max_width, int _src_dst_type,
+                      Size _ksize = GetSize(0, 0), Point _anchor = InitPoint(-1, -1));
 
-    virtual void init( int _max_width, int _src_type, int _dst_type,
-                       bool _is_separable, Size _ksize,
-                       Point _anchor=InitPoint(-1,-1),
-                       int _border_mode=SYS_BORDER_REPLICATE,
-                       Scalar _border_value=ScalarAll(0) );
+    virtual void init(int _max_width, int _src_type, int _dst_type,
+                      bool _is_separable, Size _ksize,
+                      Point _anchor = InitPoint(-1, -1));
 
     virtual void clear();
 
+  protected:
+    void start_process(Slice x_range, int width);
+    int fill_cyclic_buffer(const uchar *src, int src_step,
+                           int y0, int y1, int y2);
+    uchar *el_sparse;
 
-
-protected:
-
-    void start_process( Slice x_range, int width );
-    int fill_cyclic_buffer( const uchar* src, int src_step,
-                            int y0, int y1, int y2 );
-    uchar* el_sparse;
-
-    Mat *element;
     int operation;
 };
-
 
 #endif /* __cplusplus */
 #endif /*_VOS_H_*/

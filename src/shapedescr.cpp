@@ -3,8 +3,7 @@
 #include "process.h"
 #include "misc.h"
 
-double
-ArcLength(const void *array, Slice slice, int is_closed)
+double ArcLength(const void *array, Slice slice, int is_closed)
 {
     double perimeter = 0;
 
@@ -74,8 +73,7 @@ ArcLength(const void *array, Slice slice, int is_closed)
 }
 
 /* area of a whole sequence */
-static int
-iContourArea(const Seq *contour, double *area)
+static int iContourArea(const Seq *contour, double *area)
 {
     if (contour->total)
     {
@@ -112,8 +110,7 @@ iContourArea(const Seq *contour, double *area)
     return VOS_StsOk;
 }
 
-double
-ContourArea(const Seq *contour, Slice slice)
+double ContourArea(const Seq *contour, Slice slice)
 {
     double area = 0;
 

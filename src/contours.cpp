@@ -13,16 +13,15 @@
 static const Point iCodeDeltas[8] =
     {{1, 0}, {1, -1}, {0, -1}, {-1, -1}, {-1, 0}, {-1, 1}, {0, 1}, {1, 1}};
 
-
 typedef struct ContourInfo
 {
     int flags;
     struct ContourInfo *next;   /* next contour with the same mark value */
     struct ContourInfo *parent; /* information about parent contour */
-    Seq *contour;                /* corresponding contour (may be 0, if rejected) */
-    Rect rect;                   /* bounding rectangle */
-    Point origin;                /* origin point (where the contour was traced from) */
-    int is_hole;                 /* hole flag */
+    Seq *contour;               /* corresponding contour (may be 0, if rejected) */
+    Rect rect;                  /* bounding rectangle */
+    Point origin;               /* origin point (where the contour was traced from) */
+    int is_hole;                /* hole flag */
 } ContourInfo;
 
 typedef struct stContourScanner
@@ -31,7 +30,6 @@ typedef struct stContourScanner
     MemStorage *storage2;      /* contains approximated contours
                                    (!=storage1 if approx_method2 != approx_method1) */
     MemStorage *cinfo_storage; /* contains _CvContourInfo nodes */
-    Set *cinfo_set;            /* set of _CvContourInfo nodes */
     MemStoragePos initial_pos; /* starting storage pos */
     MemStoragePos backup_pos;  /* beginning of the latest approx. contour */
     MemStoragePos backup_pos2; /* ending of the latest approx. contour */
@@ -43,9 +41,9 @@ typedef struct stContourScanner
     Point pt;                  /* current scanner position */
     Point lnbd;                /* position of the last met contour */
     int nbd;                   /* current mark val */
-    ContourInfo *l_cinfo;     /* information about latest approx. contour */
-    ContourInfo cinfo_temp;   /* temporary var which is used in simple modes */
-    ContourInfo frame_info;   /* information about frame */
+    ContourInfo *l_cinfo;      /* information about latest approx. contour */
+    ContourInfo cinfo_temp;    /* temporary var which is used in simple modes */
+    ContourInfo frame_info;    /* information about frame */
     Seq frame;                 /* frame itself */
     int approx_method1;        /* approx method when tracing */
     int approx_method2;        /* final approx method */
@@ -63,7 +61,6 @@ typedef struct stContourScanner
     int elem_size2;   /*                                       */
     ContourInfo *cinfo_table[126];
 } _ContourScanner;
-
 
 static int
 iThresh_8u_C1R(const uchar *src, int src_step, uchar *dst, int dst_step,
@@ -162,8 +159,6 @@ static void Threshold(const void *srcarr, void *dstarr, double thresh, double ma
     __END__;
 }
 
-
-
 ContourScanner
 StartFindContours(void *_img, MemStorage *storage,
                   int header_size, int mode,
@@ -185,21 +180,19 @@ StartFindContours(void *_img, MemStorage *storage,
 
     VOS_CALL(mat = GetMat(mat, &stub));
 
-
     size = GetSize(mat->width, mat->height);
     step = mat->step;
     img = (uchar *)(mat->data.ptr);
 
     if (method < 0 || method > VOS_LINK_RUNS)
-		 VOS_ERROR(VOS_StsBadArg, "function failed" );
+        VOS_ERROR(VOS_StsBadArg, "function failed");
 
     if (header_size < (int)(sizeof(Contour)))
-		VOS_ERROR(VOS_StsBadSize, "function failed" );
+        VOS_ERROR(VOS_StsBadSize, "function failed");
 
     scanner = (ContourScanner)SysAlloc(sizeof(*scanner));
     if (!scanner)
-		VOS_ERROR(VOS_StsNoMem, "" );
-
+        VOS_ERROR(VOS_StsNoMem, "");
 
     VOS_MEMSET(scanner, 0, sizeof(*scanner));
 
@@ -236,13 +229,13 @@ StartFindContours(void *_img, MemStorage *storage,
 
     if (method > VOS_CHAIN_APPROX_SIMPLE)
     {
-        VOS_ERROR(VOS_StsBadArg, "" );
+        VOS_ERROR(VOS_StsBadArg, "");
         //scanner->storage1 = CreateChildMemStorage( scanner->storage2 );
     }
 
     if (mode > VOS_RETR_LIST)
     {
-        VOS_ERROR(VOS_StsBadArg, "" );
+        VOS_ERROR(VOS_StsBadArg, "");
     }
 
     /* make zero borders */
@@ -400,7 +393,7 @@ iFetchContour(char *ptr,
 
     EndWriteSeq(&writer);
 
-        BoundingRect(contour, 1);
+    BoundingRect(contour, 1);
 
     return VOS_StsOk;
 }
@@ -454,7 +447,7 @@ Seq *FindNextContour(ContourScanner scanner)
                 int is_hole = 0;
                 Point origin;
 
-                if (!(0 == prev && 1 == p )) /* if not external contour */
+                if (!(0 == prev && 1 == p)) /* if not external contour */
                 {
                     if (p != 0 || prev < 1)
                         goto resume_scan;
@@ -554,7 +547,7 @@ Seq *FindNextContour(ContourScanner scanner)
 
 exit_func:
 
-    if ( 0!=result )
+    if (0 != result)
         contour = NULL;
     if (result < 0)
         VOS_ERROR(result, "");
@@ -620,7 +613,7 @@ int FindContours(void *img, MemStorage *storage,
     {
         count++;
         contour = FindNextContour(scanner);
-    } while ( NULL!=contour );
+    } while (NULL != contour);
 
     *firstContour = EndFindContours(&scanner);
 

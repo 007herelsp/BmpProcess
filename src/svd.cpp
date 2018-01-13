@@ -20,8 +20,7 @@
     \
 }
 
-static void
-iMatrAXPY_64f(int m, int n, const double *x, int dx,
+static void iMatrAXPY_64f(int m, int n, const double *x, int dx,
               const double *a, double *y, int dy)
 {
     int i, j;
@@ -47,8 +46,7 @@ iMatrAXPY_64f(int m, int n, const double *x, int dx,
     }
 }
 
-static void
-iMatrAXPY3_64f(int m, int n, const double *x, int l, double *y, double h)
+static void iMatrAXPY3_64f(int m, int n, const double *x, int l, double *y, double h)
 {
     int i, j;
 
@@ -84,8 +82,7 @@ iMatrAXPY3_64f(int m, int n, const double *x, int l, double *y, double h)
     }
 }
 
-static double
-pythag(double a, double b)
+static double pythag(double a, double b)
 {
     a = fabs(a);
     b = fabs(b);
@@ -105,8 +102,7 @@ pythag(double a, double b)
 
 #define MAX_ITERS 30
 
-static void
-iSVD_64f(double *a, int lda, int m, int n,
+static void iSVD_64f(double *a, int lda, int m, int n,
          double *w,
          double *uT, int lduT, int nu,
          double *vT, int ldvT,
@@ -497,8 +493,7 @@ iSVD_64f(double *a, int lda, int m, int n,
     }
 }
 
-static void
-iSVBkSb_64f(int m, int n, const double *w,
+static void iSVBkSb_64f(int m, int n, const double *w,
             const double *uT, int lduT,
             const double *vT, int ldvT,
             const double *b, int ldb, int nb,
