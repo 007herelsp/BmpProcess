@@ -540,25 +540,16 @@ CvContour;
 #define VOS_IS_SEQ(seq) \
     ((seq) != NULL && (((Seq*)(seq))->flags & VOS_MAGIC_MASK) == VOS_SEQ_MAGIC_VAL)
 
-#define VOS_SET_MAGIC_VAL             0x42980000
-#define VOS_IS_SET(set) \
-    ((set) != NULL && (((Seq*)(set))->flags & VOS_MAGIC_MASK) == VOS_SET_MAGIC_VAL)
-
 #define VOS_SEQ_ELTYPE_BITS           9
 #define VOS_SEQ_ELTYPE_MASK           ((1 << VOS_SEQ_ELTYPE_BITS) - 1)
 
 #define VOS_SEQ_ELTYPE_POINT          VOS_32SC2  /* (x,y) */
-#define VOS_SEQ_ELTYPE_CODE           VOS_8UC1   /* freeman code: 0..7 */
 #define VOS_SEQ_ELTYPE_GENERIC        0
-#define VOS_SEQ_ELTYPE_INDEX          VOS_32SC1  /* #(x,y) */
-#define VOS_SEQ_ELTYPE_TRIAN_ATR      0  /* vertex of the binary tree   */
-#define VOS_SEQ_ELTYPE_CONNECTED_COMP 0  /* connected component  */
 
 #define VOS_SEQ_KIND_BITS        3
 #define VOS_SEQ_KIND_MASK        (((1 << VOS_SEQ_KIND_BITS) - 1)<<VOS_SEQ_ELTYPE_BITS)
 
 /* types of sequences */
-#define VOS_SEQ_KIND_GENERIC     (0 << VOS_SEQ_ELTYPE_BITS)
 #define VOS_SEQ_KIND_CURVE       (1 << VOS_SEQ_ELTYPE_BITS)
 #define VOS_SEQ_KIND_BIN_TREE    (2 << VOS_SEQ_ELTYPE_BITS)
 
@@ -573,9 +564,6 @@ CvContour;
 /* point sets */
 #define VOS_SEQ_POLYLINE        (VOS_SEQ_KIND_CURVE  | VOS_SEQ_ELTYPE_POINT)
 #define VOS_SEQ_POLYGON         (VOS_SEQ_FLAG_CLOSED | VOS_SEQ_POLYLINE )
-
-/* sequence of the integer numbers */
-#define VOS_SEQ_INDEX           (VOS_SEQ_KIND_GENERIC  | VOS_SEQ_ELTYPE_INDEX)
 
 #define VOS_SEQ_ELTYPE( seq )   ((seq)->flags & VOS_SEQ_ELTYPE_MASK)
 #define VOS_SEQ_KIND( seq )     ((seq)->flags & VOS_SEQ_KIND_MASK )
@@ -594,8 +582,6 @@ CvContour;
 #define VOS_IS_SEQ_POLYLINE( seq )   \
     (VOS_SEQ_KIND(seq) == VOS_SEQ_KIND_CURVE && VOS_IS_SEQ_POINT_SET(seq))
 
-#define VOS_IS_SEQ_POLYGON( seq )   \
-    (VOS_IS_SEQ_POLYLINE(seq) && VOS_IS_SEQ_CLOSED(seq))
 
 typedef struct SeqWriter
 {

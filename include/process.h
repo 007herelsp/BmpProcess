@@ -17,11 +17,6 @@ typedef struct stContourScanner* ContourScanner;
 
 #define VOS_GAUSSIAN  2
 
-void GaussianSmooth( const VOID* src, VOID* dst,
-               int param1 VOS_DEFAULT(3),
-               int param2 VOS_DEFAULT(0),
-               double param3 VOS_DEFAULT(0),
-               double param4 VOS_DEFAULT(0));
 #define VOS_SCHARR -1
 #define VOS_MAX_SOBEL_KSIZE 7
 
@@ -39,8 +34,6 @@ void  WarpPerspective( const VOID* src, VOID* dst, const Mat* map_matrix,
 Mat* GetPerspectiveTransform( const Point2D32f* src,
                                 const Point2D32f* dst,
                                 Mat* map_matrix );
-
-#define  VOS_SHAPE_RECT      0
 
 void  Erode( const VOID* src, VOID* dst,  int iterations VOS_DEFAULT(1) );
 
@@ -232,18 +225,20 @@ protected:
     int kx_flags, ky_flags;
 };
 
+#define ERODE 0
+#define DILATE 1
+
+
 class  Morphology : public BaseImageFilter
 {
 public:
     Morphology();
     Morphology( int _operation, int _max_width, int _src_dst_type,
-                  int _element_shape, Mat* _element,
                   Size _ksize=GetSize(0,0), Point _anchor=InitPoint(-1,-1),
                   int _border_mode=SYS_BORDER_REPLICATE,
                   Scalar _border_value=ScalarAll(0) );
     virtual ~Morphology();
     virtual void init( int _operation, int _max_width, int _src_dst_type,
-                       int _element_shape, Mat* _element,
                        Size _ksize=GetSize(0,0), Point _anchor=InitPoint(-1,-1),
                        int _border_mode=SYS_BORDER_REPLICATE,
                        Scalar _border_value=ScalarAll(0) );
@@ -256,8 +251,7 @@ public:
 
     virtual void clear();
 
-    enum { RECT=0, CROSS=1, ELLIPSE=2, CUSTOM=100, BINARY = 0, GRAYSCALE=256 };
-    enum { ERODE=0, DILATE=1 };
+
 
 protected:
 
@@ -267,7 +261,6 @@ protected:
     uchar* el_sparse;
 
     Mat *element;
-    int el_shape;
     int operation;
 };
 

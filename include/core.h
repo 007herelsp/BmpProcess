@@ -35,9 +35,6 @@ ReleaseImage(IplImage **image);
 IplImage *
 CloneImage(const IplImage *image);
 
-
-int ImageStretchByHistogram(IplImage *src1,IplImage *dst1);
-
 Mat *
 CreateMatHeader(int rows, int cols, int type);
 

@@ -26,21 +26,15 @@
 #define VOS_StsBadSize                -201 /* the input/output structure size is incorrect  */
 #define VOS_StsDivByZero              -202 /* division by zero */
 #define VOS_StsUnmatchedFormats       -205 /* formats of input/output arrays differ */
-#define VOS_StsBadFlag                -206 /* flag is wrong or not supported */  
+#define VOS_StsBadFlag                -206 /* flag is wrong or not supported */
 #define VOS_StsUnmatchedSizes         -209 /* sizes of input/output structures do not match */
 #define VOS_StsUnsupportedFormat      -210 /* the data format/type is not supported by the function*/
 #define VOS_StsOutOfRange             -211 /* some of parameters are out of range */
 #define VOS_StsNotImplemented         -213 /* the requested function/feature is not implemented */
 
 
-#ifdef VOS_NO_FUNC_NAMES
-    #define VOS_FUNCNAME( Name )
-    #define sysFuncName ""
-#else    
     #define VOS_FUNCNAME( Name )  \
     static char sysFuncName[] = Name
-#endif
-
 
 #define VOS_ERROR( Code, Msg )                                       \
 {                                                                   \

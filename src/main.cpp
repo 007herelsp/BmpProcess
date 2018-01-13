@@ -107,7 +107,6 @@ void StartSearchProcess(IplImage *lpSrcImg, set<Box> &lstRes)
 						}
 					}
 
-
 					for (int i = 0; i < SHAPE; i++)
 					{
 						tp = (Point *)GetSeqElem(result, i);
@@ -269,20 +268,18 @@ int main(int argc, char **args)
 
 	IplImage *lpCannyImg = CreateImage(GetSize(lpTargetImg), 8, 1);
 	IplImage *lpDilateImg = CreateImage(GetSize(lpTargetImg), 8, 1);
-
 	set<Box> lstRes;
 	int iCunt = 0;
 	if (NULL != lpCannyImg && NULL != lpDilateImg)
 	{
 		for (int i = 0; i < channel; i++)
 		{
-			//GaussianSmooth(imagChannels[i], imagChannels[i], 3, 3, 0, 0);
 			//sprintf(name, "canny%d.bmp", i);
 			Canny(imagChannels[i], lpCannyImg, 0, 0, 3);
 			//SaveImage(name, lpCannyImg);
 			ReleaseImage(&imagChannels[i]);
-			Dilate(lpCannyImg, lpDilateImg,  1);
-			Erode(lpDilateImg, lpDilateImg,  1);
+			Dilate(lpCannyImg, lpDilateImg, 1);
+			Erode(lpDilateImg, lpDilateImg, 1);
 			StartSearchProcess(lpDilateImg, lstRes);
 		}
 

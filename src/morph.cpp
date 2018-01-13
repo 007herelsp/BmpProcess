@@ -14,23 +14,19 @@ static void iDilateRectCol_8u(const uchar **src, uchar *dst, int dst_step,
 
 Morphology::Morphology()
 {
-    element = NULL;
 }
 
 Morphology::Morphology(int _operation, int _max_width, int _src_dst_type,
-                       int _element_shape, Mat *_element,
                        Size _ksize, Point _anchor,
                        int _border_mode, Scalar _border_value)
 {
-    element = NULL;
     init(_operation, _max_width, _src_dst_type,
-         _element_shape, _element, _ksize, _anchor,
+          _ksize, _anchor,
          _border_mode, _border_value);
 }
 
 void Morphology::clear()
 {
-    ReleaseMat(&element);
     BaseImageFilter::clear();
 }
 
@@ -40,7 +36,6 @@ Morphology::~Morphology()
 }
 
 void Morphology::init(int _operation, int _max_width, int _src_dst_type,
-                      int _element_shape, Mat *_element,
                       Size _ksize, Point _anchor,
                       int _border_mode, Scalar _border_value)
 {
@@ -54,16 +49,14 @@ void Morphology::init(int _operation, int _max_width, int _src_dst_type,
         VOS_ERROR(VOS_StsBadArg, "Unknown/unsupported morphological operation");
 
     operation = _operation;
-    el_shape = _element_shape;
 
     VOS_CALL(BaseImageFilter::init(_max_width, _src_dst_type, _src_dst_type,
-                                   _element_shape == RECT, _ksize, _anchor, _border_mode, _border_value));
+                                   true, _ksize, _anchor, _border_mode, _border_value));
     if (VOS_8U != depth)
     {
         VOS_ERROR(VOS_BadDepth, "");
     }
-    if (el_shape == RECT)
-    {
+
         if ( ERODE==operation )
         {
             x_func = (RowFilterFunc)iErodeRectRow_8u;
@@ -78,11 +71,6 @@ void Morphology::init(int _operation, int _max_width, int _src_dst_type,
         {
             VOS_ERROR(VOS_StsNotImplemented, "");
         }
-    }
-    else
-    {
-        VOS_ERROR(VOS_StsNotImplemented, "");
-    }
 
     __END__;
 }
@@ -99,15 +87,13 @@ void Morphology::init(int _max_width, int _src_type, int _dst_type,
 void Morphology::start_process(Slice x_range, int width)
 {
     BaseImageFilter::start_process(x_range, width);
-    if (RECT == el_shape)
-    {
+
         int t = buf_max_count - max_ky * 2;
         if (t > 1 && t % 2 != 0)
         {
             buf_max_count--;
             buf_end -= buf_step;
         }
-    }
 }
 
 int Morphology::fill_cyclic_buffer(const uchar *src, int src_step,
@@ -179,8 +165,8 @@ int Morphology::fill_cyclic_buffer(const uchar *src, int src_step,
         }                                                     \
     }
 
-IVOS_MORPH_RECT_ROW(Erode, 8u, uchar, int, VOS_CALC_MIN_8U)
-IVOS_MORPH_RECT_ROW(Dilate, 8u, uchar, int, VOS_CALC_MAX_8U)
+IVOS_MORPH_RECT_ROW(Erode, 8u, uchar, int, VOS_CALC_MIN_8U);
+IVOS_MORPH_RECT_ROW(Dilate, 8u, uchar, int, VOS_CALC_MAX_8U);
 
 #define IVOS_MORPH_RECT_COL(name, flavor, arrtype,                                     \
                             worktype, update_extr_macro, toggle_macro)                 \
@@ -326,8 +312,8 @@ IVOS_MORPH_RECT_ROW(Dilate, 8u, uchar, int, VOS_CALC_MAX_8U)
         }                                                                              \
     }
 
-IVOS_MORPH_RECT_COL(Erode, 8u, uchar, int, VOS_CALC_MIN_8U, VOS_NOP)
-IVOS_MORPH_RECT_COL(Dilate, 8u, uchar, int, VOS_CALC_MAX_8U, VOS_NOP)
+IVOS_MORPH_RECT_COL(Erode, 8u, uchar, int, VOS_CALC_MIN_8U, VOS_NOP);
+IVOS_MORPH_RECT_COL(Dilate, 8u, uchar, int, VOS_CALC_MAX_8U, VOS_NOP);
 
 static void
 iMorphOp(const void *srcarr, void *dstarr, int iterations, int mop)
@@ -344,10 +330,8 @@ iMorphOp(const void *srcarr, void *dstarr, int iterations, int mop)
     int i, coi1 = 0, coi2 = 0;
     Mat srcstub, *src = (Mat *)srcarr;
     Mat dststub, *dst = (Mat *)dstarr;
-    Mat  *el = 0;
     Size size, el_size;
     Point el_anchor;
-    int el_shape;
 
     if (!VOS_IS_MAT(src))
         VOS_CALL(src = GetMat(src, &srcstub, &coi1));
@@ -388,7 +372,6 @@ iMorphOp(const void *srcarr, void *dstarr, int iterations, int mop)
 
     el_size = GetSize(3, 3);
     el_anchor = InitPoint(1, 1);
-    el_shape = VOS_SHAPE_RECT;
 
     if (iterations > 1)
     {
@@ -400,7 +383,7 @@ iMorphOp(const void *srcarr, void *dstarr, int iterations, int mop)
     }
 
     VOS_CALL(morphology.init(mop, src->cols, src->type,
-                             el_shape, el, el_size, el_anchor));
+                              el_size, el_anchor));
 
     for (i = 0; i < iterations; i++)
     {
@@ -418,12 +401,12 @@ iMorphOp(const void *srcarr, void *dstarr, int iterations, int mop)
 
 void Erode(const void *src, void *dst,  int iterations)
 {
-    iMorphOp(src, dst,iterations, 0);
+    iMorphOp(src, dst,iterations, ERODE);
 }
 
 void Dilate(const void *src, void *dst,  int iterations)
 {
-    iMorphOp(src, dst, iterations, 1);
+    iMorphOp(src, dst, iterations, DILATE);
 }
 
 /* End of file. */
