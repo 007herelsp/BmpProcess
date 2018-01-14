@@ -10,7 +10,7 @@
 
 using namespace std;
 
-static double angle(Point *pt1, Point *pt2, Point *pt0)
+static double CaclAngle(Point *pt1, Point *pt2, Point *pt0)
 {
 	double dx1 = pt1->x - pt0->x;
 	double dy1 = pt1->y - pt0->y;
@@ -18,7 +18,7 @@ static double angle(Point *pt1, Point *pt2, Point *pt0)
 	double dy2 = pt2->y - pt0->y;
 	return (dx1 * dx2 + dy1 * dy2) / sqrt((dx1 * dx1 + dy1 * dy1) * (dx2 * dx2 + dy2 * dy2) + 1e-10);
 }
-//static const float MAX_P = 40.0f;
+//static const float MAX_P = 10.0f;
 #define MAX_P 10.0
 typedef struct tagBox
 {
@@ -87,7 +87,7 @@ void StartSearchProcess(IplImage *lpSrcImg, set<Box> &lstRes)
 		{
 			if (SHAPE == result->total)
 			{
-				dContourArea = fabs(ContourArea(result, VOS_WHOLE_SEQ));
+				dContourArea = fabs(GetContourArea(result, VOS_WHOLE_SEQ));
 				if (dContourArea >= MIN_ContourArea && dContourArea <= MAX_ContourArea && CheckContourConvexity(result))
 				{
 					End_Rage2D = MinAreaRect(result);
@@ -96,10 +96,10 @@ void StartSearchProcess(IplImage *lpSrcImg, set<Box> &lstRes)
 					box.box = End_Rage2D;
 					for (index = 2; index < 5; index++)
 					{
-						// find minimum angle between joint edges (maximum of cosine)
+						// find minimum CaclAngle between joint edges (maximum of cosine)
 						if (index >= 2)
 						{
-							t = fabs(angle(
+							t = fabs(CaclAngle(
 								(Point *)GetSeqElem(result, index % SHAPE),
 								(Point *)GetSeqElem(result, index - 2),
 								(Point *)GetSeqElem(result, index - 1)));
@@ -264,7 +264,7 @@ int main(int argc, char **args)
 		assert(NULL != imagChannels[i]);
 	}
 
-	CvtBgr2Gray_8u_C3C1(lpTargetImg, imagChannels[0], imagChannels[1], imagChannels[2]);
+	BGR2GRAY_8u_C3C1(lpTargetImg, imagChannels[0], imagChannels[1], imagChannels[2]);
 
 	IplImage *lpCannyImg = CreateImage(GetSize(lpTargetImg), 8, 1);
 	IplImage *lpDilateImg = CreateImage(GetSize(lpTargetImg), 8, 1);

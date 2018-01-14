@@ -6,8 +6,7 @@ static const signed char iDepthToType[] =
         -1, -1, VOS_8U, VOS_8S, VOS_16U, VOS_16S, -1, -1,
         VOS_32F, VOS_32S, -1, -1, -1, -1, -1, -1, VOS_64F, -1};
 
-#define iIplToCvDepth(depth) \
-    iDepthToType[(((depth)&255) >> 2) + ((depth) < 0)]
+#define iIplToDepth(depth) iDepthToType[(((depth)&255) >> 2) + ((depth) < 0)]
 
 Mat *CreateMat(int height, int width, int type)
 {
@@ -46,15 +45,15 @@ Mat *CreateMatHeader(int rows, int cols, int type)
     type = VOS_MAT_TYPE(type);
 
     if (rows <= 0 || cols <= 0)
-        VOS_ERROR(VOS_StsBadSize, "Non-positive width or height");
+        VOS_ERROR(VOS_StsBadSize, "");
 
     min_step = VOS_ELEM_SIZE(type) * cols;
     if (min_step <= 0)
-        VOS_ERROR(VOS_StsUnsupportedFormat, "Invalid matrix type");
+        VOS_ERROR(VOS_StsUnsupportedFormat, "");
 
     VOS_CALL(arr = (Mat *)SysAlloc(sizeof(*arr)));
 
-    arr->step = rows == 1 ? 0 : Align(min_step, VOS_DEFAULT_MAT_ROW_ALIGN);
+    arr->step = rows == 1 ? 0 : SysAlign(min_step, VOS_DEFAULT_MAT_ROW_ALIGN);
     arr->type = VOS_MAT_MAGIC_VAL | type |
                 (arr->step == 0 || arr->step == min_step ? VOS_MAT_CONT_FLAG : 0);
     arr->rows = rows;
@@ -89,7 +88,7 @@ Mat *InitMatHeader(Mat *arr, int rows, int cols,
         VOS_ERROR_FROM_CODE(VOS_BadNumChannels);
 
     if (rows <= 0 || cols <= 0)
-        VOS_ERROR(VOS_StsBadSize, "Non-positive cols or rows");
+        VOS_ERROR(VOS_StsBadSize, "");
 
     type = VOS_MAT_TYPE(type);
     arr->type = type | VOS_MAT_MAGIC_VAL;
@@ -103,7 +102,7 @@ Mat *InitMatHeader(Mat *arr, int rows, int cols,
     pix_size = VOS_ELEM_SIZE(type);
     min_step = arr->cols * pix_size & mask;
 
-    if ( VOS_AUTOSTEP!=step  &&  0!=step )
+    if (VOS_AUTOSTEP != step && 0 != step)
     {
         if (step < min_step)
             VOS_ERROR_FROM_CODE(VOS_BadStep);
@@ -161,36 +160,35 @@ void CreateData(VOID *arr)
         Mat *mat = (Mat *)arr;
         step = mat->step;
 
-        if ( NULL!=mat->data.ptr )
-            VOS_ERROR(VOS_StsError, "Data is already allocated");
+        if (NULL != mat->data.ptr)
+            VOS_ERROR(VOS_StsError, "");
 
-        if ( 0==step )
+        if (0 == step)
             step = VOS_ELEM_SIZE(mat->type) * mat->cols;
 
         total_size = step * mat->rows + sizeof(int) + VOS_MALLOC_ALIGN;
         VOS_CALL(mat->refcount = (int *)SysAlloc((size_t)total_size));
-        mat->data.ptr = (uchar *)AlignPtr(mat->refcount + 1, VOS_MALLOC_ALIGN);
+        mat->data.ptr = (uchar *)SysAlignPtr(mat->refcount + 1, VOS_MALLOC_ALIGN);
         *mat->refcount = 1;
     }
     else if (VOS_IS_IMAGE_HDR(arr))
     {
         IplImage *img = (IplImage *)arr;
 
-        if ( NULL!=img->imageData )
-            VOS_ERROR(VOS_StsError, "Data is already allocated");
+        if (NULL != img->imageData)
+            VOS_ERROR(VOS_StsError, "");
 
         VOS_CALL(img->imageData = img->imageDataOrigin =
                      (char *)SysAlloc((size_t)img->imageSize));
     }
     else
     {
-        VOS_ERROR(VOS_StsBadArg, "unrecognized or unsupported array type");
+        VOS_ERROR(VOS_StsBadArg, "");
     }
 
     __END__;
 }
 
-// Assigns external data to array
 void SetData(VOID *arr, void *data, int step)
 {
     VOS_FUNCNAME("SetData");
@@ -210,9 +208,9 @@ void SetData(VOID *arr, void *data, int step)
         pix_size = VOS_ELEM_SIZE(type);
         min_step = mat->cols * pix_size & ((mat->rows <= 1) - 1);
 
-        if ( VOS_AUTOSTEP!=step )
+        if (VOS_AUTOSTEP != step)
         {
-            if (step < min_step &&  NULL!=data )
+            if (step < min_step && NULL != data)
                 VOS_ERROR_FROM_CODE(VOS_BadStep);
             mat->step = step & ((mat->rows <= 1) - 1);
         }
@@ -233,9 +231,9 @@ void SetData(VOID *arr, void *data, int step)
         pix_size = ((img->depth & 255) >> 3) * img->nChannels;
         min_step = img->width * pix_size;
 
-        if ( VOS_AUTOSTEP!=step  && img->height > 1)
+        if (VOS_AUTOSTEP != step && img->height > 1)
         {
-            if (step < min_step &&  NULL!=data )
+            if (step < min_step && NULL != data)
                 VOS_ERROR_FROM_CODE(VOS_BadStep);
             img->widthStep = step;
         }
@@ -248,7 +246,7 @@ void SetData(VOID *arr, void *data, int step)
         img->imageData = img->imageDataOrigin = (char *)data;
 
         if ((((int)(size_t)data | step) & 7) == 0 &&
-            Align(img->width * pix_size, 8) == step)
+            SysAlign(img->width * pix_size, 8) == step)
         {
             img->align = 8;
         }
@@ -259,13 +257,12 @@ void SetData(VOID *arr, void *data, int step)
     }
     else
     {
-        VOS_ERROR(VOS_StsBadArg, "unrecognized or unsupported array type");
+        VOS_ERROR(VOS_StsBadArg, "");
     }
 
     __END__;
 }
 
-// Deallocates array's data
 void ReleaseData(VOID *arr)
 {
     VOS_FUNCNAME("ReleaseData");
@@ -287,13 +284,12 @@ void ReleaseData(VOID *arr)
     }
     else
     {
-        VOS_ERROR(VOS_StsBadArg, "unrecognized or unsupported array type");
+        VOS_ERROR(VOS_StsBadArg, "");
     }
 
     __END__;
 }
 
-// Returns the size of Mat or IplImage
 Size GetSize(const VOID *arr)
 {
     Size size = {0, 0};
@@ -318,7 +314,7 @@ Size GetSize(const VOID *arr)
     }
     else
     {
-        VOS_ERROR(VOS_StsBadArg, "Array should be Mat or IplImage");
+        VOS_ERROR(VOS_StsBadArg, "");
     }
 
     __END__;
@@ -339,7 +335,7 @@ void ScalarToRawData(const Scalar *scalar, void *data, int type)
 
     assert(scalar && data);
     if ((unsigned)(cn - 1) >= 4)
-        VOS_ERROR(VOS_StsOutOfRange, "The number of channels must be 1, 2, 3 or 4");
+        VOS_ERROR(VOS_StsOutOfRange, "");
 
     if (VOS_8UC1 != depth)
     {
@@ -366,12 +362,12 @@ Mat *GetMat(const VOID *array, Mat *mat,
     __BEGIN__;
 
     if (!mat || !src)
-        VOS_ERROR(VOS_StsNullPtr, "NULL array pointer is passed");
+        VOS_ERROR(VOS_StsNullPtr, "");
 
     if (VOS_IS_MAT_HDR(src))
     {
         if (!src->data.ptr)
-            VOS_ERROR(VOS_StsNullPtr, "The matrix has NULL data pointer");
+            VOS_ERROR(VOS_StsNullPtr, "");
 
         result = (Mat *)src;
     }
@@ -380,10 +376,10 @@ Mat *GetMat(const VOID *array, Mat *mat,
         const IplImage *img = (const IplImage *)src;
         int depth, order;
 
-        if ( NULL==img->imageData )
-            VOS_ERROR(VOS_StsNullPtr, "The image has NULL data pointer");
+        if (NULL == img->imageData)
+            VOS_ERROR(VOS_StsNullPtr, "");
 
-        depth = iIplToCvDepth(img->depth);
+        depth = iIplToDepth(img->depth);
         if (depth < 0)
             VOS_ERROR_FROM_CODE(VOS_BadDepth);
 
@@ -392,7 +388,7 @@ Mat *GetMat(const VOID *array, Mat *mat,
             int type = VOS_MAKETYPE(depth, img->nChannels);
 
             if (order != SYS_DATA_ORDER_PIXEL)
-                VOS_ERROR(VOS_StsBadFlag, "Pixel order should be used with coi == 0");
+                VOS_ERROR(VOS_StsBadFlag, "");
 
             VOS_CALL(InitMatHeader(mat, img->height, img->width, type,
                                    img->imageData, img->widthStep));
@@ -402,7 +398,7 @@ Mat *GetMat(const VOID *array, Mat *mat,
     }
     else
     {
-        VOS_ERROR(VOS_StsBadFlag, "Unrecognized or unsupported array type");
+        VOS_ERROR(VOS_StsBadFlag, "");
     }
 
     __END__;
@@ -467,22 +463,22 @@ InitImageHeader(IplImage *image, Size size, int depth,
     __BEGIN__;
 
     if (!image)
-        VOS_ERROR(VOS_HeaderIsNull, "null pointer to header");
+        VOS_ERROR(VOS_HeaderIsNull, "");
 
     VOS_MEMSET(image, 0, sizeof(*image));
     image->nSize = sizeof(*image);
 
     if (size.width < 0 || size.height < 0)
-        VOS_ERROR(VOS_BadROISize, "Bad input roi");
+        VOS_ERROR(VOS_BadROISize, "");
 
     if (((depth != (int)SYS_DEPTH_8U) && ((depth != (int)SYS_DEPTH_32F))) ||
         (channels < 0))
-        VOS_ERROR(VOS_BadDepth, "Unsupported format");
+        VOS_ERROR(VOS_BadDepth, "");
     if (origin != VOS_ORIGIN_BL && origin != VOS_ORIGIN_TL)
-        VOS_ERROR(VOS_BadOrigin, "Bad input origin");
+        VOS_ERROR(VOS_BadOrigin, "");
 
     if (align != 4 && align != 8)
-        VOS_ERROR(VOS_BadAlign, "Bad input align");
+        VOS_ERROR(VOS_BadAlign, "");
 
     image->width = size.width;
     image->height = size.height;
@@ -546,8 +542,7 @@ void ReleaseImage(IplImage **image)
     __END__;
 }
 
-IplImage *
-CloneImage(const IplImage *src)
+IplImage *CloneImage(const IplImage *src)
 {
     IplImage *dst = NULL;
     VOS_FUNCNAME("CloneImage");
@@ -555,7 +550,7 @@ CloneImage(const IplImage *src)
     __BEGIN__;
 
     if (!VOS_IS_IMAGE_HDR(src))
-        VOS_ERROR(VOS_StsBadArg, "Bad image header");
+        VOS_ERROR(VOS_StsBadArg, "");
 
     VOS_CALL(dst = (IplImage *)SysAlloc(sizeof(*dst)));
 
@@ -576,6 +571,5 @@ CloneImage(const IplImage *src)
 
     return dst;
 }
-
 
 /* End of file. */

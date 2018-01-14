@@ -24,7 +24,7 @@ iSklansky_32s(Point **array, int start, int end, int *stack, int nsign, int sign
 
     while (pnext != end)
     {
-        /* check the angle p1,p2,p3 */
+        /* check the CaclAngle p1,p2,p3 */
         int cury = array[pcur]->y;
         int nexty = array[pnext]->y;
         int by = nexty - cury;
@@ -34,7 +34,7 @@ iSklansky_32s(Point **array, int start, int end, int *stack, int nsign, int sign
             int ax = array[pcur]->x - array[pprev]->x;
             int bx = array[pnext]->x - array[pcur]->x;
             int ay = cury - array[pprev]->y;
-            int convexity = ay * bx - ax * by; /* if >0 then convex angle */
+            int convexity = ay * bx - ax * by; /* if >0 then convex CaclAngle */
 
             if (VOS_SIGN(convexity) == sign2 && (ax != 0 || ay != 0))
             {
@@ -269,8 +269,7 @@ Seq *ConvexHull2(const VOID *array, void *hull_storage,
     if (0 == total)
     {
         if (mat)
-            VOS_ERROR(VOS_StsBadSize,
-                      "Point sequence can not be empty if the output is matrix");
+            VOS_ERROR(VOS_StsBadSize,"");
         EXIT;
     }
 
@@ -446,7 +445,7 @@ int CheckContourConvexity(const VOID *array)
     }
     else
     {
-        VOS_ERROR(VOS_StsBadArg, "Unsupported sequence type");
+        VOS_ERROR(VOS_StsBadArg, "");
     }
 
     __END__;

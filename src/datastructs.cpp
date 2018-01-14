@@ -5,7 +5,7 @@
     ((char *)(storage)->top + (storage)->block_size - (storage)->free_space)
 
 #define IVOS_ALIGNED_SEQ_BLOCK_SIZE \
-    (int)Align(sizeof(SeqBlock), VOS_STRUCT_ALIGN)
+    (int)SysAlign(sizeof(SeqBlock), VOS_STRUCT_ALIGN)
 
 VOS_INLINE int sysAlignLeft(int size, int align)
 {
@@ -33,7 +33,7 @@ static void iInitMemStorage(MemStorage *storage, int block_size)
     if (block_size <= 0)
         block_size = VOS_STORAGE_BLOCK_SIZE;
 
-    block_size = Align(block_size, VOS_STRUCT_ALIGN);
+    block_size = SysAlign(block_size, VOS_STRUCT_ALIGN);
     assert(sizeof(MemBlock) % VOS_STRUCT_ALIGN == 0);
 
     VOS_MEMSET(storage, 0, sizeof(*storage));
@@ -289,10 +289,10 @@ void * MemStorageAlloc(MemStorage *storage, size_t size)
     __BEGIN__;
 
     if (!storage)
-        VOS_ERROR(VOS_StsNullPtr, "NULL storage pointer");
+        VOS_ERROR(VOS_StsNullPtr, "");
 
     if (size > INT_MAX)
-        VOS_ERROR(VOS_StsOutOfRange, "Too large memory block is requested");
+        VOS_ERROR(VOS_StsOutOfRange, "");
 
     assert(storage->free_space % VOS_STRUCT_ALIGN == 0);
 
@@ -300,7 +300,7 @@ void * MemStorageAlloc(MemStorage *storage, size_t size)
     {
         size_t max_free_space = sysAlignLeft(storage->block_size - sizeof(MemBlock), VOS_STRUCT_ALIGN);
         if (max_free_space < size)
-            VOS_ERROR(VOS_StsOutOfRange, "requested size is negative or too big");
+            VOS_ERROR(VOS_StsOutOfRange, "");
 
         VOS_CALL(iGoNextMemBlock(storage));
     }
@@ -339,9 +339,7 @@ Seq *CreateSeq(int seq_flags, int header_size, int elem_size, MemStorage *storag
 
         if (elemtype != VOS_SEQ_ELTYPE_GENERIC &&
             typesize != 0 && typesize != elem_size)
-            VOS_ERROR(VOS_StsBadSize,
-                      "Specified element size doesn't match to the size of the specified element type "
-                      "(try to use 0 for element type)");
+            VOS_ERROR(VOS_StsBadSize,"");
     }
     seq->elem_size = elem_size;
     seq->storage = storage;
@@ -381,8 +379,7 @@ void SetSeqBlockSize(Seq *seq, int delta_elements)
     {
         delta_elements = useful_block_size / elem_size;
         if (0 == delta_elements)
-            VOS_ERROR(VOS_StsOutOfRange, "Storage block size is too small "
-                                         "to fit the sequence elements");
+            VOS_ERROR(VOS_StsOutOfRange,"");
     }
 
     seq->delta_elems = delta_elements;
@@ -474,7 +471,7 @@ iGrowSeq(Seq *seq, int in_front_of)
             SetSeqBlockSize(seq, delta_elems * 2);
 
         if (!storage)
-            VOS_ERROR(VOS_StsNullPtr, "The sequence has NULL storage pointer");
+            VOS_ERROR(VOS_StsNullPtr, "");
 
         if ((unsigned)(IVOS_FREE_PTR(storage) - seq->block_max) < VOS_STRUCT_ALIGN &&
             storage->free_space >= seq->elem_size && !in_front_of)
@@ -511,7 +508,7 @@ iGrowSeq(Seq *seq, int in_front_of)
             }
 
             VOS_CALL(block = (SeqBlock *)MemStorageAlloc(storage, delta));
-            block->data = (char *)AlignPtr(block + 1, VOS_STRUCT_ALIGN);
+            block->data = (char *)SysAlignPtr(block + 1, VOS_STRUCT_ALIGN);
             block->count = delta - IVOS_ALIGNED_SEQ_BLOCK_SIZE;
             block->prev = block->next = NULL;
         }
@@ -652,7 +649,6 @@ void StartAppendToSeq(Seq *seq, SeqWriter *writer)
     __END__;
 }
 
-/* initializes sequence writer */
 void StartWriteSeq(int seq_flags, int header_size,
                    int elem_size, MemStorage *storage, SeqWriter *writer)
 {
@@ -671,7 +667,6 @@ void StartWriteSeq(int seq_flags, int header_size,
     __END__;
 }
 
-/* updates sequence header */
 void FlushSeqWriter(SeqWriter *writer)
 {
     Seq *seq = NULL;
@@ -975,7 +970,6 @@ void SetSeqReaderPos(SeqReader *reader, int index, int is_relative)
     __END__;
 }
 
-/* pushes element to the sequence */
 char *
 SeqPush(Seq *seq, void *element)
 {
@@ -1051,9 +1045,9 @@ void SeqPopMulti(Seq *seq, void *_elements, int count, int front)
     __BEGIN__;
 
     if (!seq)
-        VOS_ERROR(VOS_StsNullPtr, "NULL sequence pointer");
+        VOS_ERROR(VOS_StsNullPtr, "");
     if (count < 0)
-        VOS_ERROR(VOS_StsBadSize, "number of removed elements is negative");
+        VOS_ERROR(VOS_StsBadSize, "");
 
     count = VOS_MIN(count, seq->total);
 

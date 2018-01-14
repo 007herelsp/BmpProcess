@@ -1,75 +1,71 @@
-
 #include "process.h"
 #include "misc.h"
 
-static int
-Solve( const VOID* A, const VOID* b, VOID* x, int method )
+static int Solve(const VOID *A, const VOID *b, VOID *x, int method)
 {
-    Mat* u = NULL;
-    Mat* v = NULL;
-    Mat* w = NULL;
+    Mat *u = NULL;
+    Mat *v = NULL;
+    Mat *w = NULL;
 
-    uchar* buffer = NULL;
+    uchar *buffer = NULL;
     int local_alloc = 0;
     int result = 1;
 
-    VOS_FUNCNAME( "Solve" );
+    VOS_FUNCNAME("Solve");
 
     __BEGIN__;
 
-    Mat sstub, *src = (Mat*)A;
-    Mat dstub, *dst = (Mat*)x;
-    Mat bstub, *src2 = (Mat*)b;
+    Mat sstub, *src = (Mat *)A;
+    Mat dstub, *dst = (Mat *)x;
+    Mat bstub, *src2 = (Mat *)b;
 
-    if( !VOS_IS_MAT( src ))
-        VOS_CALL( src = GetMat( src, &sstub ));
+    if (!VOS_IS_MAT(src))
+        VOS_CALL(src = GetMat(src, &sstub));
 
-    if( !VOS_IS_MAT( src2 ))
-        VOS_CALL( src2 = GetMat( src2, &bstub ));
+    if (!VOS_IS_MAT(src2))
+        VOS_CALL(src2 = GetMat(src2, &bstub));
 
-    if( !VOS_IS_MAT( dst ))
-        VOS_CALL( dst = GetMat( dst, &dstub ));
+    if (!VOS_IS_MAT(dst))
+        VOS_CALL(dst = GetMat(dst, &dstub));
 
-    if( VOS_SVD == method ||   VOS_SVD_SYM ==method)
+    if (VOS_SVD == method || VOS_SVD_SYM == method)
     {
-        int n = VOS_MIN(src->rows,src->cols);
+        int n = VOS_MIN(src->rows, src->cols);
 
-        if(  VOS_SVD_SYM==method  && src->rows != src->cols )
-            VOS_ERROR( VOS_StsBadSize, "VOS_SVD_SYM method is used for non-square matrix" );
+        if (VOS_SVD_SYM == method && src->rows != src->cols)
+            VOS_ERROR(VOS_StsBadSize, "");
 
-        VOS_CALL( u = CreateMat( n, src->rows, src->type ));
-        if(  VOS_SVD_SYM!=method  )
-            VOS_CALL( v = CreateMat( n, src->cols, src->type ));
-        VOS_CALL( w = CreateMat( n, 1, src->type ));
-        VOS_CALL( SVD( src, w, u, v, VOS_SVD_U_T + VOS_SVD_V_T ));
-        VOS_CALL( SVBkSb( w, u, v ? v : u, src2, dst, VOS_SVD_U_T + VOS_SVD_V_T ));
+        VOS_CALL(u = CreateMat(n, src->rows, src->type));
+        if (VOS_SVD_SYM != method)
+            VOS_CALL(v = CreateMat(n, src->cols, src->type));
+        VOS_CALL(w = CreateMat(n, 1, src->type));
+        VOS_CALL(SVD(src, w, u, v, VOS_SVD_U_T + VOS_SVD_V_T));
+        VOS_CALL(SVBkSb(w, u, v ? v : u, src2, dst, VOS_SVD_U_T + VOS_SVD_V_T));
     }
     else
-        VOS_ERROR( VOS_StsBadArg, "Unknown inversion method" );
-
+        VOS_ERROR(VOS_StsBadArg, "");
 
     __END__;
 
-    if( buffer && !local_alloc )
-        SYS_FREE( &buffer );
+    if (buffer && !local_alloc)
+        SYS_FREE(&buffer);
 
-    if( u || v || w )
+    if (u || v || w)
     {
-        ReleaseMat( &u );
-        ReleaseMat( &v );
-        ReleaseMat( &w );
+        ReleaseMat(&u);
+        ReleaseMat(&v);
+        ReleaseMat(&w);
     }
 
     return result;
 }
 
-
 #define VOS_WARP_CLIP_X(x) ((unsigned)(x) < (unsigned)ssize.width ? (x) : (x) < 0 ? 0 : ssize.width - 1)
 #define VOS_WARP_CLIP_Y(y) ((unsigned)(y) < (unsigned)ssize.height ? (y) : (y) < 0 ? 0 : ssize.height - 1)
 
 static int iWarpPerspective_Bilinear_8u_CnR(const uchar *src, int step,
-                                                   Size ssize, uchar *dst, int dststep, Size dsize,
-                                                   const double *matrix, int cn, const uchar *fillval)
+                                            Size ssize, uchar *dst, int dststep, Size dsize,
+                                            const double *matrix, int cn, const uchar *fillval)
 {
     int x, y, k;
     float A11 = (float)matrix[0], A12 = (float)matrix[1], A13 = (float)matrix[2];
@@ -115,8 +111,8 @@ static int iWarpPerspective_Bilinear_8u_CnR(const uchar *src, int step,
                 ptr3 = src + y1 * step + x1 * cn;
                 for (k = 0; k < cn; k++)
                 {
-                    p0 = VOS_8TO32F(ptr0[k])  + a * (VOS_8TO32F(ptr1[k])  - VOS_8TO32F(ptr0[k]) );
-                    p1 = VOS_8TO32F(ptr2[k]) + a * (VOS_8TO32F(ptr3[k])  - VOS_8TO32F(ptr2[k]) );
+                    p0 = VOS_8TO32F(ptr0[k]) + a * (VOS_8TO32F(ptr1[k]) - VOS_8TO32F(ptr0[k]));
+                    p1 = VOS_8TO32F(ptr2[k]) + a * (VOS_8TO32F(ptr3[k]) - VOS_8TO32F(ptr2[k]));
                     dst[x * cn + k] = (uchar)SysRound(p0 + b * (p1 - p0));
                 }
             }
@@ -128,9 +124,8 @@ static int iWarpPerspective_Bilinear_8u_CnR(const uchar *src, int step,
     return VOS_StsOk;
 }
 
- void
-WarpPerspective(const VOID *srcarr, VOID *dstarr,
-                  const Mat *matrix, int flags, Scalar fillval)
+void WarpPerspective(const VOID *srcarr, VOID *dstarr,
+                     const Mat *matrix, int flags, Scalar fillval)
 {
     VOS_FUNCNAME("WarpPerspective");
 
@@ -150,9 +145,7 @@ WarpPerspective(const VOID *srcarr, VOID *dstarr,
     if (!VOS_ARE_TYPES_EQ(src, dst))
         VOS_ERROR(VOS_StsUnmatchedFormats, "");
 
-
-        ConvertScale(matrix, &invA);
-
+    ConvertScale(matrix, &invA);
 
     type = VOS_MAT_TYPE(src->type);
     depth = VOS_MAT_DEPTH(type);
@@ -167,16 +160,15 @@ WarpPerspective(const VOID *srcarr, VOID *dstarr,
     ScalarToRawData(&fillval, fillbuf, VOS_MAT_TYPE(src->type));
 
     VOS_FUN_CALL(iWarpPerspective_Bilinear_8u_CnR(src->data.ptr, src->step, ssize, dst->data.ptr,
-                                                 dst->step, dsize, dst_matrix, cn,
-                                                 (const uchar *)(flags & VOS_WARP_FILL_OUTLIERS ? fillbuf : 0)));
+                                                  dst->step, dsize, dst_matrix, cn,
+                                                  (const uchar *)(flags & VOS_WARP_FILL_OUTLIERS ? fillbuf : 0)));
 
     __END__;
 }
 
- Mat *
-GetPerspectiveTransform(const Point2D32f *src,
-                          const Point2D32f *dst,
-                          Mat *matrix)
+Mat *GetPerspectiveTransform(const Point2D32f *src,
+                             const Point2D32f *dst,
+                             Mat *matrix)
 {
     VOS_FUNCNAME("GetPerspectiveTransform");
 

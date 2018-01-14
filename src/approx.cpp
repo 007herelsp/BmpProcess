@@ -1,8 +1,7 @@
 #include "process.h"
 #include "misc.h"
 
-static int
-iApproxPolyDP_32s(Seq *src_contour, int header_size,
+static int iApproxPolyDP_32s(Seq *src_contour, int header_size,
                   MemStorage *storage,
                   Seq **dst_contour, float eps)
 {
@@ -54,14 +53,13 @@ iApproxPolyDP_32s(Seq *src_contour, int header_size,
 
     if (is_closed)
     {
-        /* 1. Find approximately two farthest points of the contour */
         right_slice.start_index = 0;
 
         for (i = 0; i < init_iters; i++)
         {
             int max_dist = 0;
             SetSeqReaderPos(&reader, right_slice.start_index, 1);
-            VOS_READ_SEQ_ELEM(start_pt, reader); /* read the first point */
+            VOS_READ_SEQ_ELEM(start_pt, reader);
 
             for (j = 1; j < count; j++)
             {
@@ -83,7 +81,6 @@ iApproxPolyDP_32s(Seq *src_contour, int header_size,
             le_eps = max_dist <= eps;
         }
 
-        /* 2. initialize the stack */
         if (!le_eps)
         {
             slice.start_index = GetSeqReaderPos(&reader);
@@ -101,7 +98,6 @@ iApproxPolyDP_32s(Seq *src_contour, int header_size,
             VOS_WRITE_SEQ_ELEM(start_pt, writer);
     }
 
-    /* 3. run recursive process */
     while (0 != stack->total)
     {
         SeqPop(stack, &slice);
@@ -224,20 +220,19 @@ Seq *ApproxPoly(const void *array, int header_size,
         storage = src_seq->storage;
 
     if (!storage)
-        VOS_ERROR(VOS_StsNullPtr, "NULL storage pointer ");
+        VOS_ERROR(VOS_StsNullPtr, "");
 
     if (header_size < 0)
-        VOS_ERROR(VOS_StsOutOfRange, "header_size is negative. "
-                                     "Pass 0 to make the destination header_size == input header_size");
+        VOS_ERROR(VOS_StsOutOfRange, "");
 
     if (0 == header_size)
         header_size = src_seq->header_size;
 
     if (header_size < (int)sizeof(Contour))
-        VOS_ERROR(VOS_StsBadSize, "New header size must be non-less than sizeof(Contour)");
+        VOS_ERROR(VOS_StsBadSize, "");
 
     if (parameter < 0)
-        VOS_ERROR(VOS_StsOutOfRange, "Accuracy must be non-negative");
+        VOS_ERROR(VOS_StsOutOfRange, "");
 
     while (NULL != src_seq)
     {

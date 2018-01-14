@@ -43,7 +43,7 @@ void Morphology::init(int _operation, int _max_width, int _src_dst_type,
     int depth = VOS_MAT_DEPTH(_src_dst_type);
 
     if (_operation != ERODE && _operation != DILATE)
-        VOS_ERROR(VOS_StsBadArg, "Unknown/unsupported morphological operation");
+        VOS_ERROR(VOS_StsBadArg, "");
 
     operation = _operation;
 

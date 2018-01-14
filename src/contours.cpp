@@ -118,10 +118,10 @@ static void Threshold(const void *srcarr, void *dstarr, double thresh, double ma
     VOS_CALL(dst = GetMat(dst, &dst_stub, &coi2));
 
     if (coi1 + coi2)
-        VOS_ERROR(VOS_BadCOI, "COI is not supported by the function");
+        VOS_ERROR(VOS_BadCOI, "");
 
     if (!VOS_ARE_CNS_EQ(src, dst))
-        VOS_ERROR(VOS_StsUnmatchedFormats, "Both arrays must have equal number of channels");
+        VOS_ERROR(VOS_StsUnmatchedFormats, "");
 
     if (!VOS_ARE_DEPTHS_EQ(src, dst))
     {
@@ -185,10 +185,10 @@ StartFindContours(void *_img, MemStorage *storage,
     img = (uchar *)(mat->data.ptr);
 
     if (method < 0 || method > VOS_LINK_RUNS)
-        VOS_ERROR(VOS_StsBadArg, "function failed");
+        VOS_ERROR(VOS_StsBadArg, "");
 
     if (header_size < (int)(sizeof(Contour)))
-        VOS_ERROR(VOS_StsBadSize, "function failed");
+        VOS_ERROR(VOS_StsBadSize, "");
 
     scanner = (ContourScanner)SysAlloc(sizeof(*scanner));
     if (!scanner)
@@ -603,7 +603,7 @@ int FindContours(void *img, MemStorage *storage,
     __BEGIN__;
 
     if (!firstContour)
-        VOS_ERROR(VOS_StsNullPtr, "NULL double Seq pointer");
+        VOS_ERROR(VOS_StsNullPtr, "");
 
     VOS_CALL(scanner = StartFindContours(img, storage,
                                          cntHeaderSize, mode, method, offset));

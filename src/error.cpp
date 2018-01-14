@@ -18,8 +18,7 @@ typedef struct Context
 
 #define VOS_DEFAULT_ERROR_CALLBACK StdErrReport
 
-static Context *
-iCreateContext(void)
+static Context *iCreateContext(void)
 {
     Context *context = (Context *)malloc(sizeof(*context));
 
@@ -31,42 +30,34 @@ iCreateContext(void)
     return context;
 }
 
-static void
-iDestroyContext(Context *context)
+static void iDestroyContext(Context *context)
 {
     free(context);
 }
 
-static Context *
-iGetContext(void)
+static Context *iGetContext(void)
 {
-    /* static single-thread library case */
     static Context *context = NULL;
     if (!context)
         context = iCreateContext();
     return context;
 }
 
- int
-StdErrReport(int code, const char *func_name, const char *err_msg,
-               const char *file, int line, void *)
+int StdErrReport(int code, const char *func_name, const char *err_msg,
+                 const char *file, int line, void *)
 {
-    if (code == VOS_StsBackTrace || code == VOS_StsAutoTrace)
-        fprintf(stderr, "\tcalled from ");
-    else
-        fprintf(stderr, "ERROR: %s (%s)\n\tin function ",
-                SysErrorStr(code), err_msg ? err_msg : "no description");
+
+    fprintf(stderr, "ERROR: %s (%s)\n\tin function ",
+            SysErrorStr(code), err_msg ? err_msg : "no description");
 
     fprintf(stderr, "%s, %s(%d)\n", func_name ? func_name : "<unknown>",
             file != NULL ? file : "", line);
 
-
-        fprintf(stderr, "Terminating the application...\n");
-        return 1;
-
+    fprintf(stderr, "Terminating the application...\n");
+    return 1;
 }
 
- const char *SysErrorStr(int status)
+const char *SysErrorStr(int status)
 {
     static char buf[256];
 
@@ -119,44 +110,36 @@ StdErrReport(int code, const char *func_name, const char *err_msg,
     return buf;
 }
 
-
-
- int GetErrStatus()
+int GetErrStatus()
 {
     return iGetContext()->err_code;
 }
 
- void SetErrStatus(int code)
+void SetErrStatus(int code)
 {
     iGetContext()->err_code = code;
 }
 
- void SysError(int code, const char *func_name,
-                      const char *err_msg,
-                      const char *file_name, int line)
+void SysError(int code, const char *func_name,
+              const char *err_msg,
+              const char *file_name, int line)
 {
     if (code == VOS_StsOk)
         SetErrStatus(code);
     else
     {
         Context *context = iGetContext();
+        char *message = context->err_msg;
+        context->err_code = code;
 
-        if (code != VOS_StsBackTrace && code != VOS_StsAutoTrace)
+        strcpy(message, err_msg);
+        context->err_ctx.file = file_name;
+        context->err_ctx.line = line;
+        int terminate = context->error_callback(code, func_name, err_msg, file_name, line, context->userdata);
+        if (terminate)
         {
-            char *message = context->err_msg;
-            context->err_code = code;
-
-            strcpy(message, err_msg);
-            context->err_ctx.file = file_name;
-            context->err_ctx.line = line;
+            exit(-abs(terminate));
         }
-
-            int terminate = context->error_callback(code, func_name, err_msg,
-                                                    file_name, line, context->userdata);
-            if (terminate)
-            {
-                exit(-abs(terminate));
-            }
     }
 }
 /* End of file */

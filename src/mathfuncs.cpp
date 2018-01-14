@@ -70,9 +70,7 @@ typedef int(*SqrtFunc_t)(const void *src, void *dst, int len);
     }
     else
     {
-         VOS_ERROR(VOS_StsUnsupportedFormat,
-                 "Fractional or negative integer power factor can be used "
-                 "with floating-point types only");
+         VOS_ERROR(VOS_StsUnsupportedFormat,"");
     }
     __END__;
 }

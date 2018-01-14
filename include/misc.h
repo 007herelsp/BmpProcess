@@ -30,7 +30,7 @@
 #error
 #endif
 
-#define sysStackAlloc(size) AlignPtr(alloca((size) + VOS_MALLOC_ALIGN), VOS_MALLOC_ALIGN)
+#define sysStackAlloc(size) SysAlignPtr(alloca((size) + VOS_MALLOC_ALIGN), VOS_MALLOC_ALIGN)
 
 #define VOS_STUB_STEP (1 << 30)
 
@@ -44,13 +44,13 @@
 #define VOS_CAST_16U(t) (ushort)(!((t) & ~65535) ? (t) : (t) > 0 ? 65535 : 0)
 #define VOS_CAST_16S(t) (short)(!(((t) + 32768) & ~65535) ? (t) : (t) > 0 ? 32767 : -32768)
 
-VOS_INLINE void *AlignPtr(const void *ptr, int align = 32)
+VOS_INLINE void *SysAlignPtr(const void *ptr, int align = 32)
 {
     assert((align & (align - 1)) == 0);
     return (void *)(((size_t)ptr + align - 1) & ~(size_t)(align - 1));
 }
 
-VOS_INLINE int Align(int size, int align)
+VOS_INLINE int SysAlign(int size, int align)
 {
     assert((align & (align - 1)) == 0 && size < INT_MAX);
     return (size + align - 1) & -align;

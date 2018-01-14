@@ -1,13 +1,11 @@
-
-
 #include "process.h"
 #include "misc.h"
 
-double ArcLength(const void *array, Slice slice, int is_closed)
+double GetArcLength(const void *array, Slice slice, int is_closed)
 {
     double perimeter = 0;
 
-    VOS_FUNCNAME("ArcLength");
+    VOS_FUNCNAME("GetArcLength");
 
     __BEGIN__;
 
@@ -22,13 +20,13 @@ double ArcLength(const void *array, Slice slice, int is_closed)
     {
         contour = (Seq *)array;
         if (!VOS_IS_SEQ_POLYLINE(contour))
-            VOS_ERROR(VOS_StsBadArg, "Unsupported sequence type");
+            VOS_ERROR(VOS_StsBadArg, "");
         if (is_closed < 0)
             is_closed = VOS_IS_SEQ_CLOSED(contour);
     }
     else
     {
-        VOS_ERROR(VOS_StsBadArg, "Unsupported sequence type");
+        VOS_ERROR(VOS_StsBadArg, "");
     }
 
     if (contour->total > 1)
@@ -110,11 +108,11 @@ static int iContourArea(const Seq *contour, double *area)
     return VOS_StsOk;
 }
 
-double ContourArea(const Seq *contour, Slice slice)
+double GetContourArea(const Seq *contour, Slice slice)
 {
     double area = 0;
 
-    VOS_FUNCNAME("ContourArea");
+    VOS_FUNCNAME("GetContourArea");
 
     __BEGIN__;
 
@@ -128,8 +126,7 @@ double ContourArea(const Seq *contour, Slice slice)
     }
     else
     {
-            VOS_ERROR(VOS_StsUnsupportedFormat,
-                      "Only curves with integer coordinates are supported in case of contour slice");
+            VOS_ERROR(VOS_StsUnsupportedFormat,"");
     }
 
     __END__;
@@ -154,7 +151,7 @@ Rect BoundingRect(VOID *array, int update)
     {
         ptseq = (Seq *)array;
         if (!VOS_IS_SEQ_POINT_SET(ptseq))
-            VOS_ERROR(VOS_StsBadArg, "Unsupported sequence type");
+            VOS_ERROR(VOS_StsBadArg, "");
 
         if (ptseq->header_size < (int)sizeof(Contour))
         {
@@ -164,7 +161,7 @@ Rect BoundingRect(VOID *array, int update)
     }
     else
     {
-        VOS_ERROR(VOS_StsBadArg, "Unsupported sequence type");
+        VOS_ERROR(VOS_StsBadArg, "");
     }
 
     if (!calculate)

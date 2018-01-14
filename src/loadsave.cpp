@@ -16,7 +16,7 @@ iLoadImage(const char *filename)
     Size size;
 
     if (!filename || strlen(filename) == 0)
-        VOS_ERROR(VOS_StsNullPtr, "null filename");
+        VOS_ERROR(VOS_StsNullPtr, "");
 
     reader = new GrFmtBmpReader(filename);
     if (!reader)
@@ -69,7 +69,7 @@ LoadImage(const char *filename)
     int channels, ipl_depth;
 
     if (!filename || strlen(filename) == 0)
-        VOS_ERROR(VOS_StsNullPtr, "null filename");
+        VOS_ERROR(VOS_StsNullPtr, "");
 
     VOS_CALL(image = GetMat(arr, &stub));
 
@@ -82,18 +82,18 @@ LoadImage(const char *filename)
 
     writer = new GrFmtBmpWriter(filename);
     if (!writer)
-        VOS_ERROR(VOS_StsError, "could not find a filter for the specified extension");
+        VOS_ERROR(VOS_StsError, "");
 
     if (origin)
     {
-        VOS_ERROR(VOS_StsError, "could not find a filter for the specified extension");
+        VOS_ERROR(VOS_StsError, "");
     }
 
     ipl_depth = ToIplDepth(image->type);
 
     if (!writer->WriteImage(image->data.ptr, image->step, image->width,
                             image->height, ipl_depth, channels))
-        VOS_ERROR(VOS_StsError, "could not save the image");
+        VOS_ERROR(VOS_StsError, "");
 
     __END__;
 
@@ -104,7 +104,7 @@ LoadImage(const char *filename)
     return GetErrStatus() >= 0;
 }
 
-static int BGR2Gray_8u_CnC1R(const uchar *src, int srcstep,
+static int BGR2GRAY_8u_CnC1R(const uchar *src, int srcstep,
 				  uchar *dstR, uchar *dstG, uchar *dstB, int dststep, Size size,
 				  int src_cn)
 {
@@ -123,9 +123,9 @@ static int BGR2Gray_8u_CnC1R(const uchar *src, int srcstep,
 	return VOS_StsOk;
 }
 
-void CvtBgr2Gray_8u_C3C1(const VOID *srcarr, VOID *dstarrR, VOID *dstarrG, VOID *dstarrB)
+void BGR2GRAY_8u_C3C1(const VOID *srcarr, VOID *dstarrR, VOID *dstarrG, VOID *dstarrB)
 {
-	VOS_FUNCNAME("CvtBgr2Gray_8u_C3C1");
+	VOS_FUNCNAME("BGR2GRAY_8u_C3C1");
 
 	__BEGIN__;
 
@@ -172,10 +172,9 @@ void CvtBgr2Gray_8u_C3C1(const VOID *srcarr, VOID *dstarrR, VOID *dstarrG, VOID 
 	dst_step = dstR->step;
 
 	if (3 != src_cn || 1 != dst_cn)
-		VOS_ERROR(VOS_BadNumChannels,
-				  "Incorrect number of channels for this conversion code");
+		VOS_ERROR(VOS_BadNumChannels,"");
 
-	VOS_FUN_CALL(BGR2Gray_8u_CnC1R(src->data.ptr, src_step,
+	VOS_FUN_CALL(BGR2GRAY_8u_CnC1R(src->data.ptr, src_step,
 								   dstR->data.ptr, dstG->data.ptr, dstB->data.ptr, dst_step, size, src_cn));
 	__END__;
 }

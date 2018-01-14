@@ -662,12 +662,12 @@ void SVD(VOID *aarr, VOID *warr, VOID *uarr, VOID *varr, int flags)
             VOS_ERROR(VOS_StsUnmatchedFormats, "");
 
         if (u_rows != m || (u_cols != m && u_cols != n))
-            VOS_ERROR(VOS_StsUnmatchedSizes, !t_svd ? "U matrix has unappropriate size" : "V matrix has unappropriate size");
+            VOS_ERROR(VOS_StsUnmatchedSizes, "");
 
         temp_u = (u_rows != u_cols) || (u->data.ptr == a->data.ptr);
 
         if (w_is_mat && u_cols != w_rows)
-            VOS_ERROR(VOS_StsUnmatchedSizes, !t_svd ? "U and W have incompatible sizes" : "V and W have incompatible sizes");
+            VOS_ERROR(VOS_StsUnmatchedSizes, "");
     }
     else
     {
@@ -690,10 +690,10 @@ void SVD(VOID *aarr, VOID *warr, VOID *uarr, VOID *varr, int flags)
             VOS_ERROR(VOS_StsUnmatchedFormats, "");
 
         if (v_rows != n || v_cols != n)
-            VOS_ERROR(VOS_StsUnmatchedSizes, t_svd ? "U matrix has unappropriate size" : "V matrix has unappropriate size");
+            VOS_ERROR(VOS_StsUnmatchedSizes, "");
 
         if (w_is_mat && w_cols != v_cols)
-            VOS_ERROR(VOS_StsUnmatchedSizes, t_svd ? "U and W have incompatible sizes" : "V and W have incompatible sizes");
+            VOS_ERROR(VOS_StsUnmatchedSizes, "");
     }
     else
     {
@@ -802,7 +802,7 @@ void SVBkSb(const VOID *warr, const VOID *uarr,
         VOS_CALL(x = GetMat(x, &xstub));
 
     if (!VOS_ARE_TYPES_EQ(w, u) || !VOS_ARE_TYPES_EQ(w, v) || !VOS_ARE_TYPES_EQ(w, x))
-        VOS_ERROR(VOS_StsUnmatchedFormats, "All matrices must have the same type");
+        VOS_ERROR(VOS_StsUnmatchedFormats, "");
 
     if ((VOS_SVD_U_T | VOS_SVD_V_T) != flags)
     {
@@ -823,7 +823,7 @@ void SVBkSb(const VOID *warr, const VOID *uarr,
     nm = VOS_MIN(n, m);
 
     if ((u_rows != u_cols && v_rows != v_cols) || x->rows != v_rows)
-        VOS_ERROR(VOS_StsBadSize, "V or U matrix must be square");
+        VOS_ERROR(VOS_StsBadSize, "");
 
     if ((1 == w->rows || 1 == w->cols) && w->rows + w->cols - 1 == nm)
     {
@@ -838,8 +838,7 @@ void SVBkSb(const VOID *warr, const VOID *uarr,
     else
     {
         if (w->cols != v_cols || w->rows != u_cols)
-            VOS_ERROR(VOS_StsBadSize, "W must be 1d array of MIN(m,n) elements or "
-                                      "matrix which size matches to U and V");
+            VOS_ERROR(VOS_StsBadSize, "");
         w_buf_offset = buf_size;
         buf_size += nm * pix_size;
     }
@@ -849,9 +848,9 @@ void SVBkSb(const VOID *warr, const VOID *uarr,
         if (!VOS_IS_MAT(b))
             VOS_CALL(b = GetMat(b, &bstub));
         if (!VOS_ARE_TYPES_EQ(w, b))
-            VOS_ERROR(VOS_StsUnmatchedFormats, "All matrices must have the same type");
+            VOS_ERROR(VOS_StsUnmatchedFormats, "");
         if (b->cols != x->cols || b->rows != m)
-            VOS_ERROR(VOS_StsUnmatchedSizes, "b matrix must have (m x x->cols) size");
+            VOS_ERROR(VOS_StsUnmatchedSizes, "");
     }
     else
     {

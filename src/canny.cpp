@@ -16,7 +16,7 @@ static void Sobel(const Mat *src, Mat *dst, int dx, int dy, int aperture_size)
     dst_type = VOS_MAT_TYPE(dst->type);
 
     if (!VOS_ARE_SIZES_EQ(src, dst))
-        VOS_ERROR(VOS_StsBadArg, "src and dst have different sizes");
+        VOS_ERROR(VOS_StsBadArg, "");
 
     VOS_CALL(filter.init_deriv(src->cols, src_type, dst_type, dx, dy,
                                aperture_size, 0));

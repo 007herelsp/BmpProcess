@@ -75,7 +75,7 @@ bool GrFmtBmpReader::ReadHeader()
             m_bpp = m_strm.GetDWord() >> 16;
             m_rle_code = BMP_RGB;
 
-            if (m_width > 0 && m_height > 0 &&                (24 == m_bpp))
+            if (m_width > 0 && m_height > 0 &&  (24 == m_bpp))
             {
                 result = true;
             }
@@ -113,7 +113,7 @@ bool GrFmtBmpReader::ReadData(uchar *data, int step, int color)
 
     m_strm.SetPos(m_offset);
 
-    /************************* 24 BPP ************************/
+    /*only 24 BPP */
     for (y = 0; y < m_height; y++, data += step)
     {
         m_strm.GetBytes(color ? data : src, src_pitch);

@@ -10,16 +10,15 @@ static void *iDefaultAlloc(size_t size)
         return NULL;
 
     // align the pointer
-    ptr = (char *)AlignPtr(ptr0 + sizeof(char *) + 1, VOS_MALLOC_ALIGN);
+    ptr = (char *)SysAlignPtr(ptr0 + sizeof(char *) + 1, VOS_MALLOC_ALIGN);
     *(char **)(ptr - sizeof(char *)) = ptr0;
 
     return ptr;
 }
 
-// default <free>
 static int iDefaultFree(void *ptr)
 {
-    // Pointer must be aligned by VOS_MALLOC_ALIGN
+    // check aligned
     if (((size_t)ptr & (VOS_MALLOC_ALIGN - 1)) != 0)
         return VOS_StsBadArg;
     free(*((char **)ptr - 1));
@@ -36,12 +35,11 @@ void *SysAlloc(size_t size)
     __BEGIN__;
 
     if ((size_t)size > VOS_MAX_ALLOC_SIZE)
-        VOS_ERROR(VOS_StsOutOfRange,
-                  "Negative or too large argument of SysAlloc function");
+        VOS_ERROR(VOS_StsOutOfRange,"");
 
     ptr = iDefaultAlloc(size);
     if (!ptr)
-        VOS_ERROR(VOS_StsNoMem, "Out of memory");
+        VOS_ERROR(VOS_StsNoMem, "");
 
     __END__;
 
@@ -58,7 +56,7 @@ void SysFree_(void *ptr)
     {
         int status = iDefaultFree(ptr);
         if (status < 0)
-            VOS_ERROR(status, "Deallocation error");
+            VOS_ERROR(status, "");
     }
 
     __END__;

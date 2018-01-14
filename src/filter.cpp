@@ -42,14 +42,14 @@ void BaseImageFilter::get_work_params()
         int max_cn = VOS_MAX(VOS_MAT_CN(src_type), VOS_MAT_CN(dst_type));
         max_depth = VOS_MAX(max_depth, min_depth);
         work_type = VOS_MAKETYPE(max_depth, max_cn);
-        trow_sz = Align((max_width + ksize.width - 1) * VOS_ELEM_SIZE(src_type), ALIGN);
+        trow_sz = SysAlign((max_width + ksize.width - 1) * VOS_ELEM_SIZE(src_type), ALIGN);
     }
     else
     {
         work_type = src_type;
         width += ksize.width - 1;
     }
-    row_sz = Align(width * VOS_ELEM_SIZE(work_type), ALIGN);
+    row_sz = SysAlign(width * VOS_ELEM_SIZE(work_type), ALIGN);
     buf_size = rows * row_sz;
     buf_size = VOS_MIN(buf_size, 1 << 16);
     buf_size = VOS_MAX(buf_size, min_rows * row_sz);
@@ -58,7 +58,7 @@ void BaseImageFilter::get_work_params()
 }
 
 void BaseImageFilter::init(int _max_width, int _src_type, int _dst_type,
-                           bool _is_separable, Size _ksize, Point _anchor )
+                           bool _is_separable, Size _ksize, Point _anchor)
 {
     VOS_FUNCNAME("BaseImageFilter::init");
 
@@ -86,28 +86,26 @@ void BaseImageFilter::init(int _max_width, int _src_type, int _dst_type,
         anchor.y = ksize.height / 2;
 
     max_ky = VOS_MAX(anchor.y, ksize.height - anchor.y - 1);
-	
 
     if (ksize.width <= 0 || ksize.height <= 0 ||
         (unsigned)anchor.x >= (unsigned)ksize.width ||
         (unsigned)anchor.y >= (unsigned)ksize.height)
-        VOS_ERROR(VOS_StsOutOfRange, "invalid kernel size and/or anchor position");
-
+        VOS_ERROR(VOS_StsOutOfRange, "");
 
     get_work_params();
 
     prev_width = 0;
     prev_x_range = GetSlice(0, 0);
 
-    buf_size = Align(buf_size, ALIGN);
+    buf_size = SysAlign(buf_size, ALIGN);
 
     src_pix_sz = VOS_ELEM_SIZE(src_type);
     border_tab_sz1 = anchor.x * src_pix_sz;
     border_tab_sz = (ksize.width - 1) * src_pix_sz;
-    bsz = Align(border_tab_sz * sizeof(int), ALIGN);
+    bsz = SysAlign(border_tab_sz * sizeof(int), ALIGN);
 
     assert(max_rows > max_ky * 2);
-    row_tab_sz = Align(max_rows * sizeof(uchar *), ALIGN);
+    row_tab_sz = SysAlign(max_rows * sizeof(uchar *), ALIGN);
     total_buf_sz = buf_size + row_tab_sz + bsz;
 
     VOS_CALL(ptr = buffer = (uchar *)SysAlloc(total_buf_sz));
@@ -127,7 +125,7 @@ void BaseImageFilter::start_process(Slice x_range, int width)
 {
     int pix_sz = VOS_ELEM_SIZE(src_type), work_pix_sz = VOS_ELEM_SIZE(work_type);
     int bsz = buf_size, bw = x_range.end_index - x_range.start_index, bw1 = bw + ksize.width - 1;
-    int tr_step = Align(bw1 * pix_sz, ALIGN);
+    int tr_step = SysAlign(bw1 * pix_sz, ALIGN);
     int i, j, k, ofs;
 
     if (x_range.start_index == prev_x_range.start_index &&
@@ -143,7 +141,7 @@ void BaseImageFilter::start_process(Slice x_range, int width)
     else
         bsz -= tr_step;
 
-    buf_step = Align(bw * work_pix_sz, ALIGN);
+    buf_step = SysAlign(bw * work_pix_sz, ALIGN);
 
     buf_max_count = bsz / buf_step;
     buf_max_count = VOS_MIN(buf_max_count, max_rows - max_ky * 2);
@@ -206,7 +204,6 @@ int BaseImageFilter::fill_cyclic_buffer(const uchar *src, int src_step,
     int width = prev_x_range.end_index - prev_x_range.start_index, width_n = width * pix_size;
     bool can_use_src_as_trow = is_separable && width >= ksize.width;
 
-    // fill the cyclic buffer
     for (; buf_count < buf_max_count && y < y2; buf_count++, y++, src += src_step)
     {
         uchar *trow = is_separable ? buf_end : buf_tail;
@@ -223,24 +220,22 @@ int BaseImageFilter::fill_cyclic_buffer(const uchar *src, int src_step,
             for (i = 0; i < width_n; i += sizeof(int))
                 *(int *)(bptr + i + bsz1) = *(int *)(src + i);
         else
-        	{
+        {
             for (i = 0; i < width_n; i++)
                 bptr[i + bsz1] = src[i];
-        	}
+        }
 
+        for (i = 0; i < bsz1; i++)
+        {
+            int j = border_tab[i];
+            bptr[i] = bptr[j];
+        }
+        for (; i < bsz; i++)
+        {
+            int j = border_tab[i];
+            bptr[i + width_n] = bptr[j];
+        }
 
-            for (i = 0; i < bsz1; i++)
-            {
-                int j = border_tab[i];
-                bptr[i] = bptr[j];
-            }
-            for (; i < bsz; i++)
-            {
-                int j = border_tab[i];
-                bptr[i + width_n] = bptr[j];
-            }
-       
-  
         if (is_separable)
         {
             x_func(bptr, buf_tail, this);
@@ -299,7 +294,7 @@ int BaseImageFilter::process(const Mat *src, Mat *dst,
         src_roi.y < 0 || src_roi.height < 0 ||
         src_roi.x + src_roi.width > width ||
         src_roi.y + src_roi.height > src->rows)
-        VOS_ERROR(VOS_StsOutOfRange, "Too large source image or its ROI");
+        VOS_ERROR(VOS_StsOutOfRange, "");
 
     src_x = src_roi.x;
     _src_y1 = 0;
@@ -320,9 +315,9 @@ int BaseImageFilter::process(const Mat *src, Mat *dst,
         VOS_ERROR(VOS_StsUnmatchedFormats, "");
 
     if (dst_origin.x < 0 || dst_origin.y < 0)
-        VOS_ERROR(VOS_StsOutOfRange, "Incorrect destination ROI origin");
+        VOS_ERROR(VOS_StsOutOfRange, "");
 
-    if ( VOS_WHOLE==phase )
+    if (VOS_WHOLE == phase)
         phase = VOS_START | VOS_END;
     phase &= VOS_START | VOS_END | VOS_MIDDLE;
 
@@ -330,8 +325,7 @@ int BaseImageFilter::process(const Mat *src, Mat *dst,
         start_process(GetSlice(src_roi.x, src_roi.x + src_roi.width), width);
     else if (prev_width != width || prev_x_range.start_index != src_roi.x ||
              prev_x_range.end_index != src_roi.x + src_roi.width)
-        VOS_ERROR(VOS_StsBadArg,
-                  "In a middle or at the end the horizontal placement of the stripe can not be changed");
+        VOS_ERROR(VOS_StsBadArg, "");
 
     dst_y = dst_origin.y;
     src_y1 = src_roi.y;
@@ -401,7 +395,7 @@ int BaseImageFilter::process(const Mat *src, Mat *dst,
         {
             int count = row_count - max_ky * 2;
             if (dst_y + count > dst->rows)
-                VOS_ERROR(VOS_StsOutOfRange, "The destination image can not fit the result");
+                VOS_ERROR(VOS_StsOutOfRange, "");
 
             assert(count >= 0);
             y_func(rows + max_ky - anchor.y, dptr, dst->step, count, this);
@@ -425,8 +419,6 @@ int BaseImageFilter::process(const Mat *src, Mat *dst,
 }
 
 static void iFilterRowSymm_8u32s(const uchar *src, int *dst, void *params);
-static void iFilterColSymm_32s8u(const int **src, uchar *dst, int dst_step,
-                                 int count, void *params);
 static void iFilterColSymm_32s16s(const int **src, short *dst, int dst_step,
                                   int count, void *params);
 
@@ -454,7 +446,7 @@ SepFilter::~SepFilter()
 
 void SepFilter::init(int _max_width, int _src_type, int _dst_type,
                      const Mat *_kx, const Mat *_ky,
-                     Point _anchor )
+                     Point _anchor)
 {
     VOS_FUNCNAME("SepFilter::init");
 
@@ -465,10 +457,10 @@ void SepFilter::init(int _max_width, int _src_type, int _dst_type,
     int i, xsz, ysz;
     int convert_filters = 0;
     double xsum = 0, ysum = 0;
-    const float eps = FLT_EPSILON * 100.f;
+    const float eps = FLT_EPSILON * 100.0f;
 
     if (VOS_MAT_CN(_src_type) != VOS_MAT_CN(_dst_type))
-        VOS_ERROR(VOS_StsUnmatchedFormats, "Input and output must have the same number of channels");
+        VOS_ERROR(VOS_StsUnmatchedFormats, "");
 
     filter_type = VOS_MAX(VOS_32F, VOS_MAT_DEPTH(_kx->type));
 
@@ -476,7 +468,7 @@ void SepFilter::init(int _max_width, int _src_type, int _dst_type,
     _ksize.height = _ky->rows + _ky->cols - 1;
 
     VOS_CALL(BaseImageFilter::init(_max_width, _src_type, _dst_type, 1, _ksize,
-                                   _anchor ));
+                                   _anchor));
 
     if (!(kx && VOS_ARE_SIZES_EQ(kx, _kx)))
     {
@@ -533,7 +525,7 @@ void SepFilter::init(int _max_width, int _src_type, int _dst_type,
             ky_flags &= ~ASYMMETRICAL;
     }
 
-    if (fabs(ysum - 1.) > eps)
+    if (fabs(ysum - 1.0) > eps)
         ky_flags &= ~SUM_TO_1;
 
     x_func = NULL;
@@ -541,18 +533,9 @@ void SepFilter::init(int _max_width, int _src_type, int _dst_type,
 
     if (VOS_MAT_DEPTH(src_type) == VOS_8U)
     {
-        if (VOS_MAT_DEPTH(dst_type) == VOS_8U &&
-            ((kx_flags & ky_flags) & (SYMMETRICAL + POSITIVE + SUM_TO_1)) == SYMMETRICAL + POSITIVE + SUM_TO_1)
-        {
-            x_func = (RowFilterFunc)iFilterRowSymm_8u32s;
-            y_func = (ColumnFilterFunc)iFilterColSymm_32s8u;
-            kx_flags &= ~INTEGER;
-            ky_flags &= ~INTEGER;
-            convert_filters = 1;
-        }
-        else if (VOS_MAT_DEPTH(dst_type) == VOS_16S &&
-                 (kx_flags & (SYMMETRICAL + ASYMMETRICAL)) && (kx_flags & INTEGER) &&
-                 (ky_flags & (SYMMETRICAL + ASYMMETRICAL)) && (ky_flags & INTEGER))
+        if (VOS_MAT_DEPTH(dst_type) == VOS_16S &&
+            (kx_flags & (SYMMETRICAL + ASYMMETRICAL)) && (kx_flags & INTEGER) &&
+            (ky_flags & (SYMMETRICAL + ASYMMETRICAL)) && (ky_flags & INTEGER))
         {
             x_func = (RowFilterFunc)iFilterRowSymm_8u32s;
             y_func = (ColumnFilterFunc)iFilterColSymm_32s16s;
@@ -560,12 +543,12 @@ void SepFilter::init(int _max_width, int _src_type, int _dst_type,
         }
         else
         {
-            VOS_ERROR(VOS_StsUnsupportedFormat, "Unknown or unsupported input data type");
+            VOS_ERROR(VOS_StsUnsupportedFormat, "");
         }
     }
     else
     {
-        VOS_ERROR(VOS_StsUnsupportedFormat, "Unknown or unsupported input data type");
+        VOS_ERROR(VOS_StsUnsupportedFormat, "");
     }
 
     if (convert_filters)
@@ -599,10 +582,10 @@ void SepFilter::init(int _max_width, int _src_type, int _dst_type,
 
 void SepFilter::init(int _max_width, int _src_type, int _dst_type,
                      bool _is_separable, Size _ksize,
-                     Point _anchor )
+                     Point _anchor)
 {
     BaseImageFilter::init(_max_width, _src_type, _dst_type, _is_separable,
-                          _ksize, _anchor );
+                          _ksize, _anchor);
 }
 
 static void
@@ -750,90 +733,6 @@ iFilterRowSymm_8u32s(const uchar *src, int *dst, void *params)
             for (k = 1, j = cn; k <= ksize2; k++, j += cn)
                 s0 += kx[k] * (s[j] - s[-j]);
             dst[i] = s0;
-        }
-    }
-}
-
-static void
-iFilterColSymm_32s8u(const int **src, uchar *dst, int dst_step, int count, void *params)
-{
-    const SepFilter *state = (const SepFilter *)params;
-    const Mat *_ky = state->get_y_kernel();
-    const int *ky = _ky->data.i;
-    int ksize = _ky->cols + _ky->rows - 1, ksize2 = ksize / 2;
-    int i, k, width = state->get_width();
-    int cn = VOS_MAT_CN(state->get_src_type());
-
-    width *= cn;
-    src += ksize2;
-    ky += ksize2;
-
-    for (; count--; dst += dst_step, src++)
-    {
-        if (ksize == 3)
-        {
-            const int *sptr0 = src[-1], *sptr1 = src[0], *sptr2 = src[1];
-            int k0 = ky[0], k1 = ky[1];
-            for (i = 0; i <= width - 2; i += 2)
-            {
-                int s0 = sptr1[i] * k0 + (sptr0[i] + sptr2[i]) * k1;
-                int s1 = sptr1[i + 1] * k0 + (sptr0[i + 1] + sptr2[i + 1]) * k1;
-                s0 = VOS_DESCALE(s0, FILTER_BITS * 2);
-                s1 = VOS_DESCALE(s1, FILTER_BITS * 2);
-                dst[i] = (uchar)s0;
-                dst[i + 1] = (uchar)s1;
-            }
-        }
-        else if (ksize == 5)
-        {
-            const int *sptr0 = src[-2], *sptr1 = src[-1],
-                      *sptr2 = src[0], *sptr3 = src[1], *sptr4 = src[2];
-            int k0 = ky[0], k1 = ky[1], k2 = ky[2];
-            for (i = 0; i <= width - 2; i += 2)
-            {
-                int s0 = sptr2[i] * k0 + (sptr1[i] + sptr3[i]) * k1 + (sptr0[i] + sptr4[i]) * k2;
-                int s1 = sptr2[i + 1] * k0 + (sptr1[i + 1] + sptr3[i + 1]) * k1 + (sptr0[i + 1] + sptr4[i + 1]) * k2;
-                s0 = VOS_DESCALE(s0, FILTER_BITS * 2);
-                s1 = VOS_DESCALE(s1, FILTER_BITS * 2);
-                dst[i] = (uchar)s0;
-                dst[i + 1] = (uchar)s1;
-            }
-        }
-        else
-            for (i = 0; i <= width - 4; i += 4)
-            {
-                int f = ky[0];
-                const int *sptr = src[0] + i, *sptr2;
-                int s0 = f * sptr[0], s1 = f * sptr[1], s2 = f * sptr[2], s3 = f * sptr[3];
-                for (k = 1; k <= ksize2; k++)
-                {
-                    sptr = src[k] + i;
-                    sptr2 = src[-k] + i;
-                    f = ky[k];
-                    s0 += f * (sptr[0] + sptr2[0]);
-                    s1 += f * (sptr[1] + sptr2[1]);
-                    s2 += f * (sptr[2] + sptr2[2]);
-                    s3 += f * (sptr[3] + sptr2[3]);
-                }
-
-                s0 = VOS_DESCALE(s0, FILTER_BITS * 2);
-                s1 = VOS_DESCALE(s1, FILTER_BITS * 2);
-                dst[i] = (uchar)s0;
-                dst[i + 1] = (uchar)s1;
-                s2 = VOS_DESCALE(s2, FILTER_BITS * 2);
-                s3 = VOS_DESCALE(s3, FILTER_BITS * 2);
-                dst[i + 2] = (uchar)s2;
-                dst[i + 3] = (uchar)s3;
-            }
-
-        for (; i < width; i++)
-        {
-            int s0 = ky[0] * src[0][i];
-            for (k = 1; k <= ksize2; k++)
-                s0 += ky[k] * (src[k][i] + src[-k][i]);
-
-            s0 = VOS_DESCALE(s0, FILTER_BITS * 2);
-            dst[i] = (uchar)s0;
         }
     }
 }
@@ -994,7 +893,7 @@ void SepFilter::init_gaussian_kernel(Mat *kernel, double sigma)
     float *cf;
 
     if (!VOS_IS_MAT(kernel))
-        VOS_ERROR(VOS_StsBadArg, "kernel is not a valid matrix");
+        VOS_ERROR(VOS_StsBadArg, "");
 
     type = VOS_MAT_TYPE(kernel->type);
 
@@ -1039,18 +938,16 @@ void SepFilter::init_sobel_kernel(Mat *_kx, Mat *_ky, int dx, int dy, int flags)
     bool flip = (flags & FLIP_KERNEL) != 0;
 
     if (!VOS_IS_MAT(_kx) || !VOS_IS_MAT(_ky))
-        VOS_ERROR(VOS_StsBadArg, "One of the kernel matrices is not valid");
+        VOS_ERROR(VOS_StsBadArg, "");
 
     msz = VOS_MAX(_kx->cols + _kx->rows, _ky->cols + _ky->rows);
     if (msz > 32)
-        VOS_ERROR(VOS_StsOutOfRange, "Too large kernel size");
+        VOS_ERROR(VOS_StsOutOfRange, "");
 
     kerI = (int *)sysStackAlloc(msz * sizeof(kerI[0]));
 
     if (dx < 0 || dy < 0 || dx + dy <= 0)
-        VOS_ERROR(VOS_StsOutOfRange,
-                  "Both derivative orders (dx and dy) must be non-negative "
-                  "and at least one of them must be positive.");
+        VOS_ERROR(VOS_StsOutOfRange, "");
 
     for (k = 0; k < 2; k++)
     {
@@ -1062,8 +959,7 @@ void SepFilter::init_sobel_kernel(Mat *_kx, Mat *_ky, int dx, int dy, int flags)
         int iscale = 1;
 
         if (n <= order)
-            VOS_ERROR(VOS_StsOutOfRange,
-                      "Derivative order must be smaller than the corresponding kernel size");
+            VOS_ERROR(VOS_StsOutOfRange, "");
 
         if (1 == n)
             kerI[0] = 1;
@@ -1131,7 +1027,7 @@ void SepFilter::init_deriv(int _max_width, int _src_type, int _dst_type,
     Mat _kx, _ky;
 
     if (kx_size <= 0 || ky_size > VOS_MAX_SOBEL_KSIZE)
-        VOS_ERROR(VOS_StsOutOfRange, "Incorrect aperture_size");
+        VOS_ERROR(VOS_StsOutOfRange, "");
 
     if (1 == kx_size && dx)
         kx_size = 3;
@@ -1163,7 +1059,7 @@ void SepFilter::init_gaussian(int _max_width, int _src_type, int _dst_type,
     Mat _kernel;
 
     if (gaussian_size <= VOS_MIN_GAUSSIN_SIZE || gaussian_size > VOS_MAX_GAUSSIAN_SIZE)
-        VOS_ERROR(VOS_StsBadSize, "Incorrect size of gaussian kernel");
+        VOS_ERROR(VOS_StsBadSize, "");
 
     kdata = (float *)sysStackAlloc(gaussian_size * sizeof(kdata[0]));
     _kernel = InitMat(1, gaussian_size, VOS_32F, kdata);

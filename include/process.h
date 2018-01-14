@@ -17,7 +17,7 @@ typedef struct stContourScanner *ContourScanner;
 #define VOS_SCHARR -1
 #define VOS_MAX_SOBEL_KSIZE 7
 
-void CvtBgr2Gray_8u_C3C1(const VOID *src, VOID *dstr, VOID *dstg, VOID *dstb);
+void BGR2GRAY_8u_C3C1(const VOID *src, VOID *dstr, VOID *dstg, VOID *dstb);
 
 #define VOS_INTER_LINEAR 1
 
@@ -57,14 +57,14 @@ Seq *ApproxPoly(const void *src_seq,
                 double parameter,
                 int parameter2 VOS_DEFAULT(0));
 
-double ArcLength(const void *curve,
+double GetArcLength(const void *curve,
                  Slice slice VOS_DEFAULT(VOS_WHOLE_SEQ),
                  int is_closed VOS_DEFAULT(-1));
-#define ContourPerimeter(contour) ArcLength(contour, VOS_WHOLE_SEQ, 1)
+#define ContourPerimeter(contour) GetArcLength(contour, VOS_WHOLE_SEQ, 1)
 
 Rect BoundingRect(VOID *points, int update VOS_DEFAULT(0));
 
-double ContourArea(const Seq *contour,
+double GetContourArea(const Seq *contour,
                    Slice slice VOS_DEFAULT(VOS_WHOLE_SEQ));
 
 Box2D MinAreaRect(const Seq *points,
