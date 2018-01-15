@@ -334,7 +334,7 @@ Seq *CreateSeq(int seq_flags, int header_size, int elem_size, MemStorage *storag
     seq->header_size = header_size;
     seq->flags = (seq_flags & ~VOS_MAGIC_MASK) | VOS_SEQ_MAGIC_VAL;
     {
-        int elemtype = VOS_MAT_TYPE(seq_flags);
+        int elemtype = VOS_BUFFER_TYPE(seq_flags);
         int typesize = VOS_ELEM_SIZE(elemtype);
 
         if (elemtype != VOS_SEQ_ELTYPE_GENERIC &&

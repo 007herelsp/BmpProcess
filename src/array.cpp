@@ -2,47 +2,47 @@
 #include "misc.h"
 
 static const signed char iDepthToType[] =
-    {
-        -1, -1, VOS_8U, VOS_8S, VOS_16U, VOS_16S, -1, -1,
-        VOS_32F, VOS_32S, -1, -1, -1, -1, -1, -1, VOS_64F, -1};
+{
+    -1, -1, VOS_8U, VOS_8S, VOS_16U, VOS_16S, -1, -1,
+    VOS_32F, VOS_32S, -1, -1, -1, -1, -1, -1, VOS_64F, -1};
 
 #define iIplToDepth(depth) iDepthToType[(((depth)&255) >> 2) + ((depth) < 0)]
 
-Mat *CreateMat(int height, int width, int type)
+AutoBuffer *CreateAutoBuffer(int height, int width, int type)
 {
-    Mat *arr = NULL;
+    AutoBuffer *arr = NULL;
 
-    VOS_FUNCNAME("CreateMat");
+    VOS_FUNCNAME("CreateAutoBuffer");
 
     __BEGIN__;
 
-    VOS_CALL(arr = CreateMatHeader(height, width, type));
+    VOS_CALL(arr = CreateAutoBufferHeader(height, width, type));
     VOS_CALL(CreateData(arr));
 
     __END__;
 
     if (GetErrStatus() < 0)
-        ReleaseMat(&arr);
+        ReleaseAutoBuffer(&arr);
 
     return arr;
 }
 
-static void iCheckHuge(Mat *arr)
+static void iCheckHuge(AutoBuffer *arr)
 {
     if ((int64)arr->step * arr->rows > INT_MAX)
-        arr->type &= ~VOS_MAT_CONT_FLAG;
+        arr->type &= ~VOS_BUFFER_CONT_FLAG;
 }
 
-Mat *CreateMatHeader(int rows, int cols, int type)
+AutoBuffer *CreateAutoBufferHeader(int rows, int cols, int type)
 {
-    Mat *arr = NULL;
+    AutoBuffer *arr = NULL;
 
-    VOS_FUNCNAME("CreateMatHeader");
+    VOS_FUNCNAME("CreateAutoBufferHeader");
 
     __BEGIN__;
 
     int min_step;
-    type = VOS_MAT_TYPE(type);
+    type = VOS_BUFFER_TYPE(type);
 
     if (rows <= 0 || cols <= 0)
         VOS_ERROR(VOS_StsBadSize, "");
@@ -51,11 +51,11 @@ Mat *CreateMatHeader(int rows, int cols, int type)
     if (min_step <= 0)
         VOS_ERROR(VOS_StsUnsupportedFormat, "");
 
-    VOS_CALL(arr = (Mat *)SysAlloc(sizeof(*arr)));
+    VOS_CALL(arr = (AutoBuffer *)SysAlloc(sizeof(*arr)));
 
-    arr->step = rows == 1 ? 0 : SysAlign(min_step, VOS_DEFAULT_MAT_ROW_ALIGN);
-    arr->type = VOS_MAT_MAGIC_VAL | type |
-                (arr->step == 0 || arr->step == min_step ? VOS_MAT_CONT_FLAG : 0);
+    arr->step = rows == 1 ? 0 : SysAlign(min_step, VOS_DEFAULT_BUFFER_ROW_ALIGN);
+    arr->type = VOS_BUFFER_MAGIC_VAL | type |
+            (arr->step == 0 || arr->step == min_step ? VOS_BUFFER_CONT_FLAG : 0);
     arr->rows = rows;
     arr->cols = cols;
     arr->data.ptr = NULL;
@@ -67,15 +67,15 @@ Mat *CreateMatHeader(int rows, int cols, int type)
     __END__;
 
     if (GetErrStatus() < 0)
-        ReleaseMat(&arr);
+        ReleaseAutoBuffer(&arr);
 
     return arr;
 }
 
-Mat *InitMatHeader(Mat *arr, int rows, int cols,
-                   int type, void *data, int step)
+AutoBuffer *InitAutoBufferHeader(AutoBuffer *arr, int rows, int cols,
+                                 int type, void *data, int step)
 {
-    VOS_FUNCNAME("InitMatHeader");
+    VOS_FUNCNAME("InitAutoBufferHeader");
 
     __BEGIN__;
 
@@ -84,14 +84,14 @@ Mat *InitMatHeader(Mat *arr, int rows, int cols,
     if (!arr)
         VOS_ERROR_FROM_CODE(VOS_StsNullPtr);
 
-    if ((unsigned)VOS_MAT_DEPTH(type) > VOS_DEPTH_MAX)
+    if ((unsigned)VOS_BUFFER_DEPTH(type) > VOS_DEPTH_MAX)
         VOS_ERROR_FROM_CODE(VOS_BadNumChannels);
 
     if (rows <= 0 || cols <= 0)
         VOS_ERROR(VOS_StsBadSize, "");
 
-    type = VOS_MAT_TYPE(type);
-    arr->type = type | VOS_MAT_MAGIC_VAL;
+    type = VOS_BUFFER_TYPE(type);
+    arr->type = type | VOS_BUFFER_MAGIC_VAL;
     arr->rows = rows;
     arr->cols = cols;
     arr->data.ptr = (uchar *)data;
@@ -113,8 +113,8 @@ Mat *InitMatHeader(Mat *arr, int rows, int cols,
         arr->step = min_step;
     }
 
-    arr->type = VOS_MAT_MAGIC_VAL | type |
-                (arr->step == min_step ? VOS_MAT_CONT_FLAG : 0);
+    arr->type = VOS_BUFFER_MAGIC_VAL | type |
+            (arr->step == min_step ? VOS_BUFFER_CONT_FLAG : 0);
 
     iCheckHuge(arr);
 
@@ -123,9 +123,9 @@ Mat *InitMatHeader(Mat *arr, int rows, int cols,
     return arr;
 }
 
-void ReleaseMat(Mat **array)
+void ReleaseAutoBuffer(AutoBuffer **array)
 {
-    VOS_FUNCNAME("ReleaseMat");
+    VOS_FUNCNAME("ReleaseAutoBuffer");
 
     __BEGIN__;
 
@@ -134,9 +134,9 @@ void ReleaseMat(Mat **array)
 
     if (*array)
     {
-        Mat *arr = *array;
+        AutoBuffer *arr = *array;
 
-        if (!VOS_IS_MAT_HDR(arr))
+        if (!VOS_IS_BUFFER_HDR(arr))
             VOS_ERROR_FROM_CODE(VOS_StsBadFlag);
 
         *array = NULL;
@@ -154,10 +154,10 @@ void CreateData(VOID *arr)
 
     __BEGIN__;
 
-    if (VOS_IS_MAT_HDR(arr))
+    if (VOS_IS_BUFFER_HDR(arr))
     {
         size_t step, total_size;
-        Mat *mat = (Mat *)arr;
+        AutoBuffer *mat = (AutoBuffer *)arr;
         step = mat->step;
 
         if (NULL != mat->data.ptr)
@@ -173,13 +173,13 @@ void CreateData(VOID *arr)
     }
     else if (VOS_IS_IMAGE_HDR(arr))
     {
-        IplImage *img = (IplImage *)arr;
+        BmpImage *img = (BmpImage *)arr;
 
         if (NULL != img->imageData)
             VOS_ERROR(VOS_StsError, "");
 
         VOS_CALL(img->imageData = img->imageDataOrigin =
-                     (char *)SysAlloc((size_t)img->imageSize));
+                (char *)SysAlloc((size_t)img->imageSize));
     }
     else
     {
@@ -197,14 +197,14 @@ void SetData(VOID *arr, void *data, int step)
 
     int pix_size, min_step;
 
-    if (VOS_IS_MAT_HDR(arr))
+    if (VOS_IS_BUFFER_HDR(arr))
         ReleaseData(arr);
 
-    if (VOS_IS_MAT_HDR(arr))
+    if (VOS_IS_BUFFER_HDR(arr))
     {
-        Mat *mat = (Mat *)arr;
+        AutoBuffer *mat = (AutoBuffer *)arr;
 
-        int type = VOS_MAT_TYPE(mat->type);
+        int type = VOS_BUFFER_TYPE(mat->type);
         pix_size = VOS_ELEM_SIZE(type);
         min_step = mat->cols * pix_size & ((mat->rows <= 1) - 1);
 
@@ -220,13 +220,13 @@ void SetData(VOID *arr, void *data, int step)
         }
 
         mat->data.ptr = (uchar *)data;
-        mat->type = VOS_MAT_MAGIC_VAL | type |
-                    (mat->step == min_step ? VOS_MAT_CONT_FLAG : 0);
+        mat->type = VOS_BUFFER_MAGIC_VAL | type |
+                (mat->step == min_step ? VOS_BUFFER_CONT_FLAG : 0);
         iCheckHuge(mat);
     }
     else if (VOS_IS_IMAGE_HDR(arr))
     {
-        IplImage *img = (IplImage *)arr;
+        BmpImage *img = (BmpImage *)arr;
 
         pix_size = ((img->depth & 255) >> 3) * img->nChannels;
         min_step = img->width * pix_size;
@@ -246,7 +246,7 @@ void SetData(VOID *arr, void *data, int step)
         img->imageData = img->imageDataOrigin = (char *)data;
 
         if ((((int)(size_t)data | step) & 7) == 0 &&
-            SysAlign(img->width * pix_size, 8) == step)
+                SysAlign(img->width * pix_size, 8) == step)
         {
             img->align = 8;
         }
@@ -269,14 +269,14 @@ void ReleaseData(VOID *arr)
 
     __BEGIN__;
 
-    if (VOS_IS_MAT_HDR(arr))
+    if (VOS_IS_BUFFER_HDR(arr))
     {
-        Mat *mat = (Mat *)arr;
+        AutoBuffer *mat = (AutoBuffer *)arr;
         DecRefData(mat);
     }
     else if (VOS_IS_IMAGE_HDR(arr))
     {
-        IplImage *img = (IplImage *)arr;
+        BmpImage *img = (BmpImage *)arr;
 
         char *ptr = img->imageDataOrigin;
         img->imageData = img->imageDataOrigin = NULL;
@@ -298,16 +298,16 @@ Size GetSize(const VOID *arr)
 
     __BEGIN__;
 
-    if (VOS_IS_MAT_HDR(arr))
+    if (VOS_IS_BUFFER_HDR(arr))
     {
-        Mat *mat = (Mat *)arr;
+        AutoBuffer *mat = (AutoBuffer *)arr;
 
         size.width = mat->cols;
         size.height = mat->rows;
     }
     else if (VOS_IS_IMAGE_HDR(arr))
     {
-        IplImage *img = (IplImage *)arr;
+        BmpImage *img = (BmpImage *)arr;
 
         size.width = img->width;
         size.height = img->height;
@@ -326,12 +326,12 @@ void ScalarToRawData(const Scalar *scalar, void *data, int type)
 {
     VOS_FUNCNAME("ScalarToRawData");
 
-    type = VOS_MAT_TYPE(type);
+    type = VOS_BUFFER_TYPE(type);
 
     __BEGIN__;
 
-    int cn = VOS_MAT_CN(type);
-    int depth = type & VOS_MAT_DEPTH_MASK;
+    int cn = VOS_BUFFER_CN(type);
+    int depth = type & VOS_BUFFER_DEPTH_MASK;
 
     assert(scalar && data);
     if ((unsigned)(cn - 1) >= 4)
@@ -350,30 +350,30 @@ void ScalarToRawData(const Scalar *scalar, void *data, int type)
     __END__;
 }
 
-Mat *GetMat(const VOID *array, Mat *mat,
-            int *pCOI)
+AutoBuffer *GetAutoBuffer(const VOID *array, AutoBuffer *mat,
+                          int *pCOI)
 {
-    Mat *result = NULL;
-    Mat *src = (Mat *)array;
+    AutoBuffer *result = NULL;
+    AutoBuffer *src = (AutoBuffer *)array;
     int coi = 0;
 
-    VOS_FUNCNAME("GetMat");
+    VOS_FUNCNAME("GetAutoBuffer");
 
     __BEGIN__;
 
     if (!mat || !src)
         VOS_ERROR(VOS_StsNullPtr, "");
 
-    if (VOS_IS_MAT_HDR(src))
+    if (VOS_IS_BUFFER_HDR(src))
     {
         if (!src->data.ptr)
             VOS_ERROR(VOS_StsNullPtr, "");
 
-        result = (Mat *)src;
+        result = (AutoBuffer *)src;
     }
     else if (VOS_IS_IMAGE_HDR(src))
     {
-        const IplImage *img = (const IplImage *)src;
+        const BmpImage *img = (const BmpImage *)src;
         int depth, order;
 
         if (NULL == img->imageData)
@@ -390,8 +390,8 @@ Mat *GetMat(const VOID *array, Mat *mat,
             if (order != SYS_DATA_ORDER_PIXEL)
                 VOS_ERROR(VOS_StsBadFlag, "");
 
-            VOS_CALL(InitMatHeader(mat, img->height, img->width, type,
-                                   img->imageData, img->widthStep));
+            VOS_CALL(InitAutoBufferHeader(mat, img->height, img->width, type,
+                                          img->imageData, img->widthStep));
         }
 
         result = mat;
@@ -409,16 +409,16 @@ Mat *GetMat(const VOID *array, Mat *mat,
     return result;
 }
 
-IplImage *
+BmpImage *
 CreateImageHeader(Size size, int depth, int channels)
 {
-    IplImage *img = NULL;
+    BmpImage *img = NULL;
 
     VOS_FUNCNAME("CreateImageHeader");
 
     __BEGIN__;
 
-    VOS_CALL(img = (IplImage *)SysAlloc(sizeof(*img)));
+    VOS_CALL(img = (BmpImage *)SysAlloc(sizeof(*img)));
     VOS_CALL(InitImageHeader(img, size, depth, channels, SYS_ORIGIN_TL,
                              VOS_DEFAULT_IMAGE_ROW_ALIGN));
 
@@ -430,10 +430,10 @@ CreateImageHeader(Size size, int depth, int channels)
     return img;
 }
 
-IplImage *
+BmpImage *
 CreateImage(Size size, int depth, int channels)
 {
-    IplImage *img = NULL;
+    BmpImage *img = NULL;
 
     VOS_FUNCNAME("CreateImage");
 
@@ -451,12 +451,11 @@ CreateImage(Size size, int depth, int channels)
     return img;
 }
 
-// initalize IplImage header, allocated by the user
-IplImage *
-InitImageHeader(IplImage *image, Size size, int depth,
+BmpImage *
+InitImageHeader(BmpImage *image, Size size, int depth,
                 int channels, int origin, int align)
 {
-    IplImage *result = NULL;
+    BmpImage *result = NULL;
 
     VOS_FUNCNAME("InitImageHeader");
 
@@ -472,7 +471,7 @@ InitImageHeader(IplImage *image, Size size, int depth,
         VOS_ERROR(VOS_BadROISize, "");
 
     if (((depth != (int)SYS_DEPTH_8U) && ((depth != (int)SYS_DEPTH_32F))) ||
-        (channels < 0))
+            (channels < 0))
         VOS_ERROR(VOS_BadDepth, "");
     if (origin != VOS_ORIGIN_BL && origin != VOS_ORIGIN_TL)
         VOS_ERROR(VOS_BadOrigin, "");
@@ -487,11 +486,11 @@ InitImageHeader(IplImage *image, Size size, int depth,
     image->depth = depth;
     image->align = align;
     image->widthStep = (((image->width * image->nChannels *
-                              (image->depth & ~SYS_DEPTH_SIGN) +
+                          (image->depth & ~SYS_DEPTH_SIGN) +
                           7) /
                          8) +
                         align - 1) &
-                       (~(align - 1));
+            (~(align - 1));
     image->origin = origin;
     image->imageSize = image->widthStep * image->height;
 
@@ -502,7 +501,7 @@ InitImageHeader(IplImage *image, Size size, int depth,
     return result;
 }
 
-void ReleaseImageHeader(IplImage **image)
+void ReleaseImageHeader(BmpImage **image)
 {
     VOS_FUNCNAME("ReleaseImageHeader");
 
@@ -513,7 +512,7 @@ void ReleaseImageHeader(IplImage **image)
 
     if (*image)
     {
-        IplImage *img = *image;
+        BmpImage *img = *image;
         *image = NULL;
 
         SYS_FREE(&img);
@@ -521,18 +520,18 @@ void ReleaseImageHeader(IplImage **image)
     __END__;
 }
 
-void ReleaseImage(IplImage **image)
+void ReleaseImage(BmpImage **image)
 {
     VOS_FUNCNAME("ReleaseImage");
 
     __BEGIN__
 
-    if (!image)
-        VOS_ERROR(VOS_StsNullPtr, "");
+            if (!image)
+            VOS_ERROR(VOS_StsNullPtr, "");
 
     if (*image)
     {
-        IplImage *img = *image;
+        BmpImage *img = *image;
         *image = NULL;
 
         ReleaseData(img);
@@ -542,9 +541,9 @@ void ReleaseImage(IplImage **image)
     __END__;
 }
 
-IplImage *CloneImage(const IplImage *src)
+BmpImage *CloneImage(const BmpImage *src)
 {
-    IplImage *dst = NULL;
+    BmpImage *dst = NULL;
     VOS_FUNCNAME("CloneImage");
 
     __BEGIN__;
@@ -552,7 +551,7 @@ IplImage *CloneImage(const IplImage *src)
     if (!VOS_IS_IMAGE_HDR(src))
         VOS_ERROR(VOS_StsBadArg, "");
 
-    VOS_CALL(dst = (IplImage *)SysAlloc(sizeof(*dst)));
+    VOS_CALL(dst = (BmpImage *)SysAlloc(sizeof(*dst)));
 
     VOS_MEMCPY(dst, src, sizeof(*src));
     dst->imageData = dst->imageDataOrigin = NULL;

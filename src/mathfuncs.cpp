@@ -29,7 +29,7 @@ static int iSqrt_32f(const float *src, float *dst, int len)
 
 typedef int(*SqrtFunc_t)(const void *src, void *dst, int len);
 
- void SysPow(const Mat *src, Mat *dst, double power)
+void SysPow(const AutoBuffer *src, AutoBuffer *dst, double power)
 {
     VOS_FUNCNAME("SysPow");
 
@@ -44,13 +44,13 @@ typedef int(*SqrtFunc_t)(const void *src, void *dst, int len);
     if (!VOS_ARE_SIZES_EQ(src, dst))
         VOS_ERROR_FROM_CODE(VOS_StsUnmatchedSizes);
 
-    depth = VOS_MAT_DEPTH(src->type);
+    depth = VOS_BUFFER_DEPTH(src->type);
 
 
-    size = GetMatSize(src);
-    size.width *= VOS_MAT_CN(src->type);
+    size = GetBufferSize(src);
+    size.width *= VOS_BUFFER_CN(src->type);
 
-    if (VOS_IS_MAT_CONT(src->type & dst->type))
+    if (VOS_IS_BUFFER_CONT(src->type & dst->type))
     {
         size.width *= size.height;
         size.height = 1;
@@ -70,7 +70,7 @@ typedef int(*SqrtFunc_t)(const void *src, void *dst, int len);
     }
     else
     {
-         VOS_ERROR(VOS_StsUnsupportedFormat,"");
+        VOS_ERROR(VOS_StsUnsupportedFormat,"");
     }
     __END__;
 }

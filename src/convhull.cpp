@@ -228,7 +228,7 @@ static void iSortPointsByPointers_32s(Point **array, size_t total)
     }
 }
 
-Seq *ConvexHull2(const VOID *array, void *hull_storage,
+Seq *ConvexHull(const VOID *array, void *hull_storage,
                  int orientation)
 {
     union {
@@ -238,13 +238,13 @@ Seq *ConvexHull2(const VOID *array, void *hull_storage,
     Point **pointer = NULL;
     int *stack = NULL;
 
-    VOS_FUNCNAME("ConvexHull2");
+    VOS_FUNCNAME("ConvexHull");
 
     hull.s = NULL;
 
     __BEGIN__;
 
-    Mat *mat = NULL;
+    AutoBuffer *mat = NULL;
     SeqReader reader;
     SeqWriter writer;
     Contour contour_header;

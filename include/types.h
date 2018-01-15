@@ -96,9 +96,9 @@ VOS_INLINE int SysCeil(double value)
 #define SYS_ORIGIN_TL 0
 #define SYS_ORIGIN_BL 1
 
-typedef struct tagIplImage
+typedef struct tagBmpImage
 {
-    int nSize;             /* sizeof(IplImage) */
+    int nSize;             /* sizeof(BmpImage) */
     int nChannels;         /* Most of   functions support 1,2,3 or 4 channels */
     int depth;             /* pixel depth in bits*/
     int dataOrder;         /* 0 - interleaved color channels, 1 - separate color channels.
@@ -117,13 +117,13 @@ typedef struct tagIplImage
     char *imageDataOrigin; /* pointer to very origin of image data
                               (not necessarily aligned) -
                               needed for correct deallocation */
-} IplImage;
+} BmpImage;
 
 #define VOS_IS_IMAGE_HDR(img) \
-    ((img) != NULL && ((const IplImage *)(img))->nSize == sizeof(IplImage))
+    ((img) != NULL && ((const BmpImage *)(img))->nSize == sizeof(BmpImage))
 
 #define VOS_IS_IMAGE(img) \
-    (VOS_IS_IMAGE_HDR(img) && ((IplImage *)img)->imageData != NULL)
+    (VOS_IS_IMAGE_HDR(img) && ((BmpImage *)img)->imageData != NULL)
 
 #define VOS_IMAGE_ELEM(image, elemtype, row, col) \
     (((elemtype *)((image)->imageData + (image)->widthStep * (row)))[(col)])
@@ -160,20 +160,20 @@ typedef struct tagIplImage
 
 #define VOS_64FC1 VOS_MAKETYPE(VOS_64F, 1)
 
-#define VOS_MAT_CN_MASK ((VOS_CN_MAX - 1) << VOS_CN_SHIFT)
-#define VOS_MAT_CN(flags) ((((flags)&VOS_MAT_CN_MASK) >> VOS_CN_SHIFT) + 1)
-#define VOS_MAT_DEPTH_MASK (VOS_DEPTH_MAX - 1)
-#define VOS_MAT_DEPTH(flags) ((flags)&VOS_MAT_DEPTH_MASK)
-#define VOS_MAT_TYPE_MASK (VOS_DEPTH_MAX * VOS_CN_MAX - 1)
-#define VOS_MAT_TYPE(flags) ((flags)&VOS_MAT_TYPE_MASK)
-#define VOS_MAT_CONT_FLAG_SHIFT 14
-#define VOS_MAT_CONT_FLAG (1 << VOS_MAT_CONT_FLAG_SHIFT)
-#define VOS_IS_MAT_CONT(flags) ((flags)&VOS_MAT_CONT_FLAG)
+#define VOS_BUFFER_CN_MASK ((VOS_CN_MAX - 1) << VOS_CN_SHIFT)
+#define VOS_BUFFER_CN(flags) ((((flags)&VOS_BUFFER_CN_MASK) >> VOS_CN_SHIFT) + 1)
+#define VOS_BUFFER_DEPTH_MASK (VOS_DEPTH_MAX - 1)
+#define VOS_BUFFER_DEPTH(flags) ((flags)&VOS_BUFFER_DEPTH_MASK)
+#define VOS_BUFFER_TYPE_MASK (VOS_DEPTH_MAX * VOS_CN_MAX - 1)
+#define VOS_BUFFER_TYPE(flags) ((flags)&VOS_BUFFER_TYPE_MASK)
+#define VOS_BUFFER_CONT_FLAG_SHIFT 14
+#define VOS_BUFFER_CONT_FLAG (1 << VOS_BUFFER_CONT_FLAG_SHIFT)
+#define VOS_IS_BUFFER_CONT(flags) ((flags)&VOS_BUFFER_CONT_FLAG)
 
 #define VOS_MAGIC_MASK 0xFFFF0000
-#define VOS_MAT_MAGIC_VAL 0x42420000
+#define VOS_BUFFER_MAGIC_VAL 0x42420000
 
-typedef struct Mat
+typedef struct AutoBuffer
 {
     int type;
     int step;
@@ -204,41 +204,41 @@ typedef struct Mat
     int cols;
 #endif
 
-} Mat;
+} AutoBuffer;
 
-#define VOS_IS_MAT_HDR(mat)                                                \
+#define VOS_IS_BUFFER_HDR(mat)                                                \
     ((mat) != NULL &&                                                      \
-     (((const Mat *)(mat))->type & VOS_MAGIC_MASK) == VOS_MAT_MAGIC_VAL && \
-     ((const Mat *)(mat))->cols > 0 && ((const Mat *)(mat))->rows > 0)
+    (((const AutoBuffer *)(mat))->type & VOS_MAGIC_MASK) == VOS_BUFFER_MAGIC_VAL && \
+    ((const AutoBuffer *)(mat))->cols > 0 && ((const AutoBuffer *)(mat))->rows > 0)
 
-#define VOS_IS_MAT(mat) \
-    (VOS_IS_MAT_HDR(mat) && ((const Mat *)(mat))->data.ptr != NULL)
+#define VOS_IS_BUFFER(mat) \
+    (VOS_IS_BUFFER_HDR(mat) && ((const AutoBuffer *)(mat))->data.ptr != NULL)
 
 #define VOS_ARE_TYPES_EQ(mat1, mat2) \
-    ((((mat1)->type ^ (mat2)->type) & VOS_MAT_TYPE_MASK) == 0)
+    ((((mat1)->type ^ (mat2)->type) & VOS_BUFFER_TYPE_MASK) == 0)
 
 #define VOS_ARE_CNS_EQ(mat1, mat2) \
-    ((((mat1)->type ^ (mat2)->type) & VOS_MAT_CN_MASK) == 0)
+    ((((mat1)->type ^ (mat2)->type) & VOS_BUFFER_CN_MASK) == 0)
 
 #define VOS_ARE_DEPTHS_EQ(mat1, mat2) \
-    ((((mat1)->type ^ (mat2)->type) & VOS_MAT_DEPTH_MASK) == 0)
+    ((((mat1)->type ^ (mat2)->type) & VOS_BUFFER_DEPTH_MASK) == 0)
 
 #define VOS_ARE_SIZES_EQ(mat1, mat2) \
     ((mat1)->height == (mat2)->height && (mat1)->width == (mat2)->width)
 
 #define VOS_ELEM_SIZE1(type) \
-    ((((sizeof(size_t) << 28) | 0x8442211) >> VOS_MAT_DEPTH(type) * 4) & 15)
+    ((((sizeof(size_t) << 28) | 0x8442211) >> VOS_BUFFER_DEPTH(type) * 4) & 15)
 
 #define VOS_ELEM_SIZE(type) \
-    (VOS_MAT_CN(type) << ((((sizeof(size_t) / 4 + 1) * 16384 | 0x3a50) >> VOS_MAT_DEPTH(type) * 2) & 3))
+    (VOS_BUFFER_CN(type) << ((((sizeof(size_t) / 4 + 1) * 16384 | 0x3a50) >> VOS_BUFFER_DEPTH(type) * 2) & 3))
 
-VOS_INLINE Mat InitMat(int rows, int cols, int type, void *data VOS_DEFAULT(NULL))
+VOS_INLINE AutoBuffer InitAutoBuffer(int rows, int cols, int type, void *data VOS_DEFAULT(NULL))
 {
-    Mat m;
+    AutoBuffer m;
 
-    assert((unsigned)VOS_MAT_DEPTH(type) <= VOS_64F);
-    type = VOS_MAT_TYPE(type);
-    m.type = VOS_MAT_MAGIC_VAL | VOS_MAT_CONT_FLAG | type;
+    assert((unsigned)VOS_BUFFER_DEPTH(type) <= VOS_64F);
+    type = VOS_BUFFER_TYPE(type);
+    m.type = VOS_BUFFER_MAGIC_VAL | VOS_BUFFER_CONT_FLAG | type;
     m.cols = cols;
     m.rows = rows;
     m.step = rows > 1 ? m.cols * VOS_ELEM_SIZE(type) : 0;
@@ -249,13 +249,13 @@ VOS_INLINE Mat InitMat(int rows, int cols, int type, void *data VOS_DEFAULT(NULL
     return m;
 }
 
-VOS_INLINE int ToIplDepth(int type)
+VOS_INLINE int TypeToDepth(int type)
 {
-    int depth = VOS_MAT_DEPTH(type);
+    int depth = VOS_BUFFER_DEPTH(type);
     return VOS_ELEM_SIZE1(depth) * 8 | (depth == VOS_8S || depth == VOS_16S ||
-                                                depth == VOS_32S
-                                            ? SYS_DEPTH_SIGN
-                                            : 0);
+                                        depth == VOS_32S
+                                        ? SYS_DEPTH_SIGN
+                                        : 0);
 }
 
 typedef struct Rect
@@ -524,33 +524,33 @@ typedef struct SeqReader
 #define VOS_WRITE_SEQ_ELEM(elem, writer)                           \
     \
 {                                                             \
-        assert((writer).seq->elem_size == sizeof(elem));           \
-        if ((writer).ptr >= (writer).block_max)                    \
-        \
+    assert((writer).seq->elem_size == sizeof(elem));           \
+    if ((writer).ptr >= (writer).block_max)                    \
+    \
 {                                                         \
-            CreateSeqBlock(&writer);                               \
-        }                                                          \
-        assert((writer).ptr <= (writer).block_max - sizeof(elem)); \
-        VOS_MEMCPY((writer).ptr, &(elem), sizeof(elem));           \
-        (writer).ptr += sizeof(elem);                              \
+    CreateSeqBlock(&writer);                               \
+    }                                                          \
+    assert((writer).ptr <= (writer).block_max - sizeof(elem)); \
+    VOS_MEMCPY((writer).ptr, &(elem), sizeof(elem));           \
+    (writer).ptr += sizeof(elem);                              \
     }
 
 #define VOS_NEXT_SEQ_ELEM(elem_size, reader)                     \
     \
 {                                                           \
-        if (((reader).ptr += (elem_size)) >= (reader).block_max) \
-        \
+    if (((reader).ptr += (elem_size)) >= (reader).block_max) \
+    \
 {                                                       \
-            ChangeSeqBlock(&(reader), 1);                        \
-        }                                                        \
+    ChangeSeqBlock(&(reader), 1);                        \
+    }                                                        \
     }
 
 #define VOS_READ_SEQ_ELEM(elem, reader)                    \
     \
 {                                                     \
-        assert((reader).seq->elem_size == sizeof(elem));   \
-        VOS_MEMCPY(&(elem), (reader).ptr, sizeof((elem))); \
-        VOS_NEXT_SEQ_ELEM(sizeof(elem), reader)            \
+    assert((reader).seq->elem_size == sizeof(elem));   \
+    VOS_MEMCPY(&(elem), (reader).ptr, sizeof((elem))); \
+    VOS_NEXT_SEQ_ELEM(sizeof(elem), reader)            \
     }
 #endif /*_CXCORE_TYPES_H_*/
 

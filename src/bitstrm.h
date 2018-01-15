@@ -9,7 +9,7 @@
 
 class RBaseStream
 {
-  public:
+public:
     RBaseStream();
     virtual ~RBaseStream();
 
@@ -20,7 +20,7 @@ class RBaseStream
     int GetPos();
     void Skip(int bytes);
 
-  protected:
+protected:
     uchar *m_start;
     uchar *m_end;
     uchar *m_current;
@@ -37,7 +37,7 @@ class RBaseStream
 
 class RLByteStream : public RBaseStream
 {
-  public:
+public:
     virtual ~RLByteStream();
 
     int GetByte();
@@ -48,7 +48,7 @@ class RLByteStream : public RBaseStream
 
 class WBaseStream
 {
-  public:
+public:
     WBaseStream();
     virtual ~WBaseStream();
 
@@ -57,7 +57,7 @@ class WBaseStream
     bool IsOpened();
     int GetPos();
 
-  protected:
+protected:
     uchar *m_start;
     uchar *m_end;
     uchar *m_current;
@@ -73,7 +73,7 @@ class WBaseStream
 
 class WLByteStream : public WBaseStream
 {
-  public:
+public:
     virtual ~WLByteStream();
 
     void PutByte(int val);

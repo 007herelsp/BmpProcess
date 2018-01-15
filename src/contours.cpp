@@ -1,17 +1,14 @@
-
-
 #include "process.h"
 #include "misc.h"
 
-/* initializes 8-element array for fast access to 3x3 neighborhood of a pixel */
 #define VOS_INIT_3X3_DELTAS(deltas, step, nch)             \
     ((deltas)[0] = (nch), (deltas)[1] = -(step) + (nch),   \
-     (deltas)[2] = -(step), (deltas)[3] = -(step) - (nch), \
-     (deltas)[4] = -(nch), (deltas)[5] = (step) - (nch),   \
-     (deltas)[6] = (step), (deltas)[7] = (step) + (nch))
+    (deltas)[2] = -(step), (deltas)[3] = -(step) - (nch), \
+    (deltas)[4] = -(nch), (deltas)[5] = (step) - (nch),   \
+    (deltas)[6] = (step), (deltas)[7] = (step) + (nch))
 
 static const Point iCodeDeltas[8] =
-    {{1, 0}, {1, -1}, {0, -1}, {-1, -1}, {-1, 0}, {-1, 1}, {0, 1}, {1, 1}};
+{{1, 0}, {1, -1}, {0, -1}, {-1, -1}, {-1, 0}, {-1, 1}, {0, 1}, {1, 1}};
 
 typedef struct ContourInfo
 {
@@ -27,17 +24,16 @@ typedef struct ContourInfo
 typedef struct stContourScanner
 {
     MemStorage *storage1;      /* contains fetched contours */
-    MemStorage *storage2;      /* contains approximated contours
-                                   (!=storage1 if approx_method2 != approx_method1) */
-    MemStorage *cinfo_storage; /* contains _CvContourInfo nodes */
+    MemStorage *storage2;
+    MemStorage *cinfo_storage;
     MemStoragePos initial_pos; /* starting storage pos */
     MemStoragePos backup_pos;  /* beginning of the latest approx. contour */
     MemStoragePos backup_pos2; /* ending of the latest approx. contour */
     char *img0;                /* image origin */
     char *img;                 /* current image row */
     int img_step;              /* image step */
-    Size img_size;             /* ROI size */
-    Point offset;              /* ROI offset: coordinates, added to each contour point */
+    Size img_size;
+    Point offset;
     Point pt;                  /* current scanner position */
     Point lnbd;                /* position of the last met contour */
     int nbd;                   /* current mark val */
@@ -101,7 +97,7 @@ iThresh_8u_C1R(const uchar *src, int src_step, uchar *dst, int dst_step,
     return VOS_StsOk;
 }
 
-static void Threshold(const void *srcarr, void *dstarr, double thresh, double maxval, int type)
+static void iThreshold(const void *srcarr, void *dstarr, double thresh, double maxval, int type)
 {
     VOS_FUNCNAME("Threshold");
 
@@ -109,13 +105,13 @@ static void Threshold(const void *srcarr, void *dstarr, double thresh, double ma
 
     Size roi;
     int src_step, dst_step;
-    Mat src_stub, *src = (Mat *)srcarr;
-    Mat dst_stub, *dst = (Mat *)dstarr;
+    AutoBuffer src_stub, *src = (AutoBuffer *)srcarr;
+    AutoBuffer dst_stub, *dst = (AutoBuffer *)dstarr;
     int coi1 = 0, coi2 = 0;
     int ithresh, imaxval;
 
-    VOS_CALL(src = GetMat(src, &src_stub, &coi1));
-    VOS_CALL(dst = GetMat(dst, &dst_stub, &coi2));
+    VOS_CALL(src = GetAutoBuffer(src, &src_stub, &coi1));
+    VOS_CALL(dst = GetAutoBuffer(dst, &dst_stub, &coi2));
 
     if (coi1 + coi2)
         VOS_ERROR(VOS_BadCOI, "");
@@ -131,8 +127,8 @@ static void Threshold(const void *srcarr, void *dstarr, double thresh, double ma
     if (!VOS_ARE_SIZES_EQ(src, dst))
         VOS_ERROR(VOS_StsUnmatchedSizes, "");
 
-    roi = GetMatSize(src);
-    if (VOS_IS_MAT_CONT(src->type & dst->type))
+    roi = GetBufferSize(src);
+    if (VOS_IS_BUFFER_CONT(src->type & dst->type))
     {
         roi.width *= roi.height;
         roi.height = 1;
@@ -143,7 +139,7 @@ static void Threshold(const void *srcarr, void *dstarr, double thresh, double ma
         src_step = src->step;
         dst_step = dst->step;
     }
-    if (VOS_MAT_DEPTH(src->type) != VOS_8U)
+    if (VOS_BUFFER_DEPTH(src->type) != VOS_8U)
     {
         VOS_ERROR(VOS_BadDepth, "");
     }
@@ -169,7 +165,7 @@ StartFindContours(void *_img, MemStorage *storage,
     Size size;
     uchar *img = NULL;
     ContourScanner scanner = NULL;
-    Mat stub, *mat = (Mat *)_img;
+    AutoBuffer stub, *mat = (AutoBuffer *)_img;
 
     VOS_FUNCNAME("StartFindContours");
 
@@ -178,7 +174,7 @@ StartFindContours(void *_img, MemStorage *storage,
     if (!storage)
         VOS_ERROR(VOS_StsNullPtr, "");
 
-    VOS_CALL(mat = GetMat(mat, &stub));
+    VOS_CALL(mat = GetAutoBuffer(mat, &stub));
 
     size = GetSize(mat->width, mat->height);
     step = mat->step;
@@ -248,7 +244,7 @@ StartFindContours(void *_img, MemStorage *storage,
     }
 
     /* converts all pixels to 0 or 1 */
-    Threshold(mat, mat, 0, 1, VOS_THRESH_BINARY);
+    iThreshold(mat, mat, 0, 1, VOS_THRESH_BINARY);
     VOS_CHECK();
 
     __END__;
@@ -273,7 +269,7 @@ iEndProcessContour(ContourScanner scanner)
             SaveMemStoragePos(scanner->storage2, &temp);
 
             if (temp.top == scanner->backup_pos2.top &&
-                temp.free_space == scanner->backup_pos2.free_space)
+                    temp.free_space == scanner->backup_pos2.free_space)
             {
                 RestoreMemStoragePos(scanner->storage2, &scanner->backup_pos);
             }
@@ -528,7 +524,7 @@ Seq *FindNextContour(ContourScanner scanner)
 
                 result = VOS_StsOk;
                 goto exit_func;
-            resume_scan:
+resume_scan:
                 prev = p;
                 /* update lnbd */
                 if (prev & -2)

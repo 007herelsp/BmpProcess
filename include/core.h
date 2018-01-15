@@ -13,45 +13,45 @@ void *SysAlloc(size_t size);
 void SysFree_(void *ptr);
 #define SYS_FREE(ptr) (SysFree_(*(ptr)), *(ptr) = 0)
 
-IplImage *CreateImageHeader(Size size, int depth, int channels);
+BmpImage *CreateImageHeader(Size size, int depth, int channels);
 
-IplImage *InitImageHeader(IplImage *image, Size size, int depth,
+BmpImage *InitImageHeader(BmpImage *image, Size size, int depth,
                           int channels, int origin VOS_DEFAULT(0),
                           int align VOS_DEFAULT(4));
 
-IplImage *CreateImage(Size size, int depth, int channels);
+BmpImage *CreateImage(Size size, int depth, int channels);
 
-void ReleaseImageHeader(IplImage **image);
+void ReleaseImageHeader(BmpImage **image);
 
-void ReleaseImage(IplImage **image);
+void ReleaseImage(BmpImage **image);
 
-IplImage *CloneImage(const IplImage *image);
+BmpImage *CloneImage(const BmpImage *image);
 
-Mat *CreateMatHeader(int rows, int cols, int type);
+AutoBuffer *CreateAutoBufferHeader(int rows, int cols, int type);
 
 #define VOS_AUTOSTEP 0x7fffffff
 
-Mat *InitMatHeader(Mat *mat, int rows, int cols,
-                   int type, void *data VOS_DEFAULT(NULL),
-                   int step VOS_DEFAULT(VOS_AUTOSTEP));
+AutoBuffer *InitAutoBufferHeader(AutoBuffer *mat, int rows, int cols,
+                                 int type, void *data VOS_DEFAULT(NULL),
+                                 int step VOS_DEFAULT(VOS_AUTOSTEP));
 
-Mat *CreateMat(int rows, int cols, int type);
+AutoBuffer *CreateAutoBuffer(int rows, int cols, int type);
 
-void ReleaseMat(Mat **mat);
+void ReleaseAutoBuffer(AutoBuffer **mat);
 
-VOS_INLINE void DecRefData(Mat *arr)
+VOS_INLINE void DecRefData(AutoBuffer *arr)
 {
-        Mat *mat = (Mat *)arr;
-        mat->data.ptr = NULL;
-        if (mat->refcount != NULL && --*mat->refcount == 0)
-                SYS_FREE(&mat->refcount);
-        mat->refcount = NULL;
+    AutoBuffer *mat = (AutoBuffer *)arr;
+    mat->data.ptr = NULL;
+    if (mat->refcount != NULL && --*mat->refcount == 0)
+        SYS_FREE(&mat->refcount);
+    mat->refcount = NULL;
 }
 
 void ScalarToRawData(const Scalar *scalar, void *data, int type);
 
-Mat *GetMat(const VOID *arr, Mat *header,
-            int *coi VOS_DEFAULT(NULL));
+AutoBuffer *GetAutoBuffer(const VOID *arr, AutoBuffer *header,
+                          int *coi VOS_DEFAULT(NULL));
 
 void CreateData(VOID *arr);
 
@@ -62,10 +62,10 @@ void SetData(VOID *arr, void *data, int step);
 Size GetSize(const VOID *arr);
 void Copy(const VOID *src, VOID *dst);
 
-void ConvertScale(const Mat *src, Mat *dst);
+void ConvertScale(const AutoBuffer *src, AutoBuffer *dst);
 #define Convert(src, dst) ConvertScale((src), (dst))
 
-void SysPow(const Mat *src, Mat *dst, double power);
+void SysPow(const AutoBuffer *src, AutoBuffer *dst, double power);
 
 #define VOS_SVD_MODIFY_A 1
 #define VOS_SVD_U_T 2

@@ -190,13 +190,13 @@ static void iRotatingCalipers(Point2D32f *points, int n, float *out)
     SYS_FREE(&inv_vect_length);
 }
 
-Box2D MinAreaRect(const Seq *array, MemStorage *storage)
+Box2D GetMinAreaRect(const Seq *array, MemStorage *storage)
 {
     MemStorage *temp_storage = NULL;
     Box2D box;
     Point2D32f *points = NULL;
 
-    VOS_FUNCNAME("MinAreaRect");
+    VOS_FUNCNAME("GetMinAreaRect");
     Seq *ptseq = (Seq *)array;
     VOS_MEMSET(&box, 0, sizeof(box));
 
@@ -220,7 +220,7 @@ Box2D MinAreaRect(const Seq *array, MemStorage *storage)
 
     if (!VOS_IS_SEQ_CONVEX(ptseq))
     {
-        VOS_CALL(ptseq = ConvexHull2(ptseq, temp_storage, VOS_CLOCKWISE));
+        VOS_CALL(ptseq = ConvexHull(ptseq, temp_storage, VOS_CLOCKWISE));
     }
 
     n = ptseq->total;

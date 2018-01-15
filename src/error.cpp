@@ -128,14 +128,7 @@ void SysError(int code, const char *func_name,
         SetErrStatus(code);
     else
     {
-        Context *context = iGetContext();
-        char *message = context->err_msg;
-        context->err_code = code;
-
-        strcpy(message, err_msg);
-        context->err_ctx.file = file_name;
-        context->err_ctx.line = line;
-        int terminate = context->error_callback(code, func_name, err_msg, file_name, line, context->userdata);
+        int terminate = StdErrReport(code, func_name, err_msg, file_name, line, NULL);
         if (terminate)
         {
             exit(-abs(terminate));

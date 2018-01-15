@@ -2,8 +2,8 @@
 #include "misc.h"
 
 static int iApproxPolyDP_32s(Seq *src_contour, int header_size,
-                  MemStorage *storage,
-                  Seq **dst_contour, float eps)
+                             MemStorage *storage,
+                             Seq **dst_contour, float eps)
 {
     int init_iters = 3;
     Slice slice = {0, 0}, right_slice = {0, 0};

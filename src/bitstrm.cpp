@@ -193,7 +193,7 @@ int RLByteStream::GetDWord()
     if (current + 3 < m_end)
     {
         val = current[0] + (current[1] << 8) +
-              (current[2] << 16) + (current[3] << 24);
+                (current[2] << 16) + (current[3] << 24);
         m_current = current + 4;
     }
     else

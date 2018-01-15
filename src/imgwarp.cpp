@@ -1,11 +1,25 @@
 #include "process.h"
 #include "misc.h"
 
+void ConvertScale(const AutoBuffer *src, AutoBuffer *dst)
+{
+    VOS_FUNCNAME("ConvertScale");
+
+    __BEGIN__;
+
+    if (src != dst)
+    {
+        Copy(src, dst);
+    }
+
+    __END__;
+}
+
 static int Solve(const VOID *A, const VOID *b, VOID *x, int method)
 {
-    Mat *u = NULL;
-    Mat *v = NULL;
-    Mat *w = NULL;
+    AutoBuffer *u = NULL;
+    AutoBuffer *v = NULL;
+    AutoBuffer *w = NULL;
 
     uchar *buffer = NULL;
     int local_alloc = 0;
@@ -15,18 +29,18 @@ static int Solve(const VOID *A, const VOID *b, VOID *x, int method)
 
     __BEGIN__;
 
-    Mat sstub, *src = (Mat *)A;
-    Mat dstub, *dst = (Mat *)x;
-    Mat bstub, *src2 = (Mat *)b;
+    AutoBuffer sstub, *src = (AutoBuffer *)A;
+    AutoBuffer dstub, *dst = (AutoBuffer *)x;
+    AutoBuffer bstub, *src2 = (AutoBuffer *)b;
 
-    if (!VOS_IS_MAT(src))
-        VOS_CALL(src = GetMat(src, &sstub));
+    if (!VOS_IS_BUFFER(src))
+        VOS_CALL(src = GetAutoBuffer(src, &sstub));
 
-    if (!VOS_IS_MAT(src2))
-        VOS_CALL(src2 = GetMat(src2, &bstub));
+    if (!VOS_IS_BUFFER(src2))
+        VOS_CALL(src2 = GetAutoBuffer(src2, &bstub));
 
-    if (!VOS_IS_MAT(dst))
-        VOS_CALL(dst = GetMat(dst, &dstub));
+    if (!VOS_IS_BUFFER(dst))
+        VOS_CALL(dst = GetAutoBuffer(dst, &dstub));
 
     if (VOS_SVD == method || VOS_SVD_SYM == method)
     {
@@ -35,10 +49,10 @@ static int Solve(const VOID *A, const VOID *b, VOID *x, int method)
         if (VOS_SVD_SYM == method && src->rows != src->cols)
             VOS_ERROR(VOS_StsBadSize, "");
 
-        VOS_CALL(u = CreateMat(n, src->rows, src->type));
+        VOS_CALL(u = CreateAutoBuffer(n, src->rows, src->type));
         if (VOS_SVD_SYM != method)
-            VOS_CALL(v = CreateMat(n, src->cols, src->type));
-        VOS_CALL(w = CreateMat(n, 1, src->type));
+            VOS_CALL(v = CreateAutoBuffer(n, src->cols, src->type));
+        VOS_CALL(w = CreateAutoBuffer(n, 1, src->type));
         VOS_CALL(SVD(src, w, u, v, VOS_SVD_U_T + VOS_SVD_V_T));
         VOS_CALL(SVBkSb(w, u, v ? v : u, src2, dst, VOS_SVD_U_T + VOS_SVD_V_T));
     }
@@ -52,9 +66,9 @@ static int Solve(const VOID *A, const VOID *b, VOID *x, int method)
 
     if (u || v || w)
     {
-        ReleaseMat(&u);
-        ReleaseMat(&v);
-        ReleaseMat(&w);
+        ReleaseAutoBuffer(&u);
+        ReleaseAutoBuffer(&v);
+        ReleaseAutoBuffer(&w);
     }
 
     return result;
@@ -125,39 +139,39 @@ static int iWarpPerspective_Bilinear_8u_CnR(const uchar *src, int step,
 }
 
 void WarpPerspective(const VOID *srcarr, VOID *dstarr,
-                     const Mat *matrix, int flags, Scalar fillval)
+                     const AutoBuffer *matrix, int flags, Scalar fillval)
 {
     VOS_FUNCNAME("WarpPerspective");
 
     __BEGIN__;
 
-    Mat srcstub, *src = (Mat *)srcarr;
-    Mat dststub, *dst = (Mat *)dstarr;
+    AutoBuffer srcstub, *src = (AutoBuffer *)srcarr;
+    AutoBuffer dststub, *dst = (AutoBuffer *)dstarr;
     int type, depth, cn;
     double dst_matrix[9];
     double fillbuf[4];
-    Mat invA = InitMat(3, 3, VOS_64F, dst_matrix);
+    AutoBuffer invA = InitAutoBuffer(3, 3, VOS_64F, dst_matrix);
 
     Size ssize, dsize;
-    VOS_CALL(src = GetMat(srcarr, &srcstub));
-    VOS_CALL(dst = GetMat(dstarr, &dststub));
+    VOS_CALL(src = GetAutoBuffer(srcarr, &srcstub));
+    VOS_CALL(dst = GetAutoBuffer(dstarr, &dststub));
 
     if (!VOS_ARE_TYPES_EQ(src, dst))
         VOS_ERROR(VOS_StsUnmatchedFormats, "");
 
     ConvertScale(matrix, &invA);
 
-    type = VOS_MAT_TYPE(src->type);
-    depth = VOS_MAT_DEPTH(type);
+    type = VOS_BUFFER_TYPE(src->type);
+    depth = VOS_BUFFER_DEPTH(type);
     assert(0 == depth);
-    cn = VOS_MAT_CN(type);
+    cn = VOS_BUFFER_CN(type);
     if (cn > 4)
         VOS_ERROR(VOS_BadNumChannels, "");
 
-    ssize = GetMatSize(src);
-    dsize = GetMatSize(dst);
+    ssize = GetBufferSize(src);
+    dsize = GetBufferSize(dst);
 
-    ScalarToRawData(&fillval, fillbuf, VOS_MAT_TYPE(src->type));
+    ScalarToRawData(&fillval, fillbuf, VOS_BUFFER_TYPE(src->type));
 
     VOS_FUN_CALL(iWarpPerspective_Bilinear_8u_CnR(src->data.ptr, src->step, ssize, dst->data.ptr,
                                                   dst->step, dsize, dst_matrix, cn,
@@ -166,9 +180,9 @@ void WarpPerspective(const VOID *srcarr, VOID *dstarr,
     __END__;
 }
 
-Mat *GetPerspectiveTransform(const Point2D32f *src,
+AutoBuffer *GetPerspectiveTransform(const Point2D32f *src,
                              const Point2D32f *dst,
-                             Mat *matrix)
+                             AutoBuffer *matrix)
 {
     VOS_FUNCNAME("GetPerspectiveTransform");
 
@@ -177,9 +191,9 @@ Mat *GetPerspectiveTransform(const Point2D32f *src,
     double a[8][8];
     double b[8], x[9];
 
-    Mat A = InitMat(8, 8, VOS_64FC1, a);
-    Mat B = InitMat(8, 1, VOS_64FC1, b);
-    Mat X = InitMat(8, 1, VOS_64FC1, x);
+    AutoBuffer A = InitAutoBuffer(8, 8, VOS_64FC1, a);
+    AutoBuffer B = InitAutoBuffer(8, 1, VOS_64FC1, b);
+    AutoBuffer X = InitAutoBuffer(8, 1, VOS_64FC1, x);
 
     int i;
 
@@ -204,7 +218,7 @@ Mat *GetPerspectiveTransform(const Point2D32f *src,
     Solve(&A, &B, &X, VOS_SVD);
     x[8] = 1;
 
-    X = InitMat(3, 3, VOS_64FC1, x);
+    X = InitAutoBuffer(3, 3, VOS_64FC1, x);
     Convert(&X, matrix);
 
     __END__;

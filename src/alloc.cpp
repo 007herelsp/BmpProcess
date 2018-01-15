@@ -4,7 +4,7 @@
 static void *iDefaultAlloc(size_t size)
 {
     char *ptr, *ptr0 = (char *)malloc(
-                   (size_t)(size + VOS_MALLOC_ALIGN * ((size >= 4096) + 1) + sizeof(char *)));
+                (size_t)(size + VOS_MALLOC_ALIGN * ((size >= 4096) + 1) + sizeof(char *)));
 
     if (!ptr0)
         return NULL;

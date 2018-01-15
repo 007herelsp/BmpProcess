@@ -1,4 +1,4 @@
-#include "grfmt_bmp.h"
+#include "bmp.h"
 
 static const char *fmtSignBmp = "BM";
 
@@ -15,7 +15,7 @@ static void  FillGrayPalette( PaletteEntry* palette, int bpp, bool negative=fals
     }
 }
 
-GrFmtBmpReader::GrFmtBmpReader(const char *filename)
+BmpReader::BmpReader(const char *filename)
 {
     strncpy( m_filename, filename, sizeof(m_filename) - 1 );
     m_filename[sizeof(m_filename)-1] = '\0';
@@ -25,19 +25,19 @@ GrFmtBmpReader::GrFmtBmpReader(const char *filename)
     m_offset = -1;
 }
 
-GrFmtBmpReader::~GrFmtBmpReader()
+BmpReader::~BmpReader()
 {
-	Close();
+    Close();
 }
 
-void GrFmtBmpReader::Close()
+void BmpReader::Close()
 {
     m_strm.Close();
     m_width = m_height = 0;
     m_iscolor = false;
 }
 
-bool GrFmtBmpReader::ReadHeader()
+bool BmpReader::ReadHeader()
 {
     bool result = false;
 
@@ -91,7 +91,7 @@ bool GrFmtBmpReader::ReadHeader()
     return result;
 }
 
-bool GrFmtBmpReader::ReadData(uchar *data, int step, int color)
+bool BmpReader::ReadData(uchar *data, int step, int color)
 {
     const int buffer_size = 1 << 12;
     uchar buffer[buffer_size];
@@ -123,23 +123,23 @@ bool GrFmtBmpReader::ReadData(uchar *data, int step, int color)
     return result;
 }
 
-GrFmtBmpWriter::GrFmtBmpWriter(const char *filename)
+BmpWriter::BmpWriter(const char *filename)
 {
     strncpy( m_filename, filename, sizeof(m_filename) - 1 );
     m_filename[sizeof(m_filename)-1] = '\0';
 }
 
-bool GrFmtBmpWriter::IsFormatSupported( int depth )
+bool BmpWriter::IsFormatSupported( int depth )
 {
     return  SYS_DEPTH_8U==depth ;
 }
 
-GrFmtBmpWriter::~GrFmtBmpWriter()
+BmpWriter::~BmpWriter()
 {
 }
 
-bool GrFmtBmpWriter::WriteImage(const uchar *data, int step,
-                                int width, int height, int /*depth*/, int channels)
+bool BmpWriter::WriteImage(const uchar *data, int step,
+                           int width, int height, int /*depth*/, int channels)
 {
     bool result = false;
     int fileStep = (width * channels + 3) & -4;

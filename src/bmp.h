@@ -17,14 +17,14 @@ struct PaletteEntry
     unsigned char b, g, r, a;
 };
 
-class GrFmtBmpReader 
+class BmpReader 
 {
 public:
     int   GetWidth()  { return m_width; };
     int   GetHeight() { return m_height; };
     
-    GrFmtBmpReader( const char* filename );
-    ~GrFmtBmpReader();
+    BmpReader( const char* filename );
+    ~BmpReader();
     
     bool  ReadData( uchar* data, int step, int color );
     bool  ReadHeader();
@@ -44,12 +44,12 @@ protected:
     char    m_filename[_MAX_PATH]; // filename
 };
 
-class GrFmtBmpWriter
+class BmpWriter
 {
 public:
     
-    GrFmtBmpWriter( const char* filename );
-    ~GrFmtBmpWriter();
+    BmpWriter( const char* filename );
+    ~BmpWriter();
     bool  IsFormatSupported( int depth );
     
     bool  WriteImage( const uchar* data, int step,

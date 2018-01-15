@@ -4,14 +4,14 @@
 #include "types.h"
 #include <limits.h>
 
-#define VOS_MAX_INLINE_MAT_OP_SIZE 10
+#define VOS_MAX_INLINE_BUFFER_OP_SIZE 10
 
-#define VOS_MAX_LOCAL_MAT_SIZE 32
+#define VOS_MAX_LOCAL_BUFFER_SIZE 32
 
 #define VOS_MAX_LOCAL_SIZE \
-    (VOS_MAX_LOCAL_MAT_SIZE * VOS_MAX_LOCAL_MAT_SIZE * (int)sizeof(double))
+    (VOS_MAX_LOCAL_BUFFER_SIZE * VOS_MAX_LOCAL_BUFFER_SIZE * (int)sizeof(double))
 #define VOS_DEFAULT_IMAGE_ROW_ALIGN 4
-#define VOS_DEFAULT_MAT_ROW_ALIGN 1
+#define VOS_DEFAULT_BUFFER_ROW_ALIGN 1
 
 #define VOS_MAX_ALLOC_SIZE (((size_t)1 << (sizeof(size_t) * 8 - 2)))
 
@@ -56,7 +56,7 @@ VOS_INLINE int SysAlign(int size, int align)
     return (size + align - 1) & -align;
 }
 
-VOS_INLINE Size GetMatSize(const Mat *mat)
+VOS_INLINE Size GetBufferSize(const AutoBuffer *mat)
 {
     Size size = {mat->width, mat->height};
     return size;
@@ -67,27 +67,27 @@ VOS_INLINE Size GetMatSize(const Mat *mat)
 #define VOS_SYS_MEMCPY_AUTO(dst, src, len)                                                        \
     \
 {                                                                                            \
-        size_t _i_SYS_MEMCPY_i_, _i_SYS_MEMCPY_len_ = (len);                                      \
-        char *_i_SYS_MEMCPY_dst_ = (char *)(dst);                                                 \
-        const char *_i_SYS_MEMCPY_src_ = (const char *)(src);                                     \
-        if ((_i_SYS_MEMCPY_len_ & (sizeof(int) - 1)) == 0)                                        \
-        {                                                                                         \
-            assert(((size_t)_i_SYS_MEMCPY_src_ & (sizeof(int) - 1)) == 0 &&                       \
-                   ((size_t)_i_SYS_MEMCPY_dst_ & (sizeof(int) - 1)) == 0);                        \
-            for (_i_SYS_MEMCPY_i_ = 0; _i_SYS_MEMCPY_i_ < _i_SYS_MEMCPY_len_;                     \
-                 _i_SYS_MEMCPY_i_ += sizeof(int))                                                 \
-            {                                                                                     \
-                *(int *)(_i_SYS_MEMCPY_dst_ + _i_SYS_MEMCPY_i_) =                                 \
-                    *(const int *)(_i_SYS_MEMCPY_src_ + _i_SYS_MEMCPY_i_);                        \
-            }                                                                                     \
-        }                                                                                         \
-        else                                                                                      \
-        {                                                                                         \
-            for (_i_SYS_MEMCPY_i_ = 0; _i_SYS_MEMCPY_i_ < _i_SYS_MEMCPY_len_; _i_SYS_MEMCPY_i_++) \
-                _i_SYS_MEMCPY_dst_[_i_SYS_MEMCPY_i_] = _i_SYS_MEMCPY_src_[_i_SYS_MEMCPY_i_];      \
-        }                                                                                         \
+    size_t _i_SYS_MEMCPY_i_, _i_SYS_MEMCPY_len_ = (len);                                      \
+    char *_i_SYS_MEMCPY_dst_ = (char *)(dst);                                                 \
+    const char *_i_SYS_MEMCPY_src_ = (const char *)(src);                                     \
+    if ((_i_SYS_MEMCPY_len_ & (sizeof(int) - 1)) == 0)                                        \
+{                                                                                         \
+    assert(((size_t)_i_SYS_MEMCPY_src_ & (sizeof(int) - 1)) == 0 &&                       \
+    ((size_t)_i_SYS_MEMCPY_dst_ & (sizeof(int) - 1)) == 0);                        \
+    for (_i_SYS_MEMCPY_i_ = 0; _i_SYS_MEMCPY_i_ < _i_SYS_MEMCPY_len_;                     \
+    _i_SYS_MEMCPY_i_ += sizeof(int))                                                 \
+{                                                                                     \
+    *(int *)(_i_SYS_MEMCPY_dst_ + _i_SYS_MEMCPY_i_) =                                 \
+    *(const int *)(_i_SYS_MEMCPY_src_ + _i_SYS_MEMCPY_i_);                        \
+    }                                                                                     \
+    }                                                                                         \
+    else                                                                                      \
+{                                                                                         \
+    for (_i_SYS_MEMCPY_i_ = 0; _i_SYS_MEMCPY_i_ < _i_SYS_MEMCPY_len_; _i_SYS_MEMCPY_i_++) \
+    _i_SYS_MEMCPY_dst_[_i_SYS_MEMCPY_i_] = _i_SYS_MEMCPY_src_[_i_SYS_MEMCPY_i_];      \
+    }                                                                                         \
     \
-}
+    }
 
 
 #endif /*_CXCORE_MISC_H_*/

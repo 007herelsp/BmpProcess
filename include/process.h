@@ -10,8 +10,6 @@ typedef struct stContourScanner *ContourScanner;
 
 #define VOS_RETR_LIST 1
 
-/* contour approximation method */
-#define VOS_CHAIN_APPROX_NONE 1
 #define VOS_CHAIN_APPROX_SIMPLE 2
 #define VOS_LINK_RUNS 3
 #define VOS_SCHARR -1
@@ -24,13 +22,13 @@ void BGR2GRAY_8u_C3C1(const VOID *src, VOID *dstr, VOID *dstg, VOID *dstb);
 #define VOS_WARP_FILL_OUTLIERS 8
 #define VOS_WARP_INVERSE_MAP 16
 
-void WarpPerspective(const VOID *src, VOID *dst, const Mat *map_matrix,
+void WarpPerspective(const VOID *src, VOID *dst, const AutoBuffer *map_matrix,
                      int flags VOS_DEFAULT(VOS_INTER_LINEAR + VOS_WARP_FILL_OUTLIERS),
                      Scalar fillval VOS_DEFAULT(ScalarAll(0)));
 
-Mat *GetPerspectiveTransform(const Point2D32f *src,
-                             const Point2D32f *dst,
-                             Mat *map_matrix);
+AutoBuffer *GetPerspectiveTransform(const Point2D32f *src,
+                                    const Point2D32f *dst,
+                                    AutoBuffer *map_matrix);
 
 void Erode(const VOID *src, VOID *dst, int iterations VOS_DEFAULT(1));
 
@@ -58,21 +56,21 @@ Seq *ApproxPoly(const void *src_seq,
                 int parameter2 VOS_DEFAULT(0));
 
 double GetArcLength(const void *curve,
-                 Slice slice VOS_DEFAULT(VOS_WHOLE_SEQ),
-                 int is_closed VOS_DEFAULT(-1));
+                    Slice slice VOS_DEFAULT(VOS_WHOLE_SEQ),
+                    int is_closed VOS_DEFAULT(-1));
 #define ContourPerimeter(contour) GetArcLength(contour, VOS_WHOLE_SEQ, 1)
 
 Rect BoundingRect(VOID *points, int update VOS_DEFAULT(0));
 
 double GetContourArea(const Seq *contour,
-                   Slice slice VOS_DEFAULT(VOS_WHOLE_SEQ));
+                      Slice slice VOS_DEFAULT(VOS_WHOLE_SEQ));
 
-Box2D MinAreaRect(const Seq *points,
+Box2D GetMinAreaRect(const Seq *points,
                   MemStorage *storage VOS_DEFAULT(NULL));
 #define VOS_CLOCKWISE 1
 #define VOS_COUNTER_CLOCKWISE 2
 
-Seq *ConvexHull2(const VOID *input,
+Seq *ConvexHull(const VOID *input,
                  void *hull_storage VOS_DEFAULT(NULL),
                  int orientation VOS_DEFAULT(VOS_CLOCKWISE));
 
@@ -85,7 +83,7 @@ int CheckContourConvexity(const VOID *contour);
 void Canny(const VOID *image, VOID *edges, double threshold1,
            double threshold2, int aperture_size VOS_DEFAULT(3));
 
-IplImage *LoadImage(const char *filename);
+BmpImage *LoadImage(const char *filename);
 
 int SaveImage(const char *filename, const VOID *image);
 
@@ -96,12 +94,6 @@ extern const uchar iSaturate8u[];
 
 extern const float i8x32fTab[];
 #define VOS_8TO32F(x) i8x32fTab[(x) + 256]
-#define VOS_CALC_MIN(a, b) \
-    if ((a) > (b))         \
-    (a) = (b)
-#define VOS_CALC_MAX(a, b) \
-    if ((a) < (b))         \
-    (a) = (b)
 
 #ifdef __cplusplus
 }
@@ -121,7 +113,7 @@ typedef void (*ColumnFilterFunc)(uchar **src, uchar *dst, int dst_step, int coun
 
 class BaseImageFilter
 {
-  public:
+public:
     BaseImageFilter();
 
     virtual ~BaseImageFilter();
@@ -132,7 +124,7 @@ class BaseImageFilter
 
     virtual void clear();
 
-    virtual int process(const Mat *_src, Mat *_dst,
+    virtual int process(const AutoBuffer *_src, AutoBuffer *_dst,
                         Rect _src_roi = InitRect(0, 0, -1, -1),
                         Point _dst_origin = InitPoint(0, 0), int _flags = 0);
     int get_src_type() const { return src_type; }
@@ -142,7 +134,7 @@ class BaseImageFilter
     RowFilterFunc get_x_filter_func() const { return x_func; }
     ColumnFilterFunc get_y_filter_func() const { return y_func; }
 
-  protected:
+protected:
     virtual void get_work_params();
     virtual void start_process(Slice x_range, int width);
     virtual void make_y_border(int row_count, int top_rows, int bottom_rows);
@@ -179,13 +171,13 @@ class BaseImageFilter
 
 class SepFilter : public BaseImageFilter
 {
-  public:
+public:
     SepFilter();
 
     virtual ~SepFilter();
 
     virtual void init(int _max_width, int _src_type, int _dst_type,
-                      const Mat *_kx, const Mat *_ky,
+                      const AutoBuffer *_kx, const AutoBuffer *_ky,
                       Point _anchor = InitPoint(-1, -1));
     virtual void init_deriv(int _max_width, int _src_type, int _dst_type,
                             int dx, int dy, int aperture_size, int flags = 0);
@@ -197,8 +189,8 @@ class SepFilter : public BaseImageFilter
                       Point _anchor = InitPoint(-1, -1));
 
     virtual void clear();
-    const Mat *get_x_kernel() const { return kx; }
-    const Mat *get_y_kernel() const { return ky; }
+    const AutoBuffer *get_x_kernel() const { return kx; }
+    const AutoBuffer *get_y_kernel() const { return ky; }
     int get_x_kernel_flags() const { return kx_flags; }
     int get_y_kernel_flags() const { return ky_flags; }
 
@@ -217,11 +209,11 @@ class SepFilter : public BaseImageFilter
         FLIP_KERNEL = 2
     };
 
-    static void init_gaussian_kernel(Mat *kernel, double sigma = -1);
-    static void init_sobel_kernel(Mat *_kx, Mat *_ky, int dx, int dy, int flags = 0);
+    static void init_gaussian_kernel(AutoBuffer *kernel, double sigma = -1);
+    static void init_sobel_kernel(AutoBuffer *_kx, AutoBuffer *_ky, int dx, int dy, int flags = 0);
 
-  protected:
-    Mat *kx, *ky;
+protected:
+    AutoBuffer *kx, *ky;
     int kx_flags, ky_flags;
 };
 
@@ -230,7 +222,7 @@ class SepFilter : public BaseImageFilter
 
 class Morphology : public BaseImageFilter
 {
-  public:
+public:
     Morphology();
     Morphology(int _operation, int _max_width, int _src_dst_type,
                Size _ksize = GetSize(0, 0), Point _anchor = InitPoint(-1, -1));
@@ -244,7 +236,7 @@ class Morphology : public BaseImageFilter
 
     virtual void clear();
 
-  protected:
+protected:
     void start_process(Slice x_range, int width);
     int fill_cyclic_buffer(const uchar *src, int src_step,
                            int y0, int y1, int y2);

@@ -32,15 +32,15 @@
 #define VOS_StsNotImplemented -27    /* the requested function/feature is not implemented */
 #define VOS_StsBUTT -28
 
-#define VOS_FUNCNAME(Name) static char sysFuncName[] = Name
+#define VOS_FUNCNAME(Name) static const char sysFuncName[] = Name
 
 #define VOS_ERROR(Code, Msg)                                    \
     \
 {                                                          \
-        SysError((Code), sysFuncName, Msg, __FILE__, __LINE__); \
-        EXIT;                                                   \
+    SysError((Code), sysFuncName, Msg, __FILE__, __LINE__); \
+    EXIT;                                                   \
     \
-}
+    }
 
 #define VOS_ERROR_FROM_CODE(code) \
     VOS_ERROR(code, "")
@@ -48,38 +48,38 @@
 #define VOS_CHECK()                                                \
     \
 {                                                             \
-        if (GetErrStatus() < 0)                                    \
-            VOS_ERROR(VOS_StsBackTrace, "Inner function failed."); \
+    if (GetErrStatus() < 0)                                    \
+    VOS_ERROR(VOS_StsBackTrace, "Inner function failed."); \
     \
-}
+    }
 
 #define VOS_CALL(Func) \
     \
 {                 \
-        Func;          \
-        VOS_CHECK();   \
+    Func;          \
+    VOS_CHECK();   \
     \
-}
+    }
 
 #define VOS_ASSERT(Condition)                                               \
     \
 {                                                                      \
-        if (!(Condition))                                                   \
-            VOS_ERROR(VOS_StsInternal, "Assertion: " #Condition " failed"); \
+    if (!(Condition))                                                   \
+    VOS_ERROR(VOS_StsInternal, "Assertion: " #Condition " failed"); \
     \
-}
+    }
 
-	
+
 #define VOS_FUN_CALL(Func)                    \
     \
 {                                        \
-        int fun_call_result;                  \
-        fun_call_result = Func;               \
-                                              \
-        if (fun_call_result < 0)              \
-            VOS_ERROR((fun_call_result), ""); \
+    int fun_call_result;                  \
+    fun_call_result = Func;               \
     \
-}
+    if (fun_call_result < 0)              \
+    VOS_ERROR((fun_call_result), ""); \
+    \
+    }
 
 #define __BEGIN__ {
 #define __END__ \

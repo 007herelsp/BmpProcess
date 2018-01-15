@@ -12,7 +12,7 @@ double GetArcLength(const void *array, Slice slice, int is_closed)
     int i, j = 0, count;
     const int N = 16;
     float buf[N];
-    Mat buffer = InitMat(1, N, VOS_32F, buf);
+    AutoBuffer buffer = InitAutoBuffer(1, N, VOS_32F, buf);
     SeqReader reader;
     Seq *contour = NULL;
 
@@ -126,7 +126,7 @@ double GetContourArea(const Seq *contour, Slice slice)
     }
     else
     {
-            VOS_ERROR(VOS_StsUnsupportedFormat,"");
+        VOS_ERROR(VOS_StsUnsupportedFormat,"");
     }
 
     __END__;

@@ -2,7 +2,7 @@
 #include "process.h"
 #include "misc.h"
 
-static void Sobel(const Mat *src, Mat *dst, int dx, int dy, int aperture_size)
+static void Sobel(const AutoBuffer *src, AutoBuffer *dst, int dx, int dy, int aperture_size)
 {
     SepFilter filter;
 
@@ -12,8 +12,8 @@ static void Sobel(const Mat *src, Mat *dst, int dx, int dy, int aperture_size)
 
     int src_type, dst_type;
 
-    src_type = VOS_MAT_TYPE(src->type);
-    dst_type = VOS_MAT_TYPE(dst->type);
+    src_type = VOS_BUFFER_TYPE(src->type);
+    dst_type = VOS_BUFFER_TYPE(dst->type);
 
     if (!VOS_ARE_SIZES_EQ(src, dst))
         VOS_ERROR(VOS_StsBadArg, "");
@@ -29,14 +29,14 @@ static void Sobel(const Mat *src, Mat *dst, int dx, int dy, int aperture_size)
 static const int TG22 = (int)(0.4142135623730950488016887242097 * (1 << CANNY_SHIFT) + 0.5);
 
 // 仿照matlab，自适应求高低两个门限
-void CannyAdaptiveFindThreshold(Mat *dx, Mat *dy, double *low, double *high)
+void CannyAdaptiveFindThreshold(AutoBuffer *dx, AutoBuffer *dy, double *low, double *high)
 {
     Size size;
     int i, j;
     int hist_size = 255;
     double PercentOfPixelsNotEdges = 0.7;
     size = GetSize(dx);
-    IplImage *imge = CreateImage(size, SYS_DEPTH_32F, 1);
+    BmpImage *imge = CreateImage(size, SYS_DEPTH_32F, 1);
 
     // 计算边缘的强度, 并存于图像中
     float maxv = 0;
@@ -123,7 +123,7 @@ void CannyAdaptiveFindThreshold(Mat *dx, Mat *dy, double *low, double *high)
 void Canny(const void *srcarr, void *dstarr,
            double low_thresh, double high_thresh, int aperture_size)
 {
-    Mat *dx = NULL, *dy = NULL;
+    AutoBuffer *dx = NULL, *dy = NULL;
     void *buffer = NULL;
     uchar **stack_top, **stack_bottom = NULL;
 
@@ -131,8 +131,8 @@ void Canny(const void *srcarr, void *dstarr,
 
     __BEGIN__;
 
-    Mat srcstub, *src = (Mat *)srcarr;
-    Mat dststub, *dst = (Mat *)dstarr;
+    AutoBuffer srcstub, *src = (AutoBuffer *)srcarr;
+    AutoBuffer dststub, *dst = (AutoBuffer *)dstarr;
     Size size;
     int flags = aperture_size;
     int low, high;
@@ -140,23 +140,23 @@ void Canny(const void *srcarr, void *dstarr,
     uchar *map;
     int mapstep, maxsize;
     int i, j;
-    Mat mag_row;
+    AutoBuffer mag_row;
 
-    VOS_CALL(src = GetMat(src, &srcstub));
-    VOS_CALL(dst = GetMat(dst, &dststub));
+    VOS_CALL(src = GetAutoBuffer(src, &srcstub));
+    VOS_CALL(dst = GetAutoBuffer(dst, &dststub));
 
-    if (VOS_MAT_TYPE(src->type) != VOS_8UC1 ||
-        VOS_MAT_TYPE(dst->type) != VOS_8UC1)
+    if (VOS_BUFFER_TYPE(src->type) != VOS_8UC1 ||
+            VOS_BUFFER_TYPE(dst->type) != VOS_8UC1)
         VOS_ERROR(VOS_StsUnsupportedFormat, "");
 
     aperture_size &= INT_MAX;
     if ((aperture_size & 1) == 0 || aperture_size < 3 || aperture_size > 7)
         VOS_ERROR(VOS_StsBadFlag, "");
 
-    size = GetMatSize(src);
+    size = GetBufferSize(src);
 
-    dx = CreateMat(size.height, size.width, VOS_16SC1);
-    dy = CreateMat(size.height, size.width, VOS_16SC1);
+    dx = CreateAutoBuffer(size.height, size.width, VOS_16SC1);
+    dy = CreateAutoBuffer(size.height, size.width, VOS_16SC1);
     Sobel(src, dx, 1, 0, aperture_size);
     Sobel(src, dy, 0, 1, aperture_size);
 
@@ -217,7 +217,7 @@ void Canny(const void *srcarr, void *dstarr,
 #define CANNY_PUSH(d) *(d) = (uchar)2, *stack_top++ = (d)
 #define CANNY_POP(d) (d) = *--stack_top
 
-    mag_row = InitMat(1, size.width, VOS_32F);
+    mag_row = InitAutoBuffer(1, size.width, VOS_32F);
 
     for (i = 0; i <= size.height; i++)
     {
@@ -395,8 +395,8 @@ void Canny(const void *srcarr, void *dstarr,
 
     __END__;
 
-    ReleaseMat(&dx);
-    ReleaseMat(&dy);
+    ReleaseAutoBuffer(&dx);
+    ReleaseAutoBuffer(&dy);
     SYS_FREE(&buffer);
     SYS_FREE(&stack_bottom);
 }

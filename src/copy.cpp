@@ -17,21 +17,21 @@ void Copy(const void *srcarr, void *dstarr)
     __BEGIN__;
 
     int pix_size;
-    Mat *src = (Mat *)srcarr;
-    Mat *dst = (Mat *)dstarr;
+    AutoBuffer *src = (AutoBuffer *)srcarr;
+    AutoBuffer *dst = (AutoBuffer *)dstarr;
     Size size;
 
-    size = GetMatSize(src);
+    size = GetBufferSize(src);
     pix_size = VOS_ELEM_SIZE(src->type);
 
     int src_step = src->step, dst_step = dst->step;
     size.width *= pix_size;
-    if (VOS_IS_MAT_CONT(src->type & dst->type) && (src_step == dst_step) && (src_step == src->width * pix_size))
+    if (VOS_IS_BUFFER_CONT(src->type & dst->type) && (src_step == dst_step) && (src_step == src->width * pix_size))
     {
         size.width *= size.height;
 
-        if (size.width <= VOS_MAX_INLINE_MAT_OP_SIZE *
-                              VOS_MAX_INLINE_MAT_OP_SIZE * (int)sizeof(double))
+        if (size.width <= VOS_MAX_INLINE_BUFFER_OP_SIZE *
+                              VOS_MAX_INLINE_BUFFER_OP_SIZE * (int)sizeof(double))
         {
             VOS_MEMCPY(dst->data.ptr, src->data.ptr, size.width);
             EXIT;

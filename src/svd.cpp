@@ -6,22 +6,22 @@
 #define iGivens_64f(n, x, y, c, s)     \
     \
 {                                 \
-        int _i;                        \
-        double *_x = (x);              \
-        double *_y = (y);              \
-                                       \
-        for (_i = 0; _i < n; _i++)     \
-        {                              \
-            double t0 = _x[_i];        \
-            double t1 = _y[_i];        \
-            _x[_i] = t0 * c + t1 * s;  \
-            _y[_i] = -t0 * s + t1 * c; \
-        }                              \
+    int _i;                        \
+    double *_x = (x);              \
+    double *_y = (y);              \
     \
-}
+    for (_i = 0; _i < n; _i++)     \
+{                              \
+    double t0 = _x[_i];        \
+    double t1 = _y[_i];        \
+    _x[_i] = t0 * c + t1 * s;  \
+    _y[_i] = -t0 * s + t1 * c; \
+    }                              \
+    \
+    }
 
 static void iMatrAXPY_64f(int m, int n, const double *x, int dx,
-              const double *a, double *y, int dy)
+                          const double *a, double *y, int dy)
 {
     int i, j;
 
@@ -82,7 +82,7 @@ static void iMatrAXPY3_64f(int m, int n, const double *x, int l, double *y, doub
     }
 }
 
-static double pythag(double a, double b)
+static double iPythag(double a, double b)
 {
     a = fabs(a);
     b = fabs(b);
@@ -103,10 +103,10 @@ static double pythag(double a, double b)
 #define MAX_ITERS 30
 
 static void iSVD_64f(double *a, int lda, int m, int n,
-         double *w,
-         double *uT, int lduT, int nu,
-         double *vT, int ldvT,
-         double *buffer)
+                     double *w,
+                     double *uT, int lduT, int nu,
+                     double *vT, int ldvT,
+                     double *buffer)
 {
     double *e;
     double *temp;
@@ -389,7 +389,7 @@ static void iSVD_64f(double *a, int lda, int m, int n,
                         break;
 
                     g = w[i];
-                    h = pythag(f, g);
+                    h = iPythag(f, g);
                     w[i] = h;
                     c = g / h;
                     s = -f / h;
@@ -409,7 +409,7 @@ static void iSVD_64f(double *a, int lda, int m, int n,
             g = e[k - 1];
             h = e[k];
             f = 0.5 * (((g + z) / h) * ((g - z) / y) + y / h - h / y);
-            g = pythag(f, 1);
+            g = iPythag(f, 1);
             if (f < 0)
                 g = -g;
             f = x - (z / x) * z + (h / x) * (y / (f + g) - h);
@@ -422,7 +422,7 @@ static void iSVD_64f(double *a, int lda, int m, int n,
                 y = w[i];
                 h = s * g;
                 g *= c;
-                z = pythag(f, h);
+                z = iPythag(f, h);
                 e[i - 1] = z;
                 c = f / z;
                 s = h / z;
@@ -434,7 +434,7 @@ static void iSVD_64f(double *a, int lda, int m, int n,
                 if (vT)
                     iGivens_64f(n, vT + ldvT * (i - 1), vT + ldvT * i, c, s);
 
-                z = pythag(f, h);
+                z = iPythag(f, h);
                 w[i - 1] = z;
 
                 /* rotation can be arbitrary if z == 0 */
@@ -494,10 +494,10 @@ static void iSVD_64f(double *a, int lda, int m, int n,
 }
 
 static void iSVBkSb_64f(int m, int n, const double *w,
-            const double *uT, int lduT,
-            const double *vT, int ldvT,
-            const double *b, int ldb, int nb,
-            double *x, int ldx, double *buffer)
+                        const double *uT, int lduT,
+                        const double *vT, int ldvT,
+                        const double *b, int ldb, int nb,
+                        double *x, int ldx, double *buffer)
 {
     double threshold = 0;
     int i, j, nm = VOS_MIN(m, n);
@@ -594,26 +594,26 @@ void SVD(VOID *aarr, VOID *warr, VOID *uarr, VOID *varr, int flags)
 
     __BEGIN__;
 
-    Mat astub, *a = (Mat *)aarr;
-    Mat wstub, *w = (Mat *)warr;
-    Mat ustub, *u;
-    Mat vstub, *v;
-    Mat tmat;
+    AutoBuffer astub, *a = (AutoBuffer *)aarr;
+    AutoBuffer wstub, *w = (AutoBuffer *)warr;
+    AutoBuffer ustub, *u;
+    AutoBuffer vstub, *v;
+    AutoBuffer tmat;
     uchar *tw = NULL;
     int type;
     int a_buf_offset = 0, u_buf_offset = 0, buf_size, pix_size;
     int temp_u = 0, /* temporary storage for U is needed */
-        t_svd;      /* special case: a->rows < a->cols */
+            t_svd;      /* special case: a->rows < a->cols */
     int m, n;
     int w_rows, w_cols;
     int u_rows = 0, u_cols = 0;
     int w_is_mat = 0;
 
-    if (!VOS_IS_MAT(a))
-        VOS_CALL(a = GetMat(a, &astub));
+    if (!VOS_IS_BUFFER(a))
+        VOS_CALL(a = GetAutoBuffer(a, &astub));
 
-    if (!VOS_IS_MAT(w))
-        VOS_CALL(w = GetMat(w, &wstub));
+    if (!VOS_IS_BUFFER(w))
+        VOS_CALL(w = GetAutoBuffer(w, &wstub));
 
     if (!VOS_ARE_TYPES_EQ(a, w))
         VOS_ERROR(VOS_StsUnmatchedFormats, "");
@@ -641,8 +641,8 @@ void SVD(VOID *aarr, VOID *warr, VOID *uarr, VOID *varr, int flags)
         t_svd = 1;
     }
 
-    u = (Mat *)uarr;
-    v = (Mat *)varr;
+    u = (AutoBuffer *)uarr;
+    v = (AutoBuffer *)varr;
 
     w_is_mat = w_cols > 1 && w_rows > 1;
 
@@ -650,9 +650,9 @@ void SVD(VOID *aarr, VOID *warr, VOID *uarr, VOID *varr, int flags)
 
     if (u)
     {
-        if (!VOS_IS_MAT(u))
+        if (!VOS_IS_BUFFER(u))
         {
-            VOS_CALL(u = GetMat(u, &ustub));
+            VOS_CALL(u = GetAutoBuffer(u, &ustub));
         }
 
         u_rows = u->cols;
@@ -680,8 +680,8 @@ void SVD(VOID *aarr, VOID *warr, VOID *uarr, VOID *varr, int flags)
     {
         int v_rows, v_cols;
 
-        if (!VOS_IS_MAT(v))
-            VOS_CALL(v = GetMat(v, &vstub));
+        if (!VOS_IS_BUFFER(v))
+            VOS_CALL(v = GetAutoBuffer(v, &vstub));
 
         v_rows = v->cols;
         v_cols = v->rows;
@@ -702,7 +702,7 @@ void SVD(VOID *aarr, VOID *warr, VOID *uarr, VOID *varr, int flags)
         v->step = 0;
     }
 
-    type = VOS_MAT_TYPE(a->type);
+    type = VOS_BUFFER_TYPE(a->type);
     pix_size = VOS_ELEM_SIZE(type);
     buf_size = n * 2 + m;
 
@@ -727,8 +727,8 @@ void SVD(VOID *aarr, VOID *warr, VOID *uarr, VOID *varr, int flags)
         VOS_CALL(buffer = (uchar *)SysAlloc(buf_size));
     }
 
-    InitMatHeader(&tmat, m, n, type,
-                  buffer + a_buf_offset * pix_size);
+    InitAutoBufferHeader(&tmat, m, n, type,
+                         buffer + a_buf_offset * pix_size);
     if (!t_svd)
         Copy(a, &tmat);
     else
@@ -740,7 +740,7 @@ void SVD(VOID *aarr, VOID *warr, VOID *uarr, VOID *varr, int flags)
 
     if (temp_u)
     {
-        InitMatHeader(&ustub, u_cols, u_rows, type, buffer + u_buf_offset * pix_size);
+        InitAutoBufferHeader(&ustub, u_cols, u_rows, type, buffer + u_buf_offset * pix_size);
         u = &ustub;
     }
 
@@ -776,11 +776,11 @@ void SVBkSb(const VOID *warr, const VOID *uarr,
 
     __BEGIN__;
 
-    Mat wstub, *w = (Mat *)warr;
-    Mat bstub, *b = (Mat *)barr;
-    Mat xstub, *x = (Mat *)xarr;
-    Mat ustub, *u = (Mat *)uarr;
-    Mat vstub, *v = (Mat *)varr;
+    AutoBuffer wstub, *w = (AutoBuffer *)warr;
+    AutoBuffer bstub, *b = (AutoBuffer *)barr;
+    AutoBuffer xstub, *x = (AutoBuffer *)xarr;
+    AutoBuffer ustub, *u = (AutoBuffer *)uarr;
+    AutoBuffer vstub, *v = (AutoBuffer *)varr;
     uchar *tw = NULL;
     int type;
     int w_buf_offset = 0, t_buf_offset = 0;
@@ -789,17 +789,17 @@ void SVBkSb(const VOID *warr, const VOID *uarr,
     int u_rows, u_cols;
     int v_rows, v_cols;
 
-    if (!VOS_IS_MAT(w))
-        VOS_CALL(w = GetMat(w, &wstub));
+    if (!VOS_IS_BUFFER(w))
+        VOS_CALL(w = GetAutoBuffer(w, &wstub));
 
-    if (!VOS_IS_MAT(u))
-        VOS_CALL(u = GetMat(u, &ustub));
+    if (!VOS_IS_BUFFER(u))
+        VOS_CALL(u = GetAutoBuffer(u, &ustub));
 
-    if (!VOS_IS_MAT(v))
-        VOS_CALL(v = GetMat(v, &vstub));
+    if (!VOS_IS_BUFFER(v))
+        VOS_CALL(v = GetAutoBuffer(v, &vstub));
 
-    if (!VOS_IS_MAT(x))
-        VOS_CALL(x = GetMat(x, &xstub));
+    if (!VOS_IS_BUFFER(x))
+        VOS_CALL(x = GetAutoBuffer(x, &xstub));
 
     if (!VOS_ARE_TYPES_EQ(w, u) || !VOS_ARE_TYPES_EQ(w, v) || !VOS_ARE_TYPES_EQ(w, x))
         VOS_ERROR(VOS_StsUnmatchedFormats, "");
@@ -809,7 +809,7 @@ void SVBkSb(const VOID *warr, const VOID *uarr,
         VOS_ERROR(VOS_StsUnsupportedFormat, "");
     }
 
-    type = VOS_MAT_TYPE(w->type);
+    type = VOS_BUFFER_TYPE(w->type);
     pix_size = VOS_ELEM_SIZE(type);
 
     u_rows = u->cols;
@@ -827,7 +827,7 @@ void SVBkSb(const VOID *warr, const VOID *uarr,
 
     if ((1 == w->rows || 1 == w->cols) && w->rows + w->cols - 1 == nm)
     {
-        if (VOS_IS_MAT_CONT(w->type))
+        if (VOS_IS_BUFFER_CONT(w->type))
             tw = w->data.ptr;
         else
         {
@@ -845,8 +845,8 @@ void SVBkSb(const VOID *warr, const VOID *uarr,
 
     if (b)
     {
-        if (!VOS_IS_MAT(b))
-            VOS_CALL(b = GetMat(b, &bstub));
+        if (!VOS_IS_BUFFER(b))
+            VOS_CALL(b = GetAutoBuffer(b, &bstub));
         if (!VOS_ARE_TYPES_EQ(w, b))
             VOS_ERROR(VOS_StsUnmatchedFormats, "");
         if (b->cols != x->cols || b->rows != m)
